@@ -3,7 +3,6 @@
     ViewData["Title"] = "Home Page";
     string[] tableHeaders = new string[]
                                                                                                     {
-    "Seqno ",
     "BranchName ",
     "TerminalID ",
     "Location ",
@@ -184,8 +183,7 @@
                         {
                             foreach (var Data in Model)
                             {
-                                <tr>
-                                    <td> @Data.Seqno </td>
+                                <tr>                                   
                                     <td> @Data.BranchName </td>
                                     <td> @Data.TerminalID</td>
                                     <td> @Data.Location </td>
@@ -207,23 +205,22 @@
 
 
             <div class="row">
-                <div class="col colPagination">
+                <div class="col colPagination" style="padding-top:10px;z-index:1;">
 
                     <nav>
-                        <ul class="pagination">
-
+                        <div class="pagination">
                             <li data-page="prev" id="back">
-                                <a style="color: #fdfdfd;"> < <a class="sr-only">(current)</a></a>
+                                <a style="color: #fdfdfd;"> < </a>
                             </li>
                             <!--	Here the JS Function Will Add the Rows -->
                             <li data-page="next" id="prev">
-                                <a style="color: #fdfdfd;"> > <a class="sr-only">(current)</a></a>
+                                <a style="color: #fdfdfd;"> > </a>
                             </li>
 
-                        </ul>
+                        </div>
                     </nav>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2" style="z-index:2;">
                     <p style="font-size:16px;font-weight:bolder;">
                         Select page :
                         @Html.DropDownList("seletePageNow", new SelectListItem[] {
@@ -241,141 +238,6 @@
     </div>
 
 </div>
-
-@*<div style="margin-top: 20px;" class="container  body-content">
-    @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get))
-    {
-        <fieldset style="font-family:'Tahoma'" class="parameter-border shadow-lg rounded-lg gsb-bgcolor2">
-            <legend class="parameter-border rounded-lg gsb-bgcolor2">Terminal Problem List</legend>
-            <hr class="w-75" />
-            <div class="form-inline">
-                <div class="row">
-                    <table style="font-size: 14px; margin-bottom: 1.8rem;" class="tableEJ">
-                        <tr>
-                            <td colspan="6" class="text-center"><h3 style="text-shadow: 2px 2px 5px hotpink;" class="text-success">@ViewBag.Branch</h3></td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="TermID">Terminal ID</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="18%">
-                                @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "w-100 form-control" })
-                            </td>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="FrDate">From Date</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="18%">
-                                <div class="input-group">
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                    @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control w-75 rounded-lg", @readonly = "true", @placeholder = "dd/mm/yyyy" })
-                                </div>
-                            </td>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="ToDate">To Date</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="18%">
-                                <div class="input-group">
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                    @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control w-75 rounded-lg", @readonly = "true", @placeholder = "dd/mm/yyyy" })
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="StratTime">From Time</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td colspan="5">
-                                @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @class = "w-5 form-control" })
-                                &nbsp;&nbsp;<label style="color: red">Format : 00:00:00</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                &nbsp;&nbsp;<label for="EndTime">To Time</label>&nbsp;:&nbsp;&nbsp;
-                                @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @class = "w-5 form-control" })
-                                &nbsp;&nbsp;<label style="color: red">Format : 23:59:59</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="lstPageSize">รายการต่อหน้า:</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="18%">
-                                @Html.DropDownList("lstPageSize", new List<SelectListItem>
-                            {
-                            new SelectListItem{ Text="20", Value = "20" , Selected = ViewBag.CurrentPageSize=="20"?true:false },
-                            new SelectListItem{ Text="50", Value = "50" , Selected = ViewBag.CurrentPageSize=="50"?true:false },
-                            new SelectListItem{ Text="100", Value = "100" , Selected = ViewBag.CurrentPageSize=="100"?true:false },
-                            new SelectListItem{ Text="200", Value = "200" , Selected = ViewBag.CurrentPageSize=="200"?true:false },
-                            new SelectListItem{ Text="500", Value = "500" , Selected = ViewBag.CurrentPageSize=="500"?true:false },
-                            new SelectListItem{ Text="1000", Value = "1000" , Selected = ViewBag.CurrentPageSize=="1000"?true:false }
-                            }, new { @class = "form-control w-50 rounded-lg" })
-                            </td>
-                            <td colspan="4" width="100%">
-                                &nbsp;
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="ErrMeaaage">Error Meaasge</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="100%" colspan="2">
-                                <select name="ddlProbMaster" id="ddlProbMaster" class="form-control w-100 rounded-lg">
-                                    @{
-                                        <option value="All">All</option>
-                                        if (ViewBag.ProbMaster != "")
-                                        {
-                                            char[] spMas = new char[] { '|' };
-                                            string strMasterProb = ViewBag.ProbMaster;
-                                            string[] arrMasterProb = strMasterProb.Split(spMas);
-                                            char[] spMas1 = new char[] { ',' };
-                                            foreach (string mas in arrMasterProb)
-                                            {
-                                                string[] arrMasterProb1 = mas.Split(spMas1);
-                                                if (ViewBag.CurrentProbMaster == arrMasterProb1[0].ToString())
-                                                {
-                                                    <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                }
-
-                                            }
-                                        }
-                                    }
-                                </select>
-                            </td>
-                            <td style="text-align: right; vertical-align: middle;color: black;" width="12%">
-                                <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
-                                <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
-                            </td>
-                            <td width="100%" colspan="2">
-                                @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="6">
-                                <hr class="w-75" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" style="text-align: right;">
-                                <button id="btnSearch" type="submit" class="btn-lg btn-default glyphicon glyphicon-search" data-toggle="tooltip" name="cmdButton" title="ค้นหาข้อมูล" value="Search"></button>
-                                <button id="btnClear" type="submit" class="btn-lg btn-default glyphicon glyphicon-erase" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear"></button>
-                                <button id="btnSummary" type="submit" class="btn-lg btn-default glyphicon glyphicon-erase" data-toggle="tooltip" name="cmdButton" title="สรุปรายงาน" value="Summary"></button>&nbsp;&nbsp;
-                            </td>
-                            <td colspan="3" style="text-align: left;">
-                                &nbsp;&nbsp;
-                                <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report">
-                                    <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                                </a>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </fieldset>
-    }
-</div>*@
-
-
 
 
 <script>
@@ -432,7 +294,7 @@
                                 '">\
                                                <a style="color: #fdfdfd;">' +
                                 i++ +
-                                '<a style="color: #fdfdfd;" class="sr-only">(current)</a></a>\
+                                '\
                                                         </li>'
                             )
                             .show();
