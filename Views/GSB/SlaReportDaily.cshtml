@@ -7,9 +7,12 @@
     ViewData["Title"] = "SLA Report Daily Page";
     string[] tableHeaders = new string[]{
     "ID ",
-    "Action ",
-    "TerminalID ",
+    "Action",
+    "Job No",
+    "Serial No",
+    "Terminal ID ",
     "Problem Detail ",
+    "Report Date",
     "Open Date ",
     "Net Downtime ",
     "Status " ,
@@ -127,10 +130,13 @@
                         <tr>
                             <td> @Data.ID </td>
                             <td style="text-align: center;">
-                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.ID', '@Data.Open_Date', '@Data.Appointment_Date', '@Data.Closed_Repair_Date', '@Data.Down_Time', '@Data.AS_OpenDate', '@Data.AS_AppointmentDate', '@Data.AS_CloseRepairDate', '@Data.AS_Downtime', '@Data.Discount', '@Data.Net_Downtime', '@Data.AS_Discription', '@Data.AS_CIT_Request', '@Data.AS_Service_PM', '@Data.Status', '@Data.Terminal_ID', '@Data.Model','@Data.Serial_NO','@Data.Province','@Data.Location','@Data.Problem_Detail','@Data.Solving_Program','@Data.Service_Team','@Data.Contact_Name_Branch_CIT','@Data.Open_By','@Data.Remark')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.ID', '@Data.Open_Date', '@Data.Report_Date', '@Data.Closed_Repair_Date', '@Data.Down_Time', '@Data.AS_OpenDate', '@Data.AS_AppointmentDate', '@Data.AS_CloseRepairDate', '@Data.AS_Downtime', '@Data.Discount', '@Data.Net_Downtime', '@Data.AS_Discription', '@Data.AS_CIT_Request', '@Data.AS_Service_PM', '@Data.Status', '@Data.Terminal_ID', '@Data.Model','@Data.Serial_NO','@Data.Province','@Data.Location','@Data.Problem_Detail','@Data.Solving_Program','@Data.Service_Team','@Data.Contact_Name_Branch_CIT','@Data.Open_By','@Data.Remark')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
                             </td>
+                            <td> @Data.Remark</td>
+                            <td> @Data.Serial_NO</td>
                             <td> @Data.Terminal_ID </td>
                             <td> @Data.Problem_Detail </td>
+                            <td> @Data.Report_Date</td>
                             <td> @Data.Open_Date </td>
                             <td> @Data.Net_Downtime </td>
                             <td> @Data.Status </td>
@@ -208,10 +214,10 @@
                             @Html.TextBox("Open_Date", ViewBag.OpenDate as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                         <div class="col-md-2 modelTopic">
-                            <label for="Appointment_Date">AppointmentDate </label>&nbsp;:&nbsp;
+                            <label for="Report_Date">Report Date </label>&nbsp;:&nbsp;
                         </div>
                         <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Appointment_Date", ViewBag.Appointment_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            @Html.TextBox("Report_Date", ViewBag.Report_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                     </div>
                     <div class="row">
@@ -320,7 +326,7 @@
                             @Html.TextBox("Open_By", ViewBag.Open_By as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                         <div class="col-md-2 modelTopic">
-                            <label for="Remark">Remark</label>&nbsp;:&nbsp;
+                            <label for="Remark">Job No</label>&nbsp;:&nbsp;
                         </div>
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Remark", ViewBag.Remark as string, new { @class = "w-100 form-control", @readonly = "true" })
@@ -654,10 +660,10 @@
                         }
                     }
         }
-                function EditButton(ID, Open_Date, Appointment_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, Terminal_ID, Model, Serial_NO,Province,Location,Problem_Detail,Solving_Program,Service_Team,Contact_Name_Branch_CIT,Open_By,Remark) {
+                function EditButton(ID, Open_Date, Report_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, Terminal_ID, Model, Serial_NO,Province,Location,Problem_Detail,Solving_Program,Service_Team,Contact_Name_Branch_CIT,Open_By,Remark) {
                             document.getElementById('ID').value = ID;
                             document.getElementById('Open_Date').value = Open_Date;
-                            document.getElementById('Appointment_Date').value = Appointment_Date;
+                            document.getElementById('Report_Date').value = Report_Date;
                             document.getElementById('Closed_Repair_Date').value = Closed_Repair_Date;
                             document.getElementById('Down_Time').value = Down_Time;
                             document.getElementById('AS_OpenDate').value = AS_OpenDate;

@@ -86,7 +86,7 @@
 
    
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
            @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="ASC", Value = "ASC"  },
                 new SelectListItem(){ Text="DESC", Value = "DESC" }
             }, new
@@ -95,13 +95,11 @@
             @name = "state"
      })
         </div>
-      
-    </div>
-    <div class="row" style="margin-left:0px;margin-right:0px;">
-        <div class="col-md-1 align-content-center" style="">
+        <div class="col-md-1" style="margin-left:0px;margin-right:0px;">
             <button type="submit" id="btnsearch" class="btnsearch">search  </button>
         </div>
     </div>
+    
     <div class="row" style="margin-top: 15px">
     <div class="col-md-1 colRows">
         <p style="font-size:16px;font-weight:bolder;">Rows : </p>
@@ -656,6 +654,6 @@
                             if(typeof NETCHARGE !== null && NETCHARGE !== 'undefined') { document.getElementById('NETCHARGE').value = NETCHARGE; }
                             if(typeof REMARK !== null && REMARK !== 'undefined') { document.getElementById('REMARK').value = REMARK; }
        }       
-       พ
+       
 
 </script>

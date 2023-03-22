@@ -33,7 +33,7 @@ namespace SLA_Management.Controllers
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";
-            startquery_reportdaily = "SELECT TOP 5000 ID, Open_Date, Appointment_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, TERM_ID, Model, TERM_SEQ, Province, Location, Problem_Detail, Solving_Program, Service_Team, Contact_Name_Branch_CIT, Open_By, Remark FROM ";
+            startquery_reportdaily = "SELECT TOP 5000 ID,Report_Date, Open_Date, Appointment_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, TERM_ID, Model, TERM_SEQ, Province, Location, Problem_Detail, Solving_Program, Service_Team, Contact_Name_Branch_CIT, Open_By, Remark FROM ";
             startquery_tracking = "SELECT TOP 5000 ID,APPNAME,UPDATE_DATE,STATUS,REMARK,USER_IP FROM " + slatracking_table;
             startquery_reportmonthly = "SELECT TOP 5000 ID,TERM_ID,TERM_SEQ,LOCATION,PROVINCE,INSTALL_LOT,REPLENISHMENT_DATE,STARTSERVICE_DATE,TOTALSERVICEDAY,SERVICE_GROUP,SERVICE_DATE,SERVICEDAY_CHARGE,SERVICETIME_CHARGE_PERDAY,SERVICETIME_PERMONTH_HOUR,SERVICETIME_PERHOUR_MINUTE,TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE,ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE,ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK FROM "+ slamonthlydowntime_table;
 
@@ -236,11 +236,11 @@ namespace SLA_Management.Controllers
             {
                 if(TerminalID != "")
                 {
-                    com.CommandText += " AND Open_Date between '" + Year + "-" + Month + "-" + Day + " 00:00:00' and '" + Year + "-" + Month + "-" + Day + " 23:59:59'";
+                    com.CommandText += " AND Report_Date between '" + Year + "-" + Month + "-" + Day + " ' and '" + Year + "-" + Month + "-" + Day + " '";
                 }
                 else
                 {
-                    com.CommandText += " Where Open_Date between '" + Year + "-" + Month + "-" + Day + " 00:00:00' and '" + Year + "-" + Month + "-" + Day + " 23:59:59'";
+                    com.CommandText += " Where Report_Date between '" + Year + "-" + Month + "-" + Day + " ' and '" + Year + "-" + Month + "-" + Day + " '";
                 }
                 
             }
