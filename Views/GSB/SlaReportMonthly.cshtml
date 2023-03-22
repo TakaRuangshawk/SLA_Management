@@ -1,0 +1,661 @@
+﻿@using System.Globalization
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model PagedList.IPagedList<SLA_Management.Models.SLAReportMonthly>
+@{
+    ViewData["Title"] = "SLA Report Monthly Page";
+    string[] tableHeaders = new string[]{
+    "ID ",
+    "Action ",
+    "TerminalID ",
+    "SERIAL NO",
+    "SERVICE GROUP",
+    "TOTAL DOWNTIME",
+    "ACTUAL",
+    "NETCHARGE"
+    };
+}  <script>
+
+  </script>
+  <style>
+      .chkbox{
+          text-align:left;
+      }
+      .my-dropdown {
+        width :100%;
+        height:100%;
+      }
+      input:disabled {
+        background-color: #f2f2f2;
+      }
+  </style>
+<div class="row" style="margin-left:0px;margin-right:0px; width: 100%;">
+
+    <div class="col-md-2">
+        <p class="text-black fs-3">TerminalID</p>
+    </div>
+    <div class="col-md-2">
+        <p class="text-black fs-3">SERIAL NO</p>
+    </div>
+    <div class="col-md-2">
+        <p class="text-black fs-3">Month</p>
+    </div>
+    <div class="col-md-2">
+        <p class="text-black fs-3">Year</p>
+    </div>
+    <div class="col-md-2">
+        <p class="text-black fs-3">Order by</p>
+    </div>
+    <div class="col-md-2">
+        <p class ="text-black fs-3">Sort by</p>
+    </div>
+</div>
+
+@using (Html.BeginForm("SlaReportMonthly", "GSB", FormMethod.Get, new { id = "IndexID" }))
+{
+    <div class="row" style="margin-left:0px;margin-right:0px;">
+
+        <div class="col-md-2">
+
+            @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+        </div>
+        <div class="col-md-2">
+
+            @Html.TextBox("TerminalSEQ", ViewBag.TerminalSEQ as string, new { @class = "form-control subsearch", @placeholder = "TerminalSEQ" })
+        </div>
+        <div class="col-md-2">
+                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown"})
+        </div>
+        
+        <div class="col-md-2"> 
+                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown"})
+        </div>  
+
+        <div class="col-md-2">
+                    @Html.DropDownList("Orderby", new SelectListItem[] { 
+                        new SelectListItem(){ Text="Serial No", Value = "TERM_SEQ" },
+                        new SelectListItem(){ Text="TerminalID", Value = "TERM_ID" },
+                        new SelectListItem(){ Text="Total Downtime", Value = "TOTALDOWNTIME_HOUR" },
+                        new SelectListItem(){ Text="NET CHARGE", Value = "NETCHARGE" },
+                    }, new
+                    {
+                        @class = "form-control",
+                        @name = "state"
+                    })
+
+   
+        </div>
+        <div class="col-md-2">
+           @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="ASC", Value = "ASC"  },
+                new SelectListItem(){ Text="DESC", Value = "DESC" }
+            }, new
+            {
+            @class = "form-control",
+            @name = "state"
+     })
+        </div>
+      
+    </div>
+    <div class="row" style="margin-left:0px;margin-right:0px;">
+        <div class="col-md-1 align-content-center" style="">
+            <button type="submit" id="btnsearch" class="btnsearch">search  </button>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 15px">
+    <div class="col-md-1 colRows">
+        <p style="font-size:16px;font-weight:bolder;">Rows : </p>
+    </div>
+
+    <div class="col-md-1" style="padding-top: 10px;">
+        <div class="form-group">
+            <!--		Show Numbers Of Rows 		-->
+            @Html.DropDownList("maxRows", new SelectListItem[] {
+            new SelectListItem(){ Text="20", Value = "20"  },
+            new SelectListItem(){ Text="50", Value = "50"  },
+            new SelectListItem(){ Text="100", Value = "100" },
+            new SelectListItem(){ Text="200", Value = "200"  },
+            new SelectListItem(){ Text="1000", Value = "1000"  }
+            }, new
+            {
+            @class = "form-control"
+            ,
+            @name = "state"
+
+            })
+
+        </div>
+    </div>
+</div>
+}
+
+
+<div class="table-responsive" style="overflow-x: hidden;">
+    <table id="table-id" class="table table-striped custom-table" style="">
+        <thead>
+            <tr>
+                @{
+                    foreach (var head in tableHeaders)
+                    {
+                        <th scope="col"> @head </th>
+                    }
+                }
+
+            </tr>
+        </thead>
+
+        <tbody>
+            @{
+                if (Model != null)
+                {
+                    foreach (var Data in Model)
+                    {
+                        <tr>
+                            <td> @Data.ID </td>
+                            <td style="text-align: center;">
+                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton_m('@Data.ID','@Data.TERM_ID','@Data.TERM_SEQ','@Data.LOCATION','@Data.PROVINCE', '@Data.INSTALL_LOT', '@Data.REPLENISHMENT_DATE', '@Data.STARTSERVICE_DATE', '@Data.TOTALSERVICEDAY', '@Data.SERVICE_GROUP', '@Data.SERVICE_DATE', '@Data.SERVICEDAY_CHARGE', '@Data.SERVICETIME_CHARGE_PERDAY', '@Data.SERVICETIME_PERMONTH_HOUR', '@Data.SERVICETIME_PERHOUR_MINUTE', '@Data.TOTALDOWNTIME_HOUR','@Data.TOTALDOWNTIME_MINUTE','@Data.ACTUAL_SERVICETIME_PERMONTH_HOUR','@Data.ACTUAL_SERVICETIME_PERHOUR_MINUTE','@Data.ACTUAL_PERCENTSLA','@Data.RATECHARGE','@Data.SERVICECHARGE','@Data.NETCHARGE','@Data.REMARK')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                            </td>
+                            <td> @Data.TERM_ID </td>
+                            <td> @Data.TERM_SEQ </td>
+                            <td> @Data.SERVICE_GROUP </td>
+                            <td> @Data.TOTALDOWNTIME_HOUR </td>
+                            <td> @Data.ACTUAL_PERCENTSLA </td>
+                            <td> @Data.NETCHARGE </td>
+                        </tr>
+                    }
+
+                }
+                if (Model.Count == 0)
+                {
+
+                <td colspan="12" style="text-align: center;"> NO DATA </td>
+                }
+            }
+        </tbody>
+
+
+    </table>
+    <div class="row">
+        <div class="col-md-2" style="z-index:2;">
+            <p style="font-size:16px;font-weight:bolder;">
+                Select page :
+                @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                }, new
+                {
+                @class = "form-control"
+                })
+            </p>
+        </div>
+        <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+            <nav>
+                <div class="pagination">
+                    <li data-page="prev" id="back">
+                        <a style="color: #454545;"> < </a>
+                    </li>
+                    <!--	Here the JS Function Will Add the Rows -->
+                    <li data-page="next" id="prev">
+                        <a style="color: #454545;"> > </a>
+                    </li>
+
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="row">
+    </div>
+
+</div>
+@using (Html.BeginForm("SlaReportMonthly", "GSB", FormMethod.Get, new { id = "ModalTransactionID" }))
+{
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="container-fluid" style="padding: 10px;">
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="No">No </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("ID", ViewBag.ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_ID">TERMINAL ID </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_SEQ">SERIAL NO </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="LOCATION">LOCATION </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("LOCATION", ViewBag.LOCATION as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="PROVINCE">PROVINCE </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="INSTALL_LOT">INSTALL LOT</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("INSTALL_LOT", ViewBag.INSTALL_LOT as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="REPLENISHMENT_DATE">REPLENISHMENT DATE </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("REPLENISHMENT_DATE", ViewBag.REPLENISHMENT_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="STARTSERVICE_DATE">STARTSERVICE DATE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("STARTSERVICE_DATE", ViewBag.STARTSERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TOTALSERVICEDAY">TOTALSERVICEDAY </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TOTALSERVICEDAY", ViewBag.TOTALSERVICEDAY as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_GROUP">SERVICE GROUP</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_GROUP", ViewBag.SERVICE_GROUP as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_DATE">SERVICE DATE </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_DATE", ViewBag.SERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICEDAY_CHARGE">SERVICEDAY CHARGE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICEDAY_CHARGE", ViewBag.SERVICEDAY_CHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICETIME_CHARGE_PERDAY">SERVICE CHARGE PER DAY </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICETIME_CHARGE_PERDAY", ViewBag.SERVICETIME_CHARGE_PERDAY as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICETIME_PERMONTH_HOUR">SERVICETIME PERMONTH HOUR</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICETIME_PERMONTH_HOUR", ViewBag.SERVICETIME_PERMONTH_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICETIME_PERHOUR_MINUTE">SERVICETIME PERHOUR MINUTE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICETIME_PERHOUR_MINUTE", ViewBag.SERVICETIME_PERHOUR_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TOTALDOWNTIME_HOUR">TOTALDOWNTIME HOUR</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TOTALDOWNTIME_HOUR", ViewBag.TOTALDOWNTIME_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TOTALDOWNTIME_MINUTE">TOTALDOWNTIME MINUTE </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TOTALDOWNTIME_MINUTE", ViewBag.TOTALDOWNTIME_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Remark">ACTUAL SERVICETIME PERMONTH HOUR</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("ACTUAL_SERVICETIME_PERMONTH_HOUR", ViewBag.ACTUAL_SERVICETIME_PERMONTH_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="ACTUAL_SERVICETIME_PERHOUR_MINUTE">ACTUAL SERVICETIME PERHOUR MINUTE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("ACTUAL_SERVICETIME_PERHOUR_MINUTE", ViewBag.ACTUAL_SERVICETIME_PERHOUR_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true",@row = 3 })
+                        </div>
+                    </div>
+                  
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="ACTUAL_PERCENTSLA">ACTUAL PERCENTSLA</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("ACTUAL_PERCENTSLA", ViewBag.ACTUAL_PERCENTSLA as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="RATECHARGE">RATECHARGE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("RATECHARGE", ViewBag.RATECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICECHARGE">SERVICE CHARGE </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICECHARGE", ViewBag.SERVICECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="NETCHARGE">NETCHARGE</label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("NETCHARGE", ViewBag.NETCHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="REMARK">REMARK </label>
+                        </div>
+                        <div class="col-md-5 modelTextbox">
+                            @Html.TextBox("REMARK", ViewBag.REMARK as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                       
+                    </div>
+                  
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<script>
+  
+ 
+    var maxRows = @ViewBag.maxRows;
+    var md_Count = @Model.Count;
+        getPagination('#table-id', maxRows);
+        function getPagination(table, row) {
+            var lastPage = 1;
+
+            $('#maxRows')
+                .on('change', function (evt) {
+                    $('.paginationprev').html('')
+
+                    lastPage = 1; 
+                    $('.pagination')
+                        .find('li')
+                        .slice(1, -1)
+                        .remove();
+                    var trnum = 0;
+                    var maxRows = parseInt($(this).val());
+
+                    if (maxRows == 5000) {
+                        $('.pagination').hide();
+                    } else {
+                        $('.pagination').show();
+                    }
+
+                    var totalRows = $(table + ' tbody tr').length; // numbers of rows
+                    $(table + ' tr:gt(0)').each(function () {
+                        // each TR in  table and not the header
+                        trnum++; // Start Counter
+                        if (trnum > maxRows) {
+                            // if tr number gt maxRows
+
+                            $(this).hide(); // fade it out
+                        }
+                        if (trnum <= maxRows) {
+                            $(this).show();
+                        } // else fade in Important in case if it ..
+                    }); //  was fade out to fade it in
+                    if (totalRows > maxRows) {
+                        // if tr total rows gt max rows option
+                        var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+                        //	numbers of pages
+
+                        for (var i = 1; i <= pagenum;) {
+                            // for each page append pagination li
+                            $('.pagination #prev')
+                                .before(
+                                    '<li data-page="' +
+                                    i +
+                                    '">\
+                                           <a style="color: #454545;">' +
+                                    i++ +
+                                    '\
+                                                    </li>'
+                                )
+                                .show();
+                        } // end for i
+                        $('#back').show();
+
+
+
+                    } else {
+                        $('#back').hide();
+                        $('#prev').hide();
+                    }
+
+                    // end if row count > max rows
+                    $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+                    $('.pagination li').on('click', function (evt) {
+                        // on click each page
+                        evt.stopImmediatePropagation();
+                        evt.preventDefault();
+                        var pageNum = $(this).attr('data-page'); // get it's number
+
+                        var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+
+
+                        if (pageNum == 'prev') {
+                            if (lastPage == 1) {
+                                return;
+                            }
+                            pageNum = --lastPage;
+                        }
+                        if (maxRows < totalRows) {
+                            if (pageNum == 'next') {
+                                if (lastPage == $('.pagination li').length - 2) {
+                                    return;
+                                }
+                                pageNum = ++lastPage;
+                            }
+                        }
+
+
+                        lastPage = pageNum;
+                        var trIndex = 0; // reset tr counter
+                        $('.pagination li').removeClass('active'); // remove active class from all li
+                        $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                        // $(this).addClass('active');					// add active class to the clicked
+                        limitPagging();
+                        $(table + ' tr:gt(0)').each(function () {
+                            // each tr in table not the header
+                            trIndex++; // tr index counter
+                            // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                            if (
+                                trIndex > maxRows * pageNum ||
+                                trIndex <= maxRows * pageNum - maxRows
+                            ) {
+                                $(this).hide();
+                            } else {
+                                $(this).show();
+                            } //else fade in
+                        }); // end of for each tr in table
+
+
+                        $('#seletePageNow').val(lastPage);
+
+
+
+
+                    }); // end of on click pagination list
+
+
+                    $('#seletePageNow')
+                        .find('option')
+                        .remove()
+                        .end();
+
+
+                    var pagenum = Math.ceil(md_Count / parseInt($('#maxRows').val()));
+
+
+                    var select = document.getElementById("seletePageNow");
+                    for (var i = parseInt(pagenum); i > 0; i--) {
+                        var option = document.createElement('option');
+                        option.text = option.value = i;
+                        select.add(option, 0);
+                    }
+
+                    $('#seletePageNow').val(lastPage);
+
+                })
+                .val(row)
+                .change();
+
+
+
+            $('#seletePageNow')
+                .on('change', function (evt) {
+                    // on click each page
+                    evt.stopImmediatePropagation();
+                    evt.preventDefault();
+                    var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+                    var pageNum = $(this).val();
+
+                    if (pageNum == null) pageNum = 1;
+
+
+
+
+
+                    lastPage = pageNum;
+                    var trIndex = 0; // reset tr counter
+                    $('.pagination li').removeClass('active'); // remove active class from all li
+                    $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                    // $(this).addClass('active');					// add active class to the clicked
+                    limitPagging();
+                    $(table + ' tr:gt(0)').each(function () {
+                        // each tr in table not the header
+                        trIndex++; // tr index counter
+                        // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                        if (
+                            trIndex > maxRows * pageNum ||
+                            trIndex <= maxRows * pageNum - maxRows
+                        ) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        } //else fade in
+                    }); // end of for each tr in table
+                }).change();
+
+
+
+            // end of on select change
+
+            // END OF PAGINATION
+        }
+
+
+        function limitPagging() {
+
+                    if ($('.pagination li').length > 7) {
+                        if ($('.pagination li.active').attr('data-page') <= 3) {
+                            $('.pagination li:gt(5)').hide();
+                            $('.pagination li:lt(5)').show();
+                            $('.pagination [data-page="next"]').show();
+                        } if ($('.pagination li.active').attr('data-page') > 3) {
+                            $('.pagination li:gt(0)').hide();
+                            $('.pagination [data-page="next"]').show();
+                            for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                                $('.pagination [data-page="' + i + '"]').show();
+
+                            }
+
+                        }
+                    }
+        }
+        function EditButton_m(ID, TERM_ID, TERM_SEQ, LOCATION, PROVINCE, INSTALL_LOT, REPLENISHMENT_DATE, STARTSERVICE_DATE, TOTALSERVICEDAY,SERVICE_GROUP, SERVICE_DATE, SERVICEDAY_CHARGE, SERVICETIME_CHARGE_PERDAY, SERVICETIME_PERMONTH_HOUR, SERVICETIME_PERHOUR_MINUTE, TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE, ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE, ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK) {
+                            if(typeof ID !== null && ID !== 'undefined') { document.getElementById('ID').value = ID; }
+                            if(typeof TERM_ID !== null && TERM_ID !== 'undefined') { document.getElementById('TERM_ID').value = TERM_ID; }
+                            if(typeof TERM_SEQ !== null && TERM_SEQ !== 'undefined') { document.getElementById('TERM_SEQ').value = TERM_SEQ; }
+                            if(typeof LOCATION !== null && LOCATION !== 'undefined') { document.getElementById('LOCATION').value = LOCATION; }
+                            if(typeof PROVINCE !== null && PROVINCE !== 'undefined') { document.getElementById('PROVINCE').value = PROVINCE; }
+                            if(typeof INSTALL_LOT !== null && INSTALL_LOT !== 'undefined') { document.getElementById('INSTALL_LOT').value = INSTALL_LOT; }
+                            if(typeof REPLENISHMENT_DATE !== null && REPLENISHMENT_DATE !== 'undefined') { document.getElementById('REPLENISHMENT_DATE').value = REPLENISHMENT_DATE; } 
+                            if(typeof STARTSERVICE_DATE !== null && STARTSERVICE_DATE !== 'undefined') { document.getElementById('STARTSERVICE_DATE').value = STARTSERVICE_DATE; }
+                            if(typeof TOTALSERVICEDAY !== null && TOTALSERVICEDAY !== 'undefined') { document.getElementById('TOTALSERVICEDAY').value = TOTALSERVICEDAY; } 
+                            if(typeof SERVICE_GROUP !== null && SERVICE_GROUP !== 'undefined') { document.getElementById('SERVICE_GROUP').value = SERVICE_GROUP; }
+                            if(typeof SERVICE_DATE !== null && SERVICE_DATE !== 'undefined') { document.getElementById('SERVICE_DATE').value = SERVICE_DATE; }
+                            if(typeof SERVICEDAY_CHARGE !== null && SERVICEDAY_CHARGE !== 'undefined') { document.getElementById('SERVICEDAY_CHARGE').value = SERVICEDAY_CHARGE; }
+                            if(typeof SERVICETIME_CHARGE_PERDAY !== null && SERVICETIME_CHARGE_PERDAY !== 'undefined') { document.getElementById('SERVICETIME_CHARGE_PERDAY').value = SERVICETIME_CHARGE_PERDAY; }
+                            if(typeof SERVICETIME_PERMONTH_HOUR !== null && SERVICETIME_PERMONTH_HOUR !== 'undefined') { document.getElementById('SERVICETIME_PERMONTH_HOUR').value = SERVICETIME_PERMONTH_HOUR; }
+                            if(typeof SERVICETIME_PERHOUR_MINUTE !== null && SERVICETIME_PERHOUR_MINUTE !== 'undefined') { document.getElementById('SERVICETIME_PERHOUR_MINUTE').value = SERVICETIME_PERHOUR_MINUTE; }
+                            if(typeof TOTALDOWNTIME_HOUR !== null && TOTALDOWNTIME_HOUR !== 'undefined') { document.getElementById('TOTALDOWNTIME_HOUR').value = TOTALDOWNTIME_HOUR; }
+                            if(typeof TOTALDOWNTIME_MINUTE !== null && TOTALDOWNTIME_MINUTE !== 'undefined') { document.getElementById('TOTALDOWNTIME_MINUTE').value = TOTALDOWNTIME_MINUTE; }
+                            if(typeof ACTUAL_SERVICETIME_PERMONTH_HOUR !== null && ACTUAL_SERVICETIME_PERMONTH_HOUR !== 'undefined') { document.getElementById('ACTUAL_SERVICETIME_PERMONTH_HOUR').value = ACTUAL_SERVICETIME_PERMONTH_HOUR; }
+                            if(typeof ACTUAL_SERVICETIME_PERHOUR_MINUTE !== null && ACTUAL_SERVICETIME_PERHOUR_MINUTE !== 'undefined') { document.getElementById('ACTUAL_SERVICETIME_PERHOUR_MINUTE').value = ACTUAL_SERVICETIME_PERHOUR_MINUTE; }
+                            if(typeof ACTUAL_PERCENTSLA !== null && ACTUAL_PERCENTSLA !== 'undefined') { document.getElementById('ACTUAL_PERCENTSLA').value = ACTUAL_PERCENTSLA; }
+                            if(typeof RATECHARGE !== null && RATECHARGE !== 'undefined') { document.getElementById('RATECHARGE').value = RATECHARGE; }
+                            if(typeof SERVICECHARGE !== null && SERVICECHARGE !== 'undefined') { document.getElementById('SERVICECHARGE').value = SERVICECHARGE; }
+                            if(typeof NETCHARGE !== null && NETCHARGE !== 'undefined') { document.getElementById('NETCHARGE').value = NETCHARGE; }
+                            if(typeof REMARK !== null && REMARK !== 'undefined') { document.getElementById('REMARK').value = REMARK; }
+       }       
+       พ
+
+</script>
