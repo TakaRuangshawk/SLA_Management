@@ -170,11 +170,18 @@ namespace SLA_Management.Controllers
                 param.TRXTYPE = "";
 
 
+                // Bugs 
+                //if(ddlProbMaster != null && ddlProbMaster != "")
+                //{
+                //    recordset = connectDB_TermProb.GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
+                //}
 
-                if (MessErrKeyWord != null && MessErrKeyWord != "")
-                {
+
+
+                //if (MessErrKeyWord != null && MessErrKeyWord != "")
+                //{
                     recordset = connectDB_TermProb.GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
-                }
+                //}
                 //else
                 //{ recordset = logicLogSeek.GetErrorTermDeviceEJLog(param, 1, 0); }
 
