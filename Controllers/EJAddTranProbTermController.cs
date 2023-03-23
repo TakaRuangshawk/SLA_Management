@@ -3,7 +3,9 @@ using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using PagedList;
 using SLA_Management.Data.TermProbDB;
+using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 using SLA_Management.Models.TermProbModel;
+using SLAManagement.Data;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
@@ -16,9 +18,10 @@ namespace SLA_Management.Controllers
 
         #region Local Variable
         CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        SqlCommand com = new SqlCommand();      
-        List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
-        ConnectDB_TermProb connectDB_TermProb = new ConnectDB_TermProb();
+        SqlCommand com = new SqlCommand();
+        ConnectSQL_Server con;
+        static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
+        static ej_trandada_seek param = new ej_trandada_seek();
 
         #endregion
 
@@ -57,7 +60,7 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
-            ej_trandada_seek param = new ej_trandada_seek();
+
 
             ViewBag.maxRows = "5";
 
@@ -70,7 +73,7 @@ namespace SLA_Management.Controllers
             try
             {
 
-                ProdMasData = connectDB_TermProb.GetMasterSysErrorWord();
+                ProdMasData = GetMasterSysErrorWord();
                 if (ProdMasData.Count > 0)
                 {
                     ViewBag.ProbMaster = "";
@@ -86,7 +89,7 @@ namespace SLA_Management.Controllers
                 if (cmdButton == "Clear")
                     return RedirectToAction("EJAddTranProbTermAction");
 
-                
+
 
                 if (null == TermID && null == FrDate && null == ToDate && null == page)
                 {
@@ -169,26 +172,34 @@ namespace SLA_Management.Controllers
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
 
+                if (ddlProbMaster != null && ddlProbMaster != "")
+                {
+                    recordset = GetErrorTermDeviceEJLog_Database(param, 1, 0);
+                }
 
-                // Bugs 
-                //if(ddlProbMaster != null && ddlProbMaster != "")
-                //{
-                //    recordset = connectDB_TermProb.GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
-                //}
+                if (MessErrKeyWord != null && MessErrKeyWord != "")
+                {
+                    recordset = GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
+                    ViewBag.CurrentProbMaster = "All";
+                }
 
 
-
-                //if (MessErrKeyWord != null && MessErrKeyWord != "")
-                //{
-                    recordset = connectDB_TermProb.GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
-                //}
                 //else
                 //{ recordset = logicLogSeek.GetErrorTermDeviceEJLog(param, 1, 0); }
 
                 if (null == recordset || recordset.Count <= 0)
+                {
                     ViewBag.NoData = "true";
+
+                }
+
                 else
+                {
                     recCnt = recordset.Count;
+                    ejLog_dataList = recordset;
+                    param.PAGESIZE = recordset.Count;
+                }
+
 
                 if (recCnt > 0)
                 {
@@ -205,14 +216,14 @@ namespace SLA_Management.Controllers
             return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
 
-        public List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
-        {
-            List<ej_trandeviceprob> recordset = null;
+        //public List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
+        //{
+        //    List<ej_trandeviceprob> recordset = null;
 
-            recordset = connectDB_TermProb.GetErrorTermDeviceKWEJLog_Database(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
+        //    recordset = GetErrorTermDeviceKWEJLog_Database(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
 
-            return recordset;
-        }
+        //    return recordset;
+        //}
 
         private int GetPageIndex(int startRowIndex, int maximumRows)
         {
@@ -235,6 +246,41 @@ namespace SLA_Management.Controllers
             return recordlst;
         }
 
+        //public  List<ej_trandeviceprob> GetErrorTermDeviceEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
+        //{
+        //    List<ej_trandeviceprob> recordset = null;
+
+        //    recordset = GetErrorTermDeviceEJLog_Database(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
+
+        //    return recordset;
+        //}
+
+        public List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection("server=10.98.14.12;Port=3308;User Id=root;database=gsb_logview;password=P@ssw0rd;CharSet=utf8;"))
+                {
+                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError", cn);
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
+                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
+
+                    cn.Open();
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+
         private ej_trandeviceprob GetErrorTermDeviceEJLogFromReader(IDataReader reader, int pSeqNo)
         {
             ej_trandeviceprob record = new ej_trandeviceprob();
@@ -249,7 +295,204 @@ namespace SLA_Management.Controllers
 
             return record;
         }
-       
+        private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection("server=10.98.14.12;Port=3308;User Id=root;database=gsb_logview;password=P@ssw0rd;CharSet=utf8;"))
+                {
+                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
+                    cmd.Parameters.Add(new MySqlParameter("?pProbKeyWord", model.PROBKEYWORD));
+
+                    cn.Open();
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+
+        private IDataReader ExecuteReader(DbCommand cmd)
+        {
+            return ExecuteReader(cmd, CommandBehavior.Default);
+        }
+
+        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
+        {
+            try
+            {
+                return cmd.ExecuteReader(behavior);
+            }
+            catch (MySqlException ex)
+            {
+                string err = "";
+                err = "Inner message : " + ex.InnerException.Message;
+                err += Environment.NewLine + "Message : " + ex.Message;
+                return null;
+            }
+        }
+
+        private List<ProblemMaster> GetMasterSysErrorWord()
+        {
+            List<ProblemMaster> _result = new List<ProblemMaster>();
+            DataTable _dt = new DataTable();
+            DBService _objDB = new DBService();
+            try
+            {
+
+                _dt = _objDB.GetAllMasterProblem();
+                foreach (DataRow _dr in _dt.Rows)
+                {
+                    ProblemMaster obj = new ProblemMaster();
+                    obj.ProblemCode = _dr["probcode"].ToString();
+                    obj.ProblemName = _dr["probname"].ToString();
+                    _result.Add(obj);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return _result;
+        }
+
+
+
+        [HttpPost]
+        public ActionResult EJAddTermProb_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            try
+            {
+                if (ejLog_dataList == null || ejLog_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory + @"\wwwroot";
+                ExcelUtilities obj = new ExcelUtilities(param);
+
+
+                // Session["PrefixRep"] = "EJAddTran";
+
+                string folder_name = Path.Combine(strPath + @"\TermProbExcel", "tempfiles");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GenExcelFileDeviceTermPorb(ejLog_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");            
+
+                strPathDesc = strPath + "\\TermProbExcel\\excelfile\\" + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+        [HttpGet]
+        public ActionResult DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            //try
+            //{
+
+
+
+
+            fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+
+            switch (rpttype.ToLower())
+            {
+                case "csv":
+                    fname = fname + ".csv";
+                    break;
+                case "pdf":
+                    fname = fname + ".pdf";
+                    break;
+                case "xlsx":
+                    fname = fname + ".xlsx";
+                    break;
+            }
+
+            tempPath = Path.GetFullPath(Environment.CurrentDirectory + "\\wwwroot\\TermProbExcel\\excelfile\\" + fname);
+
+
+            Console.WriteLine("Boom : " + tempPath);
+
+            if (rpttype.ToLower().EndsWith("s") == true)
+                return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+            else if (rpttype.ToLower().EndsWith("f") == true)
+                return File(tempPath + "xml", "application/pdf", fname);
+            else  //(rpttype.ToLower().EndsWith("v") == true)
+                return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+            //new FileContentResult(System.IO.File.ReadAllBytes(tempPath), "application/vnd.ms-excel");
+
+            Console.WriteLine("3Fname : " + fname);
+
+            //}
+            //catch (Exception ex)
+            //{
+            //    ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+            //    return Json(new { success = false, fname });
+            //}
+        }
+
 
 
 

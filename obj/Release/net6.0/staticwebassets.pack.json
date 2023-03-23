@@ -5,6 +5,14 @@
       "PackagePath": "staticwebassets\\SLA_Management.bundle.scp.css"
     },
     {
+      "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice.xlsx",
+      "PackagePath": "staticwebassets\\TermProbExcel\\tempfiles\\CheckProblemDevice.xlsx"
+    },
+    {
+      "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice1.xlsx",
+      "PackagePath": "staticwebassets\\TermProbExcel\\tempfiles\\CheckProblemDevice1.xlsx"
+    },
+    {
       "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\css\\MainCSS_gateway.css",
       "PackagePath": "staticwebassets\\css\\MainCSS_gateway.css"
     },
@@ -35,6 +43,10 @@
     {
       "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\images\\2.png",
       "PackagePath": "staticwebassets\\images\\2.png"
+    },
+    {
+      "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\images\\excel_green.png",
+      "PackagePath": "staticwebassets\\images\\excel_green.png"
     },
     {
       "Id": "D:\\Playground_VS\\SLA_Management\\wwwroot\\js\\bootstrap.min.js",

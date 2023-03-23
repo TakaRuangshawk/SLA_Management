@@ -23,20 +23,28 @@
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader">
-
-        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;">
+         <div class="row">
+            <div class="col col-lg-1">
+            </div>
+            <div class="col col-lg-1">
+                <p class="text-black fs-2">DeviceTermProb</p>
+            </div>
+         </div>
+       
+       
+        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
             @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get))
             {
                 <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-1" >
+                    <div class="col col-lg-1">
                         <h>Term ID : </h>
                     </div>
                     <div class="col-md-2">
                         @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                     </div>
-                    <div class="col col-lg-1" >
+                    <div class="col col-lg-1">
                         <h>Fr Date : </h>
                     </div>
                     <div class="col-md-2 ">
@@ -58,7 +66,7 @@
                 <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-1" >
+                    <div class="col col-lg-1">
                         <h>Fr Time : </h>
                     </div>
                     <div class="col-md-2">
@@ -67,7 +75,7 @@
                             @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
                         </div>
                     </div>
-                    <div class="col col-lg-1" >
+                    <div class="col col-lg-1">
                         <h>To Time : </h>
                     </div>
                     <div class="col-md-2">
@@ -78,7 +86,7 @@
                     </div>
                 </div>
                 <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">                      
+                    <div class="col col-lg-1">
                     </div>
                     <div class="col col-lg-1">
                         <h>Rows : </h>
@@ -108,7 +116,7 @@
 
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-2" >
+                    <div class="col col-lg-2">
                         <label for="ErrMeaaage">Error Meaasge</label>&nbsp;:&nbsp;&nbsp;
                     </div>
                     <div class="col-md-2">
@@ -139,7 +147,7 @@
                         </select>
                     </div>
 
-                    <div class="col col-lg-2" >
+                    <div class="col col-lg-2">
                         <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
                         <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
                     </div>
@@ -150,21 +158,28 @@
                 </div>
 
                 <div class="row justify-content-md-center" style="margin-top: 15px">
+                     <div class="col col-lg-1">
+                         </div>
                     <div class="col col-lg-2">
                         <button type="submit" id="btnsearch" class="btnsearch">search  </button>
 
                     </div>
                     <div class="col col-lg-2">
                         <button type="submit" id="btnclear" class="btnsearch" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                                </div>
+                    </div>
+                    <div class="col col-lg-2">
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report">
+                            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+                        </a>
+                    </div>
                 </div>
 
             }
 
         </div>
-       
+
         <div class="table-responsive" style="overflow-x: hidden;">
-            <table id="table-id" class="table table-striped custom-table" >
+            <table id="table-id" class="table table-striped custom-table">
                 <thead>
                     <tr>
                         @{
@@ -183,7 +198,7 @@
                         {
                             foreach (var Data in Model)
                             {
-                                <tr>                                   
+                                <tr>
                                     <td> @Data.BranchName </td>
                                     <td> @Data.TerminalID</td>
                                     <td> @Data.Location </td>
@@ -292,10 +307,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                               <a style="color: #fdfdfd;">' +
+                                                   <a style="color: #fdfdfd;">' +
                                 i++ +
                                 '\
-                                                        </li>'
+                                                            </li>'
                             )
                             .show();
                     } // end for i
@@ -375,7 +390,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                      var select = document.getElementById("seletePageNow");
+                                          var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -472,8 +487,34 @@
         });
     });
 
-                        //  Developed By Yasser Mas
-                        // yasser.mas2@gmail.com
+    //  Developed By Yasser Mas
+    // yasser.mas2@gmail.com
+
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+            + '|' + "xlsx";
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: '{ "exparams" : "' + expParams + '" }',
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
+                    window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
 
 
 

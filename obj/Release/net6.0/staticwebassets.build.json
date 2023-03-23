@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "AH7bjU7mdyLfxn8TofjII53akD0v4f/rqWRxQASu+us=",
+  "Hash": "voDxW66IRtKufe7VcBXnItB5HKGrYQMWCy4x2YMj+7E=",
   "Source": "SLA_Management",
   "BasePath": "_content/SLA_Management",
   "Mode": "Default",
@@ -185,6 +185,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\2.png"
+    },
+    {
+      "Identity": "D:\\Playground_VS\\SLA_Management\\wwwroot\\images\\excel_green.png",
+      "SourceId": "SLA_Management",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\Playground_VS\\SLA_Management\\wwwroot\\",
+      "BasePath": "_content/SLA_Management",
+      "RelativePath": "images/excel_green.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\excel_green.png"
     },
     {
       "Identity": "D:\\Playground_VS\\SLA_Management\\wwwroot\\js\\bootstrap.min.js",
@@ -1222,6 +1239,40 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
+    },
+    {
+      "Identity": "D:\\Playground_VS\\SLA_Management\\wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice.xlsx",
+      "SourceId": "SLA_Management",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\Playground_VS\\SLA_Management\\wwwroot\\",
+      "BasePath": "_content/SLA_Management",
+      "RelativePath": "TermProbExcel/tempfiles/CheckProblemDevice.xlsx",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice.xlsx"
+    },
+    {
+      "Identity": "D:\\Playground_VS\\SLA_Management\\wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice1.xlsx",
+      "SourceId": "SLA_Management",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\Playground_VS\\SLA_Management\\wwwroot\\",
+      "BasePath": "_content/SLA_Management",
+      "RelativePath": "TermProbExcel/tempfiles/CheckProblemDevice1.xlsx",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\TermProbExcel\\tempfiles\\CheckProblemDevice1.xlsx"
     }
   ]
 }
