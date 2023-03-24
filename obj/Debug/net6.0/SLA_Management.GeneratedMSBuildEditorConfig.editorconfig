@@ -5,56 +5,61 @@ build_property.UsingMicrosoftNETSdkWeb = true
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
 build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = SLA_Management
 build_property.RootNamespace = SLA_Management
-build_property.ProjectDir = D:\Workspace\Git\SLA_Management\
+build_property.ProjectDir = D:\git\SLA_Management\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\Workspace\Git\SLA_Management
+build_property.MSBuildProjectDirectory = D:\git\SLA_Management
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/Workspace/Git/SLA_Management/Views/GSB/SlaReportDaily.cshtml]
+[D:/git/SLA_Management/Views/Comlog/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbG9nXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/git/SLA_Management/Views/GSB/SlaReportDaily.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR1NCXFNsYVJlcG9ydERhaWx5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/GSB/SlaReportDaily_bk.cshtml]
+[D:/git/SLA_Management/Views/GSB/SlaReportDaily_bk.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR1NCXFNsYVJlcG9ydERhaWx5X2JrLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/GSB/SlaReportMonthly.cshtml]
+[D:/git/SLA_Management/Views/GSB/SlaReportMonthly.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR1NCXFNsYVJlcG9ydE1vbnRobHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/GSB/SlaTracking.cshtml]
+[D:/git/SLA_Management/Views/GSB/SlaTracking.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR1NCXFNsYVRyYWNraW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/Home/Index.cshtml]
+[D:/git/SLA_Management/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/Home/Privacy.cshtml]
+[D:/git/SLA_Management/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/Shared/Error.cshtml]
+[D:/git/SLA_Management/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/git/SLA_Management/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/_ViewImports.cshtml]
+[D:/git/SLA_Management/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/_ViewStart.cshtml]
+[D:/git/SLA_Management/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Workspace/Git/SLA_Management/Views/Shared/_Layout.cshtml]
+[D:/git/SLA_Management/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-n1zh8tboyp
