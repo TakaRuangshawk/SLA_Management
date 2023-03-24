@@ -8,31 +8,35 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
 {
     public class ExcelUtilities
     {
-        public string PathDefaultTemplate { get; set; }
-
-        public string FileSaveAsXlsxFormat { get; set; }
+        #region  Local Variable
 
         ej_trandada_seek param = null;
 
         CultureInfo _cultureEnInfo = new CultureInfo("en-US");
 
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
         public ExcelUtilities(ej_trandada_seek paramTemp)
         {
             param = paramTemp;
-
-
         }
 
         public ExcelUtilities()
         {
             param = new ej_trandada_seek();
-
-
         }
 
+        #endregion
 
-       
-
+        #region Function 
         public void GenExcelFileDeviceTermPorb(List<ej_trandeviceprob> objData)
         {
             int nStartRowData = 0;
@@ -41,7 +45,7 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
             string strLocation = string.Empty;
             string strProbName = string.Empty;
             int nSeq = 1;
-          
+
 
             try
             {
@@ -72,7 +76,7 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
                     foreach (ej_trandeviceprob data in objData)
                     {
 
-                        
+
 
                         excelWorksheet.Cells[nStartRowData, 1].Value = nSeq;
                         excelWorksheet.Cells[nStartRowData, 2].Value = data.BranchName;
@@ -82,14 +86,14 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 6].Value = data.Remark;
                         excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
 
-                       
+
                         nStartRowData++;
                         nSeq++;
-                     
+
                     }
 
-                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "CheckProblemDevice1.xlsx"))));
-                    FileSaveAsXlsxFormat = "CheckProblemDevice1.xlsx";
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "CheckProblemDeviceTemp.xlsx"))));
+                    FileSaveAsXlsxFormat = "CheckProblemDeviceTemp.xlsx";
                 }
 
             }
@@ -97,8 +101,8 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
             { throw ex; }
         }
 
-       
+        #endregion
 
-       
+
     }
 }

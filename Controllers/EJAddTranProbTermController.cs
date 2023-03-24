@@ -22,37 +22,32 @@ namespace SLA_Management.Controllers
         ConnectSQL_Server con;
         static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
         static ej_trandada_seek param = new ej_trandada_seek();
+        static IConfiguration Collection_path;
+        static IConfiguration ConnectString_MySQL;
+
 
         #endregion
 
-        #region Initialize Variable
+        #region Initialize 
+
+        private void InitializeController()
+        {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json").Build();
 
 
+            Collection_path = config.GetSection("Collection_path");
+            ConnectString_MySQL = config.GetSection("ConnectString_MySQL");
 
-        //public EJAddTranProbTermController(IConfiguration myConfiguration)
-        //{
-        //    _myConfiguration = myConfiguration;
-        //    con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
+        }
 
-        //    gatewayTable = _myConfiguration["Database:GatewayTable"];
 
-        //    secondDatabase = _myConfiguration["Database:SecondDatabase"];
-
-        //    secondTable = _myConfiguration["Database:SecondTable"];
-
-        //    symmetricKey = _myConfiguration["Database:SymmetricKey"];
-
-        //    certification = _myConfiguration["Database:Certification"];
-
-        //    startQuery = "OPEN SYMMETRIC KEY " + symmetricKey + " DECRYPTION BY CERTIFICATE " + certification + "  SELECT ID,SeqNo,CONVERT(nvarchar, DecryptByKey(Citizen_Id)) AS 'Citizen_Id_Decrypt',CONVERT (nvarchar , DecryptByKey(Customer_title)) AS 'Customer_title' ,CONVERT(nvarchar, DecryptByKey(Customer_first_name)) AS 'Customer_first_name',CONVERT(nvarchar, DecryptByKey(Customer_middle_name)) AS 'Customer_middle_name',CONVERT(nvarchar, DecryptByKey(Customer_last_name)) AS 'Customer_last_name',CONVERT(nvarchar, DecryptByKey(English_customer_title)) AS 'English_customer_title',CONVERT(nvarchar, DecryptByKey(English_first_name)) AS 'English_first_name',CONVERT(nvarchar, DecryptByKey(English_middle_name)) AS 'English_middle_name',CONVERT(nvarchar, DecryptByKey(English_last_name)) AS 'English_last_name',CONVERT(datetime, CONVERT(nvarchar, DecryptByKey(Date_of_birth))) AS 'Date_of_birth',CONVERT(nvarchar, DecryptByKey(AcctNoFrom)) AS 'AcctNoFrom',CONVERT(nvarchar, DecryptByKey(AcctNoTo)) AS 'AcctNoTo',CONVERT(nvarchar, DecryptByKey(AcctName)) AS 'AcctName', TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorDescription,device_info.TERM_NAME FROM " + gatewayTable + " left join " + secondDatabase + ".dbo." + secondTable + " On TERM_ID = TerminalNo ";
-
-        //    loginSub = new LoginController(myConfiguration);
-        //}
 
         #endregion
 
-
-        public ActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
+        #region Action page
+        public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
             , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
             , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
             , string currPageSize, int? page)
@@ -60,6 +55,8 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
+
+            InitializeController();
 
 
             ViewBag.maxRows = "5";
@@ -215,24 +212,9 @@ namespace SLA_Management.Controllers
             { }
             return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
+        #endregion
 
-        //public List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
-        //{
-        //    List<ej_trandeviceprob> recordset = null;
-
-        //    recordset = GetErrorTermDeviceKWEJLog_Database(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
-
-        //    return recordset;
-        //}
-
-        private int GetPageIndex(int startRowIndex, int maximumRows)
-        {
-            if (maximumRows <= 0)
-                return 0;
-            else
-                return (int)Math.Floor((double)startRowIndex / (double)maximumRows);
-        }
-
+        #region Database 
         private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader)
         {
             int _seqNo = 1;
@@ -246,20 +228,13 @@ namespace SLA_Management.Controllers
             return recordlst;
         }
 
-        //public  List<ej_trandeviceprob> GetErrorTermDeviceEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
-        //{
-        //    List<ej_trandeviceprob> recordset = null;
+       
 
-        //    recordset = GetErrorTermDeviceEJLog_Database(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
-
-        //    return recordset;
-        //}
-
-        public List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
         {
             try
             {
-                using (MySqlConnection cn = new MySqlConnection("server=10.98.14.12;Port=3308;User Id=root;database=gsb_logview;password=P@ssw0rd;CharSet=utf8;"))
+                using (MySqlConnection cn = new MySqlConnection(ConnectString_MySQL.GetValue<string>("FullNameConnection")))
                 {
                     MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError", cn);
 
@@ -299,7 +274,7 @@ namespace SLA_Management.Controllers
         {
             try
             {
-                using (MySqlConnection cn = new MySqlConnection("server=10.98.14.12;Port=3308;User Id=root;database=gsb_logview;password=P@ssw0rd;CharSet=utf8;"))
+                using (MySqlConnection cn = new MySqlConnection(ConnectString_MySQL.GetValue<string>("FullNameConnection")))
                 {
                     MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
 
@@ -364,8 +339,9 @@ namespace SLA_Management.Controllers
             }
             return _result;
         }
+        #endregion
 
-
+        #region Excel
 
         [HttpPost]
         public ActionResult EJAddTermProb_ExportExc()
@@ -379,15 +355,16 @@ namespace SLA_Management.Controllers
             string strErr = string.Empty;
             try
             {
+
                 if (ejLog_dataList == null || ejLog_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
-                string strPath = Environment.CurrentDirectory + @"\wwwroot";
+                string strPath = Environment.CurrentDirectory;
                 ExcelUtilities obj = new ExcelUtilities(param);
 
 
                 // Session["PrefixRep"] = "EJAddTran";
 
-                string folder_name = Path.Combine(strPath + @"\TermProbExcel", "tempfiles");
+                string folder_name = strPath + Collection_path.GetValue<string>("FolderInputTemplate_Excel");
 
 
                 if (!Directory.Exists(folder_name))
@@ -405,9 +382,9 @@ namespace SLA_Management.Controllers
 
 
 
-                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");            
+                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-                strPathDesc = strPath + "\\TermProbExcel\\excelfile\\" + fname + ".xlsx";
+                strPathDesc = strPath + Collection_path.GetValue<string>("Folder_Excel") + fname + ".xlsx";
 
 
                 if (obj.FileSaveAsXlsxFormat != null)
@@ -441,6 +418,8 @@ namespace SLA_Management.Controllers
             }
         }
 
+
+        
         [HttpGet]
         public ActionResult DownloadExportFile(string rpttype)
         {
@@ -448,53 +427,57 @@ namespace SLA_Management.Controllers
             string tempPath = "";
             string tsDate = "";
             string teDate = "";
-            //try
-            //{
-
-
-
-
-            fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            switch (rpttype.ToLower())
+            try
             {
-                case "csv":
-                    fname = fname + ".csv";
-                    break;
-                case "pdf":
-                    fname = fname + ".pdf";
-                    break;
-                case "xlsx":
-                    fname = fname + ".xlsx";
-                    break;
+
+
+
+
+                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + Collection_path.GetValue<string>("Folder_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+                //new FileContentResult(System.IO.File.ReadAllBytes(tempPath), "application/vnd.ms-excel");
+
+                Console.WriteLine("3Fname : " + fname);
+
             }
-
-            tempPath = Path.GetFullPath(Environment.CurrentDirectory + "\\wwwroot\\TermProbExcel\\excelfile\\" + fname);
-
-
-            Console.WriteLine("Boom : " + tempPath);
-
-            if (rpttype.ToLower().EndsWith("s") == true)
-                return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
-            else if (rpttype.ToLower().EndsWith("f") == true)
-                return File(tempPath + "xml", "application/pdf", fname);
-            else  //(rpttype.ToLower().EndsWith("v") == true)
-                return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
-
-            //new FileContentResult(System.IO.File.ReadAllBytes(tempPath), "application/vnd.ms-excel");
-
-            Console.WriteLine("3Fname : " + fname);
-
-            //}
-            //catch (Exception ex)
-            //{
-            //    ViewBag.ErrorMsg = "Download Method : " + ex.Message;
-            //    return Json(new { success = false, fname });
-            //}
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
         }
 
 
-
+        #endregion
 
 
 
