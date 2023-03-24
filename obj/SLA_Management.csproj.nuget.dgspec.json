@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\git\\SLA_Management\\SLA_Management.csproj": {}
+    "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj": {}
   },
   "projects": {
-    "D:\\git\\SLA_Management\\SLA_Management.csproj": {
+    "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\git\\SLA_Management\\SLA_Management.csproj",
+        "projectUniqueName": "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj",
         "projectName": "SLA_Management",
-        "projectPath": "D:\\git\\SLA_Management\\SLA_Management.csproj",
-        "packagesPath": "C:\\Users\\Theerapat Nugud\\.nuget\\packages\\",
-        "outputPath": "D:\\git\\SLA_Management\\obj\\",
+        "projectPath": "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj",
+        "packagesPath": "C:\\Users\\MrBoom\\.nuget\\packages\\",
+        "outputPath": "D:\\Playground_VS\\SLA_Management_V3\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Theerapat Nugud\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\MrBoom\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -68,6 +68,10 @@
               "target": "Package",
               "version": "[4.5.0, )"
             },
+            "Renci.SshNet.Async": {
+              "target": "Package",
+              "version": "[1.4.0, )"
+            },
             "System.Data.SqlClient": {
               "target": "Package",
               "version": "[4.8.5, )"
@@ -92,7 +96,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }

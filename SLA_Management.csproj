@@ -18,11 +18,13 @@
     <PackageReference Include="MySql.Data" Version="8.0.32.1" />
     <PackageReference Include="PagedList" Version="1.17.0" />
     <PackageReference Include="PagedList.Mvc" Version="4.5.0" />
+    <PackageReference Include="Renci.SshNet.Async" Version="1.4.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\TermProbExcel\excelfile\" />
+    <Folder Include="wwwroot\TermProbExcel\excelfiles\" />
+    <Folder Include="wwwroot\TermProbExcel\tempfiles\" />
   </ItemGroup>
 
 </Project>
