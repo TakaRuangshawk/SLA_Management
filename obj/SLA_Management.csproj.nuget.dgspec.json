@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj": {}
+    "D:\\git\\SLA_Management\\SLA_Management.csproj": {}
   },
   "projects": {
-    "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj": {
+    "D:\\git\\SLA_Management\\SLA_Management.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj",
+        "projectUniqueName": "D:\\git\\SLA_Management\\SLA_Management.csproj",
         "projectName": "SLA_Management",
-        "projectPath": "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj",
-        "packagesPath": "C:\\Users\\PC DataOne\\.nuget\\packages\\",
-        "outputPath": "D:\\Workspace\\Git\\SLA_Management\\obj\\",
+        "projectPath": "D:\\git\\SLA_Management\\SLA_Management.csproj",
+        "packagesPath": "C:\\Users\\Theerapat Nugud\\.nuget\\packages\\",
+        "outputPath": "D:\\git\\SLA_Management\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\PC DataOne\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Theerapat Nugud\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,9 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "D:\\NuGetPackages": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://www.nuget.org/api/v2/curated-feeds/microsoftdotnet/": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
@@ -54,6 +52,14 @@
               "target": "Package",
               "version": "[7.0.2, )"
             },
+            "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
+              "target": "Package",
+              "version": "[6.0.13, )"
+            },
+            "MySql.Data": {
+              "target": "Package",
+              "version": "[8.0.32.1, )"
+            },
             "PagedList": {
               "target": "Package",
               "version": "[1.17.0, )"
@@ -62,9 +68,21 @@
               "target": "Package",
               "version": "[4.5.0, )"
             },
+            "SSH.NET": {
+              "target": "Package",
+              "version": "[2020.0.2, )"
+            },
             "System.Data.SqlClient": {
               "target": "Package",
               "version": "[4.8.5, )"
+            },
+            "System.IO.Compression": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "bootstrap-select": {
+              "target": "Package",
+              "version": "[1.13.18, )"
             }
           },
           "imports": [
@@ -73,7 +91,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -85,7 +104,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     }
