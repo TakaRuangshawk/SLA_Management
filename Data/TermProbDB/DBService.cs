@@ -27,6 +27,7 @@ namespace SLA_Management.Data.TermProbDB
 
         private string _strErrDB = string.Empty;
 
+        static MySQLDBHelp _objDb;
         #endregion
         public DBService(IConfiguration myConfiguration)
         {
@@ -36,11 +37,22 @@ namespace SLA_Management.Data.TermProbDB
 
 
         #region Public Functions     
+
+        public static bool CheckDatabase()
+        {
+            bool result = false; 
+            _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            if (_objDb.IsConnect)
+            {
+                result = true;
+            }
+            return result;
+        }
         public DataTable GetAllMasterProblem()
         {
             DataTable _dt = new DataTable();
             string _sql = string.Empty;
-            MySQLDBHelp _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+             _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
 
             try
             {

@@ -23,15 +23,15 @@
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader">
-         <div class="row">
+        <div class="row">
             <div class="col col-lg-1">
             </div>
             <div class="col col-lg-1">
                 <p class="text-black fs-2">DeviceTermProb</p>
             </div>
-         </div>
-       
-       
+        </div>
+
+
         <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
             @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get))
             {
@@ -123,7 +123,7 @@
                         <select name="ddlProbMaster" id="ddlProbMaster" class="form-control w-100 rounded-lg">
                             @{
                                 <option value="All">All</option>
-                                if (ViewBag.ProbMaster != "")
+                                if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
                                 {
                                     char[] spMas = new char[] { '|' };
                                     string strMasterProb = ViewBag.ProbMaster;
@@ -158,20 +158,42 @@
                 </div>
 
                 <div class="row justify-content-md-center" style="margin-top: 15px">
-                     <div class="col col-lg-1">
-                         </div>
-                    <div class="col col-lg-2">
-                        <button type="submit" id="btnsearch" class="btnsearch">search  </button>
 
-                    </div>
-                    <div class="col col-lg-2">
-                        <button type="submit" id="btnclear" class="btnsearch" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                    </div>
-                    <div class="col col-lg-2">
-                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report">
-                            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                        </a>
-                    </div>
+                    @if (ViewBag.ConnectDB == "false")
+                    {
+                        <div class="col col-lg-2">
+                            <p style="color: red "> Can't connect database !</p>
+                        </div>
+                        <div class="col col-lg-1">
+                            <button type="button" id="btnsearch" class="btn btn-secondary">search  </button>
+                        </div>
+                        <div class="col col-lg-1">
+                            <button type="reset" id="btnclear" class="btn btn-secondary" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+                        </div>
+                        <div class="col col-lg-2">
+                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col col-lg-1">
+                        </div>
+                        <div class="col col-lg-2">
+                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
+                        </div>
+                        <div class="col col-lg-2">
+                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+                        </div>
+                        <div class="col col-lg-2">
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    }
+
+
                 </div>
 
             }
@@ -307,10 +329,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                   <a style="color: #fdfdfd;">' +
+                                                       <a style="color: #fdfdfd;">' +
                                 i++ +
                                 '\
-                                                            </li>'
+                                                                </li>'
                             )
                             .show();
                     } // end for i
@@ -390,7 +412,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                          var select = document.getElementById("seletePageNow");
+                                              var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;

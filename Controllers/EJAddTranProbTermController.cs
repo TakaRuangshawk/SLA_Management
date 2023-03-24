@@ -23,7 +23,7 @@ namespace SLA_Management.Controllers
         static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
         static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
-
+        private DBService dBService;
 
 
         #endregion
@@ -34,7 +34,7 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-
+             dBService = new DBService(_myConfiguration);
         }
 
 
@@ -51,13 +51,23 @@ namespace SLA_Management.Controllers
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
 
+            
             ViewBag.maxRows = "5";
 
             int pageNum = 1;
             try
             {
-
-                ProdMasData = GetMasterSysErrorWord();
+                if (DBService.CheckDatabase())      
+                {
+                    ProdMasData = GetMasterSysErrorWord();
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+               
+               
                 if (ProdMasData.Count > 0)
                 {
                     ViewBag.ProbMaster = "";
