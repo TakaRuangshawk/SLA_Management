@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj": {}
+    "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj": {}
   },
   "projects": {
-    "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj": {
+    "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj",
+        "projectUniqueName": "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj",
         "projectName": "SLA_Management",
-        "projectPath": "D:\\Playground_VS\\SLA_Management_V3\\SLA_Management.csproj",
+        "projectPath": "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj",
         "packagesPath": "C:\\Users\\MrBoom\\.nuget\\packages\\",
-        "outputPath": "D:\\Playground_VS\\SLA_Management_V3\\obj\\",
+        "outputPath": "D:\\Playground_VS\\SLA_Management_V4\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

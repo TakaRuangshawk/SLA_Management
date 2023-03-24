@@ -22,23 +22,18 @@ namespace SLA_Management.Controllers
         ConnectSQL_Server con;
         static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
         static ej_trandada_seek param = new ej_trandada_seek();
-        static IConfiguration Collection_path;
-        static IConfiguration ConnectString_MySQL;
+        private IConfiguration _myConfiguration;
+
 
 
         #endregion
 
-        #region Initialize 
+        #region Constructor
 
-        private void InitializeController()
+        public EJAddTranProbTermController(IConfiguration myConfiguration)
         {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json").Build();
 
-
-            Collection_path = config.GetSection("Collection_path");
-            ConnectString_MySQL = config.GetSection("ConnectString_MySQL");
+            _myConfiguration = myConfiguration;
 
         }
 
@@ -56,15 +51,7 @@ namespace SLA_Management.Controllers
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
 
-            InitializeController();
-
-
             ViewBag.maxRows = "5";
-
-            //TermID = "T091B030B119G262";
-            //FrDate = "2023-03-20";
-            //ToDate = "2023-03-20";
-            //MessErrKeyWord = "";
 
             int pageNum = 1;
             try
@@ -171,18 +158,17 @@ namespace SLA_Management.Controllers
 
                 if (ddlProbMaster != null && ddlProbMaster != "")
                 {
-                    recordset = GetErrorTermDeviceEJLog_Database(param, 1, 0);
+                    recordset = GetErrorTermDeviceEJLog_Database(param);
                 }
 
                 if (MessErrKeyWord != null && MessErrKeyWord != "")
                 {
-                    recordset = GetErrorTermDeviceKWEJLog_Database(param, 1, 0);
+                    recordset = GetErrorTermDeviceKWEJLog_Database(param);
                     ViewBag.CurrentProbMaster = "All";
                 }
 
 
-                //else
-                //{ recordset = logicLogSeek.GetErrorTermDeviceEJLog(param, 1, 0); }
+
 
                 if (null == recordset || recordset.Count <= 0)
                 {
@@ -209,7 +195,9 @@ namespace SLA_Management.Controllers
 
             }
             catch (Exception ex)
-            { }
+            {
+
+            }
             return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
         #endregion
@@ -228,13 +216,13 @@ namespace SLA_Management.Controllers
             return recordlst;
         }
 
-       
 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
+
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model)
         {
             try
             {
-                using (MySqlConnection cn = new MySqlConnection(ConnectString_MySQL.GetValue<string>("FullNameConnection")))
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError", cn);
 
@@ -270,11 +258,11 @@ namespace SLA_Management.Controllers
 
             return record;
         }
-        private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model, int pageIndex, int pageSize)
+        private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model)
         {
             try
             {
-                using (MySqlConnection cn = new MySqlConnection(ConnectString_MySQL.GetValue<string>("FullNameConnection")))
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
 
@@ -320,7 +308,7 @@ namespace SLA_Management.Controllers
         {
             List<ProblemMaster> _result = new List<ProblemMaster>();
             DataTable _dt = new DataTable();
-            DBService _objDB = new DBService();
+            DBService _objDB = new DBService(_myConfiguration);
             try
             {
 
@@ -364,7 +352,7 @@ namespace SLA_Management.Controllers
 
                 // Session["PrefixRep"] = "EJAddTran";
 
-                string folder_name = strPath + Collection_path.GetValue<string>("FolderInputTemplate_Excel");
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderInputTemplate_Excel");
 
 
                 if (!Directory.Exists(folder_name))
@@ -384,7 +372,7 @@ namespace SLA_Management.Controllers
 
                 fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-                strPathDesc = strPath + Collection_path.GetValue<string>("Folder_Excel") + fname + ".xlsx";
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:Folder_Excel") + fname + ".xlsx";
 
 
                 if (obj.FileSaveAsXlsxFormat != null)
@@ -419,7 +407,7 @@ namespace SLA_Management.Controllers
         }
 
 
-        
+
         [HttpGet]
         public ActionResult DownloadExportFile(string rpttype)
         {
@@ -448,7 +436,7 @@ namespace SLA_Management.Controllers
                         break;
                 }
 
-                tempPath = Path.GetFullPath(Environment.CurrentDirectory + Collection_path.GetValue<string>("Folder_Excel") + fname);
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:Folder_Excel") + fname);
 
 
 
@@ -460,9 +448,7 @@ namespace SLA_Management.Controllers
                 else  //(rpttype.ToLower().EndsWith("v") == true)
                     return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
 
-                //new FileContentResult(System.IO.File.ReadAllBytes(tempPath), "application/vnd.ms-excel");
 
-                Console.WriteLine("3Fname : " + fname);
 
             }
             catch (Exception ex)

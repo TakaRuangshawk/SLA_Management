@@ -21,29 +21,37 @@ namespace SLA_Management.Data.TermProbDB
         }
 
         #endregion
-
         #region Local Variable
+        private static IConfiguration ConnectString_MySQL;
 
-        private DataAccess _objDb = new DataAccess();
+
         private string _strErrDB = string.Empty;
 
         #endregion
+        public DBService(IConfiguration myConfiguration)
+        {
+            ConnectString_MySQL = myConfiguration;
+        }
 
-        #region Public Functions
-  
+
+
+        #region Public Functions     
         public DataTable GetAllMasterProblem()
         {
             DataTable _dt = new DataTable();
             string _sql = string.Empty;
+            MySQLDBHelp _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+
             try
             {
                 _sql = "Select * From ejlog_problemmascode where status = '1'";
-                _dt = _objDb.GetDtDataNoneParam(_sql);
+                _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
             catch (Exception ex)
             { throw ex; }
         }
+
         #endregion
 
     }

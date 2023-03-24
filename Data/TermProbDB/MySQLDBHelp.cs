@@ -11,13 +11,6 @@ namespace SLA_Management.Data.TermProbDB
     class MySQLDBHelp
     {
         #region Local Variable
-        private string ip;
-        private string user;
-        private string pw;
-        private string dbName;
-        private string dbPort;
-        private string dbConnectionTimeOut;
-        private string dbMaxPool;
         private string strConnection;
         private string _strErrDB = string.Empty;
         private MySqlConnection m_dbConnection = null;
@@ -25,10 +18,9 @@ namespace SLA_Management.Data.TermProbDB
         #endregion
 
         #region Constructor
-        public MySQLDBHelp(string ip, string dbPort, string user, string pw, string dbName, string dbtimeout, string dbpool)
+        public MySQLDBHelp(string connectString)
         {
-            this.ip = ip; this.user = user; this.pw = pw; this.dbName = dbName; this.dbPort = dbPort; this.dbConnectionTimeOut = dbtimeout; this.dbMaxPool = dbpool;
-            strConnection = CreateConnectionstring();
+            strConnection = connectString;
             ConnectionDB = strConnection;
         }
         #endregion
@@ -75,13 +67,7 @@ namespace SLA_Management.Data.TermProbDB
 
         #endregion
 
-        #region Private Functions
-        private string CreateConnectionstring()
-        {
-            string strCon = string.Format("server={0};port={1};user id={2};password={3};database={4};Connection Timeout={5};Connection Lifetime=0;Min Pool Size=0;Max Pool Size={6};Pooling=true;", ip, dbPort, user, pw, dbName, dbConnectionTimeOut, dbMaxPool);
-            return strCon;
-        }
-        #endregion
+
 
         #region Public Functions
         public bool OpenDb()
@@ -95,7 +81,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 isConnect = false;
                 return false;
             }
@@ -115,7 +101,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 return false;
             }
         }
@@ -134,7 +120,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 CloseDb();
                 return null;
             }
@@ -154,7 +140,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 CloseDb();
                 return null;
             }
@@ -188,7 +174,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
             }
             CloseDb();
             return dt;
@@ -217,7 +203,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 ErrorMessDB = ex.Message;
             }
             CloseDb();
@@ -245,7 +231,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-                
+
                 ErrorMessDB = ex.Message;
             }
             CloseDb();
@@ -279,7 +265,7 @@ namespace SLA_Management.Data.TermProbDB
             }
             catch (Exception ex)
             {
-               
+
                 ErrorMessDB = ex.Message;
             }
             CloseDb();
