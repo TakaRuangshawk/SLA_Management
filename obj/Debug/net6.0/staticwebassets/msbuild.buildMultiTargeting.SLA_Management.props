@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\SLA_Management.props" />
-</Project>
