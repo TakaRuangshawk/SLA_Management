@@ -4,13 +4,14 @@
 *@
 @model PagedList.IPagedList<SLA_Management.Models.SLAReportMonthly>
 @{
-    ViewData["Title"] = "SLA Report Monthly Page";
+    ViewData["Title"] = "D1 Operation - SLA Report";
     string[] tableHeaders = new string[]{
     "ID ",
     "Action ",
-    "TerminalID ",
+    "Terminal ID ",
     "SERIAL NO",
-    "SERVICE GROUP",
+    "Terminal Name",
+    "SERVICE DATE",
     "TOTAL DOWNTIME",
     "ACTUAL",
     "NETCHARGE"
@@ -28,12 +29,13 @@
       }
       input:disabled {
         background-color: #f2f2f2;
+
       }
   </style>
 <div class="row" style="margin-left:0px;margin-right:0px; width: 100%;">
 
     <div class="col-md-2">
-        <p class="text-black fs-3">TerminalID</p>
+        <p class="text-black fs-3">Terminal ID</p>
     </div>
     <div class="col-md-2">
         <p class="text-black fs-3">SERIAL NO</p>
@@ -52,24 +54,24 @@
     </div>
 </div>
 
-@using (Html.BeginForm("SlaReportMonthly", "GSB", FormMethod.Get, new { id = "IndexID" }))
+@using (Html.BeginForm("SlaReportMonthly", "Operation", FormMethod.Get, new { id = "IndexID" }))
 {
     <div class="row" style="margin-left:0px;margin-right:0px;">
 
         <div class="col-md-2">
 
-            @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+            @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID" })
         </div>
         <div class="col-md-2">
 
-            @Html.TextBox("TerminalSEQ", ViewBag.TerminalSEQ as string, new { @class = "form-control subsearch", @placeholder = "TerminalSEQ" })
+            @Html.TextBox("TerminalSEQ", ViewBag.TerminalSEQ as string, new { @class = "form-control subsearch", @placeholder = "Serial No" })
         </div>
         <div class="col-md-2">
-                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown"})
+                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required" })
         </div>
         
         <div class="col-md-2"> 
-                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown"})
+                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required" })
         </div>  
 
         <div class="col-md-2">
@@ -80,18 +82,18 @@
                         new SelectListItem(){ Text="NET CHARGE", Value = "NETCHARGE" },
                     }, new
                     {
-                        @class = "form-control",
+                        @class = "my-dropdown",
                         @name = "state"
                     })
 
    
         </div>
         <div class="col-md-1">
-           @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="ASC", Value = "ASC"  },
-                new SelectListItem(){ Text="DESC", Value = "DESC" }
+           @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="น้อยไปมาก", Value = "ASC"  },
+                new SelectListItem(){ Text="มากไปน้อย", Value = "DESC" }
             }, new
             {
-            @class = "form-control",
+            @class = "my-dropdown",
             @name = "state"
      })
         </div>
@@ -151,11 +153,12 @@
                         <tr>
                             <td> @Data.ID </td>
                             <td style="text-align: center;">
-                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton_m('@Data.ID','@Data.TERM_ID','@Data.TERM_SEQ','@Data.LOCATION','@Data.PROVINCE', '@Data.INSTALL_LOT', '@Data.REPLENISHMENT_DATE', '@Data.STARTSERVICE_DATE', '@Data.TOTALSERVICEDAY', '@Data.SERVICE_GROUP', '@Data.SERVICE_DATE', '@Data.SERVICEDAY_CHARGE', '@Data.SERVICETIME_CHARGE_PERDAY', '@Data.SERVICETIME_PERMONTH_HOUR', '@Data.SERVICETIME_PERHOUR_MINUTE', '@Data.TOTALDOWNTIME_HOUR','@Data.TOTALDOWNTIME_MINUTE','@Data.ACTUAL_SERVICETIME_PERMONTH_HOUR','@Data.ACTUAL_SERVICETIME_PERHOUR_MINUTE','@Data.ACTUAL_PERCENTSLA','@Data.RATECHARGE','@Data.SERVICECHARGE','@Data.NETCHARGE','@Data.REMARK')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton_m('@Data.ID','@Data.TERM_ID','@Data.TERM_SEQ','@Data.LOCATION','@Data.PROVINCE', '@Data.INSTALL_LOT', '@Data.REPLENISHMENT_DATE', '@Data.STARTSERVICE_DATE', '@Data.TOTALSERVICEDAY', '@Data.SERVICE_GROUP', '@Data.SERVICE_DATE', '@Data.SERVICEDAY_CHARGE', '@Data.SERVICETIME_CHARGE_PERDAY', '@Data.SERVICETIME_PERMONTH_HOUR', '@Data.SERVICETIME_PERHOUR_MINUTE', '@Data.TOTALDOWNTIME_HOUR','@Data.TOTALDOWNTIME_MINUTE','@Data.ACTUAL_SERVICETIME_PERMONTH_HOUR','@Data.ACTUAL_SERVICETIME_PERHOUR_MINUTE','@Data.ACTUAL_PERCENTSLA','@Data.RATECHARGE','@Data.SERVICECHARGE','@Data.NETCHARGE','@Data.REMARK','@Data.TERM_NAME')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
                             </td>
                             <td> @Data.TERM_ID </td>
                             <td> @Data.TERM_SEQ </td>
-                            <td> @Data.SERVICE_GROUP </td>
+                            <td> @Data.TERM_NAME</td>
+                            <td> @Data.SERVICE_DATE </td>
                             <td> @Data.TOTALDOWNTIME_HOUR </td>
                             <td> @Data.ACTUAL_PERCENTSLA </td>
                             <td> @Data.NETCHARGE </td>
@@ -205,7 +208,7 @@
     </div>
 
 </div>
-@using (Html.BeginForm("SlaReportMonthly", "GSB", FormMethod.Get, new { id = "ModalTransactionID" }))
+@using (Html.BeginForm("SlaReportMonthly", "Operation", FormMethod.Get, new { id = "ModalTransactionID" }))
 {
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog modal-xl">
@@ -405,10 +408,15 @@
                         <div class="col-md-2 modelTopic">
                             <label for="REMARK">REMARK </label>
                         </div>
-                        <div class="col-md-5 modelTextbox">
+                        <div class="col-md-3 modelTextbox">
                             @Html.TextBox("REMARK", ViewBag.REMARK as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
-                       
+                       <div class="col-md-2 modelTopic">
+                            <label for="TERM_NAME">TERM NAME </label>
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
                     </div>
                   
                 </div>
@@ -628,7 +636,7 @@
                         }
                     }
         }
-        function EditButton_m(ID, TERM_ID, TERM_SEQ, LOCATION, PROVINCE, INSTALL_LOT, REPLENISHMENT_DATE, STARTSERVICE_DATE, TOTALSERVICEDAY,SERVICE_GROUP, SERVICE_DATE, SERVICEDAY_CHARGE, SERVICETIME_CHARGE_PERDAY, SERVICETIME_PERMONTH_HOUR, SERVICETIME_PERHOUR_MINUTE, TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE, ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE, ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK) {
+        function EditButton_m(ID, TERM_ID, TERM_SEQ, LOCATION, PROVINCE, INSTALL_LOT, REPLENISHMENT_DATE, STARTSERVICE_DATE, TOTALSERVICEDAY,SERVICE_GROUP, SERVICE_DATE, SERVICEDAY_CHARGE, SERVICETIME_CHARGE_PERDAY, SERVICETIME_PERMONTH_HOUR, SERVICETIME_PERHOUR_MINUTE, TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE, ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE, ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK,TERM_NAME) {
                             if(typeof ID !== null && ID !== 'undefined') { document.getElementById('ID').value = ID; }
                             if(typeof TERM_ID !== null && TERM_ID !== 'undefined') { document.getElementById('TERM_ID').value = TERM_ID; }
                             if(typeof TERM_SEQ !== null && TERM_SEQ !== 'undefined') { document.getElementById('TERM_SEQ').value = TERM_SEQ; }
@@ -653,6 +661,8 @@
                             if(typeof SERVICECHARGE !== null && SERVICECHARGE !== 'undefined') { document.getElementById('SERVICECHARGE').value = SERVICECHARGE; }
                             if(typeof NETCHARGE !== null && NETCHARGE !== 'undefined') { document.getElementById('NETCHARGE').value = NETCHARGE; }
                             if(typeof REMARK !== null && REMARK !== 'undefined') { document.getElementById('REMARK').value = REMARK; }
+                            if(typeof TERM_NAME !== null && TERM_NAME !== 'undefined') { document.getElementById('TERM_NAME').value = TERM_NAME; }
+                            
        }       
        
 

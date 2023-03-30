@@ -4,7 +4,7 @@
 *@
 @model PagedList.IPagedList<SLA_Management.Models.SLAReportDaily>
 @{
-    ViewData["Title"] = "SLA Report Daily Page";
+    ViewData["Title"] = "D1 Operation - SLA Report";
     string[] tableHeaders = new string[]{
     "ID ",
     "Action",
@@ -12,8 +12,8 @@
     "Serial No",
     "Terminal ID ",
     "Problem Detail ",
-    "Report Date",
     "Open Date ",
+    "Close Repair Date",
     "Net Downtime ",
     "Status " ,
     };
@@ -53,7 +53,7 @@
     </div>
 </div>
 
-@using (Html.BeginForm("SlaReportDaily", "GSB", FormMethod.Get, new { id = "IndexID" }))
+@using (Html.BeginForm("SlaReportDaily", "Operation", FormMethod.Get, new { id = "IndexID" }))
 {
     <div class="row" style="margin-left:0px;margin-right:0px;">
 
@@ -62,18 +62,18 @@
             @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
         </div>
         <div class="col-md-2">
-                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown"})
+                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required"})
         </div>
         
         <div class="col-md-2"> 
-                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown"})
+                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required"})
         </div>  
 
         <div class="col-md-2">
                     @Html.CheckBox("chk_date", false,new {@class = "chkbox"})
         </div>
         <div class="col-md-2">
-            @Html.TextBox("date", ViewBag.toDate as string, new {@class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="ddmmyyyy" })
+            @Html.TextBox("date", ViewBag.toDate as string, new {@class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="ddmmyyyy",@required = "required" })
         </div>
         <div class="col-md-1" style="">
             <button type="submit" id="btnsearch" class="btnsearch">search  </button>
@@ -136,8 +136,8 @@
                             <td> @Data.Serial_NO</td>
                             <td> @Data.Terminal_ID </td>
                             <td> @Data.Problem_Detail </td>
-                            <td> @Data.Report_Date</td>
                             <td> @Data.Open_Date </td>
+                            <td> @Data.Closed_Repair_Date</td>
                             <td> @Data.Net_Downtime </td>
                             <td> @Data.Status </td>
                         </tr>
@@ -187,7 +187,7 @@
 
 </div>
 </div>
-@using (Html.BeginForm("SlaReportDaily", "GSB", FormMethod.Get, new { id = "ModalTransactionID" }))
+@using (Html.BeginForm("SlaReportDaily", "Operation", FormMethod.Get, new { id = "ModalTransactionID" }))
 {
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog modal-xl">

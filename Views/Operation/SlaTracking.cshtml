@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Tracking Page";
+    ViewData["Title"] = "D1 Operation - SLA Tracking";
     string[] tableHeaders = new string[]
     {
         "",
@@ -12,19 +12,19 @@
 <div class="row" style="margin-left:0px;margin-right:0px; ">
 
     <div class="col-md-2" style="">
-        <p class="text-white fs-3">App Name</p>
+        <p class="text-black fs-3">App Name</p>
     </div>
     <div class="col-md-2" style="">
-        <p class="text-white fs-3">Remark</p>
+        <p class="text-black fs-3">Status</p>
     </div>
     <div class="col-md-2" style="">
-        <p class="text-white fs-3">User IP</p>
+     @*   <p class="text-white fs-3">User IP</p>*@
     </div>
     <div class="col-md-2" style="">
-        <p class="text-white fs-3">From date</p>
+        <p class="text-black fs-3">From date</p>
     </div>
     <div class="col-md-2" style="">
-        <p class="text-white fs-3">To date</p>
+        <p class="text-black fs-3">To date</p>
     </div>
 
     <div class="col-md-1" style="">
@@ -32,7 +32,7 @@
 </div>
 
 
-@using (Html.BeginForm("SlaTracking", "GSB", FormMethod.Get, new { id = "IndexID" }))
+@using (Html.BeginForm("SlaTracking", "Operation", FormMethod.Get, new { id = "IndexID" }))
 {
     <div class="row" style="margin-left:0px;margin-right:0px;">
 
@@ -41,10 +41,11 @@
             @Html.TextBox("appName", ViewBag.appName as string, new { @class = "form-control subsearch", @placeholder = "appName" })
         </div>
         <div class="col-md-2">
-            @Html.TextBox("userIP", ViewBag.userIP as string, new { @class = "form-control subsearch", @placeholder = "userIP" })
+            @Html.TextBox("status", ViewBag.status as string, new { @class = "form-control subsearch", @placeholder = "status" })
+@*            @Html.TextBox("userIP", ViewBag.userIP as string, new { @class = "form-control subsearch", @placeholder = "userIP" })*@
         </div>
         <div class="col-md-2">
-            @Html.TextBox("status", ViewBag.status as string, new { @class = "form-control subsearch", @placeholder = "status" })
+            
         </div>
         <div class="col-md-2">
             @Html.TextBox("frDate", ViewBag.frDate as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
@@ -142,11 +143,11 @@
             <nav>
                 <div class="pagination">
                     <li data-page="prev" id="back">
-                        <a style="color: #fdfdfd;"> < </a>
+                        <a style="color: #868686;"> < </a>
                     </li>
                     <!--	Here the JS Function Will Add the Rows -->
                     <li data-page="next" id="prev">
-                        <a style="color: #fdfdfd;"> > </a>
+                        <a style="color: #868686;"> > </a>
                     </li>
 
                 </div>
@@ -159,7 +160,7 @@
 </div>
 
 
-@using (Html.BeginForm("SlaTracking", "GSB", FormMethod.Get, new { id = "ModalTransactionID" }))
+@using (Html.BeginForm("SlaTracking", "Operation", FormMethod.Get, new { id = "ModalTransactionID" }))
 {
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog modal-xl">
@@ -277,7 +278,7 @@
                                     '<li data-page="' +
                                     i +
                                     '">\
-                                           <a style="color: #fdfdfd;">' +
+                                           <a style="color: #868686;">' +
                                     i++ +
                                     '\
                                                     </li>'

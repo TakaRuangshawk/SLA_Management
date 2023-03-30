@@ -33,6 +33,7 @@ namespace SLA_Management.Models
         public string SERVICECHARGE { get; set; }
         public string NETCHARGE { get; set; }
         public string REMARK { get; set; }
+        public string TERM_NAME { get; set; }
         public static IList<SLAReportMonthly> mapToList(DataTable list)
         {
             IList<SLAReportMonthly> items = list.AsEnumerable().Select(row => new SLAReportMonthly
@@ -61,6 +62,7 @@ namespace SLA_Management.Models
                 SERVICECHARGE = row.Field<string>("SERVICECHARGE") == null ? " " : row.Field<string>("SERVICECHARGE"),
                 NETCHARGE = row.Field<string>("NETCHARGE") == null ? " " : row.Field<string>("NETCHARGE"),
                 REMARK = row.Field<string>("REMARK") == null ? " " : row.Field<string>("REMARK"),
+                TERM_NAME = row.Field<string>("TERM_NAME") == null ? " " : row.Field<string>("TERM_NAME"),
             }).ToList();
             return items;
         }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SLA_Management.Controllers
 {
-    public class GSBController : Controller
+    public class OperationController : Controller
     {
 
         CultureInfo _cultureEnInfo = new CultureInfo("en-US");
@@ -26,7 +26,7 @@ namespace SLA_Management.Controllers
         private string startquery_reportdaily;
         private string startquery_tracking;
         private string startquery_reportmonthly;
-        public GSBController(IConfiguration myConfiguration)
+        public OperationController(IConfiguration myConfiguration)
         {
             _myConfiguration = myConfiguration;
             con = new ConnectSQL_Server("Data Source=10.98.14.13;Initial Catalog=SLADB;Persist Security Info=True;User ID=sa;Password=P@ssw0rd;");
@@ -35,7 +35,7 @@ namespace SLA_Management.Controllers
             slamonthlydowntime_table = "sla_reportmonthly";
             startquery_reportdaily = "SELECT TOP 5000 ID,Report_Date, Open_Date, Appointment_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, TERM_ID, Model, TERM_SEQ, Province, Location, Problem_Detail, Solving_Program, Service_Team, Contact_Name_Branch_CIT, Open_By, Remark FROM ";
             startquery_tracking = "SELECT TOP 5000 ID,APPNAME,UPDATE_DATE,STATUS,REMARK,USER_IP FROM " + slatracking_table;
-            startquery_reportmonthly = "SELECT TOP 5000 ID,TERM_ID,TERM_SEQ,LOCATION,PROVINCE,INSTALL_LOT,REPLENISHMENT_DATE,STARTSERVICE_DATE,TOTALSERVICEDAY,SERVICE_GROUP,SERVICE_DATE,SERVICEDAY_CHARGE,SERVICETIME_CHARGE_PERDAY,SERVICETIME_PERMONTH_HOUR,SERVICETIME_PERHOUR_MINUTE,TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE,ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE,ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK FROM "+ slamonthlydowntime_table;
+            startquery_reportmonthly = "SELECT TOP 5000 t1.ID,t1.TERM_ID,t1.TERM_SEQ,t1.LOCATION,t1.PROVINCE,t1.INSTALL_LOT,t1.REPLENISHMENT_DATE,t1.STARTSERVICE_DATE,t1.TOTALSERVICEDAY,t1.SERVICE_GROUP,t1.SERVICE_DATE,t1.SERVICEDAY_CHARGE,t1.SERVICETIME_CHARGE_PERDAY,t1.SERVICETIME_PERMONTH_HOUR,t1.SERVICETIME_PERHOUR_MINUTE,t1.TOTALDOWNTIME_HOUR,t1.TOTALDOWNTIME_MINUTE,t1.ACTUAL_SERVICETIME_PERMONTH_HOUR,t1.ACTUAL_SERVICETIME_PERHOUR_MINUTE,t1.ACTUAL_PERCENTSLA,t1.RATECHARGE,t1.SERVICECHARGE,t1.NETCHARGE,t1.REMARK,t2.TERM_NAME FROM " + slamonthlydowntime_table;
 
         }
         public IActionResult SlaReportMonthly(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby, string maxRows)
@@ -72,24 +72,27 @@ namespace SLA_Management.Controllers
             if (Sortby == null || Sortby == "") Sortby = "asc";
             if (Month != "" && Year != "")
             {
-                com.CommandText = startquery_reportmonthly + "_" + Year + Month + "  ";
+                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_his as t2 on t1.TERM_ID =t2.TERM_ID ";
             }
-            
+            if (TerminalSEQ != "" || TerminalID !="")
+            {
+                com.CommandText += "Where ";
+                
+            }
             if (TerminalSEQ != "")
             {
-                com.CommandText += "WHERE TERM_SEQ = '" + TerminalSEQ + "' ";
+                com.CommandText += " t1.TERM_SEQ = '" + TerminalSEQ + "' ";
             }
-
             if (TerminalID != "")
             {
 
                 if (TerminalSEQ != "")
                 {
-                    com.CommandText += "AND TERM_ID = '" + TerminalID + "' ";
+                    com.CommandText += "AND t1.TERM_ID = '" + TerminalID + "' ";
                 }
                 else
                 {
-                    com.CommandText += " TERM_ID = '" + TerminalID + "' ";
+                    com.CommandText += " t1.TERM_ID = '" + TerminalID + "' ";
                 }
             }
             com.CommandText += " order by " + Orderby + " " +Sortby;
@@ -283,8 +286,10 @@ namespace SLA_Management.Controllers
             }
             else
             {
-                //ViewBag.frDate = frDate;
-                //ViewBag.toDate = toDate;
+                frDate = DateTime.Now.ToString("yyyy-MM-dd");
+                toDate = DateTime.Now.ToString("yyyy-MM-dd");
+                ViewBag.frDate = frDate;
+                ViewBag.toDate = toDate;
             }
 
             FatchDataMainTracking(id, appName, remark, userIP, frDate, toDate, status);

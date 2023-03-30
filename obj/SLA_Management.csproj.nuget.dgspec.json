@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj": {}
+    "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj": {}
   },
   "projects": {
-    "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj": {
+    "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj",
+        "projectUniqueName": "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj",
         "projectName": "SLA_Management",
-        "projectPath": "D:\\Playground_VS\\SLA_Management_V4\\SLA_Management.csproj",
-        "packagesPath": "C:\\Users\\MrBoom\\.nuget\\packages\\",
-        "outputPath": "D:\\Playground_VS\\SLA_Management_V4\\obj\\",
+        "projectPath": "D:\\Workspace\\Git\\SLA_Management\\SLA_Management.csproj",
+        "packagesPath": "C:\\Users\\PC DataOne\\.nuget\\packages\\",
+        "outputPath": "D:\\Workspace\\Git\\SLA_Management\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\MrBoom\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\PC DataOne\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,9 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "D:\\NuGetPackages": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://www.nuget.org/api/v2/curated-feeds/microsoftdotnet/": {}
         },
         "frameworks": {
           "net6.0": {
@@ -83,8 +85,7 @@
             "net47",
             "net471",
             "net472",
-            "net48",
-            "net481"
+            "net48"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -96,7 +97,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }

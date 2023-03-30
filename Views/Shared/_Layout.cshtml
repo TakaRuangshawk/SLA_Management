@@ -16,22 +16,28 @@
 <style>
     .navbar {
             padding-top: 0px;
-            padding-bottom: 2px;
+            padding-bottom: 0px;
             border: 0;
             border-radius: 0;
             margin-bottom: 0;
             font-size: 14px;
             letter-spacing: 1px;
             background-color: #f3cb9b;
-        }
+    }
+    .navbar a:hover, .dropdown:hover .dropbtn {
+           background-color: #997e5d;
+    }
+    .nav-link{
+            padding: 1rem 1rem;
+    }
 </style>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a asp-area="" asp-controller="Home" asp-action="Index" >
+                <div>
                      <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
-                </a>
+                </div>
                 
                 @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SLA Management</a>*@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -41,22 +47,39 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="GSB" asp-action="SlaReportDaily">SlaReportDaily</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="GSB" asp-action="SlaReportMonthly">SlaReportMonthly</a>
+                       <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Monitor
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">DeviceTermProb</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaTracking">Sla Tracking</a>
+                            </div>
                         </li>
-                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="GSB" asp-action="SlaTracking">SlaTracking</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Maintenance
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">InsertFileCOMLog</a>
+                            </div>
                         </li>
-                         <li class="nav-item">
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Report
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SlaReportDaily</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SlaReportMonthly</a>
+                            </div>
+                        </li>               
+                        @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">DeviceTermProb</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">Comlog Manage</a>
-                        </li>
-                        @*<li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>*@
                     </ul>
                 </div>
