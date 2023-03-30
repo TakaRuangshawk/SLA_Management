@@ -329,10 +329,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                       <a style="color: #fdfdfd;">' +
+                                                           <a style="color: #fdfdfd;">' +
                                 i++ +
                                 '\
-                                                                </li>'
+                                                                    </li>'
                             )
                             .show();
                     } // end for i
@@ -401,7 +401,7 @@
 
                 }); // end of on click pagination list
 
-
+                limitPagging();
     @*Set value in seletePage box*@
                     $('#seletePageNow')
                         .find('option')
@@ -412,7 +412,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                              var select = document.getElementById("seletePageNow");
+                                                  var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
