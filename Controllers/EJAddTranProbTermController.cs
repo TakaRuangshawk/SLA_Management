@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using PagedList;
+using SLA_Management.Commons;
 using SLA_Management.Data.TermProbDB;
 using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 using SLA_Management.Models.TermProbModel;
@@ -50,8 +51,21 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
+            List<string> terminalNames = new List<string>();
 
+            //DataTable terminalDBTable = GetClientFromDB();
+            //for (int i = 0; i< terminalDBTable.Rows.Count; i++)
+            //{
+            //    terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
+            //}
+
+            //if(terminalNames != null && terminalNames.Count > 0)
+            //{
+            //    ViewBag.CurrentTID = terminalNames;
+                
+            //}
             
+
             ViewBag.maxRows = "5";
 
             int pageNum = 1;
@@ -104,7 +118,8 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
-                ViewBag.CurrentTID = (TermID ?? currTID);
+                // ViewBag.CurrentTID = (TermID ?? currTID);
+                ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
@@ -337,6 +352,22 @@ namespace SLA_Management.Controllers
             }
             return _result;
         }
+
+        private DataTable GetClientFromDB()
+        {
+            DBService _objDB = new DBService(_myConfiguration);
+            DataTable _result = null;
+            try
+            {
+                _result = _objDB.GetClientData();
+            }
+            catch (Exception ex)
+            { }
+            return _result;
+        }
+
+
+
         #endregion
 
         #region Excel

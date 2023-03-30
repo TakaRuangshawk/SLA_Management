@@ -64,6 +64,24 @@ namespace SLA_Management.Data.TermProbDB
             { throw ex; }
         }
 
+        public DataTable GetClientData()
+        {
+            DataTable _dt = new DataTable();
+            string _sql = string.Empty;
+            _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            try
+            {
+                //_sql = "Select * From ejlog_terminal order by terminalid";
+                _sql = "Select DISTINCT TERM_ID as terminalid From fv_device_info order by TERM_ID";
+                _dt = _objDb.GetDatatableNotParam(_sql);
+                return _dt;
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+
+
         #endregion
 
     }
