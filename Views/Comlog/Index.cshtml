@@ -1,0 +1,214 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+
+    string[] tableHeaders = new string[]{
+    "ID ",
+    "Action",
+    "Job No",
+    "Serial No",
+    "Terminal ID ",
+    "Problem Detail ",
+    "Report Date",
+    "Open Date ",
+    "Net Downtime ",
+    "Status " ,
+    };
+}
+
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 100%;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+
+</style>
+ 
+<h1>Comlog Manage</h1>
+<div class="row" style="margin-left:0px;margin-right:0px; width: 100%; background-color:blueviolet">
+    @using (Html.BeginForm("InsertFileCOMLogRecheck", "Operate", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
+    {
+      
+        <div class="col-md-2">
+            <p class="text-black fs-3">
+                Term ID :
+                <select class="selectpicker" id="TERM_ID" name="TERM_ID" data-live-search="true">
+                    <option data-tokens="" value="">--</option>
+                    @foreach (string item in ViewBag.CurrentTermID)
+                    {
+                        if (@item != @ViewBag.TERM_ID)
+                        {
+                            <option data-tokens=@item>@item</option>
+                        }
+                        else
+                        {
+                            <option data-tokens=@item selected>@item</option>
+
+                        }
+
+
+                    }
+                </select>
+            </p>
+        </div>
+        <div class="col-md-2">
+            <p class="text-black fs-3">
+                From Date : @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control w-75 rounded-lg", @readonly = "true", @placeholder = "yyyy-mm-dd" })
+            </p>
+        </div>
+
+        <div class="col-md-2">
+            <p class="text-black fs-3">
+                To Date : @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control w-75 rounded-lg", @readonly = "true", @placeholder = "yyyy-mm-dd" })
+            </p>
+        </div>
+        <div class="col-md-2">
+            <button id="btnSearch" type="submit" class="btn-lg btn-default glyphicon glyphicon-search" data-toggle="tooltip" name="cmdButton" title="ค้นหาข้อมูล" value="Search"></button>
+
+        </div>
+        <div class="col-md-2">
+            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report">
+                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+            </a>
+        </div>
+
+       
+    }
+
+</div>
+<div class="row" style="background-color:red">
+    <div class="col-md-1 colRows">
+        <p style="font-size:16px;font-weight:bolder;">Rows : </p>
+    </div>
+    <div class="col-md-1" style="padding-top: 10px;">
+        <div class="form-group">
+            <!--		Show Numbers Of Rows 		-->
+            @Html.DropDownList("maxRows", new SelectListItem[] {
+            new SelectListItem(){ Text="20", Value = "20"  },
+            new SelectListItem(){ Text="50", Value = "50"  },
+            new SelectListItem(){ Text="100", Value = "100" },
+            new SelectListItem(){ Text="200", Value = "200"  },
+            new SelectListItem(){ Text="1000", Value = "1000"  }
+            }, new {@class = "form-control" , @name = "state" })
+
+        </div>
+    </div>
+</div>
+
+
+<div class="table-responsive" style="overflow-x: hidden;">
+    <table id="table-id" class="table table-striped custom-table" style="">
+        <thead>
+            <tr>
+                @{
+                    foreach (var head in tableHeaders)
+                    {
+                        <th scope="col"> @head </th>
+                    }
+                }
+
+            </tr>
+        </thead>
+
+        <tbody>
+           
+        </tbody>
+
+
+    </table>
+    <div class="row">
+        <div class="col-md-2" style="z-index:2;">
+            <p style="font-size:16px;font-weight:bolder;">
+                Select page :
+                @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                }, new
+                {
+                @class = "form-control"
+                })
+            </p>
+        </div>
+        <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+            <nav>
+                <div class="pagination">
+                    <li data-page="prev" id="back">
+                        <a style="color: #7a7a7a;"> < </a>
+                    </li>
+                    <!--	Here the JS Function Will Add the Rows -->
+                    <li data-page="next" id="prev">
+                        <a style="color: #7a7a7a;"> > </a>
+                    </li>
+
+                </div>
+            </nav>
+        </div>
+    </div>
+   
+   
+
+</div>
+<script>
+    $(document).ready(function () {
+        $(function () {
+
+            $('#FrDate').datepicker({
+                format: "yyyy-mm-dd",
+                maxViewMode: 3,
+                daysOfWeekHighlighted: "0,6",
+                autoclose: true,
+                todayHighlight: true
+            });
+
+            $('#ToDate').datepicker({
+                format: "yyyy-mm-dd",
+                maxViewMode: 3,
+                daysOfWeekHighlighted: "0,6",
+                autoclose: true,
+                todayHighlight: true
+            });
+        });
+        $("#InsertFileCOMLogRecheckID").submit(function (e) { 
+            var FrDateTemp = new Date($('#FrDate').val());
+            var ToDateTemp = new Date($('#ToDate').val());
+
+            if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+                alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+                return false;
+            } else {
+                return true;
+            }
+        });
+        $('#UploadFile').submit(function (e) {
+
+            var Terminal_ID = $('#Terminal_ID').val();
+            var files = $('#files').val();
+
+
+            if (Terminal_ID != "" && files != "") {
+                document.getElementById("msg_respond").innerHTML = "Please wait.. ";
+                $('#Loader').modal("show");
+                return true;
+            } else {
+                document.getElementById("msg_respond").innerHTML = "Invalid Data";
+                $('#Loader').modal("show");
+                return false;
+            }
+
+
+
+        });
+    });
+</script>
+ 
+
+

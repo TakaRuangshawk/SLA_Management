@@ -1,0 +1,180 @@
+﻿input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.pagination,
+.pagination li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+    .pagination li {
+        background: #6c757d1f;
+        cursor: pointer;
+        list-style: none;
+    }
+
+        .pagination li a {
+            text-decoration: none;
+            color: #a2a2a2;
+            height: 50px;
+            width: 50px;
+            font-size: 18px;
+            padding-top: 1px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-right-width: 0px;
+            box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.35);
+        }
+
+        .pagination li:last-child a {
+            border-right-width: 1px;
+        }
+
+        .pagination li a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-top-color: rgba(0, 0, 0, 0.35);
+            border-bottom-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .pagination li a:focus,
+        .pagination li a:active {
+            padding-top: 4px;
+            border-left-width: 1px;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0px 2px 1px 0px rgba(0, 0, 0, 0.25);
+        }
+
+        .pagination li.icon a {
+            min-width: 120px;
+        }
+
+        .pagination li:first-child span {
+            padding-right: 8px;
+        }
+
+        .pagination li:last-child span {
+            padding-left: 8px;
+        }
+
+.subsearch {
+    -webkit-appearance: none;
+    margin: 0;
+    border: 1px solid gray;
+    border-right: 0px;
+    outline: none;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    background-color: white;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+.btnsearch {
+    border: 1px solid gray;
+    border-right: 0px;
+    outline: none;
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 0px;
+}
+
+.modelTopic {
+    padding: 8px 0;
+}
+
+.modelTextbox {
+    margin-bottom: 10px;
+}
+
+.logoutButton {
+    position: absolute;
+    right: 50px;
+    bottom: 8.5px;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.usernameText {
+    font-size: 20px;
+}
+
+.usernameSub {
+    right: 15px;
+    position: absolute;
+}
+
+.refreshDetail {
+    margin-right: 20px;
+    float: right;
+}
+
+.contentHeader {
+    padding: 2rem 0;
+}
+
+.containerHeader {
+    max-width: 1400px;
+}
+
+.rowHeader {
+    margin-left: 50px;
+}
+
+.modal-contentView {
+    padding: 20px;
+    width: 1100px;
+    position: absolute;
+    right: 100px;
+    left: -150px;
+    top: 0px;
+}
+
+.modal-contentLogout {
+    width: 250px;
+    right: -270px;
+}
+
+.colPagination {
+    position: absolute;
+    right: -1%;
+    margin-top: 20px;
+}
+
+.divGroupButton {
+    padding-top: 5px;
+    margin-left: 765px;
+    cursor: pointer;
+}
+
+.imageExcel {
+    width: 50px;
+    height: 50px;
+}
+
+.colRows {
+    padding-top: 15px;
+    margin-left: 20px;
+    flex: 0 0 7.0%;
+}
+
+
