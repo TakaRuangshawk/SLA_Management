@@ -38,25 +38,25 @@
                 <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-1">
-                        <h>Term ID : </h>
+                    <div class="col col-lg-2" style="width: auto">
+                        <h>Terminal ID : </h>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2" style="margin-left:30px">
                         @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                     </div>
-                    <div class="col col-lg-1">
-                        <h>Fr Date : </h>
+                    <div class="col col-lg-2" style="width: auto">
+                        <h>From Date : </h>
                     </div>
-                    <div class="col-md-2 ">
+                    <div class="col-md-2 " style="margin-left:30px">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                         </div>
                     </div>
-                    <div class="col col-lg-1">
+                    <div class="col col-lg-2" style="width: auto">
                         <h>To Date : </h>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2" style="margin-left:30px">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
@@ -66,19 +66,19 @@
                 <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-1">
-                        <h>Fr Time : </h>
+                    <div class="col col-lg-2" style="width: auto">
+                        <h>From Time : </h>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2" style="margin-left:35px;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
                         </div>
                     </div>
-                    <div class="col col-lg-1">
+                    <div class="col col-lg-2" style="width: auto">
                         <h>To Time : </h>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2" style="margin-left:48px;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
@@ -92,7 +92,7 @@
                         <h>Rows : </h>
                     </div>
 
-                    <div class="col-md-1" style="padding-top: 10px">
+                    <div class="col-md-1" style="margin-left: 35px">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
@@ -116,10 +116,10 @@
 
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-2">
-                        <label for="ErrMeaaage">Error Meaasge</label>&nbsp;:&nbsp;&nbsp;
+                    <div class="col col-lg-2" style="width: auto">
+                        <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <select name="ddlProbMaster" id="ddlProbMaster" class="form-control w-100 rounded-lg">
                             @{
                                 <option value="All">All</option>
@@ -147,13 +147,13 @@
                         </select>
                     </div>
 
-                    <div class="col col-lg-2">
+                   @* <div class="col col-lg-2">
                         <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
                         <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
                     </div>
                     <div class="col-md-2">
                         @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
-                    </div>
+                    </div>*@
 
                 </div>
 
