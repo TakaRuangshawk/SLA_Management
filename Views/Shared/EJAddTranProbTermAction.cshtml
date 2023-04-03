@@ -20,6 +20,12 @@
     <title>Table #6</title>
 </head>
 
+<style>
+    select.form-control {
+        -webkit-appearance: button;
+    }
+</style>
+
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader">
@@ -120,7 +126,7 @@
                         <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
                     </div>
                     <div class="col-md-3">
-                        <select name="ddlProbMaster" id="ddlProbMaster" class="form-control w-100 rounded-lg">
+                        <select name="ddlProbMaster" id="ddlProbMaster" class="form-control">
                             @{
                                 <option value="All">All</option>
                                 if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
