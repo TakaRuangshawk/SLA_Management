@@ -72,7 +72,7 @@ namespace SLA_Management.Controllers
             if (Sortby == null || Sortby == "") Sortby = "asc";
             if (Month != "" && Year != "")
             {
-                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_his as t2 on t1.TERM_ID =t2.TERM_ID ";
+                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_record as t2 on t1.TERM_ID =t2.TERM_ID ";
             }
             if (TerminalSEQ != "" || TerminalID !="")
             {
@@ -94,6 +94,10 @@ namespace SLA_Management.Controllers
                 {
                     com.CommandText += " t1.TERM_ID = '" + TerminalID + "' ";
                 }
+            }
+            if(Orderby != "TERM_SEQ")
+            {
+                Orderby += ",TERM_SEQ";
             }
             com.CommandText += " order by " + Orderby + " " +Sortby;
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
