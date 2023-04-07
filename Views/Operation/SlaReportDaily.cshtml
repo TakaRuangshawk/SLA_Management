@@ -26,13 +26,16 @@
       }
       .my-dropdown {
         width :100%;
-        height:100%;
+        height:38px;
       }
       input:disabled {
         background-color: #f2f2f2;
       }
+      .btnsearch{
+        font-size:18px;
+      }
   </style>
-<div class="row" style="margin-left:0px;margin-right:0px; width: 100%;">
+@*<div class="row" style="margin-left:0px;margin-right:0px; width: 100%;">
 
     <div class="col-md-2">
         <p class="text-black fs-3">TerminalID</p>
@@ -51,37 +54,113 @@
     </div>
     <div class="col-md-2">
     </div>
+</div>*@
+<div class="row">
+    <div class ="col-md-1"></div>
+    <div class="col-md-5" style = "border: 1px #f3cb9b; border-radius:25px; background-color:#f3cb9b; padding-top:25px;margin-right:10px;">
+        @using (Html.BeginForm("SlaReportDaily", "Operation", FormMethod.Get, new { id = "IndexID" }))
+        {
+            <div class="row justify-content-center" style="margin-left:0px;margin-right:0px;">
+                <div class="col-md-1"></div>
+                <div class="col-md-4 ">
+                    <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-weight: bold;font-size:18px;" >SLADaily(รอบเดือน)</p>
+                </div>
+                <div class="col-md-3">
+
+                </div>
+                <div class="col-md-3" style="">
+                    <button type="submit" id="btnsearch" class="btnsearch">Search</button>
+                </div>
+                <div class="col-md-1"></div>
+             </div>
+             <div class="row" style="padding-top:15px;" > 
+                 <div class="col-md-1"></div>
+                 <div class="col-md-10" style="border: 2px solid black; border-radius: 25px;"></div>
+                 <div class="col-md-1"></div>
+             </div>
+             <div class="row" style="padding-top:15px;">
+                <div class="col-md-1"></div>
+                <div class="col-md-4 ">
+                    <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-size:18px;" >Terminal ID: </p>
+                </div>
+                <div class ="col-md-6" style="padding-top:6px;"> 
+                     @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+                </div>
+                <div class="col-md-1"></div>
+             </div>
+            <div class="row" style="padding-top:15px; padding-bottom:45px;">
+                <div class="col-md-5"></div>
+                 <div class="col-md-3">
+                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required"})
+                </div>
+        
+                <div class="col-md-3"> 
+                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required"})
+                </div> 
+                <div class="col-md-1"></div>
+            </div>
+
+        }
+    </div>
+    <div class="col-md-5 justify-content-center"style = "border: 1px #f3cb9b; border-radius:25px; background-color:#f3cb9b; padding-top:25px;margin-left:10px;">
+        @using (Html.BeginForm("SlaReportDaily", "Operation", FormMethod.Get, new { id = "IndexID" }))
+            {
+                <div class="row justify-content-center" style="margin-left:0px;margin-right:0px;">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-4 ">
+                        <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-weight: bold;font-size:18px;" >SLADaily(รอบวัน)</p>
+                    </div>
+                    <div class="col-md-3">
+                    
+                    </div>
+                    <div class="col-md-3" style="">
+                        <button type="submit" id="btnsearch" class="btnsearch">Search</button>
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+                <div class="row" style="padding-top:15px;" > 
+                 <div class="col-md-1"></div>
+                 <div class="col-md-10" style="border: 2px solid black; border-radius: 25px;"></div>
+                 <div class="col-md-1"></div>
+             </div>
+             <div class="row" style="padding-top:15px;">
+                <div class="col-md-1"></div>
+                <div class="col-md-4 ">
+                    <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-size:18px;" >Terminal ID: </p>
+                </div>
+                <div class ="col-md-6" style="padding-top:6px;"> 
+                     @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+                </div>
+                <div class="col-md-1"></div>
+             </div>
+             <div class="row" style="padding-top:15px;">
+                <div class="col-md-5"></div>
+                <div class ="col-md-6" style="padding-top:6px;"> 
+                    @Html.TextBox("date", ViewBag.toDate as string, new {@class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="ddmmyyyy",@required = "required" })
+                </div>
+                <div class="col-md-1"></div>
+             </div>
+                @*<div class="row justify-content-center" style="margin-left:0px;margin-right:0px; border: 1px solid black;">
+                    <div class="col-md-2">
+                        @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+                    </div>
+                    <div class="col-md-2">
+                        @Html.CheckBox("chk_date", false,new {@class = "chkbox"})
+                    </div>
+                    <div class="col-md-2">
+                    </div>
+                    <div class="col-md-1" style="">
+                        <button type="submit" id="btnsearch" class="btnsearch">search  </button>
+                    </div>
+                </div>*@
+            }     
+    </div>
+    <div class ="col-md-1"></div>
 </div>
 
-@using (Html.BeginForm("SlaReportDaily", "Operation", FormMethod.Get, new { id = "IndexID" }))
-{
-    <div class="row" style="margin-left:0px;margin-right:0px;">
-
-        <div class="col-md-2">
-
-            @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
-        </div>
-        <div class="col-md-2">
-                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required"})
-        </div>
-        
-        <div class="col-md-2"> 
-                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required"})
-        </div>  
-
-        <div class="col-md-2">
-                    @Html.CheckBox("chk_date", false,new {@class = "chkbox"})
-        </div>
-        <div class="col-md-2">
-            @Html.TextBox("date", ViewBag.toDate as string, new {@class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="ddmmyyyy",@required = "required" })
-        </div>
-        <div class="col-md-1" style="">
-            <button type="submit" id="btnsearch" class="btnsearch">search  </button>
-        </div>
-    </div>
-}
 
 <div class="row" style="margin-top: 15px">
+    <div class ="col-md-1"></div>
     <div class="col-md-1 colRows">
         <p style="font-size:16px;font-weight:bolder;">Rows : </p>
     </div>
@@ -422,33 +501,7 @@
 }
 <script>
   
-  var checkbox = document.getElementById("chk_date");
-    var input1 = document.getElementById("Month");
-    var input2 = document.getElementById("Year");
-    var input3 = document.getElementById("date");
-    if(checkbox.checked != true){
-        $(document).ready(function() {
-        $('#date').prop('disabled', true);
-        });
-    }
-    else{
-        $(document).ready(function() {
-        $('#Month').prop('disabled', true);
-        $('#Year').prop('disabled', true);
-        });
-    }
-  
-    checkbox.addEventListener("click", function() {
-        if (checkbox.checked) {
-            input1.disabled = true;
-            input2.disabled = true;
-            input3.disabled = false;
-        } else {
-            input1.disabled = false;
-            input2.disabled = false;
-            input3.disabled = true;
-        }
-    });
+
  
     var maxRows = @ViewBag.maxRows;
     var md_Count = @Model.Count;
