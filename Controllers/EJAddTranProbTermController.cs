@@ -395,7 +395,7 @@ namespace SLA_Management.Controllers
 
                 // Session["PrefixRep"] = "EJAddTran";
 
-                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderInputTemplate_Excel");
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderInputTemplateTermProb_Excel");
 
 
                 if (!Directory.Exists(folder_name))
@@ -415,7 +415,7 @@ namespace SLA_Management.Controllers
 
                 fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:Folder_Excel") + fname + ".xlsx";
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderTermProb_Excel") + fname + ".xlsx";
 
 
                 if (obj.FileSaveAsXlsxFormat != null)
@@ -479,7 +479,7 @@ namespace SLA_Management.Controllers
                         break;
                 }
 
-                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:Folder_Excel") + fname);
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderTermProb_Excel") + fname);
 
 
 
