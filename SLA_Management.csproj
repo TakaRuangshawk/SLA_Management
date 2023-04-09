@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\TermProbExcel\excelfiles\" />
-    <Folder Include="wwwroot\TermProbExcel\tempfiles\" />
+    <Folder Include="wwwroot\TermProbExcel\Tempfiles\" />
   </ItemGroup>
 
 </Project>
