@@ -30,7 +30,7 @@ namespace SLA_Management.Controllers
         public OperationController(IConfiguration myConfiguration)
         {
             _myConfiguration = myConfiguration;
-            con = new ConnectSQL_Server("Data Source=10.98.14.13;Initial Catalog=SLADB;Persist Security Info=True;User ID=sa;Password=P@ssw0rd;");
+            con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";

@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using PagedList;
+using SLA_Management.Commons;
 using SLA_Management.Data.TermProbDB;
 using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 using SLA_Management.Models.TermProbModel;
@@ -45,14 +46,29 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
             , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
             , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-            , string currPageSize, int? page)
+            , string currPageSize, int? page , string maxRows)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
+            List<string> terminalNames = new List<string>();
 
-            
-            ViewBag.maxRows = "5";
+            DataTable terminalDBTable = GetClientFromDB();
+            for (int i = 0; i < terminalDBTable.Rows.Count; i++)
+            {
+                terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
+            }
+
+            if (terminalNames != null && terminalNames.Count > 0)
+            {
+                ViewBag.CurrentTID = terminalNames;
+
+            }
+
+            if (String.IsNullOrEmpty(maxRows))
+                ViewBag.maxRows = "5";
+            else
+                ViewBag.maxRows = maxRows;
 
             int pageNum = 1;
             try
@@ -104,7 +120,8 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
-                ViewBag.CurrentTID = (TermID ?? currTID);
+                // ViewBag.CurrentTID = (TermID ?? currTID);
+                ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
@@ -171,11 +188,11 @@ namespace SLA_Management.Controllers
                     recordset = GetErrorTermDeviceEJLog_Database(param);
                 }
 
-                if (MessErrKeyWord != null && MessErrKeyWord != "")
-                {
-                    recordset = GetErrorTermDeviceKWEJLog_Database(param);
-                    ViewBag.CurrentProbMaster = "All";
-                }
+                //if (MessErrKeyWord != null && MessErrKeyWord != "")
+                //{
+                //    recordset = GetErrorTermDeviceKWEJLog_Database(param);
+                //    ViewBag.CurrentProbMaster = "All";
+                //}
 
 
 
@@ -337,6 +354,22 @@ namespace SLA_Management.Controllers
             }
             return _result;
         }
+
+        private DataTable GetClientFromDB()
+        {
+            DBService _objDB = new DBService(_myConfiguration);
+            DataTable _result = null;
+            try
+            {
+                _result = _objDB.GetClientData();
+            }
+            catch (Exception ex)
+            { }
+            return _result;
+        }
+
+
+
         #endregion
 
         #region Excel

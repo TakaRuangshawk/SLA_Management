@@ -140,19 +140,6 @@
                 </div>
                 <div class="col-md-1"></div>
              </div>
-                @*<div class="row justify-content-center" style="margin-left:0px;margin-right:0px; border: 1px solid black;">
-                    <div class="col-md-2">
-                        @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
-                    </div>
-                    <div class="col-md-2">
-                        @Html.CheckBox("chk_date", false,new {@class = "chkbox"})
-                    </div>
-                    <div class="col-md-2">
-                    </div>
-                    <div class="col-md-1" style="">
-                        <button type="submit" id="btnsearch" class="btnsearch">search  </button>
-                    </div>
-                </div>*@
             }     
     </div>
     <div class ="col-md-1"></div>
@@ -209,7 +196,7 @@
                         <tr>
                             <td> @Data.ID </td>
                             <td style="text-align: center;">
-                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.ID', '@Data.Open_Date', '@Data.Report_Date', '@Data.Closed_Repair_Date', '@Data.Down_Time', '@Data.AS_OpenDate', '@Data.AS_AppointmentDate', '@Data.AS_CloseRepairDate', '@Data.AS_Downtime', '@Data.Discount', '@Data.Net_Downtime', '@Data.AS_Discription', '@Data.AS_CIT_Request', '@Data.AS_Service_PM', '@Data.Status', '@Data.Terminal_ID', '@Data.Model','@Data.Serial_NO','@Data.Province','@Data.Location','@Data.Problem_Detail','@Data.Solving_Program','@Data.Service_Team','@Data.Contact_Name_Branch_CIT','@Data.Open_By','@Data.Remark')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.ID', '@Data.Open_Date','@Data.Appointment_Date', '@Data.Report_Date', '@Data.Closed_Repair_Date', '@Data.Down_Time', '@Data.AS_OpenDate', '@Data.AS_AppointmentDate', '@Data.AS_CloseRepairDate', '@Data.AS_Downtime', '@Data.Discount', '@Data.Net_Downtime', '@Data.AS_Discription', '@Data.AS_CIT_Request', '@Data.AS_Service_PM', '@Data.Status', '@Data.Terminal_ID', '@Data.Model','@Data.Serial_NO','@Data.Province','@Data.Location','@Data.Problem_Detail','@Data.Solving_Program','@Data.Service_Team','@Data.Contact_Name_Branch_CIT','@Data.Open_By','@Data.Remark')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
                             </td>
                             <td> @Data.Remark</td>
                             <td> @Data.Serial_NO</td>
@@ -271,9 +258,28 @@
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="container-fluid" style="padding: 10px;">
+                <div class="container" style="padding: 10px;">
+                    <div style="padding-top:45px;"></div>
+                    <div class ="row">
+                        <div class="col-md-3 modelTopic">
+                            <p onclick="myFunction2()" class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">Terminal Info </p>
+                        </div>
+                        <div class="col-md-3 modelTopic">
+                            <p onclick="myFunction()" class="text-center align-middle" style="text-align:center; font-size:20px; background-color:#f3cb9b; border-radius:40px;" id="Downtime_Info">Downtime Information </p>
+                        </div>
+                        <div class="col-md-2 modelTopic">
 
-                    <div class="row">
+                        </div>
+                       <div class="col-md-1 modelTopic">
+                            <p class="text-center align-middle" style="font-size:20px;">Status :</p> 
+                       </div>
+                       <div class="col-md-2 modelTextbox">
+                            @Html.TextBox("Status", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+                       </div>
+                        
+                    </div>
+                <div id="problem-info" style="display:block;">
+                    <div class="row" style="padding-top:15px;">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
@@ -281,6 +287,12 @@
                         </div>
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("ID", ViewBag.ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                         <div class="col-md-2 modelTopic">
+                            <label for="Report_Date">Report Date </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Report_Date", ViewBag.Report_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                     </div>
                     <div class="row">
@@ -292,27 +304,61 @@
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Open_Date", ViewBag.OpenDate as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Report_Date">Report Date </label>&nbsp;:&nbsp;
+                          <div class="col-md-2 modelTopic">
+                            <label for="Closed_Repair_Date">ClosedRepairDate </label>&nbsp;:&nbsp;
                         </div>
                         <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Report_Date", ViewBag.Report_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            @Html.TextBox("Closed_Repair_Date", ViewBag.Closed_Repair_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
-                            <label for="Closed_Repair_Date">ClosedRepairDate </label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Closed_Repair_Date", ViewBag.Closed_Repair_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Down_Time">DownTime</label>&nbsp;:&nbsp;
+                            <label for="Down_Time">Duration</label>&nbsp;:&nbsp;
                         </div>
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Down_Time", ViewBag.Down_Time as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        @*<div class="col-md-2 modelTopic">
+                            <label for="Status">Status</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Status", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>*@
+                    </div>
+                        <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Remark">Job No</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Remark", ViewBag.Remark as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Open_By">Open_By </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Open_By", ViewBag.Open_By as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>  
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="AS_Discription">ASDiscription </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextArea("AS_Discription", ViewBag.AS_Discription as string, new { @class = "w-100 form-control", @readonly = "true", @style="height: 93px;" })
+                        </div>
+                        <div style ="display:none;">
+                        <div class="col-md-2 modelTopic">
+                            <label for="AS_CIT_Request">AS CIT Request</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("AS_CIT_Request", ViewBag.AS_CIT_Request as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
                         </div>
                     </div>
                     <div class="row">
@@ -347,39 +393,9 @@
                             @Html.TextBox("AS_Downtime", ViewBag.AS_Downtime as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Discount">Discount </label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Discount", ViewBag.Discount as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Net_Downtime">Net_Downtime</label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Net_Downtime", ViewBag.Net_Downtime as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="AS_Discription">ASDiscription </label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("AS_Discription", ViewBag.AS_Discription as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="AS_CIT_Request">AS CIT Request</label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("AS_CIT_Request", ViewBag.AS_CIT_Request as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                    </div>
-                    <div class="row">
+                   
+                  
+                    <div class="row" style="display:none;">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
@@ -388,29 +404,9 @@
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("AS_Service_PM", ViewBag.AS_Service_PM as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Status">Status</label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Status", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                       
                     </div>
-                    <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Open_By">Open_By </label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Open_By", ViewBag.Open_By as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Remark">Job No</label>&nbsp;:&nbsp;
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("Remark", ViewBag.Remark as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                    </div>
+                
                     <div class="row">
                         <div class="col-md-1">
                         </div>
@@ -418,13 +414,15 @@
                             <label for="Problem_Detail">Problem Detail</label>&nbsp;:&nbsp;
                         </div>
                         <div class="col-md-8 modelTextbox">
-                            @Html.TextArea("Problem_Detail", ViewBag.Problem_Detail as string, new { @class = "w-100 form-control h-100", @readonly = "true",@row = 3 })
+                            @Html.TextArea("Problem_Detail", ViewBag.Problem_Detail as string, new { @class = "w-100 form-control h-100", @readonly = "true", @style="height: 93px;" })
                         </div>
                     </div>
                     <div class="row">
                         <div style="padding-top : 30px;"></div>
                     </div>
-                    <div class="row">
+                </div>
+                <div id="terminal-info" style="display:none; ">
+                    <div class="row" style="padding-top:15px;">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
@@ -462,11 +460,12 @@
                         <div class="col-md-2 modelTopic">
                             <label for="Location">Location </label>&nbsp;:&nbsp;
                         </div>
-                        <div class="col-md-5 modelTextbox">
+                        <div class="col-md-8 modelTextbox">
                             @Html.TextBox("Location", ViewBag.Location as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
                     </div>
-                    <div class="row">
+                </div>
+                    <div class="row" style="display:none;">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
@@ -481,8 +480,14 @@
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Solving_Program", ViewBag.Solving_Program as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
+                         <div class="col-md-2 modelTopic">
+                            <label for="Appointment_Date">Appointment_Date</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Appointment_Date", ViewBag.Appointment_Date as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
                     </div>
-                    <div class="row">
+                    <div class="row" style="display:none;">
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-2 modelTopic">
@@ -491,8 +496,26 @@
                         <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Contact_Name_Branch_CIT", ViewBag.Contact_Name_Branch_CIT as string, new { @class = "w-100 form-control", @readonly = "true" })
                         </div>
-                    </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Net_Downtime">Net_Downtime</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Net_Downtime", ViewBag.Net_Downtime as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
 
+                    </div>
+                     <div class="row" style="display:none;">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Discount">Discount </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Discount", ViewBag.Discount as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
+                        
+                    </div>
+                <div style="padding-bottom:45px;"></div>
                 </div>
             </div>
         </div>
@@ -502,7 +525,22 @@
 <script>
   
 
- 
+    var detail_downtime = document.getElementById("problem-info");
+    var head_downtime = document.getElementById("Downtime_Info");
+    var head_terminal = document.getElementById("Terminal_Info");
+    var detail_terminal = document.getElementById("terminal-info");
+    function myFunction() {
+        detail_downtime.style.display = "block";
+        detail_terminal.style.display = "none";
+        head_downtime.style.backgroundColor = "#f3cb9b";
+        head_terminal.style.backgroundColor = "white";
+    }
+    function myFunction2() {
+        detail_terminal.style.display = "block";
+        detail_downtime.style.display = "none";
+        head_terminal.style.backgroundColor = "#f3cb9b";
+        head_downtime.style.backgroundColor = "white";
+}
     var maxRows = @ViewBag.maxRows;
     var md_Count = @Model.Count;
         getPagination('#table-id', maxRows);
@@ -713,10 +751,11 @@
                         }
                     }
         }
-                function EditButton(ID, Open_Date, Report_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, Terminal_ID, Model, Serial_NO,Province,Location,Problem_Detail,Solving_Program,Service_Team,Contact_Name_Branch_CIT,Open_By,Remark) {
+                function EditButton(ID, Open_Date,Appointment_Date, Report_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, Terminal_ID, Model, Serial_NO,Province,Location,Problem_Detail,Solving_Program,Service_Team,Contact_Name_Branch_CIT,Open_By,Remark) {
                             document.getElementById('ID').value = ID;
                             document.getElementById('Open_Date').value = Open_Date;
                             document.getElementById('Report_Date').value = Report_Date;
+                            document.getElementById('Appointment_Date').value = Appointment_Date;
                             document.getElementById('Closed_Repair_Date').value = Closed_Repair_Date;
                             document.getElementById('Down_Time').value = Down_Time;
                             document.getElementById('AS_OpenDate').value = AS_OpenDate;
