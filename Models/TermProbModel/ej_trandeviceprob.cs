@@ -5,7 +5,8 @@ namespace SLA_Management.Models.TermProbModel
 {
     public class ej_trandeviceprob
     {
-        public int Seqno { get; set; }
+       
+        public string Seqno { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
         public DateTime TransactionDate { get; set; }
