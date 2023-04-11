@@ -18,13 +18,23 @@ namespace SLA_Management.Controllers
     {
 
         #region Local Variable
-        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        SqlCommand com = new SqlCommand();
-        ConnectSQL_Server con;
-        static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
-        static ej_trandada_seek param = new ej_trandada_seek();
+        private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+        private SqlCommand com = new SqlCommand();
+        private ConnectSQL_Server con;
+        private static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
+        private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
         private DBService dBService;
+
+        private List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
+        private List<ProblemMaster> ProdMasDataList = new List<ProblemMaster>();
+        private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
+        private List<string> terminalIDList = new List<string>();
+
+        private int pageNum = 1;
+
+        private long recCnt = 0;
+
 
 
         #endregion
@@ -35,7 +45,7 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-             dBService = new DBService(_myConfiguration);
+            dBService = new DBService(_myConfiguration);
         }
 
 
@@ -43,19 +53,13 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Action page
+
+
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
             , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
             , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-            , string currPageSize, int? page , string maxRows)
+            , string currPageSize, int? page, string maxRows)
         {
-
-            List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
-            List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
-            List<terminalAndSeq> terminalNames = new List<terminalAndSeq>();
-
-            List<string> terminalIDTemp = new List<string>();
-            
-
 
 
             if (String.IsNullOrEmpty(maxRows))
@@ -63,38 +67,37 @@ namespace SLA_Management.Controllers
             else
                 ViewBag.maxRows = maxRows;
 
-            int pageNum = 1;
+            if (cmdButton == "Clear")
+                return RedirectToAction("EJAddTranProbTermAction");
+
             try
             {
-                if (DBService.CheckDatabase())      
+                if (DBService.CheckDatabase())
                 {
-                    terminalNames = GetClientFromDB();
+                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
 
-                    foreach(var terminalName in terminalNames)
-                    {
-                        terminalIDTemp.Add(terminalName.terminalid);
-                    }
-                    
+                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
 
-                    if (terminalIDTemp != null && terminalIDTemp.Count > 0)
+                    if (terminalIDList != null && terminalIDList.Count > 0)
                     {
-                        ViewBag.CurrentTID = terminalIDTemp;
+                        ViewBag.CurrentTID = terminalIDList;
 
                     }
 
-                    ProdMasData = GetMasterSysErrorWord();
+                    ProdMasDataList = GetMasterSysErrorWord();
                     ViewBag.ConnectDB = "true";
                 }
                 else
                 {
                     ViewBag.ConnectDB = "false";
                 }
-               
-               
-                if (ProdMasData.Count > 0)
+
+
+                if (ProdMasDataList.Count > 0)
                 {
                     ViewBag.ProbMaster = "";
-                    foreach (ProblemMaster obj in ProdMasData)
+
+                    foreach (ProblemMaster obj in ProdMasDataList)
                     {
                         if (ViewBag.ProbMaster == "")
                             ViewBag.ProbMaster = obj.ProblemCode + "," + obj.ProblemName;
@@ -102,11 +105,6 @@ namespace SLA_Management.Controllers
                             ViewBag.ProbMaster += "|" + obj.ProblemCode + "," + obj.ProblemName;
                     }
                 }
-
-                if (cmdButton == "Clear")
-                    return RedirectToAction("EJAddTranProbTermAction");
-
-
 
                 if (null == TermID && null == FrDate && null == ToDate && null == page)
                 {
@@ -135,7 +133,7 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
                 ViewBag.CurrentMessErrKeyWord = MessErrKeyWord == null ? currMessErrKeyWord : MessErrKeyWord;
 
-                long recCnt = 0;
+
 
                 if (null == TermID)
                     param.TERMID = currTID == null ? "" : currTID;
@@ -192,7 +190,7 @@ namespace SLA_Management.Controllers
 
                 if (ddlProbMaster != null && ddlProbMaster != "")
                 {
-                    recordset = GetErrorTermDeviceEJLog_Database(param , terminalNames);
+                    recordset = GetErrorTermDeviceEJLog_Database(param, terminalIDAndSeqList);
                 }
 
                 //if (MessErrKeyWord != null && MessErrKeyWord != "")
@@ -237,35 +235,28 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Database 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader,List<terminalAndSeq> obj)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader, List<terminalAndSeq> obj)
         {
             string _seqNo = "";
-            List<ej_trandeviceprob> recordlst = new List<ej_trandeviceprob>();
+            string terminalIDTemp = "";
+            List<ej_trandeviceprob> resultList = new List<ej_trandeviceprob>();
             while (reader.Read())
             {
-                foreach(var temp in obj)
-                {
-                   
-                    if (reader["terminalid"].ToString().Equals(temp.terminalid))
-                    {
-                        _seqNo = temp.TERM_SEQ;
-                      
-                    } 
+                terminalIDTemp = reader["terminalid"].ToString();
 
-                }
-                if(!String.IsNullOrEmpty(_seqNo))
-                recordlst.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
+                _seqNo = CheckAndGetSEQ(terminalIDTemp, obj);
 
-                _seqNo = "";
+                if (!String.IsNullOrEmpty(_seqNo))
+                    resultList.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
 
             }
 
-            return recordlst;
+            return resultList;
         }
 
 
 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model,List<terminalAndSeq> obj)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model, List<terminalAndSeq> obj)
         {
             try
             {
@@ -281,7 +272,7 @@ namespace SLA_Management.Controllers
                     cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
 
                     cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd),obj);
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd), obj);
                 }
             }
             catch (MySqlException ex)
@@ -375,11 +366,11 @@ namespace SLA_Management.Controllers
             return _result;
         }
 
-        private List<terminalAndSeq> GetClientFromDB()
+        private List<terminalAndSeq> GetTerminalAndSeqFromDB()
         {
             DBService _objDB = new DBService(_myConfiguration);
             DataTable _dt = new DataTable();
-            List<terminalAndSeq>_result = new List<terminalAndSeq>();
+            List<terminalAndSeq> _result = new List<terminalAndSeq>();
             try
             {
                 _dt = _objDB.GetClientData();
@@ -388,18 +379,51 @@ namespace SLA_Management.Controllers
                     terminalAndSeq obj = new terminalAndSeq();
                     obj.TERM_SEQ = _dr["TERM_SEQ"].ToString();
                     obj.terminalid = _dr["terminalid"].ToString();
-                    
+
                     _result.Add(obj);
                 }
-                   
 
-                
+
+
             }
             catch (Exception ex)
             { }
             return _result;
         }
 
+
+
+        #endregion
+
+        #region private function
+
+        private string CheckAndGetSEQ(string terminalID, List<terminalAndSeq> terminalIDList)
+        {
+            string result = "";
+
+            foreach (var terminalIDTemp in terminalIDList)
+            {
+                if (terminalIDTemp.terminalid.Equals(terminalID))
+                {
+                    result = terminalIDTemp.TERM_SEQ;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        private List<string> GetListTerminalID(List<terminalAndSeq> terminalIDAndSeqList)
+        {
+            List<string> result = new List<string>();
+
+            foreach (var terminalID in terminalIDAndSeqList)
+            {
+                result.Add(terminalID.terminalid.ToString());
+            }
+
+            return result;
+        }
 
 
         #endregion
