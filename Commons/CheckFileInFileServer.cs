@@ -10,7 +10,7 @@ namespace SLA_Management.Commons
     public class CheckFileInFileServer
     {
         private static ConnectSQL_Server db;
-        public LinkedList<string> termIds = GetTermId();
+        public LinkedList<string> termIds;
 
 
         private static string ip;
@@ -30,10 +30,7 @@ namespace SLA_Management.Commons
         public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
 
 
-        public CheckFileInFileServer()
-        {
-
-        }
+       
 
         public CheckFileInFileServer(string ip, int port, string username, string password, string partLinuxUploadFile, string sqlConnection)
         {
@@ -43,6 +40,9 @@ namespace SLA_Management.Commons
             Password = password;
             PartLinuxUploadFile = partLinuxUploadFile;
             SqlConnection = sqlConnection;
+            
+            db = new ConnectSQL_Server(SqlConnection);
+            termIds = GetTermId();
         }
 
 
@@ -88,7 +88,7 @@ namespace SLA_Management.Commons
                     foreach (ListDataComlogError data in datass)
                     {
                         InsertListFileComLog dataListFileError = new InsertListFileComLog();
-                        dataListFileError.TERM_ID = data.Trem_id;
+                        dataListFileError.Term_ID = data.Trem_id;
                         dataListFileError.ComLog = data.ComLogDate;
 
 
@@ -122,7 +122,7 @@ namespace SLA_Management.Commons
                         if (datass.FirstOrDefault(e => e.ComLogDate == data.ComLogDate) == null)
                         {
                             InsertListFileComLog dataListFileError = new InsertListFileComLog();
-                            dataListFileError.TERM_ID = data.Trem_id;
+                            dataListFileError.Term_ID = data.Trem_id;
                             dataListFileError.ComLog = data.ComLogDate;
                             dataListFileError.FileServer = "ComLog have on File Server";
                             dataListFileError.TOTAL_RECORD = "0";
@@ -132,7 +132,7 @@ namespace SLA_Management.Commons
                         {
                             for (int i = 0; i < listLogError.Count; i++)
                             {
-                                if (listLogError[i].TERM_ID == data.Trem_id && listLogError[i].ComLog == data.ComLogDate)
+                                if (listLogError[i].Term_ID == data.Trem_id && listLogError[i].ComLog == data.ComLogDate)
                                 {
                                     listLogError[i].TOTAL_RECORD = "0";
                                     break;
@@ -148,7 +148,7 @@ namespace SLA_Management.Commons
                         int check = 0;
                         for (int i = 0; i < listLogError.Count; i++)
                         {
-                            if (listLogError[i].TERM_ID == data.Trem_id && listLogError[i].ComLog == data.ComLogDate)
+                            if (listLogError[i].Term_ID == data.Trem_id && listLogError[i].ComLog == data.ComLogDate)
                             {
                                 check++;
                                 break;
@@ -159,7 +159,7 @@ namespace SLA_Management.Commons
                         {
                             InsertListFileComLog dataListFileError = new InsertListFileComLog();
 
-                            dataListFileError.TERM_ID = data.Trem_id;
+                            dataListFileError.Term_ID = data.Trem_id;
                             dataListFileError.ComLog = data.ComLogDate;
 
                             dataListFileError.FileServer = "FV log";
@@ -202,11 +202,11 @@ namespace SLA_Management.Commons
                         string comLogName = "COM" + getDate.Year + "" + getDate.Month.ToString("00") + "" + getDate.Day.ToString("00") + ".txt";
                         if (termID == "")
                         {
-                            foreach (string FV_TERM_ID in termIds)
+                            foreach (string termId in termIds)
                             {
-                                if (!sftp.Exists(configPath + FV_TERM_ID + "/" + comLogName))
+                                if (!sftp.Exists(configPath + termId + "/" + comLogName))
                                 {
-                                    listData.AddFirst(new ListDataComlogError(FV_TERM_ID, comLogName, 0));
+                                    listData.AddFirst(new ListDataComlogError(termId, comLogName, 0));
                                 }
 
                             }
@@ -234,7 +234,7 @@ namespace SLA_Management.Commons
 
         private static LinkedList<string> GetTermId()
         {
-            db = new ConnectSQL_Server(SqlConnection);
+          
             SqlCommand com = new SqlCommand();
             com.CommandText = "SELECT TERM_ID FROM [SLADB].[dbo].[device_info_record] GROUP BY TERM_ID;";
             DataTable testss = db.GetDatatable(com);
@@ -249,8 +249,7 @@ namespace SLA_Management.Commons
 
         private static LinkedList<ListDataComlogError> GetComLogFVMissing(DateTime start, int DateStartBetweenDateEnd)
         {
-            //LinkedList<string> listDateString = checkYearAndMount(start, DateStartBetweenDateEnd);
-            db = new ConnectSQL_Server(SqlConnection);
+          
             LinkedList<ListDataComlogError> data = new LinkedList<ListDataComlogError>();
             //foreach (string YYYYMM in listDateString)
             for (int itemDate = 0; itemDate < DateStartBetweenDateEnd; itemDate++)
@@ -275,8 +274,7 @@ namespace SLA_Management.Commons
         }
         private LinkedList<ListDataComlogError> GetComLogRecodeZero(string termId, DateTime start, int DateStartBetweenDateEnd)
         {
-            //LinkedList<string> listDateString = checkYearAndMount(start, DateStartBetweenDateEnd);
-            db = new ConnectSQL_Server(SqlConnection);
+           
             LinkedList<ListDataComlogError> data = new LinkedList<ListDataComlogError>();
             //foreach (string YYYYMM in listDateString)
             for (int itemDate = 0; itemDate < DateStartBetweenDateEnd; itemDate++)

@@ -5,6 +5,7 @@ using SLA_Management.Models;
 using PagedList;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Data;
 
 namespace SLA_Management.Controllers
 {
@@ -29,7 +30,7 @@ namespace SLA_Management.Controllers
         public OperationController(IConfiguration myConfiguration)
         {
             _myConfiguration = myConfiguration;
-            con = new ConnectSQL_Server("Data Source=10.98.14.13;Initial Catalog=SLADB;Persist Security Info=True;User ID=sa;Password=P@ssw0rd;");
+            con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";
@@ -72,7 +73,7 @@ namespace SLA_Management.Controllers
             if (Sortby == null || Sortby == "") Sortby = "asc";
             if (Month != "" && Year != "")
             {
-                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_his as t2 on t1.TERM_ID =t2.TERM_ID ";
+                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_record as t2 on t1.TERM_ID =t2.TERM_ID ";
             }
             if (TerminalSEQ != "" || TerminalID !="")
             {
@@ -95,6 +96,10 @@ namespace SLA_Management.Controllers
                     com.CommandText += " t1.TERM_ID = '" + TerminalID + "' ";
                 }
             }
+            if(Orderby != "TERM_SEQ")
+            {
+                Orderby += ",TERM_SEQ";
+            }
             com.CommandText += " order by " + Orderby + " " +Sortby;
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
             messageRequestList_m = SLAReportMonthly.mapToList(con.GetDatatable(com)).ToList();
@@ -105,14 +110,20 @@ namespace SLA_Management.Controllers
             if (maxRows == null || maxRows == "") maxRows = "200";
             ViewBag.maxRows = maxRows;
             if (TerminalID == null) TerminalID = "";
-            if (chk_date == null) chk_date = "false";
+            if (date != null)
+            {
+                chk_date = "true";
+            }
+            else
+            {
+                chk_date = "false";
+            }
             if (date == null) date = DateTime.Now.ToString("yyyyMMdd");
             ViewBag.idCard = TerminalID;
             if(Month != null)
             {
                 Month = DateTime.ParseExact(Month, "MMMM", CultureInfo.CurrentCulture).Month.ToString("D2");
             }
-            Console.WriteLine(Year + " | "+ Month);
             if(chk_date == "true")
             {
                 if (date != null)
@@ -254,6 +265,23 @@ namespace SLA_Management.Controllers
 
         public IActionResult SlaTracking(string id, string appName, string remark, string userIP, string frDate, string toDate, string status, string maxRows)
         {
+            #region binding
+            SqlConnection con_binding = new SqlConnection("Data Source = 10.98.14.13; Initial Catalog = SLADB; Persist Security Info = True; User ID = sa; Password = P@ssw0rd;");
+            string sql_binding_status = "select * FROM base24_master_module  WHERE MODULE_ID like 'STATUS%'";
+            SqlCommand sqlcomm = new SqlCommand(sql_binding_status, con_binding);
+            con_binding.Open();
+            SqlDataAdapter sda1 = new SqlDataAdapter(sqlcomm);
+            DataSet ds =  new DataSet();
+            sda1.Fill(ds);
+            ViewBag.statusname = ds.Tables[0];
+            List<SelectListItem> getstatusname = new List<SelectListItem>();
+            foreach(System.Data.DataRow dr in ViewBag.statusname.Rows)
+            {
+                getstatusname.Add(new SelectListItem { Text = @dr["MODULE_DESC"].ToString(), Value = @dr["MODULE_DESC"].ToString() });
+            }
+            ViewBag.Status = getstatusname;
+            con_binding.Close();
+            #endregion
             if (maxRows == null)
             {
                 maxRows = "20";
@@ -294,7 +322,7 @@ namespace SLA_Management.Controllers
 
             FatchDataMainTracking(id, appName, remark, userIP, frDate, toDate, status);
 
-            int pageSize = con.GetCountTable("SELECT COUNT(*) FROM "+slatracking_table);
+            int pageSize = trackingDetails.Count;
             if (pageSize == 0)
             {
                 pageSize = 1;

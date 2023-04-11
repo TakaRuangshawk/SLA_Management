@@ -31,7 +31,7 @@ namespace SLAManagement.Data
             }
             catch (Exception ex)
             {
-                OpenDB();
+                throw new Exception(ex + "");
             }
 
         }
