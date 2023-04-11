@@ -13,7 +13,7 @@
     "Terminal Name",
     "SERVICE DATE",
     "TOTAL DOWNTIME",
-    "ACTUAL",
+    "%SLA Actual",
     "NETCHARGE"
     };
 }  <script>
@@ -46,10 +46,10 @@
     <div class="col-md-2">
         <p class="text-black fs-3">Year</p>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-1">
         <p class="text-black fs-3">Order by</p>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-1">
         <p class ="text-black fs-3">Sort by</p>
     </div>
 </div>
@@ -74,7 +74,7 @@
                     @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required" })
         </div>  
 
-        <div class="col-md-2">
+        <div class="col-md-1">
                     @Html.DropDownList("Orderby", new SelectListItem[] { 
                         new SelectListItem(){ Text="Serial No", Value = "TERM_SEQ" },
                         new SelectListItem(){ Text="TerminalID", Value = "TERM_ID" },
@@ -100,6 +100,10 @@
         <div class="col-md-1" style="margin-left:0px;margin-right:0px;">
             <button type="submit" id="btnsearch" class="btnsearch">search  </button>
         </div>
+        <div class="col-md-1" style="margin-left:0px;margin-right:0px;">
+            <button type="reset" id="btnsearch" class="btnsearch">Reset  </button>
+        </div>
+
     </div>
     
     <div class="row" style="margin-top: 15px">

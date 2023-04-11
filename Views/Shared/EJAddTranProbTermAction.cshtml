@@ -74,6 +74,7 @@
                             @foreach (string item in ViewBag.CurrentTID)
                             {
                                 if (@item != @ViewBag.TermID)
+
                                 {
                                     <option data-tokens=@item>@item</option>
                                 }
