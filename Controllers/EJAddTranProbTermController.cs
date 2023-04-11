@@ -51,19 +51,12 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
-            List<string> terminalNames = new List<string>();
+            List<terminalAndSeq> terminalNames = new List<terminalAndSeq>();
 
-            DataTable terminalDBTable = GetClientFromDB();
-            for (int i = 0; i < terminalDBTable.Rows.Count; i++)
-            {
-                terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
-            }
+            List<string> terminalIDTemp = new List<string>();
+            
 
-            if (terminalNames != null && terminalNames.Count > 0)
-            {
-                ViewBag.CurrentTID = terminalNames;
 
-            }
 
             if (String.IsNullOrEmpty(maxRows))
                 ViewBag.maxRows = "5";
@@ -75,6 +68,20 @@ namespace SLA_Management.Controllers
             {
                 if (DBService.CheckDatabase())      
                 {
+                    terminalNames = GetClientFromDB();
+
+                    foreach(var terminalName in terminalNames)
+                    {
+                        terminalIDTemp.Add(terminalName.terminalid);
+                    }
+                    
+
+                    if (terminalIDTemp != null && terminalIDTemp.Count > 0)
+                    {
+                        ViewBag.CurrentTID = terminalIDTemp;
+
+                    }
+
                     ProdMasData = GetMasterSysErrorWord();
                     ViewBag.ConnectDB = "true";
                 }
@@ -185,7 +192,7 @@ namespace SLA_Management.Controllers
 
                 if (ddlProbMaster != null && ddlProbMaster != "")
                 {
-                    recordset = GetErrorTermDeviceEJLog_Database(param);
+                    recordset = GetErrorTermDeviceEJLog_Database(param , terminalNames);
                 }
 
                 //if (MessErrKeyWord != null && MessErrKeyWord != "")
@@ -230,14 +237,27 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Database 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader,List<terminalAndSeq> obj)
         {
-            int _seqNo = 1;
+            string _seqNo = "";
             List<ej_trandeviceprob> recordlst = new List<ej_trandeviceprob>();
             while (reader.Read())
             {
+                foreach(var temp in obj)
+                {
+                   
+                    if (reader["terminalid"].ToString().Equals(temp.terminalid))
+                    {
+                        _seqNo = temp.TERM_SEQ;
+                      
+                    } 
+
+                }
+                if(!String.IsNullOrEmpty(_seqNo))
                 recordlst.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
-                _seqNo++;
+
+                _seqNo = "";
+
             }
 
             return recordlst;
@@ -245,7 +265,7 @@ namespace SLA_Management.Controllers
 
 
 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model,List<terminalAndSeq> obj)
         {
             try
             {
@@ -261,7 +281,7 @@ namespace SLA_Management.Controllers
                     cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
 
                     cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd),obj);
                 }
             }
             catch (MySqlException ex)
@@ -271,7 +291,7 @@ namespace SLA_Management.Controllers
             }
         }
 
-        private ej_trandeviceprob GetErrorTermDeviceEJLogFromReader(IDataReader reader, int pSeqNo)
+        private ej_trandeviceprob GetErrorTermDeviceEJLogFromReader(IDataReader reader, string pSeqNo)
         {
             ej_trandeviceprob record = new ej_trandeviceprob();
 
@@ -285,31 +305,31 @@ namespace SLA_Management.Controllers
 
             return record;
         }
-        private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
+        //private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model)
+        //{
+        //    try
+        //    {
+        //        using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+        //        {
+        //            MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
 
-                    cmd.CommandType = CommandType.StoredProcedure;
+        //            cmd.CommandType = CommandType.StoredProcedure;
 
-                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
-                    cmd.Parameters.Add(new MySqlParameter("?pProbKeyWord", model.PROBKEYWORD));
+        //            cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
+        //            cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
+        //            cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
+        //            cmd.Parameters.Add(new MySqlParameter("?pProbKeyWord", model.PROBKEYWORD));
 
-                    cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
+        //            cn.Open();
+        //            return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+        //        }
+        //    }
+        //    catch (MySqlException ex)
+        //    {
+        //        string err = ex.Message;
+        //        return null;
+        //    }
+        //}
 
         private IDataReader ExecuteReader(DbCommand cmd)
         {
@@ -355,13 +375,25 @@ namespace SLA_Management.Controllers
             return _result;
         }
 
-        private DataTable GetClientFromDB()
+        private List<terminalAndSeq> GetClientFromDB()
         {
             DBService _objDB = new DBService(_myConfiguration);
-            DataTable _result = null;
+            DataTable _dt = new DataTable();
+            List<terminalAndSeq>_result = new List<terminalAndSeq>();
             try
             {
-                _result = _objDB.GetClientData();
+                _dt = _objDB.GetClientData();
+                foreach (DataRow _dr in _dt.Rows)
+                {
+                    terminalAndSeq obj = new terminalAndSeq();
+                    obj.TERM_SEQ = _dr["TERM_SEQ"].ToString();
+                    obj.terminalid = _dr["terminalid"].ToString();
+                    
+                    _result.Add(obj);
+                }
+                   
+
+                
             }
             catch (Exception ex)
             { }
