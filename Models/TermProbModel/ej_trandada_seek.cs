@@ -17,4 +17,17 @@ namespace SLA_Management.Models.TermProbModel
         public string MONTHPERIOD { get; set; }
         public string YEARPERIOD { get; set; }
     }
+
+    public class gateway_seek
+    {
+        public string TerminalNo { get; set; }
+        public string PhoneOTP { get; set; }
+        public string acctnoto { get; set; }
+        public string trxtype { get; set; }
+        public string UpdateStatus { get; set; }
+        public int PAGESIZE { get; set; }
+        public string FRDATE { get; set; }
+        public string TODATE { get; set; }
+
+    }
 }

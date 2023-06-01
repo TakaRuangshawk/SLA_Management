@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\GatewayExcel\exportfiles\" />
     <Folder Include="wwwroot\TermProbExcel\excelfiles\" />
     <Folder Include="wwwroot\TermProbExcel\Tempfiles\" />
   </ItemGroup>
