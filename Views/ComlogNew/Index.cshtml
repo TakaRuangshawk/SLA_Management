@@ -1,0 +1,583 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+@model IEnumerable<SLA_Management.Models.InsertListFileComLog>
+@*@model IList<SLA_Management.Models.InsertListFileComLog>*@
+
+
+
+<style>
+    .chkbox {
+        text-align: left;   
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 100%;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .manu {
+        display:flex;
+        flex-direction:row;
+        justify-content: center;
+        
+    }
+    .item {
+        display: flex;
+        flex-direction: row;
+        justify-content:center;
+
+    }
+
+</style>
+ 
+<h3>Comlog Manage</h3>
+
+@using (Html.BeginForm("Index", "ComlogNew", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
+    {
+    <div class="p-2 manu row">
+        <div class="item col-md-3">
+            <lable class="col-form-label w-50">Term ID : </lable>
+            <select class="selectpicker form-control subsearch" id="term_id" name="term_id" data-live-search="true">
+                <option data-tokens="" value="">--</option>
+                @foreach (string item in ViewBag.CurrentTermID)
+                {
+                    if (@item != @ViewBag.TERM_ID)
+                    {
+                        <option data-tokens=@item>@item</option>
+                    }
+                    else
+                    {
+                        <option data-tokens=@item selected>@item</option>
+
+                    }
+
+
+                }
+            </select>
+        </div>
+        <div class="item col-md-3">
+            <lable class="col-form-label w-50">From Date : </lable>
+            @Html.TextBox("forDateTime", ViewBag.CurrentFr as string, new { @class = "form-control subsearch",@type = "Date", @placeholder = "yyyy-mm-dd" })
+            
+        </div>
+        <div class="item col-md-3">
+            <lable class="col-form-label w-50">To Date : </lable>
+            @Html.TextBox("toDateTime", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @type = "Date", @placeholder = "yyyy-mm-dd" })
+            
+        </div>
+
+    </div>
+    <div class="p-2 manu row">
+        <div class="item col-md-1">
+            <button id="btnSearch" type="submit" class="btn-lg btn-default glyphicon glyphicon-search" data-toggle="tooltip" name="cmdButton" title="ค้นหาข้อมูล" value="Search">Search</button>
+        </div>
+        <div class="item col-md-1">
+           @* <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report">
+                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+            </a>*@
+        </div>
+        <div class="item col-md-2">
+            <button type="button" class="btn-lg btn-default glyphicon glyphicon-search" data-toggle="modal" data-target="#UploadModal">Upload Comlog</button>
+        </div>
+    </div>
+    
+
+    <div class="p-2 row">
+        <div class="item col-md-10" style=" justify-content:flex-start;">
+            <lable class="col-form-label " style="font-size:16px;font-weight:bolder; margin-right:10px;">Rows : </lable>
+            @Html.DropDownList("maxRows", new SelectListItem[] {
+        new SelectListItem(){ Text="20", Value = "20"  },
+        new SelectListItem(){ Text="50", Value = "50"  },
+        new SelectListItem(){ Text="100", Value = "100" },
+        new SelectListItem(){ Text="200", Value = "200"  },
+        new SelectListItem(){ Text="1000", Value = "1000"  }
+        }, new {@class = "form-control w-25" , @name = "state"})
+        </div>
+    </div>
+    
+    }
+
+<div class="table-responsive" style="overflow-x: hidden;">
+    <table id="table-id" class="table table-striped custom-table">
+        <thead>
+            <tr>
+                <th scope="col">Term ID</th>
+                <th scope="col">ComLog</th>
+                <th scope="col">File Server</th>
+                <th scope="col">TOTAL RECORD</th>
+            </tr>
+        </thead>
+
+        <tbody>
+             @if (Model.Count()!=0)
+                {
+                    foreach (InsertListFileComLog item in Model)
+                    {
+                    <tr>
+                        <th>@item.Term_ID </th>
+                        <th>@item.ComLog </th>
+                        <th>@item.FileServer </th>
+                        <th>@item.TOTAL_RECORD </th>
+                    </tr>
+                    }
+            }
+            else
+            {
+                    <td colspan="6" style="text-align: center;"> NO DATA </td>
+            }
+        </tbody>
+
+
+    </table>
+    <div class="row">
+        <div class="col-md-2" style="z-index:2;">
+            <p style="font-size:16px;font-weight:bolder;">
+                Select page :
+                @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                }, new
+                {
+                @class = "form-control"
+                })
+            </p>
+        </div>
+        <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+            <nav>
+                <div class="pagination">
+                    <li data-page="prev" id="back">
+                        <a style="color: #7a7a7a;"> < </a>
+                    </li>
+                    <!--	Here the JS Function Will Add the Rows -->
+                    <li data-page="next" id="prev">
+                        <a style="color: #7a7a7a;"> > </a>
+                    </li>
+
+                </div>
+            </nav>
+        </div>
+    </div>
+   
+</div>
+
+<div class="modal fade" id="UploadModal" tabindex="-1" role="dialog" aria-labelledby="UploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Upload Files</h5>
+             
+            </div>
+            
+                @*<form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Recipient:</label>
+                        <input type="text" class="form-control" id="recipient-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="col-form-label">Message:</label>
+                        <textarea class="form-control" id="message-text"></textarea>
+                    </div>
+                </form>*@
+
+                <form action="Comlog/UploadFile" enctype="multipart/form-data" method="post" onsubmit="AJAXSubmit(this);return false;">
+                <div class="modal-body">
+
+                    <div class="form-group p-2">
+
+                            <lable class="col-form-label">Term ID : </lable>
+                            <select class="selectpicker form-control subsearch" id="UplodeTerminal_ID" name="UplodeTerminal_ID" data-live-search="true">
+                                <option data-tokens="" value="">--</option>
+                                @foreach (string item in ViewBag.CurrentTermID)
+                                {
+                                    if (@item != @ViewBag.TERM_ID)
+                                    {
+                                        <option data-tokens=@item>@item</option>
+                                    }
+                                    else
+                                    {
+                                        <option data-tokens=@item selected>@item</option>
+
+                                    }
+
+
+                                }
+                            </select>
+                        </div>
+                    <div class="form-group p-2">
+                            <input class="form-control" type="file" id="files" name="files" multiple>
+                        </div>
+                       
+                    
+                    <div style="margin-top:15px">
+                        <output name="result"></output>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="UploadFiles" class="btn btn-primary">Send files</button>
+                </div>
+
+                    
+                </form>
+            
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    $("#InsertFileCOMLogRecheckID").submit(function () { 
+        
+            var FrDateTemp = new Date($('#forDateTime').val());
+            var ToDateTemp = new Date($('#toDateTime').val());
+           
+            if (FrDateTemp > ToDateTemp) {
+                alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+                return false;
+            } else {
+                return true;
+            }
+            return false;
+        });
+       
+    
+</script>
+<script>
+    async function AJAXSubmit(oFormElement) {
+        
+        var resultElement = oFormElement.elements.namedItem("result");
+        const formData = new FormData(oFormElement);
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                var res = response.json();
+               
+                res.then((data) => {
+                    
+                    resultElement.value = 'Result succeed : count ' + data.count + ', size ' + data.size;
+                    resultElement.style.color = 'LightGreen';
+                });
+               
+            }
+            
+        } catch (error) {
+            resultElement.value = 'Result error : ' + error;
+            resultElement.style.color = 'red';
+        }
+    }
+</script>
+<script>
+    @{
+        var dataExport = ViewBag.ExportDataFile;
+    }
+
+     const dataExport = {
+                term_id: "@dataExport.term_id",
+                toDateTime: "@dataExport.toDateTime",
+                forDateTime: "@dataExport.forDateTime"
+    };
+   
+     $("#btnSEExp").on("click", ExportRecordtoExcel);
+     async function ExportRecordtoExcel() {
+        try {
+            
+            const response = await fetch('Comlog/ExportRecordtoExcel', {
+                method: 'POST',
+               
+                responseType: "blob"
+            });
+            if(response.ok){
+
+                let res = response.blob();
+                
+                res.then(blob => {
+                   
+                    var url = window.URL.createObjectURL(blob);
+                    window.location.assign(url);
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+     }
+    
+    
+</script>
+<script>
+
+    let pageSize = @ViewBag.pageSize;
+    @{
+        int maxRow = Model == null ? 0 : Model.Count();
+    }
+    let maxRow = @maxRow;
+    
+    getPagination('#table-id', pageSize);
+
+
+    function getPagination(table, row) {
+        var lastPage = 1;
+
+        $('#maxRows')
+            .on('change', function (evt) {
+                $('.paginationprev').html('');
+
+                lastPage = 1;
+                $('.pagination')
+                    .find('li')
+                    .slice(1, -1)
+                    .remove();
+                var trnum = 0;
+                var maxRows = parseInt($(this).val());
+
+                if (maxRows == 5000) {
+                    $('.pagination').hide();
+                } else {
+                    $('.pagination').show();
+                }
+
+                var totalRows = $(table + ' tbody tr').length; // numbers of rows
+                $(table + ' tr:gt(0)').each(function () {
+                    // each TR in  table and not the header
+                    trnum++; // Start Counter
+                    if (trnum > maxRows) {
+                        // if tr number gt maxRows
+
+                        $(this).hide(); // fade it out
+                    }
+                    if (trnum <= maxRows) {
+                        $(this).show();
+                    } // else fade in Important in case if it ..
+                }); //  was fade out to fade it in
+                if (totalRows > maxRows) {
+                    // if tr total rows gt max rows option
+                    var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+                    //	numbers of pages
+
+                    for (var i = 1; i <= pagenum;) {
+                        // for each page append pagination li
+                        $('.pagination #prev')
+                            .before(
+                                '<li data-page="' +
+                                i +
+                                '">\
+                                                           <a style="color: #fdfdfd;">' +
+                                i++ +
+                                '\
+                                                                    </li>'
+                            )
+                            .show();
+                    } // end for i
+                    $('#back').show();
+
+
+
+                } else {
+                    $('#back').hide();
+                    $('#prev').hide();
+                }
+
+                // end if row count > max rows
+                $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+                $('.pagination li').on('click', function (evt) {
+                    // on click each page
+                    evt.stopImmediatePropagation();
+                    evt.preventDefault();
+                    var pageNum = $(this).attr('data-page'); // get it's number
+
+                    var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+
+
+                    if (pageNum == 'prev') {
+                        if (lastPage == 1) {
+                            return;
+                        }
+                        pageNum = --lastPage;
+                    }
+                    if (maxRows < totalRows) {
+                        if (pageNum == 'next') {
+                            if (lastPage == $('.pagination li').length - 2) {
+                                return;
+                            }
+                            pageNum = ++lastPage;
+                        }
+                    }
+
+
+                    lastPage = pageNum;
+                    var trIndex = 0; // reset tr counter
+                    $('.pagination li').removeClass('active'); // remove active class from all li
+                    $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                    // $(this).addClass('active');					// add active class to the clicked
+                    limitPagging();
+                    $(table + ' tr:gt(0)').each(function () {
+                        // each tr in table not the header
+                        trIndex++; // tr index counter
+                        // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                        if (
+                            trIndex > maxRows * pageNum ||
+                            trIndex <= maxRows * pageNum - maxRows
+                        ) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        } //else fade in
+                    }); // end of for each tr in table
+
+
+                    $('#seletePageNow').val(lastPage);
+
+
+
+
+                }); // end of on click pagination list
+
+
+    @*Set value in seletePage box*@
+                    $('#seletePageNow')
+                        .find('option')
+                        .remove()
+                        .end();
+
+
+                var pagenum = Math.ceil(maxRow / parseInt($('#maxRows').val()));
+
+
+                                                  var select = document.getElementById("seletePageNow");
+                for (var i = parseInt(pagenum); i > 0; i--) {
+                    var option = document.createElement('option');
+                    option.text = option.value = i;
+                    select.add(option, 0);
+                }
+
+                $('#seletePageNow').val(lastPage);
+
+            })
+            .val(row)
+            .change();
+
+
+
+        $('#seletePageNow')
+            .on('change', function (evt) {
+                // on click each page
+                evt.stopImmediatePropagation();
+                evt.preventDefault();
+                var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+                var pageNum = $(this).val();
+
+                if (pageNum == null) pageNum = 1;
+
+
+
+
+
+                lastPage = pageNum;
+                var trIndex = 0; // reset tr counter
+                $('.pagination li').removeClass('active'); // remove active class from all li
+                $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                // $(this).addClass('active');					// add active class to the clicked
+                limitPagging();
+                $(table + ' tr:gt(0)').each(function () {
+                    // each tr in table not the header
+                    trIndex++; // tr index counter
+                    // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                    if (
+                        trIndex > maxRows * pageNum ||
+                        trIndex <= maxRows * pageNum - maxRows
+                    ) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    } //else fade in
+                }); // end of for each tr in table
+            }).change();
+
+
+
+        // end of on select change
+
+        // END OF PAGINATION
+    }
+
+
+    function limitPagging() {
+        // alert($('.pagination li').length)
+
+        if ($('.pagination li').length > 7) {
+            if ($('.pagination li.active').attr('data-page') <= 3) {
+                $('.pagination li:gt(5)').hide();
+                $('.pagination li:lt(5)').show();
+                $('.pagination [data-page="next"]').show();
+            } if ($('.pagination li.active').attr('data-page') > 3) {
+                $('.pagination li:gt(0)').hide();
+                $('.pagination [data-page="next"]').show();
+                for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                    $('.pagination [data-page="' + i + '"]').show();
+
+                }
+
+            }
+        }
+    }
+
+
+
+    $(function () {
+        // Just to append id number for each row
+        $('table tr:eq(0)').prepend('<th> No </th>');
+
+        var id = 0;
+        var count = maxRow;
+
+        $('table tr:gt(0)').each(function () {
+            id++;
+            if (count != 0) {
+                $(this).prepend('<td>' + id + '</td>');
+            }
+
+        });
+    });
+
+  
+
+    //$("#btnSEExp").click(function (e) {
+    //    e.preventDefault();
+
+    //    var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+    //        + '|' + "xlsx";
+    //    var rptType = "xlsx";
+    //    $.ajax({
+    //        type: "POST",
+    //        dataType: "json",
+    //        data: '{ "exparams" : "' + expParams + '" }',
+    //        contentType: 'application/json; charset=utf-8',
+    //        url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
+    //        success: function (result) {
+    //            if (result.success == 'S') {
+    //                var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
+    //                window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
+    //            }
+    //            else { alert(result.errstr); }
+    //        },
+    //        error: function (err) {
+    //            alert('@ViewBag.ErrorMsg');
+    //        }
+    //    });
+    //});
+
+
+
+</script>
