@@ -58,7 +58,7 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
             , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
             , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-            , string currPageSize, int? page, string maxRows)
+            , string currPageSize, string KeyWordList, int? page, string maxRows)
         {
 
 
@@ -72,6 +72,12 @@ namespace SLA_Management.Controllers
 
             try
             {
+                string[] keyWordListSpilt = null;
+                if (KeyWordList != null)
+                {
+                    keyWordListSpilt = KeyWordList.Split(',');
+                }
+
                 if (DBService.CheckDatabase())
                 {
                     terminalIDAndSeqList = GetTerminalAndSeqFromDB();
@@ -130,7 +136,10 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
-                ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+
+                if (string.IsNullOrEmpty(KeyWordList)) ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+                else ViewBag.CurrentProbMaster = KeyWordList;
+
                 ViewBag.CurrentMessErrKeyWord = MessErrKeyWord == null ? currMessErrKeyWord : MessErrKeyWord;
 
 
@@ -166,10 +175,7 @@ namespace SLA_Management.Controllers
                         param.TODATE = ToDate + " " + ToTime;
                 }
 
-                if (ddlProbMaster == null && currProbMaster == null)
-                    param.PROBNAME = "All";
-                else
-                    param.PROBNAME = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+
 
                 if (MessErrKeyWord == null && currMessErrKeyWord == null)
                     param.PROBKEYWORD = "";
@@ -188,7 +194,25 @@ namespace SLA_Management.Controllers
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
 
-                if (ddlProbMaster != null && ddlProbMaster != "")
+                //if (ddlProbMaster != null && ddlProbMaster != "")
+                //{
+                //    recordset = GetErrorTermDeviceEJLog_Database(param, terminalIDAndSeqList);
+                //}
+
+                if (ddlProbMaster == null && currProbMaster == null)
+                    param.PROBNAME = "All";
+                else
+                    param.PROBNAME = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+
+                if (keyWordListSpilt != null)
+                {
+                    for (int i = 0; i < keyWordListSpilt.Length; i++)
+                    {
+                        param.PROBNAME = keyWordListSpilt[i];
+                        recordset.AddRange(GetErrorTermDeviceEJLog_Database(param, terminalIDAndSeqList));
+                    }
+                }
+                else
                 {
                     recordset = GetErrorTermDeviceEJLog_Database(param, terminalIDAndSeqList);
                 }
@@ -230,7 +254,7 @@ namespace SLA_Management.Controllers
             {
 
             }
-            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
+            return View(recordset.OrderBy(i => i.TransactionDate).ToPagedList(pageNum, (int)param.PAGESIZE));
         }
         #endregion
 

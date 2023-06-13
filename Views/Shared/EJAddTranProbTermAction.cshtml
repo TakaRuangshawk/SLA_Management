@@ -170,9 +170,9 @@
                         <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
                     </div>
                     <div class="col-md-3">
-                        <select name="ddlProbMaster" id="ddlProbMaster" class="form-control">
+                        <select name="ddlProbMaster" id="ddlProbMaster" class="selectpicker" multiple>
                             @{
-                                <option value="All">All</option>
+
                                 if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
                                 {
                                     char[] spMas = new char[] { '|' };
@@ -181,14 +181,41 @@
                                     char[] spMas1 = new char[] { ',' };
                                     foreach (string mas in arrMasterProb)
                                     {
+
                                         string[] arrMasterProb1 = mas.Split(spMas1);
-                                        if (ViewBag.CurrentProbMaster == arrMasterProb1[0].ToString())
+                                        string currentProbMaster = ViewBag.CurrentProbMaster;
+
+
+                                        if (!string.IsNullOrEmpty(currentProbMaster))
                                         {
-                                            <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                            string[] currentProbMasterSpilt = currentProbMaster.Split(',');
+                                            var flag = false;
+                                            foreach (string temp in currentProbMasterSpilt)
+                                            {
+                                                if (temp == arrMasterProb1[0].ToString())
+                                                {
+                                                    <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                                    flag = true;
+                                                }
+
+
+                                            }
+                                            if (flag == false)
+                                            {
+                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                            }
                                         }
                                         else
                                         {
-                                            <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                            if (mas == arrMasterProb1[0].ToString())
+                                            {
+                                                <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                            }
                                         }
 
                                     }
@@ -196,7 +223,7 @@
                             }
                         </select>
                     </div>
-
+                    @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
                     @* <div class="col col-lg-2">
                 <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
                 <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
@@ -411,10 +438,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                               <a style="color: #fdfdfd;">' +
+                                                                   <a style="color: #fdfdfd;">' +
                                 i++ +
                                 '\
-                                                                        </li>'
+                                                                            </li>'
                             )
                             .show();
                     } // end for i
@@ -494,7 +521,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                      var select = document.getElementById("seletePageNow");
+                                                          var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -618,6 +645,13 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
+    });
+
+    $("#ddlProbMaster").on("change", function () {
+        var selectValue = $(this).val();
+        document.getElementById('KeyWordList').value = selectValue;
+        console.log("BBB -> selectValue : " + selectValue)
+
     });
 
 
