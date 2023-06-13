@@ -1,24 +1,20 @@
 @font-face {
-    font-family: Poppins-Regular;
-    src: url('../fonts/poppins/Poppins-Regular.ttf');
+    font-family: Kanit-Regular;
+    src: url('../fonts/Kanit/Kanit-Regular.ttf');
 }
 
 @font-face {
-    font-family: Poppins-Bold;
-    src: url('../fonts/poppins/Poppins-Bold.ttf');
+    font-family: Kanit-Bold;
+    src: url('../fonts/Kanit/Kanit-Bold.ttf');
 }
 
 @font-face {
-    font-family: Poppins-Medium;
-    src: url('../fonts/poppins/Poppins-Medium.ttf');
+    font-family: Kanit-Medium;
+    src: url('../fonts/Kanit/Kanit-Medium.ttf');
 }
 
-@font-face {
-    font-family: Montserrat-Bold;
-    src: url('../fonts/montserrat/Montserrat-Bold.ttf');
-}
 body {
-    font-family: Poppins-Regular, sans-serif;
+    font-family: Kanit-Regular !important;
 /*    background: -webkit-linear-gradient(-135deg, #c850c0, #4158d0);
     background: -o-linear-gradient(-135deg, #c850c0, #4158d0);
     background: -moz-linear-gradient(-135deg, #c850c0, #4158d0);
@@ -33,7 +29,7 @@ p {
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
-    font-family: Poppins-Regular, sans-serif;
+    font-family: Kanit-Regular !important;
 }
 a {
   -webkit-transition: .3s all ease;

@@ -72,7 +72,7 @@ namespace SLA_Management.Data.TermProbDB
             try
             {
                 //_sql = "Select * From ejlog_terminal order by terminalid";
-                _sql = "Select DISTINCT TERM_ID as terminalid , TERM_SEQ  From gsb_logview.fv_device_info order by TERM_ID";
+                _sql = "Select DISTINCT TERM_ID as terminalid , TERM_SEQ  From fv_device_info order by TERM_ID";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
