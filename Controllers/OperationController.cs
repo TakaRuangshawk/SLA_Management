@@ -6,6 +6,10 @@ using PagedList;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
+using SLA_Management.Models.TermProbModel;
+using MySql.Data.MySqlClient;
+using System.Data.Common;
+using SLA_Management.Data.TermProbDB;
 
 namespace SLA_Management.Controllers
 {
@@ -27,9 +31,22 @@ namespace SLA_Management.Controllers
         private string startquery_reportdaily;
         private string startquery_tracking;
         private string startquery_reportmonthly;
+        private List<GatewayTransaction> recordset = new List<GatewayTransaction>();
+        #region regulator parameter
+        private static regulator_seek param = new regulator_seek();
+        private List<Regulator> recordset_regulator = new List<Regulator>();
+        private long recCnt = 0;
+        private static List<Regulator> regulator_dataList = new List<Regulator>();
+        private int pageNum = 1;
+        private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
+        private List<string> terminalIDList = new List<string>();
+        private DBService dBService;
+        #endregion
         public OperationController(IConfiguration myConfiguration)
         {
+            
             _myConfiguration = myConfiguration;
+            dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
@@ -39,6 +56,7 @@ namespace SLA_Management.Controllers
             startquery_reportmonthly = "SELECT TOP 5000 t1.ID,t1.TERM_ID,t1.TERM_SEQ,t1.LOCATION,t1.PROVINCE,t1.INSTALL_LOT,t1.REPLENISHMENT_DATE,t1.STARTSERVICE_DATE,t1.TOTALSERVICEDAY,t1.SERVICE_GROUP,t1.SERVICE_DATE,t1.SERVICEDAY_CHARGE,t1.SERVICETIME_CHARGE_PERDAY,t1.SERVICETIME_PERMONTH_HOUR,t1.SERVICETIME_PERHOUR_MINUTE,t1.TOTALDOWNTIME_HOUR,t1.TOTALDOWNTIME_MINUTE,t1.ACTUAL_SERVICETIME_PERMONTH_HOUR,t1.ACTUAL_SERVICETIME_PERHOUR_MINUTE,t1.ACTUAL_PERCENTSLA,t1.RATECHARGE,t1.SERVICECHARGE,t1.NETCHARGE,t1.REMARK,t2.TERM_NAME FROM " + slamonthlydowntime_table;
 
         }
+        #region sla
         public IActionResult SlaReportMonthly(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby, string maxRows)
         {
             string Day = "";
@@ -434,5 +452,219 @@ namespace SLA_Management.Controllers
             trackingDetails = TrackingDetail.mapToList(con.GetDatatable(com)).ToList();
 
         }
+        #endregion
+        #region operation
+        public IActionResult Regulator(string cmdButton, string TermID, string FrDate, string ToDate,
+        string currTID, string currFr, string currTo, string lstPageSize, string currPageSize, 
+        int? page, string maxRows)
+        {
+            if (cmdButton == "Clear")
+                return RedirectToAction("Regulator");
+            if (String.IsNullOrEmpty(maxRows))
+                ViewBag.maxRows = "50";
+            else
+                ViewBag.maxRows = maxRows;
+            try
+            {
+                if (DBService.CheckDatabase())
+                {
+                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
+
+                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
+
+                    if (terminalIDList != null && terminalIDList.Count > 0)
+                    {
+                        ViewBag.CurrentTID = terminalIDList;
+
+                    }
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    TermID = (TermID ?? currTID);
+                }
+                ViewBag.CurrentTerminalno = TermID;
+                ViewBag.CurrentFr = (FrDate ?? currFr);
+                ViewBag.CurrentTo = (ToDate ?? currTo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+                if (null == TermID)
+                    param.TerminalNo = currTID == null ? "" : currTID;
+                else
+                    param.TerminalNo = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                }
+                else
+                {
+                    param.FRDATE = FrDate + " 00:00:00";
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    //param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                    param.TODATE = FrDate + " 23:59:59";
+                }
+                else
+                {
+                    param.TODATE = ToDate + " 23:59:59";
+                }
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                {
+                    param.PAGESIZE = 50;
+                }
+                param.TerminalNo = TermID ?? "";
+                recordset_regulator = GetRegulator_Database(param);
+                if (null == recordset_regulator || recordset_regulator.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+
+                else
+                {
+                    recCnt = recordset_regulator.Count;
+                    regulator_dataList = recordset_regulator;
+                    param.PAGESIZE = recordset_regulator.Count;
+                }
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+            }
+            catch (Exception ex)
+            {
+              
+            }
+            return View(recordset_regulator.ToPagedList(pageNum, (int)param.PAGESIZE));
+        }
+        #region Constructor Regulator
+        private List<Regulator> GetRegulator_Database(regulator_seek model)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    MySqlCommand cmd = new MySqlCommand("oper_regulator", cn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new MySqlParameter("?terminal", model.TerminalNo));
+                    cmd.Parameters.Add(new MySqlParameter("?frdate", model.FRDATE));
+                    cmd.Parameters.Add(new MySqlParameter("?todate", model.TODATE));
+                    cn.Open();
+                    return GetRegulatorCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+        private List<Regulator> GetRegulatorCollectionFromReader(IDataReader reader)
+        {
+            string _seqNo = "";
+            string terminalIDTemp = "";
+            List<Regulator> resultList = new List<Regulator>();
+            while (reader.Read())
+            {
+                resultList.Add(GetGatewayFromReader(reader));
+            }
+            return resultList;
+        }
+        private Regulator GetGatewayFromReader(IDataReader reader)
+        {
+            Regulator record = new Regulator();
+            record.TERMID = reader["TERMID"].ToString();
+            record.DEP100 = $"{reader["DEP100"]:n0}";
+            record.DEP500 = $"{reader["DEP500"]:n0}";
+            record.DEP1000 = $"{reader["DEP1000"]:n0}";
+            record.WDL100 = $"{reader["WDL100"]:n0}";
+            record.WDL500 = $"{reader["WDL500"]:n0}";
+            record.WDL1000 = $"{reader["WDL1000"]:n0}";
+            record.DIFF100 = $"{reader["DIFF100"]:n0}";
+            record.DIFF500 = $"{reader["DIFF500"]:n0}";
+            record.DIFF1000 = $"{reader["DIFF1000"]:n0}";
+            return record;
+        }
+        private IDataReader ExecuteReader(DbCommand cmd)
+        {
+            return ExecuteReader(cmd, CommandBehavior.Default);
+        }
+        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
+        {
+            try
+            {
+                return cmd.ExecuteReader(behavior);
+            }
+            catch (MySqlException ex)
+            {
+                string err = "";
+                err = "Inner message : " + ex.InnerException.Message;
+                err += Environment.NewLine + "Message : " + ex.Message;
+                return null;
+            }
+        }
+        private List<string> GetListTerminalID(List<terminalAndSeq> terminalIDAndSeqList)
+        {
+            List<string> result = new List<string>();
+
+            foreach (var terminalID in terminalIDAndSeqList)
+            {
+                result.Add(terminalID.terminalid.ToString());
+            }
+
+            return result;
+        }
+        private List<terminalAndSeq> GetTerminalAndSeqFromDB()
+        {
+            DBService _objDB = new DBService(_myConfiguration);
+            DataTable _dt = new DataTable();
+            List<terminalAndSeq> _result = new List<terminalAndSeq>();
+            try
+            {
+                _dt = _objDB.GetClientData();
+                foreach (DataRow _dr in _dt.Rows)
+                {
+                    terminalAndSeq obj = new terminalAndSeq();
+                    obj.TERM_SEQ = _dr["TERM_SEQ"].ToString();
+                    obj.terminalid = _dr["terminalid"].ToString();
+
+                    _result.Add(obj);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            { }
+            return _result;
+        }
+        #endregion
+        #endregion
     }
 }

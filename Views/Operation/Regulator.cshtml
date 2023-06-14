@@ -1,0 +1,572 @@
+﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.Regulator>
+@{
+    ViewData["Title"] = "Regulator";
+    string[] tableHeaders = new string[]
+    {
+    "TERMID ",
+    "DEP100 ",
+    "DEP500 ",
+    "DEP1000 ",
+    "WDL100 ",
+    "WDL500 ",
+    "WDL1000 ",
+    "REM100 ",
+    "REM500 ",
+    "REM1000"
+    };
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<style>
+    .bootstrap-select > .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+    }
+</style>
+
+<style>
+    select.form-control {
+        -webkit-appearance: button;
+    }
+</style>
+
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader">
+        <div class="row">
+            <div class="col col-lg-1">
+            </div>
+            <div class="col col-lg-4">
+                <p class="text-black fs-2">Regulator Report</p>
+            </div>
+        </div>
+
+
+        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
+            @using (Html.BeginForm("Regulator", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            {
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2" style="width: 112px;">
+                        <h>Terminal ID : </h>
+                    </div>
+                    <div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
+                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (string item in ViewBag.CurrentTID)
+                            {
+                                if (@item != @ViewBag.TermID)
+
+                                {
+                                    <option data-tokens=@item>@item</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens=@item selected>@item</option>
+
+                                }
+
+
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2" style="width: 112px;">
+                        <h>From Date : </h>
+                    </div>
+                    <div class="col-md-2 " style="margin-left:30px">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                        </div>
+                    </div>
+                    <div class="col-md-2" style="width: 112px;">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-md-2" style="margin-left:30px">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                        </div>
+                    </div>
+                
+      
+                </div>
+           
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                 
+                </div>
+                <div class="row " style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                    <div class="col col-lg-1">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="col-md-1" style="margin-left: 35px">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50"  },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="500", Value = "1000"  }
+                        }, new
+                        {
+                        @class = "form-control dropdown"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+                </div>
+
+               
+                <div class="row justify-content-md-center" style="margin-top: 15px">
+
+                    @if (ViewBag.ConnectDB == "false")
+                    {
+                        <div class="col col-lg-2">
+                            <p style="color: red "> Can't connect database !</p>
+                        </div>
+                        <div class="col col-lg-1">
+                            <button type="button" id="btnsearch" class="btn btn-secondary" style="height:41px;">search  </button>
+                        </div>
+                        <div class="col col-lg-1">
+                            <button type="reset" id="btnclear" class="btn btn-secondary" style="height:41px;" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+                        </div>
+                        <div class="col col-lg-2">
+                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-lg-1">
+                        </div>
+                        <div class= "col-lg-2">
+                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
+                        </div>
+                        <div class="col-lg-2">
+                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+                        </div>
+                        <div class="col col-lg-2">
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    }
+
+
+                </div>
+
+            }
+
+        </div>
+
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="table-id" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in tableHeaders)
+                            {
+                                <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        if (Model != null)
+                        {
+                            foreach (var Data in Model)
+                            {
+                                <tr>
+                           
+                                    <td> @Data.TERMID</td>
+                                    <td> @Data.DEP100</td>
+                                    <td> @Data.DEP500 </td>
+                                    <td> @Data.DEP1000 </td>
+                                    <td> @Data.WDL100</td>
+                                    <td> @Data.WDL500</td>
+                                    <td> @Data.WDL1000</td>
+                                    <td> @Data.DIFF100</td>
+                                    <td> @Data.DIFF500</td>
+                                    <td> @Data.DIFF1000</td>
+                                </tr>
+                            }
+
+                        }
+                        if (Model.Count == 0)
+                        {
+
+                        <td colspan="12" style="text-align: center;"> NO DATA </td>
+                        }
+                    }
+                </tbody>
+
+
+            </table>
+
+
+            <div class="row">
+                <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                    <nav>
+                        <div class="pagination">
+                            <li data-page="prev" id="back">
+                                <a style="color: #fdfdfd;"> < </a>
+                            </li>
+                            <!--	Here the JS Function Will Add the Rows -->
+                            <li data-page="next" id="prev">
+                                <a style="color: #fdfdfd;"> > </a>
+                            </li>
+
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-md-2" style="z-index:2;">
+                    <p style="font-size:16px;font-weight:bolder;">
+                        Select page :
+                        @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                        }, new
+                        {
+                        @class = "form-control"
+                        })
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    @* $(document).ready(function () {
+        $(function () {
+
+        $('#FrDate').datepicker({
+        format: "yyyy-mm-dd",
+        maxViewMode: 3,
+        daysOfWeekHighlighted: "0,6",
+        autoclose: true,
+        todayHighlight: true
+        });
+
+        $('#ToDate').datepicker({
+        format: "yyyy-mm-dd",
+        maxViewMode: 3,
+        daysOfWeekHighlighted: "0,6",
+        autoclose: true,
+        todayHighlight: true
+        });
+        });
+        });*@
+
+        $("#GatewayDateRecheckDate").submit(function (e) {
+            var FrDateTemp = new Date($('#FrDate').val());
+            var ToDateTemp = new Date($('#ToDate').val());
+
+            if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+                alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+    getPagination('#table-id', @ViewBag.maxRows);
+
+
+    function getPagination(table, row) {
+        var lastPage = 1;
+
+        $('#maxRows')
+            .on('change', function (evt) {
+                $('.paginationprev').html('');
+
+                lastPage = 1;
+                $('.pagination')
+                    .find('li')
+                    .slice(1, -1)
+                    .remove();
+                var trnum = 0;
+                var maxRows = parseInt($(this).val());
+
+                if (maxRows == 5000) {
+                    $('.pagination').hide();
+                } else {
+                    $('.pagination').show();
+                }
+
+                var totalRows = $(table + ' tbody tr').length; // numbers of rows
+                $(table + ' tr:gt(0)').each(function () {
+                    // each TR in  table and not the header
+                    trnum++; // Start Counter
+                    if (trnum > maxRows) {
+                        // if tr number gt maxRows
+
+                        $(this).hide(); // fade it out
+                    }
+                    if (trnum <= maxRows) {
+                        $(this).show();
+                    } // else fade in Important in case if it ..
+                }); //  was fade out to fade it in
+                if (totalRows > maxRows) {
+                    // if tr total rows gt max rows option
+                    var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+                    //	numbers of pages
+
+                    for (var i = 1; i <= pagenum;) {
+                        // for each page append pagination li
+                        $('.pagination #prev')
+                            .before(
+                                '<li data-page="' +
+                                i +
+                                '">\
+                                                               <a style="color: #fdfdfd;">' +
+                                i++ +
+                                '\
+                                                                        </li>'
+                            )
+                            .show();
+                    } // end for i
+                    $('#back').show();
+
+
+
+                } else {
+                    $('#back').hide();
+                    $('#prev').hide();
+                }
+
+                // end if row count > max rows
+                $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+                $('.pagination li').on('click', function (evt) {
+                    // on click each page
+                    evt.stopImmediatePropagation();
+                    evt.preventDefault();
+                    var pageNum = $(this).attr('data-page'); // get it's number
+
+                    var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+
+
+                    if (pageNum == 'prev') {
+                        if (lastPage == 1) {
+                            return;
+                        }
+                        pageNum = --lastPage;
+                    }
+                    if (maxRows < totalRows) {
+                        if (pageNum == 'next') {
+                            if (lastPage == $('.pagination li').length - 2) {
+                                return;
+                            }
+                            pageNum = ++lastPage;
+                        }
+                    }
+
+
+                    lastPage = pageNum;
+                    var trIndex = 0; // reset tr counter
+                    $('.pagination li').removeClass('active'); // remove active class from all li
+                    $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                    // $(this).addClass('active');					// add active class to the clicked
+                    limitPagging();
+                    $(table + ' tr:gt(0)').each(function () {
+                        // each tr in table not the header
+                        trIndex++; // tr index counter
+                        // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                        if (
+                            trIndex > maxRows * pageNum ||
+                            trIndex <= maxRows * pageNum - maxRows
+                        ) {
+                            $(this).hide();
+                        } else {
+                            $(this).show();
+                        } //else fade in
+                    }); // end of for each tr in table
+
+
+                    $('#seletePageNow').val(lastPage);
+
+
+
+
+                }); // end of on click pagination list
+
+                limitPagging();
+    @*Set value in seletePage box*@
+                    $('#seletePageNow')
+                        .find('option')
+                        .remove()
+                        .end();
+
+
+                var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
+
+
+                                                      var select = document.getElementById("seletePageNow");
+                for (var i = parseInt(pagenum); i > 0; i--) {
+                    var option = document.createElement('option');
+                    option.text = option.value = i;
+                    select.add(option, 0);
+                }
+
+                $('#seletePageNow').val(lastPage);
+
+            })
+            .val(row)
+            .change();
+
+
+
+        $('#seletePageNow')
+            .on('change', function (evt) {
+                // on click each page
+                evt.stopImmediatePropagation();
+                evt.preventDefault();
+                var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+                var pageNum = $(this).val();
+
+                if (pageNum == null) pageNum = 1;
+
+
+
+
+
+                lastPage = pageNum;
+                var trIndex = 0; // reset tr counter
+                $('.pagination li').removeClass('active'); // remove active class from all li
+                $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                // $(this).addClass('active');					// add active class to the clicked
+                limitPagging();
+                $(table + ' tr:gt(0)').each(function () {
+                    // each tr in table not the header
+                    trIndex++; // tr index counter
+                    // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                    if (
+                        trIndex > maxRows * pageNum ||
+                        trIndex <= maxRows * pageNum - maxRows
+                    ) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    } //else fade in
+                }); // end of for each tr in table
+            }).change();
+
+
+
+        // end of on select change
+
+        // END OF PAGINATION
+    }
+
+
+    function limitPagging() {
+        // alert($('.pagination li').length)
+
+        if ($('.pagination li').length > 7) {
+            if ($('.pagination li.active').attr('data-page') <= 3) {
+                $('.pagination li:gt(5)').hide();
+                $('.pagination li:lt(5)').show();
+                $('.pagination [data-page="next"]').show();
+            } if ($('.pagination li.active').attr('data-page') > 3) {
+                $('.pagination li:gt(0)').hide();
+                $('.pagination [data-page="next"]').show();
+                for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                    $('.pagination [data-page="' + i + '"]').show();
+
+                }
+
+            }
+        }
+    }
+
+
+
+    $(function () {
+        // Just to append id number for each row
+        $('table tr:eq(0)').prepend('<th> No </th>');
+
+        var id = 0;
+        var count = @Model.Count;
+
+        $('table tr:gt(0)').each(function () {
+            id++;
+            if (count != 0) {
+                $(this).prepend('<td>' + id + '</td>');
+            }
+
+        });
+    });
+
+    //  Developed By Yasser Mas
+    // yasser.mas2@gmail.com
+
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+            + '|' + "xlsx";
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: '{ "exparams" : "' + expParams + '" }',
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("Gateway_ExportExc", "Gateway")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("DownloadExportFile", "Gateway")'
+                    window.location = '@Url.Action("DownloadExportFile", "Gateway")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+
+
+</script>
