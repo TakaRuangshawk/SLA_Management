@@ -10,6 +10,7 @@ using SLA_Management.Models.TermProbModel;
 using MySql.Data.MySqlClient;
 using System.Data.Common;
 using SLA_Management.Data.TermProbDB;
+using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 
 namespace SLA_Management.Controllers
 {
@@ -665,6 +666,142 @@ namespace SLA_Management.Controllers
             return _result;
         }
         #endregion
+        #endregion
+        #region Excel
+
+        [HttpPost]
+        public ActionResult Regulator_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            
+            try
+            {
+
+                if (regulator_dataList == null || regulator_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_Regulator obj = new ExcelUtilities_Regulator(param);
+
+
+                // Session["PrefixRep"] = "EJAddTran";
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(regulator_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "Regulator_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "Regulator_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+
+
         #endregion
     }
 }

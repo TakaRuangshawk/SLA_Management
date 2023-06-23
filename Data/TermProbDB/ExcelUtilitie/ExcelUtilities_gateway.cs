@@ -109,4 +109,107 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
 
 
     }
+
+    public class ExcelUtilities_Regulator
+    {
+        #region  Local Variable
+
+        regulator_seek param = null;
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+        public ExcelUtilities_Regulator(regulator_seek paramTemp)
+        {
+            param = paramTemp;
+        }
+
+        public ExcelUtilities_Regulator()
+        {
+            param = new regulator_seek();
+        }
+
+        #endregion
+
+        #region Function 
+        public void GatewayOutput(List<Regulator> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 8;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\Regulator.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+                    if (param.TerminalNo == null || param.TerminalNo == "")
+                    {
+                        param.TerminalNo = "All";
+                    }
+
+                    excelWorksheet.Cells[2, 1].Value = "Regulator Report";
+                    //excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
+                    excelWorksheet.Cells[4, 2].Value = param.FRDATE.Substring(0, 10);
+                    excelWorksheet.Cells[4, 4].Value = param.TODATE.Substring(0, 10);
+                    excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
+                    excelWorksheet.Cells[5, 2].Value = param.TerminalNo;
+                    excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
+
+                    foreach (Regulator data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.TERMID;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.DEP100;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.DEP500;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.DEP1000;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.WDL100;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.WDL500;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.WDL1000;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.DIFF100;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.DIFF500;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.DIFF1000;
+
+
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "Regulator.xlsx"))));
+                    FileSaveAsXlsxFormat = "Regulator.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+        #endregion
+    }
 }

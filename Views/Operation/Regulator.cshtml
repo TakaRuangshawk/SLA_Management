@@ -10,9 +10,9 @@
     "WDL100 ",
     "WDL500 ",
     "WDL1000 ",
-    "REM100 ",
-    "REM500 ",
-    "REM1000"
+    "DIFF100 ",
+    "DIFF500 ",
+    "DIFF1000"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -553,11 +553,11 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("Gateway_ExportExc", "Gateway")',
+            url: '@Url.Action("Regulator_ExportExc", "Operation")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("DownloadExportFile", "Gateway")'
-                    window.location = '@Url.Action("DownloadExportFile", "Gateway")/?rpttype=' + rptType;
+                    var url = '@Url.Action("DownloadExportFile", "Operation")'
+                    window.location = '@Url.Action("DownloadExportFile", "Operation")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
