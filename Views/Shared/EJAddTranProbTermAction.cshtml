@@ -75,7 +75,7 @@
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
                     <div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
+                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true" >
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
                             {
