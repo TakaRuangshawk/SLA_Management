@@ -46,7 +46,7 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
             , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
             , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-            , string currPageSize, int? page, string maxRows)
+            , string currPageSize, int? page, string maxRows , string KeyWordList)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
@@ -125,7 +125,8 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
-                ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+                //ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+                ViewBag.CurrentProbMaster = KeyWordList;
                 ViewBag.CurrentMessErrKeyWord = MessErrKeyWord == null ? currMessErrKeyWord : MessErrKeyWord;
 
                 long recCnt = 0;
@@ -183,21 +184,38 @@ namespace SLA_Management.Controllers
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
 
-
-
-                Console.WriteLine("ddlProbMaster :" + ddlProbMaster);
-
-                Console.WriteLine("TermID :" + TermID);
-
-                if (ddlProbMaster != null  && TermID == null)
+                //Console.WriteLine("TermID :" + TermID);
+                if (KeyWordList != null)
                 {
-                    recordset = GetErrorTermDeviceEJLog_Database(param);
+                    string[] KeyWordListTemp = KeyWordList.Split(",");
+                    foreach(string KeyWord in KeyWordListTemp)
+                    {
+                        //Console.WriteLine(KeyWord);
+
+                        param.PROBNAME = KeyWord;
+                        if (ddlProbMaster != null || TermID != null)
+                        {
+                            recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
+                        }
+
+                       
+                    }
+                }
+                else
+                {
+                    if (ddlProbMaster != null || TermID != null)
+                    {
+                        recordset = GetErrorTermDeviceEJLog_Database(param);
+                    }
                 }
 
-                else if (TermID != null && ddlProbMaster == null )
-                {
-                    recordset = GetErrorTermDeviceEJLog_Database(param);
-                }
+                   
+
+                
+
+              
+
+              
 
 
 
