@@ -1,15 +1,16 @@
-﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.ej_trandeviceprob>
+﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.ej_terminalperoffline>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "CheckEJSize";
     string[] tableHeaders = new string[]
-                                                                                                    {
-
-    "Terminal ID ",
-    "Serial No ",
-    "Terminal Name ",
-    "Event Name ",
-
-                                                                                                            };
+    {
+    "Trx DateTime ",
+    "Branch Name ",
+    "TerminalID ",
+    "IP Address ",
+    "Location ",
+    "Last Time Upload ",
+    "Size "
+    };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -18,7 +19,6 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Table #6</title>
 </head>
 
 <style>
@@ -56,24 +56,21 @@
         <div class="row">
             <div class="col col-lg-1">
             </div>
-            <div class="col col-lg-1">
-                <p class="text-black fs-2">DeviceTermProb</p>
+            <div class="col col-lg-4">
+                <p class="text-black fs-2">Check EJ File Size</p>
             </div>
         </div>
 
 
         <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
-            @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get, new { id = "EJAddTranProbTermRecheckDate" }))
+            @using (Html.BeginForm("CheckEJSize", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
+                    <div class="col-md-1">
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col-md-2" style="width: 112px;">
                         <h>Terminal ID : </h>
                     </div>
-                    @* <div class="col-md-2" style="margin-left:30px">
-                @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
-                </div>*@
                     <div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
@@ -94,7 +91,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col-md-2" style="width: 112px;">
                         <h>From Date : </h>
                     </div>
                     <div class="col-md-2 " style="margin-left:30px">
@@ -103,7 +100,7 @@
                             @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                         </div>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col-md-2" style="width: 112px;">
                         <h>To Date : </h>
                     </div>
                     <div class="col-md-2" style="margin-left:30px">
@@ -112,28 +109,14 @@
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                         </div>
                     </div>
+                
+      
                 </div>
+           
                 <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
-                        <h>From Time : </h>
-                    </div>
-                    <div class="col-md-2" style="margin-left:35px;">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
-                        </div>
-                    </div>
-                    <div class="col col-lg-2" style="width: auto">
-                        <h>To Time : </h>
-                    </div>
-                    <div class="col-md-2" style="margin-left:48px;">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
-                        </div>
-                    </div>
+                 
                 </div>
                 <div class="row " style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
@@ -146,11 +129,9 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="5", Value = "5"  },
-                        new SelectListItem(){ Text="10", Value = "10"  },
-                        new SelectListItem(){ Text="50", Value = "50" },
+                        new SelectListItem(){ Text="50", Value = "50"  },
                         new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="1000", Value = "1000"  }
+                        new SelectListItem(){ Text="500", Value = "1000"  }
                         }, new
                         {
                         @class = "form-control dropdown"
@@ -162,78 +143,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" style="margin-top: 15px;align-items:center;">
 
-                    <div class="col col-lg-1">
-                    </div>
-                    <div class="col col-lg-2" style="width: auto">
-                        <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
-                    </div>
-                    <div class="col-md-3">
-                        <select name="ddlProbMaster" id="ddlProbMaster" class="selectpicker" multiple>
-                            @{
-
-                                if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
-                                {
-                                    char[] spMas = new char[] { '|' };
-                                    string strMasterProb = ViewBag.ProbMaster;
-                                    string[] arrMasterProb = strMasterProb.Split(spMas);
-                                    char[] spMas1 = new char[] { ',' };
-                                    foreach (string mas in arrMasterProb)
-                                    {
-
-                                        string[] arrMasterProb1 = mas.Split(spMas1);
-                                        string currentProbMaster = ViewBag.CurrentProbMaster;
-
-
-                                        if (!string.IsNullOrEmpty(currentProbMaster))
-                                        {
-                                            string[] currentProbMasterSpilt = currentProbMaster.Split(',');
-                                            var flag = false;
-                                            foreach (string temp in currentProbMasterSpilt)
-                                            {
-                                                if (temp == arrMasterProb1[0].ToString())
-                                                {
-                                                    <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                    flag = true;
-                                                }
-
-
-                                            }
-                                            if (flag == false)
-                                            {
-                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (mas == arrMasterProb1[0].ToString())
-                                            {
-                                                <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                            }
-                                        }
-
-                                    }
-                                }
-                            }
-                        </select>
-                    </div>
-                    @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
-                    @* <div class="col col-lg-2">
-                <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
-                <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
-                </div>
-                <div class="col-md-2">
-                @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
-                </div>*@
-
-                </div>
-
+               
                 <div class="row justify-content-md-center" style="margin-top: 15px">
 
                     @if (ViewBag.ConnectDB == "false")
@@ -242,10 +153,10 @@
                             <p style="color: red "> Can't connect database !</p>
                         </div>
                         <div class="col col-lg-1">
-                            <button type="button" id="btnsearch" class="btn btn-secondary">search  </button>
+                            <button type="button" id="btnsearch" class="btn btn-secondary" style="height:41px;">search  </button>
                         </div>
                         <div class="col col-lg-1">
-                            <button type="reset" id="btnclear" class="btn btn-secondary" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+                            <button type="reset" id="btnclear" class="btn btn-secondary" style="height:41px;" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
                         </div>
                         <div class="col col-lg-2">
                             <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
@@ -255,12 +166,12 @@
                     }
                     else
                     {
-                        <div class="col col-lg-1">
+                        <div class="col-lg-1">
                         </div>
-                        <div class="col col-lg-2">
+                        <div class= "col-lg-2">
                             <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
                         </div>
-                        <div class="col col-lg-2">
+                        <div class="col-lg-2">
                             <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
                         </div>
                         <div class="col col-lg-2">
@@ -298,11 +209,13 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-
-                                    <td> @Data.TerminalID</td>
-                                    <td> @Data.Seqno </td>
+                                    <td> @Data.trandate</td>
                                     <td> @Data.BranchName </td>
-                                    <td> @Data.ProbName </td>
+                                    <td> @Data.terminalid </td>
+                                    <td> @Data.ipaddress</td>
+                                    <td> @Data.location</td>
+                                    <td> @Data.lasttimeupload</td>
+                                    <td> @Data.downloadsize</td>
                                 </tr>
                             }
 
@@ -310,7 +223,7 @@
                         if (Model.Count == 0)
                         {
 
-                        <td colspan="6" style="text-align: center;"> NO DATA </td>
+                        <td colspan="12" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
@@ -377,7 +290,7 @@
         });
         });*@
 
-        $("#EJAddTranProbTermRecheckDate").submit(function (e) {
+        $("#GatewayDateRecheckDate").submit(function (e) {
             var FrDateTemp = new Date($('#FrDate').val());
             var ToDateTemp = new Date($('#ToDate').val());
 
@@ -438,10 +351,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                                   <a style="color: #333333;">' +
+                                                               <a style="color: #333333;">' +
                                 i++ +
                                 '\
-                                                                            </li>'
+                                                                        </li>'
                             )
                             .show();
                     } // end for i
@@ -521,7 +434,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                          var select = document.getElementById("seletePageNow");
+                                                      var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -633,11 +546,11 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
+            url: '@Url.Action("Regulator_ExportExc", "Operation")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
-                    window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
+                    var url = '@Url.Action("DownloadExportFile", "Operation")'
+                    window.location = '@Url.Action("DownloadExportFile", "Operation")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
@@ -645,13 +558,6 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
-    });
-
-    $("#ddlProbMaster").on("change", function () {
-        var selectValue = $(this).val();
-        document.getElementById('KeyWordList').value = selectValue;
-        console.log("BBB -> selectValue : " + selectValue)
-
     });
 
 

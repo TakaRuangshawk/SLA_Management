@@ -36,4 +36,11 @@ namespace SLA_Management.Models.TermProbModel
         public string FRDATE { get; set; }
         public string TODATE { get; set; }
     }
+    public class ejchecksize_seek
+    {
+        public string TerminalNo { get; set; }
+        public string SerialNo { get; set; }
+        public int PAGESIZE { get; set; }
+        public string Hours { get; set; }
+    }
 }

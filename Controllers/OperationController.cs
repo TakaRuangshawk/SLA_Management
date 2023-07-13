@@ -11,6 +11,7 @@ using MySql.Data.MySqlClient;
 using System.Data.Common;
 using SLA_Management.Data.TermProbDB;
 using SLA_Management.Data.TermProbDB.ExcelUtilitie;
+using MySqlX.XDevAPI.Common;
 
 namespace SLA_Management.Controllers
 {
@@ -35,12 +36,19 @@ namespace SLA_Management.Controllers
         private List<GatewayTransaction> recordset = new List<GatewayTransaction>();
         #region regulator parameter
         private static regulator_seek param = new regulator_seek();
+        private static ej_trandada_seek param_ej = new ej_trandada_seek();
+        private static ejchecksize_seek param_checkej = new ejchecksize_seek();
         private List<Regulator> recordset_regulator = new List<Regulator>();
         private long recCnt = 0;
         private static List<Regulator> regulator_dataList = new List<Regulator>();
+        private static List<ej_terminalperoffline> recordset_checkejsize = new List<ej_terminalperoffline>();
+        private static List<ej_terminalperoffline> checkejsize_dataList = new List<ej_terminalperoffline>();
+        private static List<ejloglastupdate> recordset_ejloglastupdate = new List<ejloglastupdate>();
+        private static List<ejloglastupdate> checkejsize_ejloglastupdate = new List<ejloglastupdate>();
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
+        private List<string> terminalSEQList = new List<string>();
         private DBService dBService;
         #endregion
         public OperationController(IConfiguration myConfiguration)
@@ -454,7 +462,7 @@ namespace SLA_Management.Controllers
 
         }
         #endregion
-        #region operation
+        #region Regulator
         public IActionResult Regulator(string cmdButton, string TermID, string FrDate, string ToDate,
         string currTID, string currFr, string currTo, string lstPageSize, string currPageSize, 
         int? page, string maxRows)
@@ -641,6 +649,17 @@ namespace SLA_Management.Controllers
 
             return result;
         }
+        private List<string> GetListTerminalSEQ(List<terminalAndSeq> terminalIDAndSeqList)
+        {
+            List<string> result = new List<string>();
+
+            foreach (var terminalSEQ in terminalIDAndSeqList)
+            {
+                result.Add(terminalSEQ.TERM_SEQ.ToString());
+            }
+
+            return result;
+        }
         private List<terminalAndSeq> GetTerminalAndSeqFromDB()
         {
             DBService _objDB = new DBService(_myConfiguration);
@@ -666,6 +685,384 @@ namespace SLA_Management.Controllers
             return _result;
         }
         #endregion
+        #endregion
+
+        #region CheckEJSize
+        
+        public IActionResult CheckEJSize(string cmdButton, string TermID, string FrDate, string ToDate,
+        string currTID, string currFr, string currTo, string lstPageSize, string currPageSize,
+        int? page, string maxRows)
+        {
+            if (cmdButton == "Clear")
+                return RedirectToAction("CheckEJSize");
+            if (String.IsNullOrEmpty(maxRows))
+                ViewBag.maxRows = "50";
+            else
+                ViewBag.maxRows = maxRows;
+            try
+            {
+                if (DBService.CheckDatabase())
+                {
+                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
+
+                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
+
+                    if (terminalIDList != null && terminalIDList.Count > 0)
+                    {
+                        ViewBag.CurrentTID = terminalIDList;
+
+                    }
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    TermID = (TermID ?? currTID);
+                }
+                ViewBag.CurrentTerminalno = TermID;
+                ViewBag.CurrentFr = (FrDate ?? currFr);
+                ViewBag.CurrentTo = (ToDate ?? currTo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+                if (null == TermID)
+                    param.TerminalNo = currTID == null ? "" : currTID;
+                else
+                    param.TerminalNo = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                }
+                else
+                {
+                    param.FRDATE = FrDate + " 00:00:00";
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    //param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                    param.TODATE = FrDate + " 23:59:59";
+                }
+                else
+                {
+                    param.TODATE = ToDate + " 23:59:59";
+                }
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                {
+                    param.PAGESIZE = 50;
+                }
+                param.TerminalNo = TermID ?? "";
+                recordset_checkejsize = GetOffLineTermEJLog(param);
+                if (null == recordset_checkejsize || recordset_checkejsize.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+
+                else
+                {
+                    recCnt = recordset_checkejsize.Count;
+                    checkejsize_dataList = recordset_checkejsize;
+                    param.PAGESIZE = recordset_checkejsize.Count;
+                }
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return View(recordset_checkejsize.ToPagedList(pageNum, (int)param.PAGESIZE));
+        }
+        private string _sql = string.Empty;
+        private string _sqlWhere = string.Empty;
+        public List<ej_terminalperoffline> GetOffLineTermEJLog(regulator_seek model)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+
+                    _sql = "Select tp.*, vter.termname, vter.Location as BranchLoc, vter.Branch, dv.TERM_IP from ";
+                    _sql += "ejlog_synclogfiletext tp inner join v_terminal_info vter on vter.terminalid = tp.terminalid ";
+                    _sql += "left outer join fv_device_info dv on dv.TERM_ID = tp.terminalid Where 1=1 ";
+
+                    _sqlWhere = " tp.lasttimedownload between '" + model.FRDATE + "' and '" + model.TODATE + "'";
+
+                    if (model.TerminalNo.ToString() != "")
+                        _sqlWhere += " and tp.terminalid = '" + model.TerminalNo + "'";
+
+                    _sql += "and " + _sqlWhere;
+
+                    _sql += "order by tp.lasttimedownload desc";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetOffLineTermEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+        //public static List<ej_terminalperoffline> GetOffLineTermEJLog(ej_trandada_seek model, int startRowIndex, int maximumRows)
+        //{
+        //    List<ej_terminalperoffline> recordset = null;
+
+        //    recordset = EJLogSiteProvider.LogSeek.GetOffLineTermEJLog(model, GetPageIndex(startRowIndex, maximumRows), maximumRows);
+
+        //    return recordset;
+        //}
+        protected virtual List<ej_terminalperoffline> GetOffLineTermEJLogCollectionFromReader(IDataReader reader)
+        {
+            int _seqNo = 1;
+            List<ej_terminalperoffline> recordlst = new List<ej_terminalperoffline>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetOffLineTermEJLogFromReader(reader, _seqNo));
+                _seqNo++;
+            }
+            return recordlst;
+        }
+        protected virtual ej_terminalperoffline GetOffLineTermEJLogFromReader(IDataReader reader, int pSeqNo)
+        {
+            ej_terminalperoffline record = new ej_terminalperoffline();
+
+            record.seqno = pSeqNo;
+            record.terminalid = reader["terminalid"].ToString();
+            record.BranchName = reader["termname"].ToString();
+            record.location = reader["BranchLoc"].ToString();
+            record.ipaddress = reader["TERM_IP"].ToString();
+            record.lasttimeupload = reader["lasttimedownload"].ToString();
+            record.trandate = Convert.ToDateTime(reader["trandateej"]);
+            record.downloadsize = Convert.ToInt64(reader["lastsizedownload"]);
+
+            return record;
+        }
+        #endregion
+
+        #region CheckEJLastUpdate
+        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,
+        string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
+        int? page, string maxRows)
+        {
+            if (cmdButton == "Clear")
+                return RedirectToAction("CheckEJLastUpdate");
+            if (String.IsNullOrEmpty(maxRows))
+                ViewBag.maxRows = "50";
+            else
+                ViewBag.maxRows = maxRows;
+           //add hours
+            List<String> items = new List<String>();
+            DateTime currentTime = DateTime.Now;
+      
+            for (int i = 0; i <= currentTime.Hour; i++)
+            {
+              
+                items.Add(i.ToString());
+            }
+
+            ViewBag.CurrentHours = items;
+            try
+            {
+                if (DBService.CheckDatabase())
+                {
+                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
+
+                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
+                    terminalSEQList = GetListTerminalSEQ(terminalIDAndSeqList);
+
+                    if (terminalIDList != null && terminalIDList.Count > 0)
+                    {
+                        ViewBag.CurrentTID = terminalIDList;
+
+                    }
+                    if (terminalSEQList != null && terminalSEQList.Count > 0)
+                    {
+                        ViewBag.CurrentTSEQ = terminalSEQList;
+
+                    }
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+                if (null == TermID && null == Hours  && null == page)
+                {
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    Hours = (Hours ?? currHours);
+                    TermID = (TermID ?? currTID);
+                    TermSEQ = (TermSEQ ?? currTSEQ);
+                }
+                ViewBag.CurrentTerminalno = TermID;
+                //ViewBag.CurrentHours = currHours;
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+                if (null == TermID)
+                    param_checkej.TerminalNo = currTID == null ? "" : currTID;
+                else
+                    param_checkej.TerminalNo = TermID == null ? "" : TermID;
+                if (null == TermSEQ)
+                    param_checkej.SerialNo = currTSEQ == null ? "" : currTSEQ;
+                else
+                    param_checkej.SerialNo = TermSEQ == null ? "" : TermSEQ;
+
+                if ((Hours == null && currHours == null))   
+                {
+
+                    param_checkej.Hours = currHours == null ? "" : currHours;
+                }
+                else
+                {
+                    param_checkej.Hours = Hours == null ? "" : Hours;
+                }
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param_checkej.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                {
+                    param_checkej.PAGESIZE = 50;
+                }
+                param_checkej.TerminalNo = TermID ?? "";
+                param_checkej.SerialNo = TermSEQ ?? "";
+                recordset_ejloglastupdate = GetOffLineTermEJLog(param_checkej);
+                if (null == recordset_ejloglastupdate || recordset_ejloglastupdate.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+
+                else
+                {
+                    recCnt = recordset_ejloglastupdate.Count;
+                    checkejsize_ejloglastupdate = recordset_ejloglastupdate;
+                    param_checkej.PAGESIZE = recordset_ejloglastupdate.Count;
+                }
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return View(recordset_ejloglastupdate.ToPagedList(pageNum, (int)param_checkej.PAGESIZE));
+        }
+        public List<ejloglastupdate> GetOffLineTermEJLog(ejchecksize_seek model)
+        {
+            DateTime currentDate = DateTime.Now;
+            string formattedDate = currentDate.ToString("yyyyMMdd");
+            string hours = "";
+            if(model.Hours != "")
+            {
+                hours = model.Hours;
+            }
+            else
+            {
+                hours = "1";
+            }
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+                {
+
+                    _sql = "SELECT a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,a.UPDATE_DATE FROM gsb_adm_fv.ejournal_upload_log as a ";
+                    _sql += "left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
+                    _sql += "WHERE a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > "+hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
+
+                    if (model.TerminalNo.ToString() != "")
+                    {
+                        _sqlWhere += " and a.TERM_ID = '" + model.TerminalNo + "'";
+                    }
+                    if(model.SerialNo.ToString() != "")
+                    {
+                        _sqlWhere += " and b.TERM_SEQ = '" + model.SerialNo + "'";
+                    }
+                        
+                    _sql +=  _sqlWhere;
+                    _sql += " order by a.UPDATE_DATE asc";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetLastUpdateTermEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+        protected virtual List<ejloglastupdate> GetLastUpdateTermEJLogCollectionFromReader(IDataReader reader)
+        {
+            int _seqNo = 1;
+            List<ejloglastupdate> recordlst = new List<ejloglastupdate>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetLastUpdateTermEJLogFromReader(reader));
+                _seqNo++;
+            }
+            return recordlst;
+        }
+        protected virtual ejloglastupdate GetLastUpdateTermEJLogFromReader(IDataReader reader)
+        {
+            ejloglastupdate record = new ejloglastupdate();
+
+            record.term_id = reader["TERM_ID"].ToString();
+            record.term_seq = reader["TERM_SEQ"].ToString();
+            record.term_name = reader["TERM_NAME"].ToString();
+            //record.update_date = reader["UPDATE_DATE"].ToString();
+            record.update_date = DateTime.Parse(reader["UPDATE_DATE"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            return record;
+        }
         #endregion
         #region Excel
 

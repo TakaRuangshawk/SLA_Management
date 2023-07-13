@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-
+    <link rel="shortcut icon" href="~/images/favicon.ico" type="image/x-icon" />
 
     <link href="~/lib/bootstrap-select.1.13.18/content/content/bootstrap-select.css" rel="stylesheet" />
     <link href="~/lib/bootstrap-select.1.13.18/content/content/bootstrap-select.min.css" rel="stylesheet" />
@@ -75,6 +75,8 @@
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">DeviceTermProb</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CheckEJLastUpdate">CheckEJLastUpdate</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CheckEJSize">CheckEJSize</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaTracking">Sla Tracking</a>
                                @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
                             </div>
@@ -117,7 +119,15 @@
 
     <footer class="border-top footer text-muted">
         <div class="container-fluid" style = "background-color:#e3e3e3">
-            Copyright&copy; 2023 - Dataone Asia Co., Ltd
+            <div class="row">
+                <div class="col-md-6">
+                    <a style="align-items:start">Copyright&copy; 2023 - Dataone Asia Co., Ltd</a>
+                </div>
+                <div class="col-md-6">
+                    <a> Version 0.1.0 </a>
+                </div>            </div>
+            
+            
         </div>
     </footer>
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@

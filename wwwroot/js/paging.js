@@ -45,7 +45,7 @@ function getPagination(table, row) {
                             '<li data-page="' +
                             i +
                             '">\
-                                   <a style="color: #fdfdfd;">' +
+                                   <a style="color: #333333;">' +
                             i++ +
                             '\
                                             </li>'
