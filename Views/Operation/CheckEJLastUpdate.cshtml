@@ -3,8 +3,8 @@
     ViewData["Title"] = "CheckEJLastUpdate";
     string[] tableHeaders = new string[]
     {
-    "Terminal ID ",
     "Serial No ",
+    "Terminal ID ",
     "Branch Name ",
     "Last Update Date ",
 
@@ -165,6 +165,27 @@
 
                         </div>
                     </div>
+                    <div class="col col-md-2" style="width: 112px;">
+                        <h>Terminal Type : </h>
+                    </div>
+
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("TerminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = ""  },
+                        new SelectListItem(){ Text="ATM", Value = "G165"  },
+                        new SelectListItem(){ Text="ADM", Value = "G262"  }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
                 </div>
 
                
@@ -232,8 +253,8 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                    <td> @Data.term_id</td>
                                     <td> @Data.term_seq</td>
+                                    <td> @Data.term_id</td>
                                     <td> @Data.term_name</td>
                                     <td> @Data.update_date</td>
                                 </tr>

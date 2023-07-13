@@ -872,7 +872,7 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region CheckEJLastUpdate
-        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,
+        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,string TerminalType,
         string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
         int? page, string maxRows)
         {
@@ -882,10 +882,19 @@ namespace SLA_Management.Controllers
                 ViewBag.maxRows = "50";
             else
                 ViewBag.maxRows = maxRows;
-           //add hours
+            if (String.IsNullOrEmpty(TerminalType))
+            {
+                ViewBag.TerminalType = "";
+            }
+            else
+            {
+                ViewBag.TerminalType = TerminalType;
+            }
+            param_checkej.TerminalType= ViewBag.TerminalType;
+            //add hours
             List<String> items = new List<String>();
             DateTime currentTime = DateTime.Now;
-      
+           
             for (int i = 0; i <= currentTime.Hour; i++)
             {
               
@@ -1022,7 +1031,10 @@ namespace SLA_Management.Controllers
                     {
                         _sqlWhere += " and b.TERM_SEQ = '" + model.SerialNo + "'";
                     }
-                        
+                    if(model.TerminalType.ToString() != "")
+                    {
+                        _sqlWhere += "and a.TERM_ID like '%" + model.TerminalType +"'";
+                    }   
                     _sql +=  _sqlWhere;
                     _sql += " order by a.UPDATE_DATE asc";
 
