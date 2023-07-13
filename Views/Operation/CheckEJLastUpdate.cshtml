@@ -112,6 +112,38 @@
                             }
                         </select>
                     </div>
+                    <div class="col col-md-2" style="width: 112px;">
+                        <h>Terminal Type : </h>
+                    </div>
+
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("TerminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = ""  },
+                        new SelectListItem(){ Text="ATM", Value = "G165"  },
+                        new SelectListItem(){ Text="ADM", Value = "G262"  }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+             
+                </div>
+           
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-md-2">
+                    </div>
+                 
+                </div>
+                <div class="row " style="margin-top: 15px;align-items:center;">
+                    <div class="col col-md-1">
+                    </div>
                     <div class="col-md-2" style="width: 112px;">
                         <h>Duration's Uploading : </h>
                     </div>
@@ -132,17 +164,6 @@
                                 }
                             }
                         </select>
-                    </div>
-             
-                </div>
-           
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-md-2">
-                    </div>
-                 
-                </div>
-                <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-md-1">
                     </div>
                     <div class="col col-md-2" style="width: 112px;">
                         <h>Rows : </h>
@@ -165,27 +186,7 @@
 
                         </div>
                     </div>
-                    <div class="col col-md-2" style="width: 112px;">
-                        <h>Terminal Type : </h>
-                    </div>
-
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("TerminalType", new SelectListItem[] {
-                        new SelectListItem(){ Text="All", Value = ""  },
-                        new SelectListItem(){ Text="ATM", Value = "G165"  },
-                        new SelectListItem(){ Text="ADM", Value = "G262"  }
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
-
-                        </div>
-                    </div>
+                    
                 </div>
 
                
