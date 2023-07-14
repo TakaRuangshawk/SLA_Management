@@ -44,7 +44,7 @@ namespace SLA_Management.Controllers
         private static List<ej_terminalperoffline> recordset_checkejsize = new List<ej_terminalperoffline>();
         private static List<ej_terminalperoffline> checkejsize_dataList = new List<ej_terminalperoffline>();
         private static List<ejloglastupdate> recordset_ejloglastupdate = new List<ejloglastupdate>();
-        private static List<ejloglastupdate> checkejsize_ejloglastupdate = new List<ejloglastupdate>();
+        private static List<ejloglastupdate> ejloglastupdate_datalist = new List<ejloglastupdate>();
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
@@ -872,7 +872,7 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region CheckEJLastUpdate
-        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,string TerminalType,
+        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,string TerminalType,string status,
         string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
         int? page, string maxRows)
         {
@@ -890,6 +890,15 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.TerminalType = TerminalType;
             }
+            if (String.IsNullOrEmpty(status))
+            {
+                ViewBag.status = "";
+            }
+            else
+            {
+                ViewBag.status = status;
+            }
+            param_checkej.status = ViewBag.status;
             param_checkej.TerminalType= ViewBag.TerminalType;
             //add hours
             List<String> items = new List<String>();
@@ -971,7 +980,7 @@ namespace SLA_Management.Controllers
                 }
                 param_checkej.TerminalNo = TermID ?? "";
                 param_checkej.SerialNo = TermSEQ ?? "";
-                recordset_ejloglastupdate = GetOffLineTermEJLog(param_checkej);
+                recordset_ejloglastupdate = GetEJLastUpdate(param_checkej);
                 if (null == recordset_ejloglastupdate || recordset_ejloglastupdate.Count <= 0)
                 {
                     ViewBag.NoData = "true";
@@ -981,7 +990,7 @@ namespace SLA_Management.Controllers
                 else
                 {
                     recCnt = recordset_ejloglastupdate.Count;
-                    checkejsize_ejloglastupdate = recordset_ejloglastupdate;
+                    ejloglastupdate_datalist = recordset_ejloglastupdate;
                     param_checkej.PAGESIZE = recordset_ejloglastupdate.Count;
                 }
 
@@ -1001,7 +1010,7 @@ namespace SLA_Management.Controllers
             }
             return View(recordset_ejloglastupdate.ToPagedList(pageNum, (int)param_checkej.PAGESIZE));
         }
-        public List<ejloglastupdate> GetOffLineTermEJLog(ejchecksize_seek model)
+        public List<ejloglastupdate> GetEJLastUpdate(ejchecksize_seek model)
         {
             DateTime currentDate = DateTime.Now;
             string formattedDate = currentDate.ToString("yyyyMMdd");
@@ -1019,9 +1028,11 @@ namespace SLA_Management.Controllers
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
                 {
 
-                    _sql = "SELECT a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,a.UPDATE_DATE FROM gsb_adm_fv.ejournal_upload_log as a ";
-                    _sql += "left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
-                    _sql += "WHERE a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > "+hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
+                    _sql = "SELECT a.TERM_ID,b.TERM_NAME,b.TERM_SEQ,a.UPDATE_DATE,c.LASTTRAN_TIME, ";
+                    _sql += " IF(TIMESTAMPDIFF(HOUR,c.LASTTRAN_TIME,a.UPDATE_DATE ) > 1, 'warning', '') AS status FROM gsb_adm_fv.ejournal_upload_log as a ";
+                    _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
+                    _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
+                    _sql += " WHERE a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > "+hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
 
                     if (model.TerminalNo.ToString() != "")
                     {
@@ -1031,9 +1042,13 @@ namespace SLA_Management.Controllers
                     {
                         _sqlWhere += " and b.TERM_SEQ = '" + model.SerialNo + "'";
                     }
+                    if (model.status.ToString() == "warning")
+                    {
+                        _sqlWhere += " and TIMESTAMPDIFF(HOUR,c.LASTTRAN_TIME,a.UPDATE_DATE ) > 1";
+                    }
                     if(model.TerminalType.ToString() != "")
                     {
-                        _sqlWhere += "and a.TERM_ID like '%" + model.TerminalType +"'";
+                        _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType +"'";
                     }   
                     _sql +=  _sqlWhere;
                     _sql += " order by a.UPDATE_DATE asc";
@@ -1073,6 +1088,8 @@ namespace SLA_Management.Controllers
             record.term_name = reader["TERM_NAME"].ToString();
             //record.update_date = reader["UPDATE_DATE"].ToString();
             record.update_date = DateTime.Parse(reader["UPDATE_DATE"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            record.lastran_date = DateTime.Parse(reader["LASTTRAN_TIME"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            record.status = reader["status"].ToString();
             return record;
         }
         #endregion
@@ -1170,6 +1187,142 @@ namespace SLA_Management.Controllers
 
 
                 fname = "Regulator_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+
+
+        #endregion
+        #region Excel checklastupdate
+
+        [HttpPost]
+        public ActionResult CheckLastUpdate_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+
+                if (ejloglastupdate_datalist == null || ejloglastupdate_datalist.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_CheckLastUpdate obj = new ExcelUtilities_CheckLastUpdate(param_checkej);
+
+
+                // Session["PrefixRep"] = "EJAddTran";
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(ejloglastupdate_datalist);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "CheckLastUpdate_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult DownloadExportFile_CheckLastUpdate(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "CheckLastUpdate_" + DateTime.Now.ToString("yyyyMMdd");
 
                 switch (rpttype.ToLower())
                 {

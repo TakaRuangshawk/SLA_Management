@@ -25,8 +25,9 @@ namespace SLA_Management.Models.TermProbModel
     {
         public string term_id { get; set; }
         public string term_seq { get; set; }
-
         public string term_name { get; set; }
         public string update_date { get; set; }
+        public string lastran_date { get; set; }
+        public string status { get; set; }
     }
 }

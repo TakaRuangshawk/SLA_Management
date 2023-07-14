@@ -212,4 +212,100 @@ namespace SLA_Management.Data.TermProbDB.ExcelUtilitie
 
         #endregion
     }
+    public class ExcelUtilities_CheckLastUpdate
+    {
+        #region  Local Variable
+
+        ejchecksize_seek param = null;
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+        public ExcelUtilities_CheckLastUpdate(ejchecksize_seek paramTemp)
+        {
+            param = paramTemp;
+        }
+
+        public ExcelUtilities_CheckLastUpdate()
+        {
+            param = new ejchecksize_seek();
+        }
+
+        #endregion
+
+        #region Function 
+        public void GatewayOutput(List<ejloglastupdate> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 6;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\CheckLastUpdate.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+                    if (param.TerminalNo == null || param.TerminalNo == "")
+                    {
+                        param.TerminalNo = "All";
+                    }
+
+                    excelWorksheet.Cells[1, 1].Value = "Check EJ Last Update Report";
+                    //excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
+                    //excelWorksheet.Cells[4, 2].Value = param.FRDATE.Substring(0, 10);
+                    //excelWorksheet.Cells[4, 4].Value = param.TODATE.Substring(0, 10);
+                    excelWorksheet.Cells[3, 6].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
+                    //excelWorksheet.Cells[5, 2].Value = param.TerminalNo;
+                    excelWorksheet.Cells[4, 6].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
+
+                    foreach (ejloglastupdate data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.term_seq;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.term_id;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.term_name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.update_date;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.lastran_date;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.status;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "CheckLastUpdate.xlsx"))));
+                    FileSaveAsXlsxFormat = "CheckLastUpdate.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+        #endregion
+    }
 }

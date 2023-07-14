@@ -41,6 +41,7 @@ namespace SLA_Management.Models.TermProbModel
         public string TerminalNo { get; set; }
         public string SerialNo { get; set; }
         public string TerminalType { get; set; }
+        public string status { get; set; }
         public int PAGESIZE { get; set; }
         public string Hours { get; set; }
     }
