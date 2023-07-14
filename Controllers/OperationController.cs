@@ -1029,7 +1029,9 @@ namespace SLA_Management.Controllers
                 {
 
                     _sql = "SELECT a.TERM_ID,b.TERM_NAME,b.TERM_SEQ,a.UPDATE_DATE,c.LASTTRAN_TIME, ";
-                    _sql += " IF(TIMESTAMPDIFF(HOUR,c.LASTTRAN_TIME,a.UPDATE_DATE ) > 1, 'warning', '') AS status FROM gsb_adm_fv.ejournal_upload_log as a ";
+                    _sql += " IF(TIMESTAMPDIFF(HOUR,a.UPDATE_DATE,c.LASTTRAN_TIME ) > 1  ";
+                    _sql += " OR DATEDIFF(DATE(a.UPDATE_DATE), DATE(c.LASTTRAN_TIME)) > 0, 'warning', '') AS status";
+                    _sql += " FROM gsb_adm_fv.ejournal_upload_log as a";
                     _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
                     _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
                     _sql += " WHERE a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > "+hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
@@ -1044,14 +1046,14 @@ namespace SLA_Management.Controllers
                     }
                     if (model.status.ToString() == "warning")
                     {
-                        _sqlWhere += " and TIMESTAMPDIFF(HOUR,c.LASTTRAN_TIME,a.UPDATE_DATE ) > 1";
+                        _sqlWhere += " and (TIMESTAMPDIFF(HOUR,a.UPDATE_DATE,c.LASTTRAN_TIME ) > 1 OR DATEDIFF(DATE(a.UPDATE_DATE), DATE(c.LASTTRAN_TIME)) > 0)";
                     }
                     if(model.TerminalType.ToString() != "")
                     {
                         _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType +"'";
                     }   
                     _sql +=  _sqlWhere;
-                    _sql += " order by a.UPDATE_DATE asc";
+                    _sql += " group by a.TERM_ID order by a.UPDATE_DATE asc";
 
                     cn.Open();
 
