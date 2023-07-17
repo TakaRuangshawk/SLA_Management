@@ -53,6 +53,8 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<string> terminalNames = new List<string>();
 
+            string[] strErrorWordSeparate = { "DEVICE25", "DEVICE27" };
+
             DataTable terminalDBTable = GetClientFromDB();
             for (int i = 0; i < terminalDBTable.Rows.Count; i++)
             {
@@ -191,11 +193,24 @@ namespace SLA_Management.Controllers
                     foreach(string KeyWord in KeyWordListTemp)
                     {
                         //Console.WriteLine(KeyWord);
-
-                        param.PROBNAME = KeyWord;
+                       
+                            param.PROBNAME = KeyWord;
                         if (ddlProbMaster != null || TermID != null)
                         {
-                            recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
+
+                            if (param.PROBNAME.Contains("SLA"))
+                            {
+                                recordset.AddRange(GetErrorTermDeviceEJLog_Database_sla(param));
+                            }
+                            else if (Array.IndexOf(strErrorWordSeparate, param.PROBNAME) > -1)
+                            {
+                                recordset.AddRange(GetErrorTermDeviceEJLog_Database_separate(param));
+                            }
+                            else
+                            {
+                                recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
+                            }
+                            
                         }
 
                        
@@ -205,7 +220,18 @@ namespace SLA_Management.Controllers
                 {
                     if (ddlProbMaster != null || TermID != null)
                     {
-                        recordset = GetErrorTermDeviceEJLog_Database(param);
+                        if (param.PROBNAME.Contains("SLA"))
+                        {
+                            recordset.AddRange(GetErrorTermDeviceEJLog_Database_sla(param));
+                        }
+                        else if (Array.IndexOf(strErrorWordSeparate, param.PROBNAME) > -1)
+                        {
+                            recordset.AddRange(GetErrorTermDeviceEJLog_Database_separate(param));
+                        }
+                        else
+                        {
+                            recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
+                        }
                     }
                 }
 
@@ -252,6 +278,14 @@ namespace SLA_Management.Controllers
 
                 pageNum = (page ?? 1);
 
+                int amountrecordset = recordset.Count();
+
+                if(amountrecordset > 5000)
+                {
+                    recordset.RemoveRange(5000, amountrecordset - 5000);
+                }
+                
+
             }
             catch (Exception ex)
             {
@@ -284,6 +318,59 @@ namespace SLA_Management.Controllers
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError", cn);
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
+                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
+
+                    cn.Open();
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+
+
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_sla(ej_trandada_seek model)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_sla", cn);
+
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
+                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
+                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
+
+                    cn.Open();
+                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                string err = ex.Message;
+                return null;
+            }
+        }
+
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_separate(ej_trandada_seek model)
+        {
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_separate", cn);
 
                     cmd.CommandType = CommandType.StoredProcedure;
 
