@@ -24,7 +24,7 @@ namespace SLA_Management.Controllers
         private static string password { get; set; }
         private static string partLinuxUploadFile { get; set; }
         private static string sqlServer { get; set; }
-        private static CheckFileInFileServer dataErrorLog = new CheckFileInFileServer(ip, port, username, password, partLinuxUploadFile, sqlServer);
+        private static CheckFileInFileServer dataErrorLog { get; set; }
         public static List<InsertListFileComLog> insertFileCOMLog_temp { get; set; }
 
       
@@ -42,6 +42,7 @@ namespace SLA_Management.Controllers
             username = _myConfiguration.GetValue<string>("FileServer:Username");
             password = _myConfiguration.GetValue<string>("FileServer:Password");
             partLinuxUploadFile = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileComlog");
+            dataErrorLog = new CheckFileInFileServer(ip, port, username, password, partLinuxUploadFile, sqlServer);
         }
 
         [HttpGet]

@@ -257,7 +257,7 @@ namespace SLA_Management.Commons
         {
 
             SqlCommand com = new SqlCommand();
-            com.CommandText = "SELECT TERM_ID FROM [SLADB].[dbo].[device_info_record] GROUP BY TERM_ID;";
+            com.CommandText = "SELECT TERM_ID FROM [device_info_record] GROUP BY TERM_ID;";
             DataTable testss = db.GetDatatable(com);
             LinkedList<string> test = new LinkedList<string>();
             foreach (DataRow item in testss.Rows)
