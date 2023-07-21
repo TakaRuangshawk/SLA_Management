@@ -30,4 +30,18 @@ namespace SLA_Management.Models.TermProbModel
         public string lastran_date { get; set; }
         public string status { get; set; }
     }
+    public class homeshowstatus
+    {
+        public string onlineATM { get; set; }
+        public string onlineADM { get; set; }
+        public string offlineATM { get; set; }
+        public string offlineADM { get; set;}
+        public string comlogATM { get; set; }
+        public string comlogADM { get; set; }
+    }
+    public class comlogrecord
+    {
+        public string comlogADM { get; set; }
+        public string comlogATM { get; set; }
+    }
 }

@@ -52,13 +52,31 @@
             padding: 1rem 1rem;
     }
 
+    body {
+    @{
+        string urlBG = "";
+        string sizeBG = "";
+        if (ViewData["Title"]=="Home Page")
+        {
+            urlBG = "/images/Pic_Home.jpg";
+            sizeBG = "cover";
+        }
+        else
+        {
+            urlBG = "/images/Pic_Page.jpg";
+        }
+    }
+        background-image: url('@urlBG');
+        background-size: auto;
+        background-position: top;
+        background-repeat: no-repeat;
+    }
+
 </style>
 
-
-
-<body >
+<body id="bg">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow mb-3">
             <div class="container-fluid">
                 <div>
                      <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
@@ -135,6 +153,18 @@
             
         </div>
     </footer>
+    <script>
+        function selectBackground(@ViewData["Title"]){
+            var element = documentgetElementById('bg');
+            if(@ViewData["Title"] === "Home Page"){
+                element.style.backgroundImage = "url('/images/Pic_Home.jpg')";
+            }
+            else{
+                element.style.backgroundImage = "url('/images/Pic_Page.jpg')";
+
+            }
+        }
+    </script>
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
