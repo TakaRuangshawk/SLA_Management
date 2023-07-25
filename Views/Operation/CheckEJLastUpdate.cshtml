@@ -5,7 +5,7 @@
     {
     "Serial No ",
     "Terminal ID ",
-    "Branch Name ",
+    "Terminal Name ",
     "Last EJ Update Date ",
     "Last Transaction Date",
     "Status"
@@ -47,27 +47,63 @@
     select.form-control {
         -webkit-appearance: button;
     }
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+    #main_search{
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
 </style>
 
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader">
         <div class="row">
-            <div class="col col-lg-1">
+            <div class="col col-md-1">
             </div>
-            <div class="col col-lg-4">
-                <p class="text-black fs-2">Check EJ Last Update</p>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Log File Monitor</a>
             </div>
         </div>
 
 
-        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
+        <div style="">
             @using (Html.BeginForm("CheckEJLastUpdate", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col-md-1">
-                    </div>
-                    <div class="col-md-2" style="width: 112px;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+        
+                    <div class="col-md-1" style="">
                         <h>Terminal ID : </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -90,7 +126,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-2" style="width: 112px;">
+                    <div class="col-md-1" style="">
                         <h>Serial No : </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -113,11 +149,11 @@
                             }
                         </select>
                     </div>
-                    <div class="col col-md-2" style="width: 112px;">
+                    <div class="col col-md-1" style="">
                         <h>Terminal Type : </h>
                     </div>
 
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("TerminalType", new SelectListItem[] {
@@ -137,16 +173,15 @@
              
                 </div>
            
-                <div class="row" style="margin-top: 15px;align-items:center;">
+                <div class="row" style="margin-top: 15px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;">
                     <div class="col col-md-2">
                     </div>
                  
                 </div>
-                <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-md-1">
-                    </div>
-                    <div class="col-md-2" style="width: 112px;">
-                        <h>Duration's Uploading : </h>
+                <div class="row " style="margin-top: 15px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;">
+            
+                    <div class="col-md-1" style="">
+                        <h>Duration's Uploading: </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="Hours" name="Hours" data-live-search="true">
@@ -166,11 +201,11 @@
                             }
                         </select>
                     </div>
-                    <div class="col col-md-2" style="width: 112px;">
+                    <div class="col col-md-1" style="">
                         <h>Status : </h>
                     </div>
 
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("Status", new SelectListItem[] {
@@ -187,14 +222,15 @@
                         </div>
                   
                 </div>
-                    <div class="col col-md-2" style="width: 112px;">
+                    <div class="col col-md-1" style="">
                         <h>Rows : </h>
                     </div>
 
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="5", Value = "5"  },
                         new SelectListItem(){ Text="50", Value = "50"  },
                         new SelectListItem(){ Text="100", Value = "100"  },
                         new SelectListItem(){ Text="500", Value = "1000"  }
@@ -210,52 +246,31 @@
                     </div>
                     
                 </div>
+                <div class="row">
 
-               
-                <div class="row justify-content-md-center" style="margin-top: 15px">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                        <button type="submit" id="btnsearch" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
 
-                    @if (ViewBag.ConnectDB == "false")
-                    {
-                        <div class="col col-lg-2">
-                            <p style="color: red "> Can't connect database !</p>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="button" id="btnsearch" class="btn btn-secondary" style="height:41px;">search  </button>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="reset" id="btnclear" class="btn btn-secondary" style="height:41px;" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="col-lg-1">
-                        </div>
-                        <div class= "col-lg-2">
-                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
-                        </div>
-                        <div class="col-lg-2">
-                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
+                        <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                         </button>
 
 
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                        </a>
+                        </div>
+                    </div>
                 </div>
-
             }
-
         </div>
-
+    </div>
+    <div class="container-fluid">
         <div class="table-responsive" style="overflow-x: hidden;">
+
             <table id="table-id" class="table table-striped custom-table">
                 <thead>
                     <tr>
@@ -304,11 +319,11 @@
                     <nav>
                         <div class="pagination">
                             <li data-page="prev" id="back">
-                                <a style="color: #333333;"> < </a>
+                                <a style="color: ##f7e7d5;"> < </a>
                             </li>
                             <!--	Here the JS Function Will Add the Rows -->
                             <li data-page="next" id="prev">
-                                <a style="color: #333333;"> > </a>
+                                <a style="color: ##f7e7d5;"> > </a>
                             </li>
 
                         </div>
@@ -328,33 +343,11 @@
             </div>
 
         </div>
-
     </div>
-
 </div>
 
 
 <script>
-    @* $(document).ready(function () {
-        $(function () {
-
-        $('#FrDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-
-        $('#ToDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-        });
-        });*@
 
         $("#GatewayDateRecheckDate").submit(function (e) {
             var FrDateTemp = new Date($('#FrDate').val());
@@ -583,7 +576,7 @@
 
     $(function () {
         // Just to append id number for each row
-        $('table tr:eq(0)').prepend('<th> No </th>');
+        $('table tr:eq(0)').prepend('<th style="text-align:center;"> No </th>');
 
         var id = 0;
         var count = @Model.Count;
@@ -591,7 +584,7 @@
         $('table tr:gt(0)').each(function () {
             id++;
             if (count != 0) {
-                $(this).prepend('<td>' + id + '</td>');
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
             }
 
         });

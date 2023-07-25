@@ -29,4 +29,13 @@
     <Folder Include="wwwroot\TermProbExcel\Tempfiles\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\images\Pic_Home.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\images\Pic_Page.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

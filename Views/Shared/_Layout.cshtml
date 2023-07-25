@@ -52,29 +52,32 @@
             padding: 1rem 1rem;
     }
 
-    body {
-    @{
-        string urlBG = "";
-        string sizeBG = "";
-        if (ViewData["Title"]=="Home Page")
-        {
-            urlBG = "/images/Pic_Home.jpg";
-            sizeBG = "cover";
-        }
-        else
-        {
-            urlBG = "/images/Pic_Page.jpg";
-        }
-    }
-        background-image: url('@urlBG');
-        background-size: auto;
+    .bg_home {
+        background-image: url('/images/Pic_Home.png');
+        background-size: 100% 100%;
         background-position: top;
         background-repeat: no-repeat;
     }
+    .bg_main{
+    }
+    
 
 </style>
+@{
+    string urlBG = "";
+    if (ViewData["Title"] == "Home Page")
+    {
+        urlBG = "bg_home";
+    }
+    else
+    {
+        urlBG = "bg_main";
+    }
+}
 
-<body id="bg">
+@*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
+<img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
+<body class="bg_main bg_home" style="background-image: url('/images/Pic_Page.png');background-size:100% auto">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow mb-3">
             <div class="container-fluid">
@@ -154,16 +157,17 @@
         </div>
     </footer>
     <script>
-        function selectBackground(@ViewData["Title"]){
-            var element = documentgetElementById('bg');
-            if(@ViewData["Title"] === "Home Page"){
-                element.style.backgroundImage = "url('/images/Pic_Home.jpg')";
-            }
-            else{
-                element.style.backgroundImage = "url('/images/Pic_Page.jpg')";
-
-            }
+        if("@ViewData["Title"]"==="Home Page"){
+            document.addEventListener('DOMContentLoaded', function () {
+                // Get the element with the class 'example-class'
+                const element = document.querySelector('.bg_main');
+                if (element) {
+                    element.style.removeProperty('background-image');
+                    element.style.removeProperty('background-size');
+                }
+            });
         }
+        
     </script>
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

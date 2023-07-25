@@ -48,16 +48,15 @@ h2 {
 .custom-table {
   min-width: 900px; }
     .custom-table thead tr, .custom-table thead th {
-        padding-bottom: 30px;
+        padding: 15px;
         border-top: none;
         border-bottom: none !important;
         color: #000;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: .2rem;
+        background-color: orange;
+        font-size: 1vw;
+        /*text-transform: uppercase;*/
         border-color: antiquewhite;
-        border: 1px inset;
-
+        border: 3px solid lightgray;
     }
     .custom-table tbody th, .custom-table tbody td {
         color: black;

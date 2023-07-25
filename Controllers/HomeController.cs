@@ -130,12 +130,12 @@ namespace SLA_Management.Controllers
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
                 {
 
-                    _sql = "SELECT COUNT(CASE WHEN a.CONN_STATUS_ID = '0' and b.TYPE_ID = 'ATM' THEN 1 END) AS _onlineATM, ";
-                    _sql += " COUNT(CASE WHEN a.CONN_STATUS_ID = '0' and b.TYPE_ID = 'ADM' THEN 1 END) AS _onlineADM,  ";
-                    _sql += " COUNT(CASE WHEN a.CONN_STATUS_ID != '0'and b.TYPE_ID = 'ATM' THEN 1 END) AS _offlineATM,  ";
-                    _sql += " COUNT(CASE WHEN a.CONN_STATUS_ID != '0'and b.TYPE_ID = 'ADM' THEN 1 END) AS _offlineADM  ";
-                    _sql += " FROM gsb_adm_fv.device_status_info as a  ";
-                    _sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+                    _sql = "SELECT COUNT(CASE WHEN(SUBSTRING(TERM_ID, '14', 4) = '165'and DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
+                    _sql += " COUNT(CASE WHEN(SUBSTRING(TERM_ID, '14', 4) = '165'and (DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036')) THEN 1 END) AS _offlineATM,  ";
+                    _sql += " COUNT(CASE WHEN(SUBSTRING(TERM_ID, '14', 4) = '262'and DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineADM,  ";
+                    _sql += " COUNT(CASE WHEN(SUBSTRING(TERM_ID, '14', 4) = '262'and (DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036')) THEN 1 END) AS _offlineADM";
+                    _sql += " FROM gsb_adm_fv.device_status_info  ";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
 
                     cn.Open();
 
