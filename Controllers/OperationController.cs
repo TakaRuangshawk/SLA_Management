@@ -50,6 +50,7 @@ namespace SLA_Management.Controllers
         private List<string> terminalIDList = new List<string>();
         private List<string> terminalSEQList = new List<string>();
         private DBService dBService;
+        CultureInfo usaCulture = new CultureInfo("en-US");
         #endregion
         public OperationController(IConfiguration myConfiguration)
         {
@@ -992,6 +993,7 @@ namespace SLA_Management.Controllers
                     recCnt = recordset_ejloglastupdate.Count;
                     ejloglastupdate_datalist = recordset_ejloglastupdate;
                     param_checkej.PAGESIZE = recordset_ejloglastupdate.Count;
+                    
                 }
 
 
@@ -1012,8 +1014,9 @@ namespace SLA_Management.Controllers
         }
         public List<ejloglastupdate> GetEJLastUpdate(ejchecksize_seek model)
         {
+            
             DateTime currentDate = DateTime.Now;
-            string formattedDate = currentDate.ToString("yyyyMMdd");
+            string formattedDate = currentDate.ToString("yyyyMMdd",usaCulture);
             string hours = "";
             if(model.Hours != "")
             {

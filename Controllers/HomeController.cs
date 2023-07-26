@@ -21,7 +21,7 @@ namespace SLA_Management.Controllers
         private DBService dBService;
         SqlCommand com = new SqlCommand();
         ConnectSQL_Server con;
-
+        CultureInfo usaCulture = new CultureInfo("en-US");
         public HomeController(IConfiguration myConfiguration)
         {
 
@@ -76,7 +76,7 @@ namespace SLA_Management.Controllers
                 ViewBag.comlogATM = "-";
                 ViewBag.comlogADM = "-";
             }
-            ViewBag.DateNow = DateTime.Now.ToString("dd - MM - yyyy");
+            ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
             return View();
         }
         public List<comlogrecord> GetComlogRecordFromSqlServer()
@@ -85,7 +85,7 @@ namespace SLA_Management.Controllers
 
             
             string sqlQuery = " SELECT COUNT(CASE WHEN ERROR IS NULL  AND TERM_ID LIKE '%G262%' THEN 1 END) AS ComlogADM,COUNT(CASE WHEN ERROR IS NULL  AND TERM_ID like '%G165%' THEN 1 END) AS ComlogATM ";
-            sqlQuery += " FROM comlog_record where COMLOGDATE between '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd") + " 00:00:00' AND '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd") + " 23:59:59'";
+            sqlQuery += " FROM comlog_record where COMLOGDATE between '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd",usaCulture) + " 00:00:00' AND '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd", usaCulture) + " 23:59:59'";
             try
             {
                 using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))

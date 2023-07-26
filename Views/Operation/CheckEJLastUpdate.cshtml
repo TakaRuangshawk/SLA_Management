@@ -41,9 +41,6 @@
         -ms-flex-pack: justify;
         justify-content: space-between;
     }
-</style>
-
-<style>
     select.form-control {
         -webkit-appearance: button;
     }
@@ -83,6 +80,10 @@
         border: 3px solid #888888;
         background-color: white;
         border-radius: 50px;
+    }
+
+    .dropdown-toggle{
+        border-radius:10px;
     }
 </style>
 
@@ -209,7 +210,7 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("Status", new SelectListItem[] {
-                        new SelectListItem(){ Text="-", Value = ""  },
+                        new SelectListItem(){ Text="--", Value = ""  },
                         new SelectListItem(){ Text="warning", Value = "warning"  },
                         }, new
                         {
@@ -269,6 +270,15 @@
         </div>
     </div>
     <div class="container-fluid">
+        <div class="row" style="background-color: #f8d5ad;width: 20vw;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 2.2vh;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@ViewBag.Records</a>
+            </div>
+        </div>
         <div class="table-responsive" style="overflow-x: hidden;">
 
             <table id="table-id" class="table table-striped custom-table">
@@ -318,12 +328,13 @@
 
                     <nav>
                         <div class="pagination">
-                            <li data-page="prev" id="back">
-                                <a style="color: ##f7e7d5;"> < </a>
+                            <li data-page="prev" id="back" style="background-color:transparent;">
+                             
+                                <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
                             </li>
                             <!--	Here the JS Function Will Add the Rows -->
-                            <li data-page="next" id="prev">
-                                <a style="color: ##f7e7d5;"> > </a>
+                            <li data-page="next" id="prev" style="background-color:transparent;">
+                                <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
                             </li>
 
                         </div>
