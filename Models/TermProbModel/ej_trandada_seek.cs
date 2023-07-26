@@ -32,6 +32,7 @@ namespace SLA_Management.Models.TermProbModel
     public class regulator_seek
     {
         public string TerminalNo { get; set; }
+        public string SerialNo { get; set; }
         public int PAGESIZE { get; set; }
         public string FRDATE { get; set; }
         public string TODATE { get; set; }

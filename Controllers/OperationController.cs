@@ -464,8 +464,8 @@ namespace SLA_Management.Controllers
         }
         #endregion
         #region Regulator
-        public IActionResult Regulator(string cmdButton, string TermID, string FrDate, string ToDate,
-        string currTID, string currFr, string currTo, string lstPageSize, string currPageSize, 
+        public IActionResult Regulator(string cmdButton, string TermID,string TermSEQ, string FrDate, string ToDate,
+        string currTID,string currTSEQ, string currFr, string currTo, string lstPageSize, string currPageSize, 
         int? page, string maxRows)
         {
             if (cmdButton == "Clear")
@@ -481,10 +481,16 @@ namespace SLA_Management.Controllers
                     terminalIDAndSeqList = GetTerminalAndSeqFromDB();
 
                     terminalIDList = GetListTerminalID(terminalIDAndSeqList);
+                    terminalSEQList = GetListTerminalSEQ(terminalIDAndSeqList);
 
                     if (terminalIDList != null && terminalIDList.Count > 0)
                     {
                         ViewBag.CurrentTID = terminalIDList;
+
+                    }
+                    if (terminalSEQList != null && terminalSEQList.Count > 0)
+                    {
+                        ViewBag.CurrentTSEQ = terminalSEQList;
 
                     }
                     ViewBag.ConnectDB = "true";
@@ -505,6 +511,7 @@ namespace SLA_Management.Controllers
                     FrDate = (FrDate ?? currFr);
                     ToDate = (ToDate ?? currTo);
                     TermID = (TermID ?? currTID);
+                    TermSEQ = (TermSEQ ?? currTSEQ);
                 }
                 ViewBag.CurrentTerminalno = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
@@ -514,10 +521,14 @@ namespace SLA_Management.Controllers
                     param.TerminalNo = currTID == null ? "" : currTID;
                 else
                     param.TerminalNo = TermID == null ? "" : TermID;
+                if (null == TermSEQ)
+                    param_checkej.SerialNo = currTSEQ == null ? "" : currTSEQ;
+                else
+                    param_checkej.SerialNo = TermSEQ == null ? "" : TermSEQ;
 
                 if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
                 {
-                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd",usaCulture) + " 00:00:00";
                 }
                 else
                 {
@@ -543,6 +554,7 @@ namespace SLA_Management.Controllers
                     param.PAGESIZE = 50;
                 }
                 param.TerminalNo = TermID ?? "";
+                param.SerialNo = TermSEQ ?? "";
                 recordset_regulator = GetRegulator_Database(param);
                 if (null == recordset_regulator || recordset_regulator.Count <= 0)
                 {
@@ -610,6 +622,8 @@ namespace SLA_Management.Controllers
         {
             Regulator record = new Regulator();
             record.TERMID = reader["TERMID"].ToString();
+            record.TERM_SEQ = reader["TERM_SEQ"].ToString();
+            record.TERM_NAME = reader["TERM_NAME"].ToString();
             record.DEP100 = $"{reader["DEP100"]:n0}";
             record.DEP500 = $"{reader["DEP500"]:n0}";
             record.DEP1000 = $"{reader["DEP1000"]:n0}";

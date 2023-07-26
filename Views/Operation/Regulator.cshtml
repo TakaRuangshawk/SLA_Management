@@ -3,7 +3,9 @@
     ViewData["Title"] = "Regulator";
     string[] tableHeaders = new string[]
     {
-    "TERMID ",
+    "Serial No",
+    "TerminalID ",
+    "Terminal Name",
     "DEP100 ",
     "DEP500 ",
     "DEP1000 ",
@@ -45,27 +47,68 @@
         -ms-flex-pack: justify;
         justify-content: space-between;
     }
-</style>
 
-<style>
     select.form-control {
         -webkit-appearance: button;
+    }
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
     }
 </style>
 
 
+
 <div class="content contentHeader">
-    <div class="container w-auto containerHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
         <div class="row">
-            <div class="col col-lg-1">
+            <div class="col col-md-1">
             </div>
-            <div class="col col-lg-4">
-                <p class="text-black fs-2">Regulator Report</p>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Cash Report</a>
             </div>
         </div>
 
 
-        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
+        <div id="main_search" style="">
             @using (Html.BeginForm("Regulator", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 15px;align-items:center;">
@@ -191,89 +234,101 @@
 
         </div>
 
-        <div class="table-responsive" style="overflow-x: hidden;">
-            <table id="table-id" class="table table-striped custom-table">
-                <thead>
-                    <tr>
-                        @{
-                            foreach (var head in tableHeaders)
-                            {
-                                <th scope="col" style="text-align:center"> @head </th>
-                            }
-                        }
-
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @{
-                        if (Model != null)
-                        {
-                            foreach (var Data in Model)
-                            {
-                                <tr>
-                           
-                                    <td> @Data.TERMID</td>
-                                    <td> @Data.DEP100</td>
-                                    <td> @Data.DEP500 </td>
-                                    <td> @Data.DEP1000 </td>
-                                    <td> @Data.WDL100</td>
-                                    <td> @Data.WDL500</td>
-                                    <td> @Data.WDL1000</td>
-                                    <td> @Data.DIFF100</td>
-                                    <td> @Data.DIFF500</td>
-                                    <td> @Data.DIFF1000</td>
-                                </tr>
-                            }
-
-                        }
-                        if (Model.Count == 0)
-                        {
-
-                        <td colspan="12" style="text-align: center;"> NO DATA </td>
-                        }
-                    }
-                </tbody>
-
-
-            </table>
-
-
-            <div class="row">
-                <div class="col colPagination" style="padding-top:10px;z-index:1;">
-
-                    <nav>
-                        <div class="pagination">
-                            <li data-page="prev" id="back">
-                                <a style="color: #333333;"> < </a>
-                            </li>
-                            <!--	Here the JS Function Will Add the Rows -->
-                            <li data-page="next" id="prev">
-                                <a style="color: #333333;"> > </a>
-                            </li>
-
-                        </div>
-                    </nav>
-                </div>
-                <div class="col-md-2" style="z-index:2;">
-                    <p style="font-size:16px;font-weight:bolder;">
-                        Select page :
-                        @Html.DropDownList("seletePageNow", new SelectListItem[] {
-
-                        }, new
-                        {
-                        @class = "form-control"
-                        })
-                    </p>
-                </div>
-            </div>
-
-        </div>
+     
 
     </div>
 
 </div>
+<div class="container-fluid">
+    <div class="row" style="background-color: #f8d5ad;width: 20vw;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 2.2vh;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@ViewBag.Records</a>
+        </div>
+    </div>
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    @{
+                        foreach (var head in tableHeaders)
+                        {
+                            <th scope="col" style="text-align:center"> @head </th>
+                        }
+                    }
+
+                </tr>
+            </thead>
+
+            <tbody>
+                @{
+                    if (Model != null)
+                    {
+                        foreach (var Data in Model)
+                        {
+                            <tr>
+                                <td> @Data.TERM_SEQ</td>
+                                <td> @Data.TERMID</td>
+                                <td> @Data.TERM_NAME</td>
+                                <td> @Data.DEP100</td>
+                                <td> @Data.DEP500 </td>
+                                <td> @Data.DEP1000 </td>
+                                <td> @Data.WDL100</td>
+                                <td> @Data.WDL500</td>
+                                <td> @Data.WDL1000</td>
+                                <td> @Data.DIFF100</td>
+                                <td> @Data.DIFF500</td>
+                                <td> @Data.DIFF1000</td>
+                            </tr>
+                        }
+
+                    }
+                    if (Model.Count == 0)
+                    {
+
+                    <td colspan="12" style="text-align: center;"> NO DATA </td>
+                    }
+                }
+            </tbody>
+
+
+        </table>
+
+
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination">
+                        <li data-page="prev" id="back">
+                            <a style="color: #333333;"> < </a>
+                        </li>
+                        <!--	Here the JS Function Will Add the Rows -->
+                        <li data-page="next" id="prev">
+                            <a style="color: #333333;"> > </a>
+                        </li>
+
+                    </div>
+                </nav>
+            </div>
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control"
+                    })
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 <script>
     @* $(document).ready(function () {

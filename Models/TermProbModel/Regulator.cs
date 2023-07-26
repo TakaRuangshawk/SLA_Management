@@ -3,6 +3,8 @@
     public class Regulator
     {
         public string TERMID { get; set; }
+        public string TERM_SEQ { get; set; }
+        public string TERM_NAME { get; set; }
         public string DEP100 { get; set; }
         public string DEP500 { get; set; }
         public string DEP1000 { get; set; }
