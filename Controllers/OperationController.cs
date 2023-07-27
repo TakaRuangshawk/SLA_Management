@@ -595,6 +595,7 @@ namespace SLA_Management.Controllers
                     MySqlCommand cmd = new MySqlCommand("oper_regulator", cn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new MySqlParameter("?terminal", model.TerminalNo));
+                    cmd.Parameters.Add(new MySqlParameter("?serialno", model.SerialNo));
                     cmd.Parameters.Add(new MySqlParameter("?frdate", model.FRDATE));
                     cmd.Parameters.Add(new MySqlParameter("?todate", model.TODATE));
                     cn.Open();
@@ -1051,7 +1052,7 @@ namespace SLA_Management.Controllers
                     _sql += " FROM gsb_adm_fv.ejournal_upload_log as a";
                     _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
                     _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
-                    _sql += " WHERE a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > "+hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
+                    _sql += " WHERE c.LASTTRAN_TIME is not null and a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > " + hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
 
                     if (model.TerminalNo.ToString() != "")
                     {
@@ -1101,7 +1102,15 @@ namespace SLA_Management.Controllers
         protected virtual ejloglastupdate GetLastUpdateTermEJLogFromReader(IDataReader reader)
         {
             ejloglastupdate record = new ejloglastupdate();
+            if (reader["LASTTRAN_TIME"] != null)
+            {
+                record.lastran_date = DateTime.Parse(reader["LASTTRAN_TIME"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
+            }
+            else
+            {
+                record.lastran_date = DateTime.Parse(reader["UPDATE_DATE"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            }
             record.term_id = reader["TERM_ID"].ToString();
             record.term_seq = reader["TERM_SEQ"].ToString();
             record.term_name = reader["TERM_NAME"].ToString();

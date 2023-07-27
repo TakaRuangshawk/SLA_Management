@@ -93,6 +93,12 @@
     .dropdown-toggle {
         border-radius: 10px;
     }
+    .form-control{
+        border-radius:10px!important;
+    }
+    .date-form-control{
+        padding: 0px;
+    }
 </style>
 
 
@@ -111,13 +117,12 @@
         <div id="main_search" style="">
             @using (Html.BeginForm("Regulator", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col-md-1">
-                    </div>
-                    <div class="col-md-2" style="width: 112px;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-md-1" style="">
                         <h>Terminal ID : </h>
                     </div>
-                    <div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -137,26 +142,51 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-2" style="width: 112px;">
-                        <h>From Date : </h>
+                    <div class="col-md-1" style="">
+                        <h>Serial No : </h>
                     </div>
-                    <div class="col-md-2 " style="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
-                        </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="form-control subsearch selectpicker" id="TermSEQ" name="TermSEQ" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (string item in ViewBag.CurrentTSEQ)
+                            {
+                                if (@item != @ViewBag.TermSEQ)
+
+                                {
+                                    <option data-tokens=@item>@item</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens=@item selected>@item</option>
+
+                                }
+
+
+                            }
+                        </select>
                     </div>
-                    <div class="col-md-2" style="width: 112px;">
-                        <h>To Date : </h>
+                    <div class="col col-md-1" style="">
+                        @*<h>Terminal Type : </h>*@
                     </div>
-                    <div class="col-md-2" style="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
-                        </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        @*<div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("TerminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = ""  },
+                        new SelectListItem(){ Text="ATM", Value = "G165"  },
+                        new SelectListItem(){ Text="ADM", Value = "G262"  }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>*@
                     </div>
-                
-      
+
                 </div>
            
                 <div class="row" style="margin-top: 15px;align-items:center;">
@@ -164,23 +194,40 @@
                     </div>
                  
                 </div>
-                <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-md-1" style="">
+                        <h>From Date : </h>
                     </div>
-                    <div class="col col-lg-1">
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                        </div>
+                    </div>
+                    <div class="col-md-1" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
                         <h>Rows : </h>
                     </div>
 
-                    <div class="col-md-1" style="margin-left: 35px">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="5", Value = "5"  },
                         new SelectListItem(){ Text="50", Value = "50"  },
                         new SelectListItem(){ Text="100", Value = "100"  },
                         new SelectListItem(){ Text="500", Value = "1000"  }
                         }, new
                         {
-                        @class = "form-control dropdown"
+                        @class = "form-control selectpicker subsearch"
                         ,
                         @name = "state"
 
@@ -191,42 +238,25 @@
                 </div>
 
                
-                <div class="row justify-content-md-center" style="margin-top: 15px">
+                <div class="row justify-content-md-center" style="">
 
-                    @if (ViewBag.ConnectDB == "false")
-                    {
-                        <div class="col col-lg-2">
-                            <p style="color: red "> Can't connect database !</p>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="button" id="btnsearch" class="btn btn-secondary" style="height:41px;">search  </button>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="reset" id="btnclear" class="btn btn-secondary" style="height:41px;" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" id="btnsearch" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="col-lg-1">
-                        </div>
-                        <div class= "col-lg-2">
-                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
-                        </div>
-                        <div class="col-lg-2">
-                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
-
+                    </div>
 
                 </div>
 
@@ -240,7 +270,7 @@
 
 </div>
 <div class="container-fluid">
-    <div class="row" style="background-color: #f8d5ad;width: 20vw;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 2.2vh;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
         <div class="col" style="display: flex;justify-content: center;">
             <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
@@ -303,12 +333,13 @@
 
                 <nav>
                     <div class="pagination">
-                        <li data-page="prev" id="back">
-                            <a style="color: #333333;"> < </a>
+                        <li data-page="prev" id="back" style="background-color:transparent;">
+
+                            <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
                         </li>
                         <!--	Here the JS Function Will Add the Rows -->
-                        <li data-page="next" id="prev">
-                            <a style="color: #333333;"> > </a>
+                        <li data-page="next" id="prev" style="background-color:transparent;">
+                            <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
                         </li>
 
                     </div>
@@ -587,7 +618,7 @@
         $('table tr:gt(0)').each(function () {
             id++;
             if (count != 0) {
-                $(this).prepend('<td>' + id + '</td>');
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
             }
 
         });
