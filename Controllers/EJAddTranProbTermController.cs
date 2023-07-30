@@ -55,6 +55,8 @@ namespace SLA_Management.Controllers
 
             string[] strErrorWordSeparate = { "DEVICE25", "DEVICE27" };
 
+            ejLog_dataList.Clear();
+
             DataTable terminalDBTable = GetClientFromDB();
             for (int i = 0; i < terminalDBTable.Rows.Count; i++)
             {
@@ -394,7 +396,7 @@ namespace SLA_Management.Controllers
         {
             ej_trandeviceprob record = new ej_trandeviceprob();
 
-            record.Seqno = pSeqNo;
+            record.Seqno = reader["serialnumber"].ToString();
             record.TerminalID = reader["terminalid"].ToString();
             record.BranchName = reader["branchname"].ToString();
             record.Location = reader["locationbranch"].ToString();

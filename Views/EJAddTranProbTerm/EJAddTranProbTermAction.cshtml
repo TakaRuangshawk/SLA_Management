@@ -1,10 +1,11 @@
 ﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.ej_trandeviceprob>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "EJAddTranProbTermAction";
     string[] tableHeaders = new string[]
                                                                                                     {
 
     "Terminal ID ",
+    "TransactionDate",
     "Serial No ",
     "Terminal Name ",
     "Event Name ",
@@ -21,7 +22,11 @@
     <title>Table #6</title>
 </head>
 
+
+
 <style>
+   
+
     .bootstrap-select > .dropdown-toggle {
         border-color: #ced4da;
         background-color: transparent;
@@ -42,14 +47,54 @@
         -ms-flex-pack: justify;
         justify-content: space-between;
     }
-</style>
 
-<style>
     select.form-control {
         -webkit-appearance: button;
     }
 
+
+    #header_search {
+        top: 50px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
    
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
 
 </style>
 
@@ -60,13 +105,13 @@
         <div class="row">
             <div class="col col-lg-1">
             </div>
-            <div class="col col-lg-1">
-                <p class="text-black fs-2">DeviceTermProb</p>
+            <div class="col col-lg-3">
+                <p class="text-white fs-4" id="header_search">DeviceTermProb</p>
             </div>
         </div>
 
 
-        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
+        <div id ="main_search" style="margin-top: 12px">
             @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get, new { id = "EJAddTranProbTermRecheckDate" }))
             {
                 <div class="row" style="margin-top: 15px;align-items:center;">
@@ -78,7 +123,7 @@
                     @* <div class="col-md-2" style="margin-left:30px">
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
-                    <div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="margin-left:37px;border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true" >
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -101,10 +146,10 @@
                     <div class="col col-lg-2" style="width: auto">
                         <h>From Date : </h>
                     </div>
-                    <div class="col-md-2 " style="margin-left:30px">
+                    <div class="col-md-2 " style="margin-left:30px ">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                         </div>
                     </div>
                     <div class="col col-lg-2" style="width: auto">
@@ -113,7 +158,7 @@
                     <div class="col-md-2" style="margin-left:30px">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                         </div>
                     </div>
                 </div>
@@ -123,19 +168,19 @@
                     <div class="col col-lg-2" style="width: auto">
                         <h>From Time : </h>
                     </div>
-                    <div class="col-md-2" style="margin-left:35px;">
+                    <div class="col-md-2" style="margin-left:32px;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
+                            @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
                         </div>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col col-lg-2" style="width: auto;margin-left: 11px">
                         <h>To Time : </h>
                     </div>
                     <div class="col-md-2" style="margin-left:48px;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
+                            @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
                         </div>
                     </div>
                 </div>
@@ -159,6 +204,7 @@
                         {
                         @class = "form-control dropdown"
                         ,
+                        @style = " border-radius: 10px;" ,
                         @name = "state"
 
                         })
@@ -238,7 +284,27 @@
 
                 </div>
 
-                <div class="row justify-content-md-center" style="margin-top: 15px">
+                <div class="row">
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" id="btnsearch" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+               @* <div class="row justify-content-md-center" style="margin-top: 15px">
 
                     @if (ViewBag.ConnectDB == "false")
                     {
@@ -276,11 +342,19 @@
 
 
                 </div>
-
+*@
             }
 
         </div>
+        <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@ViewBag.Records</a>
+            </div>
+        </div>
         <div class="table-responsive" style="overflow-x: hidden;">
             <table id="table-id" class="table table-striped custom-table">
                 <thead>
@@ -304,6 +378,7 @@
                                 <tr>
 
                                     <td> @Data.TerminalID</td>
+                                    <td> @Data.TransactionDate</td>
                                     <td> @Data.Seqno </td>
                                     <td> @Data.BranchName </td>
                                     <td> @Data.ProbName </td>
@@ -328,12 +403,13 @@
 
                     <nav>
                         <div class="pagination">
-                            <li data-page="prev" id="back">
-                                <a style="color: #333333;"> < </a>
+                            <li data-page="prev" id="back" style="background-color:transparent;">
+
+                                <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
                             </li>
                             <!--	Here the JS Function Will Add the Rows -->
-                            <li data-page="next" id="prev">
-                                <a style="color: #333333;"> > </a>
+                            <li data-page="next" id="prev" style="background-color:transparent;">
+                                <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
                             </li>
 
                         </div>
