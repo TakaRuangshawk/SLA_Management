@@ -106,15 +106,15 @@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="term_id" name="term_id" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTermID)
+                            @foreach (var item in ViewBag.CurrentTermID)
                             {
-                                if (@item != @ViewBag.TERM_ID)
+                                if (@item.TERM_ID != @ViewBag.TERM_ID)
                                 {
-                                    <option data-tokens=@item>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
                                 else
                                 {
-                                    <option data-tokens=@item selected>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
                                 }
 
@@ -175,7 +175,7 @@
 
 
 
-                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <button type="submit" id="btnclear" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
 
@@ -186,7 +186,7 @@
 
 
                             <button type="button" id="btnComlogButton" class="btn" name="UploadComlogButton" title="Upload Comlog" data-toggle="modal" data-target="#UploadModal" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Upload Comlog" />
+                                <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
                             </button>
                         </div>
                     </div>
@@ -228,12 +228,11 @@
                         {
                             <tr>
                                 <th>@item.Term_ID </th>
-                                <th>Serial No.</th>
-                                <th>Terminal Name</th>
+                                <th>@item.SerialNo</th>
+                                <th>@item.TerminalName</th>
                                 <th>@item.ComLog </th>
                                 <th>@item.FileServer </th>
-
-                                <th>Status File</th>
+                                <th>@item.StatusFile</th>
                                 <th>@item.TOTAL_RECORD </th>
                             </tr>
                         }
@@ -319,15 +318,15 @@
                         <lable class="col-form-label">Term ID : </lable>
                         <select class="selectpicker form-control subsearch" id="UplodeTerminal_ID" name="UplodeTerminal_ID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTermID)
+                            @foreach (var item in ViewBag.CurrentTermID)
                             {
-                                if (@item != @ViewBag.TERM_ID)
+                                if (@item.TERM_ID != @ViewBag.TERM_ID)
                                 {
-                                    <option data-tokens=@item>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
                                 else
                                 {
-                                    <option data-tokens=@item selected>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
                                 }
 
@@ -376,6 +375,14 @@
         }
         return false;
     });
+
+
+
+    function clearFunction() {
+        document.getElementById("term_id").value = "";
+        document.getElementById("forDateTime").value = "";
+        document.getElementById("toDateTime").value = "";
+    }
 
 
 </script>

@@ -56,7 +56,7 @@ namespace SLA_Management.Controllers
                 }
             }
 
-            ViewBag.CurrentTermID = dataErrorLog.termIds.ToList();
+            ViewBag.CurrentTermID = dataErrorLog.termIds;
             ViewBag.pageSize = pageSize;
             ViewBag.ExportDataFile = filter;
             ViewBag.TERM_ID = filter.term_id;

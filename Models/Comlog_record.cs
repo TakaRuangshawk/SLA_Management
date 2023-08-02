@@ -21,20 +21,7 @@ namespace SLA_Management.Models
         public string Remark { get => remark; set => remark = value; }
 
 
-        public static IList<Comlog_record> mapToList(DataTable list)
-        {
-            IList<Comlog_record> items = list.AsEnumerable().Select(row => new Comlog_record
-            {
-                Id = row.Field<int?>("ID") == null ? 0 : row.Field<int>("ID"),
-                Term_id = row.Field<string>("TERM_ID") == null ? null : row.Field<string>("TERM_ID"),
-                Msg_source = row.Field<string>("MSG_SOURCE") == null ? null : row.Field<string>("MSG_SOURCE"),
-                Total_record = row.Field<int?>("TOTAL_RECORD") == null ? 0 : row.Field<int>("TOTAL_RECORD"),
-                Update_date = row.Field<DateTime>("UPDATE_DATE") == null ? new DateTime() : row.Field<DateTime>("UPDATE_DATE"),
-                Update_by = row.Field<string>("UPDATE_BY") == null ? null : row.Field<string>("UPDATE_BY"),
-                Remark = row.Field<string>("REMARK") == null ? null : row.Field<string>("REMARK"),
-            }).ToList();
-            return items;
-        }
+       
 
 
         public override string ToString()

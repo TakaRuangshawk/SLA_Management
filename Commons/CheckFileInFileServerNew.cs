@@ -11,7 +11,7 @@ namespace SLA_Management.Commons
     public class CheckFileInFileServerNew
     {
         private static ConnectSQL_Server db;
-        public LinkedList<string> termIds;
+        public List<Device_info_record> termIds;
 
 
         private static string ip;
@@ -43,7 +43,7 @@ namespace SLA_Management.Commons
             SqlConnection = sqlConnection;
 
             db = new ConnectSQL_Server(SqlConnection);
-            termIds = GetTermId();
+            termIds = GetDeviceInfoRecord();
         }
 
 
@@ -53,18 +53,24 @@ namespace SLA_Management.Commons
             private string trem_id;
             private string comLogDate;
             private int total_record;
+            private string serialNo;
+            private string terminalName;
 
-            public ListDataComlogError(string trem_id, string comLogDate, int total_record)
+            public ListDataComlogError(string trem_id, string comLogDate, int total_record, string serialNo, string terminalName)
             {
                 this.Trem_id = trem_id;
                 this.ComLogDate = comLogDate;
                 this.Total_record = total_record;
+                this.serialNo = serialNo;
+                this.terminalName = terminalName;
 
             }
 
             public string Trem_id { get => trem_id; set => trem_id = value; }
             public string ComLogDate { get => comLogDate; set => comLogDate = value; }
             public int Total_record { get => total_record; set => total_record = value; }
+            public string SerialNo { get => serialNo; set => serialNo = value; }
+            public string TerminalName { get => terminalName; set => terminalName = value; }
         }
 
         public List<InsertListFileComLog> GetListFileComLog(string TERM_ID, DateTime start, DateTime end)
@@ -75,38 +81,49 @@ namespace SLA_Management.Commons
             bool getLostFilesFun = GetStatusFileServer();
             
             List <ListDataComlogError> lostFiles = new List<ListDataComlogError>();
+            List<string> termidList = termIds.Select(q => q.TERM_ID).ToList();
             if (getLostFilesFun)
             {
-                lostFiles = GetComlogFileServerLost(TERM_ID, start, DateStartBetweenDateEnd).Where(e => termIds.Contains(e.Trem_id)).ToList();
+                lostFiles = GetComlogFileServerLost(TERM_ID, start, DateStartBetweenDateEnd).Where(e => termidList.Contains(e.Trem_id)).ToList();
             }
-           
 
-            var lostFilesDB = GetComlogError(TERM_ID, start, end).Where(e => termIds.Contains(e.TERM_ID)).ToList();
+            //var test = termIds.Select(q => q.TERM_ID);
+
+            var lostFilesDB = GetComlogError(TERM_ID, start, end).Where(e => termidList.Contains(e.TERM_ID)).ToList();
 
 
 
 
-            if (lostFiles.Count != 0 || lostFilesDB.Count != 0)
+            if (lostFiles.Count != 0 || lostFilesDB.Count() != 0)
             {
                 if (lostFiles.Count != 0)
                 {
-                    listLogError.AddRange(lostFiles.Select(q => new InsertListFileComLog() { Id = 0, Term_ID = q.Trem_id, ComLog = q.ComLogDate, FileServer= "FileServer not Exist", TOTAL_RECORD = "-" }));
+                    listLogError.AddRange(lostFiles.Select(q => new InsertListFileComLog() { Id = 0, Term_ID = q.Trem_id, SerialNo = q.SerialNo,TerminalName = q.TerminalName,ComLog = q.ComLogDate, FileServer= "FileServer not Exist", StatusFile = false, TOTAL_RECORD = "-" }));
                 }
-                if (lostFilesDB.Count != 0)
+                if (lostFilesDB.Count() != 0)
                 {
                     foreach (var item in lostFilesDB)
                     {
                         //listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).ToList().ForEach(newError => newError.FileServer += test(item));
                         //var aa = listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).ToList().ForEach(newError => newError.FileServer += test(item));
                         //listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).ToList()?.ForEach(newError => newError.FileServer += Investigate(item));
-                        if (listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).Count() !=0)
+                        var listLogErrorContean = listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).ToList();
+                        var investigate = Investigate(item, lostFiles);
+                        if (listLogErrorContean.Count() !=0)
                         {
-                            listLogError.Where(itemError => itemError.Term_ID == item.TERM_ID && itemError.ComLog == item.MSG_SOURCE.Split('_')[1]).ToList()?.ForEach(newError => newError.FileServer += Investigate(item, lostFiles, getLostFilesFun));
+
+                            //listLogErrorContean?.ForEach(newError => newError = investigate);
+                            if (investigate != null)
+                            {
+                                listLogError.Remove(listLogErrorContean.First());
+                                listLogError.Add(investigate);
+                            }
+                           
 
                         }
                         else
                         {
-                            listLogError.Add(new InsertListFileComLog() { Term_ID = item.TERM_ID, ComLog = item.MSG_SOURCE.Split('_')[1], FileServer = Investigate(item, lostFiles, getLostFilesFun),TOTAL_RECORD = item.TOTAL_RECORD+"" });
+                            listLogError.Add(investigate);
                         }
                     }
                     
@@ -118,42 +135,49 @@ namespace SLA_Management.Commons
             return listLogError;
         }
 
-        private string Investigate(Comlog_recordNew data,List<ListDataComlogError> lostFiles ,bool getLostFilesFun)
+        private InsertListFileComLog Investigate(Comlog_recordNew data,List<ListDataComlogError> lostFiles)
         {
-            string investigate = "";
+            InsertListFileComLog investigate = new InsertListFileComLog();
+            var device_info_record = termIds.Where(q =>q.TERM_ID == data.TERM_ID).FirstOrDefault();
+            investigate.Term_ID = data.TERM_ID;
+            investigate.SerialNo = device_info_record.TERM_SEQ;
+            investigate.TerminalName = device_info_record.TERM_NAME;
+            investigate.ComLog = data.MSG_SOURCE.Split('_')[1];
+            investigate.StatusFile = false;
+            investigate.TOTAL_RECORD = "-";
             if (data.ERROR == "" || data.ERROR == null)
             {
+                investigate.StatusFile = true;
                 if (data.TOTAL_RECORD == 0)
                 {
-                    investigate += "\nInsert data 0 line";
+                    investigate.FileServer = "Insert data 0 line";
+                    investigate.TOTAL_RECORD = "0";
                 }
                 else if(data.FLAG == 0)
                 {
-                   
-                    investigate += "\nWaiting to translate";
+
+                    investigate.FileServer = "Waiting to translate";
+                    investigate.TOTAL_RECORD = data.TOTAL_RECORD+"";
                 }
+               
             }
             else 
             {
-                if (getLostFilesFun == true)
+                if (lostFiles.Where(i => i.Trem_id == data.TERM_ID && i.ComLogDate == data.MSG_SOURCE.Split('_')[1]).Count() == 0 && data.TOTAL_RECORD == 0)
                 {
-                    if (lostFiles.Where(i => i.Trem_id == data.TERM_ID && i.ComLogDate == data.MSG_SOURCE.Split('_')[1]).Count() == 0)
-                    {
-                        investigate += "\nWaiting to insert in database";
-                    }
+                    investigate.FileServer = "Waiting to insert in database";
+                    investigate.StatusFile = true;
                 }
                 else
                 {
-                    if ("File Not Found".Equals(data.ERROR))
-                    {
-                        investigate += "\nFileServer not Exist";
-                    }
+                    return null;
                 }
-                
+
+
                 
             }
-            
             return investigate;
+
         }
 
 
@@ -181,6 +205,7 @@ namespace SLA_Management.Commons
         private List<ListDataComlogError> GetComlogFileServerLost(string termID, DateTime start, int DateStartBetweenDateEnd)
         {
             List<ListDataComlogError> listData = new List<ListDataComlogError>();
+            Device_info_record device_info_record = termIds.Where(q => q.TERM_ID == termID).FirstOrDefault();
             try
             {
                 using (SftpClient sftp = new SftpClient(Ip, Port, Username, Password))
@@ -202,11 +227,11 @@ namespace SLA_Management.Commons
                         string comLogName = "COM" + getDate.Year + "" + getDate.Month.ToString("00") + "" + getDate.Day.ToString("00") + ".txt";
                         if (termID == "")
                         {
-                            foreach (string termId in termIds)
+                            foreach (Device_info_record term in termIds)
                             {
-                                if (!sftp.Exists(configPath + termId + "/" + comLogName))
+                                if (!sftp.Exists(configPath + term + "/" + comLogName))
                                 {
-                                    listData.Add(new ListDataComlogError(termId, comLogName.Replace(".txt", ""), 0));
+                                    listData.Add(new ListDataComlogError(term.TERM_ID, comLogName.Replace(".txt", ""), 0, term.TERM_SEQ, term.TERM_NAME));
                                 }
 
                             }
@@ -216,7 +241,7 @@ namespace SLA_Management.Commons
                         {
                             if (!sftp.Exists(configPath + termID + "/" + comLogName))
                             {
-                                listData.Add(new ListDataComlogError(termID, comLogName.Replace(".txt", ""), 0));
+                                listData.Add(new ListDataComlogError(device_info_record.TERM_ID, comLogName.Replace(".txt", ""), 0, device_info_record.TERM_SEQ, device_info_record.TERM_NAME));
                             }
                         }
                     }
@@ -253,17 +278,19 @@ namespace SLA_Management.Commons
 
 
 
-        private static LinkedList<string> GetTermId()
+        private static List<Device_info_record> GetDeviceInfoRecord()
         {
 
             SqlCommand com = new SqlCommand();
-            com.CommandText = "SELECT TERM_ID FROM [device_info_record] GROUP BY TERM_ID;";
+            com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1 order by TERM_ID;";
             DataTable testss = db.GetDatatable(com);
-            LinkedList<string> test = new LinkedList<string>();
-            foreach (DataRow item in testss.Rows)
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            /*foreach (DataRow item in testss.Rows)
             {
                 test.AddFirst((string)item["TERM_ID"]);
-            }
+            }*/
             return test;
         }
 
