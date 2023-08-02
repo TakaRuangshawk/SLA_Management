@@ -24,6 +24,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbG9nXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Workspace/Git/SLA_Management/Views/EJAddTranProbTerm/EJAddTranProbTermAction.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRUpBZGRUcmFuUHJvYlRlcm1cRUpBZGRUcmFuUHJvYlRlcm1BY3Rpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/Views/Gateway/Transaction.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2F0ZXdheVxUcmFuc2FjdGlvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -66,10 +70,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/Workspace/Git/SLA_Management/Views/Operation/SlaTracking.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVRyYWNraW5nLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/Workspace/Git/SLA_Management/Views/Shared/EJAddTranProbTermAction.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVKQWRkVHJhblByb2JUZXJtQWN0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Workspace/Git/SLA_Management/Views/Shared/Error.cshtml]
