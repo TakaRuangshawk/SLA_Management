@@ -3,10 +3,11 @@
     ViewData["Title"] = "EJAddTranProbTermAction";
     string[] tableHeaders = new string[]
                                                                                                     {
-
+    
+    "Date",
+    "Time",
+    "Serial No.",
     "Terminal ID ",
-    "TransactionDate",
-    "Serial No ",
     "Terminal Name ",
     "Event Name ",
 
@@ -26,6 +27,10 @@
 
 <style>
    
+    .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
+        width: 526px;
+        margin-left: -2px;
+    }
 
     .bootstrap-select > .dropdown-toggle {
         border-color: #ced4da;
@@ -105,8 +110,8 @@
         <div class="row">
             <div class="col col-lg-1">
             </div>
-            <div class="col col-lg-3">
-                <p class="text-white fs-4" id="header_search">DeviceTermProb</p>
+            <div class="col col-lg-4">
+                <p class="text-white fs-4" id="header_search">Problem Management</p>
             </div>
         </div>
 
@@ -162,7 +167,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" style="margin-top: 15px;align-items:center;">
+               @* <div class="row" style="margin-top: 15px;align-items:center;">
                     <div class="col col-lg-1">
                     </div>
                     <div class="col col-lg-2" style="width: auto">
@@ -183,44 +188,15 @@
                             @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
                         </div>
                     </div>
-                </div>
+                </div>*@
                 <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                    <div class="col col-lg-1">
-                        <h>Rows : </h>
-                    </div>
-
-                    <div class="col-md-1" style="margin-left: 35px">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="5", Value = "5"  },
-                        new SelectListItem(){ Text="10", Value = "10"  },
-                        new SelectListItem(){ Text="50", Value = "50" },
-                        new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="1000", Value = "1000"  }
-                        }, new
-                        {
-                        @class = "form-control dropdown"
-                        ,
-                        @style = " border-radius: 10px;" ,
-                        @name = "state"
-
-                        })
-
-                        </div>
-                    </div>
-                </div>
-                <div class="row" style="margin-top: 15px;align-items:center;">
-
                     <div class="col col-lg-1">
                     </div>
                     <div class="col col-lg-2" style="width: auto">
                         <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
                     </div>
-                    <div class="col-md-3">
-                        <select name="ddlProbMaster" id="ddlProbMaster" class="selectpicker" multiple>
+                    <div class="col-md-5">
+                        <select name="ddlProbMaster" id="ddlProbMaster" style="width:525px;" class="selectpicker" multiple>
                             @{
 
                                 if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
@@ -281,8 +257,39 @@
                 <div class="col-md-2">
                 @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
                 </div>*@
+                   
+                    <div class="col col-lg-1" style="margin-left: 45px;">
+                        <h>Rows : </h>
+                    </div>
 
+                    <div class="col-md-1" style="margin-left: 10px;width: 204px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="5", Value = "5"  },
+                        new SelectListItem(){ Text="10", Value = "10"  },
+                        new SelectListItem(){ Text="50", Value = "50" },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="1000", Value = "1000"  }
+                        }, new
+                        {
+                        @class = "form-control dropdown"
+                        ,
+                        @style = " border-radius: 10px;" ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
                 </div>
+              @*  <div class="row" style="margin-top: 15px;align-items:center;">
+
+                    <div class="col col-lg-1">
+                    </div>
+                   
+
+                </div>*@
 
                 <div class="row">
 
@@ -380,9 +387,10 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-
-                                    <td> @Data.TerminalID</td>
-                                    <td> @Data.TransactionDate</td>
+                                    
+                                    <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
+                                    <td> @Data.TransactionDate.TimeOfDay</td>
+                                    <td> @Data.TerminalID</td>                              
                                     <td> @Data.Seqno </td>
                                     <td> @Data.BranchName </td>
                                     <td> @Data.ProbName </td>
@@ -393,7 +401,7 @@
                         if (Model.Count == 0)
                         {
 
-                        <td colspan="6" style="text-align: center;"> NO DATA </td>
+                        <td colspan="7" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
