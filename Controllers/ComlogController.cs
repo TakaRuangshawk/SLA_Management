@@ -89,7 +89,15 @@ namespace SLA_Management.Controllers
                         var filePath = Path.GetTempFileName();
                         Guid myuuid = Guid.NewGuid();
                         string myuuidAsString = myuuid.ToString();
-                        string targetFileSave = Path.Combine(pathApp, "UploadFile", myuuidAsString + "_" + uplodeTerminal_ID + "_" + _FileName);
+                        string targetDirectory = Path.Combine(pathApp, "UploadFile");
+
+                        if (!Directory.Exists(targetDirectory))
+                        {
+                            Directory.CreateDirectory(targetDirectory);
+                        }
+
+
+                        string targetFileSave = Path.Combine(targetDirectory, myuuidAsString + "_" + uplodeTerminal_ID + "_" + _FileName);
                         using (var stream = System.IO.File.Create(targetFileSave))
                         {
                             item.CopyTo(stream);

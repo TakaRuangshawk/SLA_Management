@@ -37,6 +37,7 @@
         border-radius: 10px;
     }
 
+    
     #header_search {
         top: 20px;
         position: relative;
@@ -120,8 +121,6 @@
                                     <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
                                 }
-
-
                             }
                         </select>
                     </div>
@@ -159,7 +158,15 @@
                         </div>
                     </div>
                     <div class="col-md-1"></div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;"></div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div id="processStatus" style="display:none;">
+                            <div  class="spinner-border spinner-border-sm" role="status">
+                            </div>
+                            <span class="sr-only">Loading...</span>
+
+                        </div>
+                       
+                    </div>
                     <div class="col-md-1"></div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;"></div>
                 </div>
@@ -171,19 +178,20 @@
 
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" id="btnsearch" class="btn" style="padding:0px;">
+                            
+                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
 
 
 
 
-                            <button type="submit" id="btnclear" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <button type="submit" id="btnclear" data-toggle="modal"  data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
 
 
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <a id="btnSEExp"  title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
 
@@ -358,10 +366,52 @@
 
             </form>
 
+
+
+
+
+
+
+
+
+
+
+          
+
+
+
+
+
+
         </div>
     </div>
 </div>
 
+
+
+
+<div class="modal fade" id="WaitingModal" tabindex="-1" role="dialog" aria-labelledby="WaitingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-dark" style="width: 3rem; height: 3rem;" role="status">
+                       
+                    </div>
+                  
+
+                </div>
+                <div class="d-flex justify-content-center">
+                    <h1>Loading...</h1>
+                </div>
+
+
+              
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -419,37 +469,109 @@
 </script>
 <script>
     @{
+
+
         var dataExport = ViewBag.ExportDataFile;
+        string toDateTime = dataExport.toDateTime == null ? "" : string.Format("{0}-{1}-{2}", dataExport.toDateTime.Year.ToString("0000"), dataExport.toDateTime.Month.ToString("00"), dataExport.toDateTime.Day.ToString("00"));
+        string forDateTime = dataExport.forDateTime == null ? "" : string.Format("{0}-{1}-{2}", dataExport.forDateTime.Year.ToString("0000"), dataExport.forDateTime.Month.ToString("00"), dataExport.forDateTime.Day.ToString("00"));
+
+
     }
 
              const dataExport = {
         term_id: "@dataExport.term_id",
-        toDateTime: "@dataExport.toDateTime",
-        forDateTime: "@dataExport.forDateTime"
+        toDateTime: "@toDateTime",
+        forDateTime: "@forDateTime",
+        row: @Model.Count()
     };
+    var processStatus = document.getElementById("processStatus");
+    var waitingModal = document.getElementById("WaitingModal");
+    
+    $("#WaitingModal").on("shown.bs.modal", function () {
+       
+        if (processStatus.style.display == "none") {
+            processStatus.style.display = "block";
+        }
+    });
+    //$("#WaitingModal").on("hidden.bs.modal", function () {
+    //    var processStatus = document.getElementById("processStatus");
+    //    if (processStatus.style.display == "block") {
+    //        processStatus.style.display = "none";
+    //    }
+    //});
+
 
     $("#btnSEExp").on("click", ExportRecordtoExcel);
+    
     async function ExportRecordtoExcel() {
         try {
 
-            const response = await fetch('Comlog/ExportRecordtoExcel', {
+            const response = await fetch('@Url.Action("ExportRecordtoExcel","ComlogNew")', {
                 method: 'POST',
 
-                responseType: "blob"
+                //responseType: "blob"
             });
             if (response.ok) {
 
                 let res = response.blob();
 
                 res.then(blob => {
+                    
+                    
+                    const date = new Date();
+
+                    let currentDay = String(date.getDate()).padStart(2, '0');
+
+                    let currentMonth = String(date.getMonth() + 1).padStart(2, "0");
+
+                    let currentYear = date.getFullYear();
+                    let currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
+
+
+                    let sert = "";
+                    if (dataExport.term_id != "" && dataExport.term_id != null) 
+                    {
+                        sert += "_" + dataExport.term_id;
+                    }else
+                    {
+                        if (dataExport.row !=0) 
+                        {
+                            sert += "_ALL"
+                        }
+                       
+                    }
+
+                    if (dataExport.toDateTime != "" && dataExport.toDateTime != null) {
+                        sert += "_" + dataExport.toDateTime;
+                    } 
+                    if (dataExport.forDateTime != "" && dataExport.forDateTime != null) {
+                        sert += "_" + dataExport.forDateTime;
+                    }
+
 
                     var url = window.URL.createObjectURL(blob);
-                    window.location.assign(url);
+
+
+                    anchor = document.createElement("a");
+                    anchor.href = url;
+                    anchor.download = 'ComlogManagement_' + currentDate + sert;
+                    anchor.click();
+                    window.URL.revokeObjectURL(url);
+                    document.removeChild(anchor);
+                    
+                    //window.location.assign(url);
                 });
+            } 
+            else {
+                // Handle the error if the export was unsuccessful
+                throw new Error("Export failed with status " + response.status);
             }
+            
         } catch (error) {
             console.log(error);
         }
+
+        
     }
 
 
@@ -677,7 +799,7 @@
 
     $(function () {
         // Just to append id number for each row
-        $('table tr:eq(0)').prepend('<th> No </th>');
+        $('table tr:eq(0)').prepend('<th>No.</th>');
 
         var id = 0;
         var count = maxRow;
@@ -748,4 +870,7 @@
             fileList.appendChild(listItem);
         }
     });
+
+
+
 </script>

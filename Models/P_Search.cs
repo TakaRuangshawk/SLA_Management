@@ -12,5 +12,7 @@ namespace SLA_Management.Models
         [Required(ErrorMessage = "DateTime is required")]
         [DataType(DataType.Date)]
         public DateTime? forDateTime { get; set; }
+
+
     }
 }
