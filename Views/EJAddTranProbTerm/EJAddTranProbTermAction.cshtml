@@ -1,6 +1,6 @@
 ﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.ej_trandeviceprob>
 @{
-    ViewData["Title"] = "EJAddTranProbTermAction";
+    ViewData["Title"] = "Problem Management";
     string[] tableHeaders = new string[]
                                                                                                     {
     
@@ -59,14 +59,13 @@
 
 
     #header_search {
-        top: 50px;
+        top: 20px;
         position: relative;
         background-color: orange;
         border: solid;
         padding: 8px 40px 8px 40px;
         border-radius: 12px;
         font-weight: 700;
-        text-align: center;
     }
 
     .item {
@@ -89,7 +88,7 @@
 
     #main_search {
         margin-bottom: 50px;
-        padding: 30px 0;
+        padding: 30px 3vw 30px 3vw;
         margin-left: 50px;
         margin-right: 50px;
         border: 3px solid #888888;
@@ -100,18 +99,23 @@
     .dropdown-toggle {
         border-radius: 10px;
     }
-
+    .show-tick{
+        width: -webkit-fill-available !important;
+    }
+    th{
+        text-align:center;
+    }
 </style>
 
 
 
 <div class="content contentHeader">
-    <div class="container w-auto containerHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
         <div class="row">
-            <div class="col col-lg-1">
+            <div class="col col-md-1">
             </div>
-            <div class="col col-lg-4">
-                <p class="text-white fs-4" id="header_search">Problem Management</p>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Problem Management</a>
             </div>
         </div>
 
@@ -119,16 +123,15 @@
         <div id ="main_search" >
             @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get, new { id = "EJAddTranProbTermRecheckDate" }))
             {
-                <div class="row" style="margin-top: 30px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                    <div class="col col-lg-2" style="width: auto">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                  
+                    <div class="col-2" style="">
                         <h>Terminal ID : </h>
                     </div>
                     @* <div class="col-md-2" style="margin-left:30px">
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
-                    <div class="item col-md-2" style="margin-left:37px;border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true" >
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -148,19 +151,19 @@
                             }
                         </select>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col-2" style="">
                         <h>From Date : </h>
                     </div>
-                    <div class="col-md-2 " style="margin-left:30px ">
+                    <div class="col-2 " style="padding:0; ">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                         </div>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
+                    <div class="col-2" style="">
                         <h>To Date : </h>
                     </div>
-                    <div class="col-md-2" style="margin-left:30px">
+                    <div class="col-2" style="padding:0;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
@@ -189,14 +192,13 @@
                         </div>
                     </div>
                 </div>*@
-                <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                 
+                    <div class="col-2" style="">
+                        <label for="ErrMeaaage">Error Message:</label>
                     </div>
-                    <div class="col col-lg-2" style="width: auto">
-                        <label for="ErrMeaaage">Error Message</label>&nbsp;:&nbsp;&nbsp;
-                    </div>
-                    <div class="col-md-5">
-                        <select name="ddlProbMaster" id="ddlProbMaster" style="width:525px;" class="selectpicker" multiple>
+                    <div class="col-6" style="padding: 0px;">
+                        <select name="ddlProbMaster" id="ddlProbMaster" style="" class="selectpicker" multiple>
                             @{
 
                                 if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
@@ -258,11 +260,11 @@
                 @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
                 </div>*@
                    
-                    <div class="col col-lg-1" style="margin-left: 45px;">
+                    <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
 
-                    <div class="col-md-1" style="margin-left: 10px;width: 204px;">
+                    <div class="col-2" style="padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {

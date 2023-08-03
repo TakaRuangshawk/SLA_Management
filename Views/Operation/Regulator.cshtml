@@ -4,7 +4,7 @@
     string[] tableHeaders = new string[]
     {
     "Serial No",
-    "TerminalID ",
+    "Terminal ID ",
     "Terminal Name",
     "DEP100 ",
     "DEP500 ",
@@ -143,6 +143,34 @@
                         </select>
                     </div>
                     <div class="col-md-1" style="">
+                        <h>From Date : </h>
+                    </div>
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                        </div>
+                    </div>
+                    <div class="col-md-1" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                        </div>
+                    </div>
+                   
+
+                </div>
+           
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                 
+                </div>
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-md-1" style="">
                         <h>Serial No : </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -166,16 +194,16 @@
                         </select>
                     </div>
                     <div class="col col-md-1" style="">
-                        @*<h>Terminal Type : </h>*@
+                        <h>Terminal Type : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        @*<div class="form-group">
+                        <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("TerminalType", new SelectListItem[] {
                         new SelectListItem(){ Text="All", Value = ""  },
-                        new SelectListItem(){ Text="ATM", Value = "G165"  },
-                        new SelectListItem(){ Text="ADM", Value = "G262"  }
+                        //new SelectListItem(){ Text="ATM", Value = "ATM"  },
+                        new SelectListItem(){ Text="ADM", Value = "ADM"  }
                         }, new
                         {
                         @class = "form-control selectpicker subsearch"
@@ -184,33 +212,6 @@
 
                         })
 
-                        </div>*@
-                    </div>
-
-                </div>
-           
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                 
-                </div>
-                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                    <div class="col-md-1" style="">
-                        <h>From Date : </h>
-                    </div>
-                    <div class="col-md-2 date-form-control" style="">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
-                        </div>
-                    </div>
-                    <div class="col-md-1" style="">
-                        <h>To Date : </h>
-                    </div>
-                    <div class="col-md-2 date-form-control" style="">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                         </div>
                     </div>
                     <div class="col col-md-1" style="">
