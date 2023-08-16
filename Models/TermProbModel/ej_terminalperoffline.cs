@@ -44,4 +44,11 @@ namespace SLA_Management.Models.TermProbModel
         public string comlogADM { get; set; }
         public string comlogATM { get; set; }
     }
+    public class slatracking
+    {
+        public string no { get; set; }
+        public string APPNAME { get; set; }
+        public string STATUS { get; set; }
+        public string UPDATE_DATE { get; set; }
+    }
 }

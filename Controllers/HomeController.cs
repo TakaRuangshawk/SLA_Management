@@ -18,6 +18,7 @@ namespace SLA_Management.Controllers
         private IConfiguration _myConfiguration;
         private static List<homeshowstatus> recordset_homeshowstatus = new List<homeshowstatus>();
         private static List<comlogrecord> recordset_comlogrecord = new List<comlogrecord>();
+        private static List<slatracking> recordset_slatracking = new List<slatracking>();
         private DBService dBService;
         SqlCommand com = new SqlCommand();
         ConnectSQL_Server con;
@@ -42,6 +43,7 @@ namespace SLA_Management.Controllers
                     ViewBag.offlineADM = Data.offlineADM;
                     ViewBag.onlineTotal = (Convert.ToInt32(Data.onlineATM) + Convert.ToInt32(Data.onlineADM)).ToString();
                     ViewBag.offlineTotal = (Convert.ToInt32(Data.offlineATM) + Convert.ToInt32(Data.offlineADM)).ToString();
+                    ViewBag.FVTotal = ((Convert.ToInt32(Data.onlineATM) + Convert.ToInt32(Data.onlineADM)) + (Convert.ToInt32(Data.offlineATM) + Convert.ToInt32(Data.offlineADM))).ToString();
                 }
             }
             else
@@ -52,6 +54,7 @@ namespace SLA_Management.Controllers
                 ViewBag.offlineADM = "-";
             }
             recordset_comlogrecord = GetComlogRecordFromSqlServer();
+            recordset_slatracking = GetSlatrackingFromSqlServer();
             if(recordset_comlogrecord != null)
             {
                 foreach (var Data in recordset_comlogrecord)
@@ -77,7 +80,7 @@ namespace SLA_Management.Controllers
                 ViewBag.comlogADM = "-";
             }
             ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
-            return View();
+            return View(recordset_slatracking);
         }
         public List<comlogrecord> GetComlogRecordFromSqlServer()
         {
@@ -112,6 +115,50 @@ namespace SLA_Management.Controllers
             
 
             return dataList;
+        }
+        public List<slatracking> GetSlatrackingFromSqlServer() {
+            List<slatracking> dataList = new List<slatracking>();
+            string sqlQuery = " SELECT [APPNAME],[STATUS],[UPDATE_DATE]FROM (SELECT [APPNAME],[STATUS],[UPDATE_DATE],ROW_NUMBER() OVER (PARTITION BY [APPNAME] ORDER BY [UPDATE_DATE] DESC) AS rn ";
+            sqlQuery += "  FROM sla_tracking where APPNAME in ('appChangeAndUnzip','InsertFileCOMLog','Translator','NDCT','Downtime','SLA Report')) ranked WHERE rn = 1 and YEAR(UPDATE_DATE) = YEAR(GETDATE()) ";
+            sqlQuery += " ORDER BY CASE WHEN [APPNAME] = 'appChangeAndUnzip' THEN 1 WHEN [APPNAME] = 'InsertFileCOMLog' THEN 2 WHEN [APPNAME] = 'Translator' THEN 3 WHEN [APPNAME] = 'NDCT' THEN 4 WHEN [APPNAME] = 'Downtime' THEN 5 WHEN [APPNAME] = 'SLA Report' THEN 6 ELSE 6 END; ";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))
+                {
+
+                    using (SqlCommand command = new SqlCommand(sqlQuery, connection))
+                    {
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            int n = 1;
+                            while (reader.Read())
+                            {
+                                dataList.Add(GetSlatrackingFromReader(reader,n));
+                                n++;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
+            return dataList;
+        }
+        protected virtual slatracking GetSlatrackingFromReader(IDataReader reader,int n)
+        {
+            slatracking record = new slatracking();
+
+            record.no = n.ToString();
+            record.APPNAME = reader["APPNAME"].ToString();
+            record.STATUS = reader["STATUS"].ToString();
+            record.UPDATE_DATE = DateTime.Parse(reader["UPDATE_DATE"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.DefaultThreadCurrentCulture);
+            return record;
         }
         protected virtual comlogrecord GetComlogRecordFromReader(IDataReader reader)
         {

@@ -282,7 +282,7 @@ namespace SLA_Management.Commons
         {
 
             SqlCommand com = new SqlCommand();
-            com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1 order by TERM_ID;";
+            com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1  order by TERM_SEQ;";
             DataTable testss = db.GetDatatable(com);
 
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);

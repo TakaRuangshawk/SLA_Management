@@ -177,5 +177,11 @@ input[type=number] {
     margin-left: 20px;
     flex: 0 0 7.0%;
 }
+#main-left{
+    padding-left:1.5%;
+    padding-right:1.5%;
+}
+
+
 
 
