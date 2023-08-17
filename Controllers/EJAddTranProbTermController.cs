@@ -49,7 +49,7 @@ namespace SLA_Management.Controllers
         public ActionResult InsertProbMaster(string probCodeStr, string probNameStr, string probTypeStr, string probTermStr)
         {
             bool result = false;
-            string error = "";
+            string error = "incomplete information";
             try
             {
                 if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
