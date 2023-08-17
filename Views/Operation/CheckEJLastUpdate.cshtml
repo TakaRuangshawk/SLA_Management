@@ -8,7 +8,8 @@
     "Terminal Name ",
     "Last EJ Update Date ",
     "Last Transaction Date",
-    "Status"
+    "Status",
+    "Terminal Status"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -306,7 +307,22 @@
                                     <td> @Data.term_name</td>
                                     <td> @Data.update_date</td>
                                     <td> @Data.lastran_date</td>
-                                    <td> @Data.status</td>
+                                    <td class="text-center"> @Data.status</td>
+                                    @{
+                                        if (@Data.terminalstatus == "online")
+                                        {
+                                            <td style="display: flex;justify-content: center;}">
+                                                <img style="height: 2rem;width: auto;" src="~/images/icgreen.png" />
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td style="display: flex;justify-content: center;}">
+                                                <img style="height: 2rem;width: auto;" src="~/images/icred.png" />
+                                            </td>
+                                        }
+                                    }
+                                  
                                 </tr>
                             }
 

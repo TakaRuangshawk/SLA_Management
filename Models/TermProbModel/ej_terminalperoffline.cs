@@ -29,6 +29,7 @@ namespace SLA_Management.Models.TermProbModel
         public string update_date { get; set; }
         public string lastran_date { get; set; }
         public string status { get; set; }
+        public string terminalstatus { get; set; }
     }
     public class homeshowstatus
     {

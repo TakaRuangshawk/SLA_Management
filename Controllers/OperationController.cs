@@ -1047,8 +1047,8 @@ namespace SLA_Management.Controllers
                 {
 
                     _sql = "SELECT a.TERM_ID,b.TERM_NAME,b.TERM_SEQ,a.UPDATE_DATE,c.LASTTRAN_TIME, ";
-                    _sql += " IF(TIMESTAMPDIFF(HOUR,a.UPDATE_DATE,c.LASTTRAN_TIME ) > 1  ";
-                    _sql += " OR DATEDIFF(DATE(a.UPDATE_DATE), DATE(c.LASTTRAN_TIME)) > 0, 'warning', '') AS status";
+                    _sql += " CASE WHEN(c.DEVICE_STATUS_EVENT_ID != 'E1005' and c.DEVICE_STATUS_EVENT_ID != 'E1156' and c.DEVICE_STATUS_EVENT_ID != 'E1006' and c.DEVICE_STATUS_EVENT_ID != 'E1036') THEN 'online' ELSE 'offline' END as terminalstatus,   ";
+                    _sql += " CASE WHEN c.LASTTRAN_TIME > DATE_ADD(a.UPDATE_DATE, INTERVAL 1 HOUR) THEN 'warning'ELSE ''END AS status";
                     _sql += " FROM gsb_adm_fv.ejournal_upload_log as a";
                     _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
                     _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
@@ -1071,7 +1071,7 @@ namespace SLA_Management.Controllers
                         _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType +"'";
                     }   
                     _sql +=  _sqlWhere;
-                    _sql += " group by a.TERM_ID order by a.UPDATE_DATE asc";
+                    _sql += " group by a.TERM_ID order by c.LASTTRAN_TIME > DATE_ADD(a.UPDATE_DATE, INTERVAL 1 HOUR) desc ,b.TERM_SEQ asc";
 
                     cn.Open();
 
@@ -1118,6 +1118,7 @@ namespace SLA_Management.Controllers
             record.update_date = DateTime.Parse(reader["UPDATE_DATE"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
             record.lastran_date = DateTime.Parse(reader["LASTTRAN_TIME"].ToString()).ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
             record.status = reader["status"].ToString();
+            record.terminalstatus = reader["terminalstatus"].ToString();
             return record;
         }
         #endregion
