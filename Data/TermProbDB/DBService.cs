@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -40,7 +41,7 @@ namespace SLA_Management.Data.TermProbDB
 
         public static bool CheckDatabase()
         {
-            bool result = false; 
+            bool result = false;
             _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
             if (_objDb.IsConnect)
             {
@@ -52,7 +53,7 @@ namespace SLA_Management.Data.TermProbDB
         {
             DataTable _dt = new DataTable();
             string _sql = string.Empty;
-             _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
 
             try
             {
@@ -80,8 +81,35 @@ namespace SLA_Management.Data.TermProbDB
             { throw ex; }
         }
 
+        public bool InsertDataToProbMaster(string probCode, string probName, string probType, string probTerm)
+        {
+            bool result = false;
+            _objDb = new MySQLDBHelp(ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            string _sql = string.Empty;
 
-       
+            try
+            {
+                _sql = "INSERT INTO `gsb_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`createdate`,`updatedate`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + "1" + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "') ;";
+
+
+                result = _objDb.ExecuteQueryNoneParam(_sql);
+
+                if (result == false)
+                {
+                    if (_objDb.ErrorMessDB != null)
+                        ErrorMessage = _objDb.ErrorMessDB;
+                }
+
+
+                return result;
+            }
+            catch (Exception ex)
+            { throw ex; }
+
+        }
+
+
+
 
 
 

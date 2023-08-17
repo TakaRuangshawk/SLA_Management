@@ -3,7 +3,7 @@
     ViewData["Title"] = "Problem Management";
     string[] tableHeaders = new string[]
                                                                                                     {
-    
+
     "Date",
     "Time",
     "Serial No.",
@@ -26,7 +26,7 @@
 
 
 <style>
-   
+
     .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
         width: 526px;
         margin-left: -2px;
@@ -95,15 +95,17 @@
         background-color: white;
         border-radius: 50px;
     }
-   
+
     .dropdown-toggle {
         border-radius: 10px;
     }
-    .show-tick{
+
+    .show-tick {
         width: -webkit-fill-available !important;
     }
-    th{
-        text-align:center;
+
+    th {
+        text-align: center;
     }
 </style>
 
@@ -120,11 +122,11 @@
         </div>
 
 
-        <div id ="main_search" >
+        <div id="main_search">
             @using (Html.BeginForm("EJAddTranProbTermAction", "EJAddTranProbTerm", FormMethod.Get, new { id = "EJAddTranProbTermRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                  
+
                     <div class="col-2" style="">
                         <h>Terminal ID : </h>
                     </div>
@@ -132,7 +134,7 @@
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
                     <div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true" >
+                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
                             {
@@ -170,30 +172,30 @@
                         </div>
                     </div>
                 </div>
-               @* <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                    <div class="col col-lg-2" style="width: auto">
-                        <h>From Time : </h>
-                    </div>
-                    <div class="col-md-2" style="margin-left:32px;">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
-                        </div>
-                    </div>
-                    <div class="col col-lg-2" style="width: auto;margin-left: 11px">
-                        <h>To Time : </h>
-                    </div>
-                    <div class="col-md-2" style="margin-left:48px;">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
-                        </div>
-                    </div>
-                </div>*@
+                @* <div class="row" style="margin-top: 15px;align-items:center;">
+            <div class="col col-lg-1">
+            </div>
+            <div class="col col-lg-2" style="width: auto">
+            <h>From Time : </h>
+            </div>
+            <div class="col-md-2" style="margin-left:32px;">
+            <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            @Html.TextBox("FrTime", ViewBag.CurrentFrTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "00:00:00" })
+            </div>
+            </div>
+            <div class="col col-lg-2" style="width: auto;margin-left: 11px">
+            <h>To Time : </h>
+            </div>
+            <div class="col-md-2" style="margin-left:48px;">
+            <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            @Html.TextBox("ToTime", ViewBag.CurrentToTime as string, new { @style = " border-radius: 10px;" , @class = "form-control w-75 rounded-lg", @placeholder = "23:59:59" })
+            </div>
+            </div>
+            </div>*@
                 <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                 
+
                     <div class="col-2" style="">
                         <label for="ErrMeaaage">Error Message:</label>
                     </div>
@@ -259,7 +261,7 @@
                 <div class="col-md-2">
                 @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
                 </div>*@
-                   
+
                     <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
@@ -285,13 +287,13 @@
                         </div>
                     </div>
                 </div>
-              @*  <div class="row" style="margin-top: 15px;align-items:center;">
+                @*  <div class="row" style="margin-top: 15px;align-items:center;">
 
-                    <div class="col col-lg-1">
-                    </div>
-                   
+            <div class="col col-lg-1">
+            </div>
 
-                </div>*@
+
+            </div>*@
 
                 <div class="row">
 
@@ -309,53 +311,57 @@
                             <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
+
+                            <button type="button" id="btnInsertProb" class="btn" name="InsertProbButton" title="Insert Problem Master" data-toggle="modal" data-target="#InsertProbModal" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
+                            </button>
                         </div>
                     </div>
                 </div>
 
-               @* <div class="row justify-content-md-center" style="margin-top: 15px">
+                @* <div class="row justify-content-md-center" style="margin-top: 15px">
 
-                    @if (ViewBag.ConnectDB == "false")
-                    {
-                        <div class="col col-lg-2">
-                            <p style="color: red "> Can't connect database !</p>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="button" id="btnsearch" class="btn btn-secondary">search  </button>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="reset" id="btnclear" class="btn btn-secondary" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="col col-lg-1">
-                        </div>
-                        <div class="col col-lg-2">
-                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
+            @if (ViewBag.ConnectDB == "false")
+            {
+            <div class="col col-lg-2">
+            <p style="color: red "> Can't connect database !</p>
+            </div>
+            <div class="col col-lg-1">
+            <button type="button" id="btnsearch" class="btn btn-secondary">search  </button>
+            </div>
+            <div class="col col-lg-1">
+            <button type="reset" id="btnclear" class="btn btn-secondary" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+            </div>
+            <div class="col col-lg-2">
+            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+            </a>
+            </div>
+            }
+            else
+            {
+            <div class="col col-lg-1">
+            </div>
+            <div class="col col-lg-2">
+            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
+            </div>
+            <div class="col col-lg-2">
+            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
+            </div>
+            <div class="col col-lg-2">
+            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
+            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
+            </a>
+            </div>
+            }
 
 
-                </div>
-*@
+            </div>
+            *@
             }
 
         </div>
-           
+
 
     </div>
     <div class="container-fluid">
@@ -389,10 +395,10 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                    
+
                                     <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
                                     <td> @Data.TransactionDate.TimeOfDay</td>
-                                    <td> @Data.TerminalID</td>                              
+                                    <td> @Data.TerminalID</td>
                                     <td> @Data.Seqno </td>
                                     <td> @Data.BranchName </td>
                                     <td> @Data.ProbName </td>
@@ -449,9 +455,163 @@
 </div>
 
 
+<div class="modal fade" id="InsertProbModal" tabindex="-1" role="dialog" aria-labelledby="InsertProbModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#FFA500;">
+                <h5 class="modal-title" id="exampleModalLabel" style="color:white;">Insert new master problem</h5>
+
+            </div>
+
+            @*<form>
+            <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Recipient:</label>
+            <input type="text" class="form-control" id="recipient-name">
+            </div>
+            <div class="form-group">
+            <label for="message-text" class="col-form-label">Message:</label>
+            <textarea class="form-control" id="message-text"></textarea>
+            </div>
+            </form>*@
+
+
+            <form action="InsertProbMaster" enctype="multipart/form-data" method="get" onsubmit="AJAXSubmit(this);return false;">
+                <div class="modal-body">
+
+                    <div class="row" style="margin-top: 15px;align-items:center;">
+                        <div class="col col-lg-1">
+                        </div>
+                        <div class="col col-lg-2" style="width: auto">
+                            <h>ProbCode : </h>
+                        </div>
+                        <div class="col-md-6" style="margin-left:56px;">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextBox("probCodeStr", ViewBag.probCodeStr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "probCode"})
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 15px;align-items:center;">
+                        <div class="col col-lg-1">
+                        </div>
+                        <div class="col col-lg-2" style="width: auto">
+                            <h>Error message : </h>
+                        </div>
+                        <div class="col-md-6" style="margin-left:25px;">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextBox("probNameStr", ViewBag.probNameStr as string, new { @style = " border-radius: 10px;" ,@class = "form-control subsearch", @placeholder = "error message"})
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 15px;align-items:center;">
+                        <div class="col col-lg-1">
+                        </div>
+                        <div class="col col-lg-2" style="width: auto">
+                            <h>ProbType : </h>
+                        </div>
+                        <div class="col-md-6" style="margin-left:59px;">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
+                                @Html.DropDownList("probTypeStr", new SelectListItem[] {
+                                new SelectListItem(){ Text="DEVICE", Value = "DEVICE"  },
+                                new SelectListItem(){ Text="EJREPORT", Value = "EJREPORT"  },
+                                new SelectListItem(){ Text="NETWORK", Value = "NETWORK" },
+                                new SelectListItem(){ Text="COMMUNICATION", Value = "COMMUNICATION" },
+                                new SelectListItem(){ Text="ENGINEER_EVENT", Value = "ENGINEER_EVENT" }
+                                }, new
+                                {
+                                @class = "form-control dropdown"
+                                ,
+                                @style = " border-radius: 10px;" ,
+                                @name = "state"
+
+                                })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 15px;align-items:center;">
+                        <div class="col col-lg-1">
+                        </div>
+                        <div class="col col-lg-2" style="width: auto">
+                            <h>ProbTerm : </h>
+                        </div>
+                        <div class="col-md-6" style="margin-left:56px;">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
+                                @Html.DropDownList("probTermStr", new SelectListItem[] {
+                                new SelectListItem(){ Text="G165", Value = "G165"  },
+                                new SelectListItem(){ Text="G262", Value = "G262"  },
+                                new SelectListItem(){ Text="G165;G262", Value = "G165;G262" }
+                                }, new
+                                {
+                                @class = "form-control dropdown"
+                                ,
+                                @style = " border-radius: 10px;" ,
+                                @name = "state"
+
+                                })
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div style="margin-top:15px;">
+                        <output name="result"></output>
+                    </div>
+
+                </div>
+                <div class="modal-footer" style="background-color:#FFA500;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" id="btnInsertProbMasterMain" class="btn btn-primary">Confirm</button>
+                </div>
+
+
+            </form>
+
+
+        </div>
+    </div>
+</div>
+
 <script>
-   
-       
+    async function AJAXSubmit(oFormElement) {
+
+        var resultElement = oFormElement.elements.namedItem("result");
+        const formData = new FormData(oFormElement);
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                var res = response.json();
+
+                res.then((data) => {
+
+                    resultElement.value = 'Result succeed : result is ' + data.result + ';
+                    resultElement.style.color = 'LightGreen';
+                });
+
+            }
+
+        } catch (error) {
+            resultElement.value = 'Result error : ' + error;
+            resultElement.style.color = 'red';
+        }
+    }
+</script>
+
+
+<script>
+
+
     @* $(document).ready(function () {
         $(function () {
 
@@ -736,6 +896,26 @@
                     window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+    $("#btnInsertProbMasterMain").click(function (e) {
+        e.preventDefault();
+
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val(),
+            success: function (result) {
+                if (result.success == 'S') {
+                    alert('Insert success! : ' +result.result);
+                }
+                else { alert('Insert unsuccess! : ' + result.error); }
             },
             error: function (err) {
                 alert('@ViewBag.ErrorMsg');

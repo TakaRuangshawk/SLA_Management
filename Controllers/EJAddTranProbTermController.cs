@@ -9,6 +9,7 @@ using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;
 using System.Data;
 using System.Data.Common;
+using System.Drawing;
 using System.Globalization;
 
 
@@ -43,10 +44,37 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Action page
+
+        [HttpPost]
+        public ActionResult InsertProbMaster(string probCodeStr, string probNameStr, string probTypeStr, string probTermStr)
+        {
+            bool result = false;
+            string error = "";
+            try
+            {
+                if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
+                    result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr);
+
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
+
+
+            if (result == false)
+                if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
+
+            return Json(new { result = result, error = error });
+
+
+        }
+
+
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
-            , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
-            , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-            , string currPageSize, int? page, string maxRows , string KeyWordList)
+        , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
+        , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
+        , string currPageSize, int? page, string maxRows, string KeyWordList)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
@@ -192,11 +220,11 @@ namespace SLA_Management.Controllers
                 if (KeyWordList != null)
                 {
                     string[] KeyWordListTemp = KeyWordList.Split(",");
-                    foreach(string KeyWord in KeyWordListTemp)
+                    foreach (string KeyWord in KeyWordListTemp)
                     {
                         //Console.WriteLine(KeyWord);
-                       
-                            param.PROBNAME = KeyWord;
+
+                        param.PROBNAME = KeyWord;
                         if (ddlProbMaster != null || TermID != null)
                         {
 
@@ -212,10 +240,10 @@ namespace SLA_Management.Controllers
                             {
                                 recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
                             }
-                            
+
                         }
 
-                       
+
                     }
                 }
                 else
@@ -237,13 +265,13 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                   
 
-                
 
-              
 
-              
+
+
+
+
 
 
 
@@ -282,11 +310,11 @@ namespace SLA_Management.Controllers
 
                 int amountrecordset = recordset.Count();
 
-                if(amountrecordset > 5000)
+                if (amountrecordset > 5000)
                 {
                     recordset.RemoveRange(5000, amountrecordset - 5000);
                 }
-                
+
 
             }
             catch (Exception ex)
