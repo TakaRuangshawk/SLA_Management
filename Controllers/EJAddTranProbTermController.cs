@@ -70,7 +70,6 @@ namespace SLA_Management.Controllers
 
         }
 
-
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
@@ -81,8 +80,8 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<string> terminalNames = new List<string>();
 
-            string[] strErrorWordSeparate = { "DEVICE25", "DEVICE27" };
-
+            string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
+  
             ejLog_dataList.Clear();
 
             DataTable terminalDBTable = GetClientFromDB();
@@ -91,20 +90,38 @@ namespace SLA_Management.Controllers
                 terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
             }
 
-            if (terminalNames != null && terminalNames.Count > 0)
-            {
-                ViewBag.CurrentTID = terminalNames;
 
-            }
 
-            if (String.IsNullOrEmpty(maxRows))
-                ViewBag.maxRows = "5";
-            else
-                ViewBag.maxRows = maxRows;
-
+           
             int pageNum = 1;
             try
             {
+                
+
+                if (cmdButton == "Clear")
+                    return RedirectToAction("EJAddTranProbTermAction");
+
+
+                #region Set viewBag and default data
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+                    
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    FrTime = (FrTime ?? currFrTime);
+                    ToTime = (ToTime ?? currToTime);
+                    TermID = (TermID ?? currTID);
+                    ddlProbMaster = (ddlProbMaster ?? currProbMaster);
+                    MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
+                }
+
                 if (DBService.CheckDatabase())
                 {
                     ProdMasData = GetMasterSysErrorWord();
@@ -128,31 +145,7 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                if (cmdButton == "Clear")
-                    return RedirectToAction("EJAddTranProbTermAction");
-
-
-
-                if (null == TermID && null == FrDate && null == ToDate && null == page)
-                {
-                    //FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    page = 1;
-                }
-                else
-                {
-                    // Return temp value back to it own variabl
-                    FrDate = (FrDate ?? currFr);
-                    ToDate = (ToDate ?? currTo);
-                    FrTime = (FrTime ?? currFrTime);
-                    ToTime = (ToTime ?? currToTime);
-                    TermID = (TermID ?? currTID);
-                    ddlProbMaster = (ddlProbMaster ?? currProbMaster);
-                    MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
-                }
-
-                // ViewBag.CurrentTID = (TermID ?? currTID);
+                ViewBag.CurrentTID = terminalNames;
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
@@ -160,8 +153,10 @@ namespace SLA_Management.Controllers
                 //ViewBag.CurrentProbMaster = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
                 ViewBag.CurrentProbMaster = KeyWordList;
                 ViewBag.CurrentMessErrKeyWord = MessErrKeyWord == null ? currMessErrKeyWord : MessErrKeyWord;
+                #endregion
 
-                long recCnt = 0;
+
+                #region Set param
 
                 if (null == TermID)
                     param.TERMID = currTID == null ? "" : currTID;
@@ -212,10 +207,15 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
+                
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
 
+                #endregion
+
+
+                #region KeywordList
                 //Console.WriteLine("TermID :" + TermID);
                 if (KeyWordList != null)
                 {
@@ -228,21 +228,9 @@ namespace SLA_Management.Controllers
                         if (ddlProbMaster != null || TermID != null)
                         {
 
-                            if (param.PROBNAME.Contains("SLA"))
-                            {
-                                recordset.AddRange(GetErrorTermDeviceEJLog_Database_sla(param));
-                            }
-                            else if (Array.IndexOf(strErrorWordSeparate, param.PROBNAME) > -1)
-                            {
-                                recordset.AddRange(GetErrorTermDeviceEJLog_Database_separate(param));
-                            }
-                            else
-                            {
-                                recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
-                            }
+                            recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
 
                         }
-
 
                     }
                 }
@@ -250,39 +238,19 @@ namespace SLA_Management.Controllers
                 {
                     if (ddlProbMaster != null || TermID != null)
                     {
-                        if (param.PROBNAME.Contains("SLA"))
-                        {
-                            recordset.AddRange(GetErrorTermDeviceEJLog_Database_sla(param));
-                        }
-                        else if (Array.IndexOf(strErrorWordSeparate, param.PROBNAME) > -1)
-                        {
-                            recordset.AddRange(GetErrorTermDeviceEJLog_Database_separate(param));
-                        }
-                        else
-                        {
-                            recordset.AddRange(GetErrorTermDeviceEJLog_Database(param));
-                        }
+                        recordset = GetErrorTermDeviceEJLog_DatabaseAll(param,strErrorWordSeparate);
                     }
                 }
+                #endregion
 
 
+                #region Set page
+                long recCnt = 0;
 
-
-
-
-
-
-
-
-
-
-                //if (MessErrKeyWord != null && MessErrKeyWord != "")
-                //{
-                //    recordset = GetErrorTermDeviceKWEJLog_Database(param);
-                //    ViewBag.CurrentProbMaster = "All";
-                //}
-
-
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "5";
+                else
+                    ViewBag.maxRows = maxRows;
 
 
                 if (null == recordset || recordset.Count <= 0)
@@ -290,7 +258,6 @@ namespace SLA_Management.Controllers
                     ViewBag.NoData = "true";
 
                 }
-
                 else
                 {
                     recCnt = recordset.Count;
@@ -314,7 +281,7 @@ namespace SLA_Management.Controllers
                 {
                     recordset.RemoveRange(5000, amountrecordset - 5000);
                 }
-
+                #endregion
 
             }
             catch (Exception ex)
@@ -324,6 +291,39 @@ namespace SLA_Management.Controllers
             return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
         #endregion
+
+
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate)
+        {
+            List<ej_trandeviceprob> ej_Trandeviceprobs = new List<ej_trandeviceprob>();
+
+            try
+            {
+                if (paramTemp.PROBNAME.Contains("SLA"))
+                {
+                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database_sla(paramTemp));
+                }
+                else if (Array.IndexOf(strErrorWordSeparate, paramTemp.PROBNAME) > -1)
+                {
+                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database_separate(paramTemp));
+                }
+                else
+                {
+                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database(paramTemp));
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+           
+
+            return ej_Trandeviceprobs;
+
+        }
+
+
+
 
         #region Database 
         private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader)
