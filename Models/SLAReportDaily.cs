@@ -71,4 +71,47 @@ namespace SLA_Management.Models
             return items;
         }
     }
+    public class TicketManagement
+    {
+        public string Open_Date { get; set; }
+        public string Appointment_Date { get; set; }
+        public string Closed_Repair_Date { get; set; }
+        public string Down_Time { get; set; }
+        public string Actual_Open_Date { get; set; }
+        public string Actual_Appointment_Date { get; set; }
+        public string Actual_Closed_Repair_Date { get; set; }
+        public string Actual_Down_Time { get; set; }
+        public string Status { get; set; }
+        public string TERM_ID { get; set; }
+        public string TERM_SEQ { get; set; }
+        public string TERM_NAME { get; set; }
+        public string MODEL_NAME { get; set; }
+        public string PROVINCE { get; set; }
+        public string Problem_Detail { get; set; }
+        public string Solving_Program { get; set; }
+        public string Service_Team { get; set; }
+        public string Contact_Name_Branch_CIT { get; set; }
+        public string Open_By { get; set; }
+        public string Remark { get; set; }
+        public string Job_No { get; set; }
+        public string Aservice_Status { get; set; }
+        public string Service_Type { get; set; }
+        public string Open_Name { get; set; }
+        public string Assign_By { get; set; }
+        public string Zone_Area { get; set; }
+        public string Main_Problem { get; set; }
+        public string Sub_Problem { get; set; }
+        public string Main_Solution { get; set; }
+        public string Sub_Solution { get; set; }
+        public string Part_of_use { get; set; }
+        public string TechSupport { get; set; }
+        public string CIT_Request { get; set; }
+        public string Terminal_Status { get; set; }
+          
+
+    }
+    public class TicketJob
+    {
+        public string Job_No { get; set; }
+    }
 }

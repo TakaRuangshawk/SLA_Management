@@ -54,21 +54,17 @@ h2 {
         color: #000;
         background-color: orange;
         font-size: 1vw;
-        /*text-transform: uppercase;*/
-        border-color: antiquewhite;
-        border: 3px solid lightgray;
+        border: 2px solid lightgray;
     }
     .custom-table tbody th, .custom-table tbody td {
         color: black;
         padding-bottom: 20px;
         padding-top: 20px;
         font-weight: 300;
-        border: none;
         -webkit-transition: .3s all ease;
         -o-transition: .3s all ease;
         transition: .3s all ease;
         border-color: antiquewhite;
-        border: 1px solid lightgray;
     }
         .custom-table tbody th small, .custom-table tbody td small {
             color: rgba(255, 255, 255, 0.8);

@@ -12,6 +12,7 @@ using System.Data.Common;
 using SLA_Management.Data.TermProbDB;
 using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 using MySqlX.XDevAPI.Common;
+using SLA_Management.Commons;
 
 namespace SLA_Management.Controllers
 {
@@ -45,12 +46,17 @@ namespace SLA_Management.Controllers
         private static List<ej_terminalperoffline> checkejsize_dataList = new List<ej_terminalperoffline>();
         private static List<ejloglastupdate> recordset_ejloglastupdate = new List<ejloglastupdate>();
         private static List<ejloglastupdate> ejloglastupdate_datalist = new List<ejloglastupdate>();
+        private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
         private List<string> terminalSEQList = new List<string>();
         private DBService dBService;
         CultureInfo usaCulture = new CultureInfo("en-US");
+        private static ConnectSQL_Server db;
+        private static string sqlConnection;
+        private static string sqlServer { get; set; }
+        public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
         #endregion
         public OperationController(IConfiguration myConfiguration)
         {
@@ -58,6 +64,8 @@ namespace SLA_Management.Controllers
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
+            sqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
+            db = new ConnectSQL_Server(sqlServer);
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";
@@ -886,7 +894,323 @@ namespace SLA_Management.Controllers
             return record;
         }
         #endregion
+        #region Ticket
+        private DateTime SetTime(DateTime date, int hour, int minute, int second)
+        {
 
+            return new DateTime(date.Year, date.Month, date.Day, hour, minute, second);
+        }
+        private static List<Device_info_record> GetDeviceInfoRecord()
+        {
+         
+            SqlCommand com = new SqlCommand();
+            com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1  order by TERM_SEQ;";
+            DataTable testss = db.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+    
+        private static List<TicketJob> GetJobNumber(string frommonth,string tomonth)
+        {
+
+            SqlCommand com = new SqlCommand();
+            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail_"+ frommonth+ " union all SELECT Job_No FROM t_tsd_JobDetail_" + tomonth;
+            DataTable testss = db.GetDatatable(com);
+
+            List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
+
+            return test;
+        }
+        [HttpGet]
+        public IActionResult TicketManagement(string termid,string ticket,DateTime? todate, DateTime? fromdate,string mainproblem,string terminaltype,string jobno, int? maxRows, string cmdButton)
+        {
+            
+            int pageSize = 20;
+            recordset_ticketManagement = new List<TicketManagement>();
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            termid = termid ?? "";
+            mainproblem = mainproblem ?? "";
+            terminaltype = terminaltype ?? "";
+            jobno = jobno ?? "";
+            
+            
+            if (fromdate.HasValue && todate.HasValue)
+            {
+                if (fromdate <= todate)
+                {
+                    if ((DateTime)todate > DateTime.Now)
+                    {
+
+                        todate = SetTime(DateTime.Now, 23, 59, 59);
+                    }
+                    DateTime _fromdate = (DateTime)fromdate;
+                    DateTime _todate = (DateTime)todate;
+                    recordset_ticketManagement = GetTicketManagementFromSqlServer(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem,jobno,terminaltype);
+                }
+            }
+           
+            DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1); 
+            DateTime job_todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+            ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyyMM"), job_todate.ToString("yyyyMM"));
+            ViewBag.JobNo = jobno;
+            ViewBag.countrow = recordset_ticketManagement.Count;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTermID = GetDeviceInfoRecord();
+            ViewBag.pageSize = pageSize;
+            ViewBag.TERM_ID = termid;
+            ViewBag.terminaltype = terminaltype;
+            ViewBag.mainproblem = mainproblem;
+            if(fromdate != null)
+            {
+                ViewBag.CurrentFr = fromdate;
+            }
+            else
+            {
+                ViewBag.CurrentFr = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).ToString("yyyy-MM-dd");
+            }
+            if(todate != null)
+            {
+                ViewBag.CurrentTo = todate;
+            }
+            else
+            {
+                ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
+            }
+            if (cmdButton == "Clear")
+            {
+                ViewBag.countrow = 0;
+                return View();
+            }
+            return View(recordset_ticketManagement);
+        }
+        public List<TicketManagement> GetTicketManagementFromSqlServer(string fromdate, string todate, string termid, string mainproblem,string jobno,string terminaltype)
+        {
+            List<TicketManagement> dataList = new List<TicketManagement>();
+            DateTime fromdateTimeValue = DateTime.ParseExact(fromdate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string fordb_fromdate = fromdateTimeValue.ToString("yyyyMM");
+            DateTime todateTimeValue = DateTime.ParseExact(todate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string fordb_todate = todateTimeValue.ToString("yyyyMM");
+            int diff = 0;
+            int fromyear = int.Parse(fordb_fromdate.Substring(0, 4));
+            int frommonth = int.Parse(fordb_fromdate.Substring(4, 2));
+            DateTime firstDayOfMonth = new DateTime(fromyear, frommonth, 1);
+            DateTime lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+            static List<string> GenerateMonthList(string fromDate, string toDate)
+            {
+                List<string> monthList = new List<string>();
+                DateTime fromDateDT = DateTime.ParseExact(fromDate, "yyyyMM", null);
+                DateTime toDateDT = DateTime.ParseExact(toDate, "yyyyMM", null);
+                while (fromDateDT <= toDateDT)
+                {
+                    monthList.Add(fromDateDT.ToString("yyyyMM"));
+                    fromDateDT = fromDateDT.AddMonths(1);
+                }
+                return monthList;
+            }
+            List<string> monthList = GenerateMonthList(fordb_fromdate, fordb_todate);
+            string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
+            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
+            sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
+            sqlQuery += " FROM t_tsd_JobDetail_" + fordb_fromdate + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
+            if(fordb_fromdate != fordb_todate)
+            {
+                if (fromdate != "")
+                {
+                    sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+                }
+                else
+                {
+                    sqlQuery += " a.Open_Date between '" + firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+                }
+            }
+            else
+            {
+                sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+            }
+           
+            if (termid != "")
+            {
+                sqlQuery += " and a.TERM_ID = '" + termid + "' ";
+            }
+            if (jobno != "")
+            {
+                sqlQuery += " and a.Job_No ='" + jobno + "' ";
+            }
+            if (mainproblem != "")
+            {
+                sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
+            }
+            if (terminaltype != "")
+            {
+                sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
+            }
+            if (fordb_fromdate != fordb_todate)
+            {
+
+                foreach (string month in monthList)
+                {
+                    if (diff > 0)
+                    {
+                        sqlQuery += " UNION ALL SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
+                        sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+                        sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
+                        sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
+                        sqlQuery += " FROM t_tsd_JobDetail_" + month + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
+                        if (month != fordb_todate)
+                        {
+                            int checkyear = int.Parse(month.Substring(0, 4));
+                            int checkmonth = int.Parse(month.Substring(4, 2));
+                            DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
+                            DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
+                            sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + _lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+                        }
+                        else
+                        {
+                            int checkyear = int.Parse(month.Substring(0, 4));
+                            int  checkmonth = int.Parse(month.Substring(4, 2));
+                            DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
+                            DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
+                            sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+                        }
+                        if (termid != "")
+                        {
+                            sqlQuery += " and a.TERM_ID = '" + termid + "' ";
+                        }
+                        if (jobno != "")
+                        {
+                            sqlQuery += " and a.Job_No ='" + jobno + "' ";
+                        }
+                        if (mainproblem != "")
+                        {
+                            sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
+                        }
+                        if (terminaltype != "")
+                        {
+                            sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
+                        }
+                        
+                    }
+
+                    diff++;
+                }
+                sqlQuery += " order by a.Open_Date asc";
+            }
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))
+                {
+
+                    using (SqlCommand command = new SqlCommand(sqlQuery, connection))
+                    {
+                        connection.Open();
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                dataList.Add(GetTicketManagementFromReader(reader));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return dataList;
+        }
+        protected virtual TicketManagement GetTicketManagementFromReader(IDataReader reader)
+        {
+            TicketManagement record = new TicketManagement();
+            if (reader["Open_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Open_Date"]);
+                record.Open_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Open_Date = "-";
+            }
+            if (reader["Appointment_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Appointment_Date"]);
+                record.Appointment_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Appointment_Date = "-";
+            }
+            if (reader["Closed_Repair_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Closed_Repair_Date"]);
+                record.Closed_Repair_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Closed_Repair_Date = "-";
+            }
+            record.Down_Time = reader["Down_Time"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Down_Time"].ToString()) ? "-" : reader["Down_Time"].ToString();
+            if (reader["Actual_Open_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Actual_Open_Date"]);
+                record.Actual_Open_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Actual_Open_Date = "-";
+            }
+            if (reader["Actual_Appointment_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Actual_Appointment_Date"]);
+                record.Actual_Appointment_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Actual_Appointment_Date = "-";
+            }
+            if (reader["Actual_Closed_Repair_Date"] != DBNull.Value)
+            {
+                DateTime xValue = Convert.ToDateTime(reader["Actual_Closed_Repair_Date"]);
+                record.Actual_Appointment_Date = xValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                record.Actual_Closed_Repair_Date = "-";
+            }
+            record.Actual_Down_Time = reader["Actual_Down_Time"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Actual_Down_Time"].ToString()) ? "-" : reader["Actual_Down_Time"].ToString();
+            record.Status = reader["Status"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Status"].ToString()) ? "-" : reader["Status"].ToString();
+            record.TERM_ID = reader["TERM_ID"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_ID"].ToString()) ? "-" : reader["TERM_ID"].ToString();
+            record.TERM_SEQ = reader["TERM_SEQ"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_SEQ"].ToString()) ? "-" : reader["TERM_SEQ"].ToString();
+            record.MODEL_NAME = reader["MODEL_NAME"] is DBNull ? "-" : string.IsNullOrEmpty(reader["MODEL_NAME"].ToString()) ? "-" : reader["MODEL_NAME"].ToString();
+            record.PROVINCE = reader["PROVINCE"] is DBNull ? "-" : string.IsNullOrEmpty(reader["PROVINCE"].ToString()) ? "-" : reader["PROVINCE"].ToString();
+            record.TERM_NAME = reader["TERM_NAME"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_NAME"].ToString()) ? "-" : reader["TERM_NAME"].ToString();
+            record.Problem_Detail = reader["Problem_Detail"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Problem_Detail"].ToString()) ? "-" : reader["Problem_Detail"].ToString().Replace("\n", "").Replace("\r", "").Replace(",", "|").Replace("/", "|");
+            record.Solving_Program = reader["Solving_Program"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Solving_Program"].ToString()) ? "-" : reader["Solving_Program"].ToString();
+            record.Service_Team = reader["Service_Team"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Service_Team"].ToString()) ? "-" : reader["Service_Team"].ToString();
+            record.Contact_Name_Branch_CIT = reader["Contact_Name_Branch_CIT"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Contact_Name_Branch_CIT"].ToString()) ? "-" : reader["Contact_Name_Branch_CIT"].ToString();
+            record.Open_By = reader["Open_By"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Open_By"].ToString()) ? "-" : reader["Open_By"].ToString();
+            record.Remark = reader["Remark"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Remark"].ToString()) ? "-" : reader["Remark"].ToString();
+            record.Job_No = reader["Job_No"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Job_No"].ToString()) ? "-" : reader["Job_No"].ToString();
+            record.Aservice_Status = reader["Aservice_Status"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Aservice_Status"].ToString()) ? "-" : reader["Aservice_Status"].ToString();
+            record.Service_Type = reader["Service_Type"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Service_Type"].ToString()) ? "-" : reader["Service_Type"].ToString();
+            record.Open_Name = reader["Open_Name"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Open_Name"].ToString()) ? "-" : reader["Open_Name"].ToString();
+            record.Assign_By = reader["Assign_By"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Assign_By"].ToString()) ? "-" : reader["Assign_By"].ToString();
+            record.Zone_Area = reader["Zone_Area"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Zone_Area"].ToString()) ? "-" : reader["Zone_Area"].ToString();
+            record.Main_Problem = reader["Main_Problem"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Main_Problem"].ToString()) ? "-" : reader["Main_Problem"].ToString();
+            record.Sub_Problem = reader["Sub_Problem"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Sub_Problem"].ToString()) ? "-" : reader["Sub_Problem"].ToString();
+            record.Main_Solution = reader["Main_Solution"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Main_Solution"].ToString()) ? "-" : reader["Main_Solution"].ToString();
+            record.Sub_Solution = reader["Sub_Solution"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Sub_Solution"].ToString()) ? "-" : reader["Sub_Solution"].ToString();
+            record.Part_of_use = reader["Part_of_use"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Part_of_use"].ToString()) ? "-" : reader["Part_of_use"].ToString();
+            record.TechSupport = reader["TechSupport"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TechSupport"].ToString()) ? "-" : reader["TechSupport"].ToString();
+            record.CIT_Request = reader["CIT_Request"] is DBNull ? "-" : string.IsNullOrEmpty(reader["CIT_Request"].ToString()) ? "-" : reader["CIT_Request"].ToString();
+            record.Terminal_Status = reader["Terminal_Status"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Terminal_Status"].ToString()) ? "-" : reader["Terminal_Status"].ToString();
+            return record;
+        }
+        #endregion
         #region CheckEJLastUpdate
         public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,string TerminalType,string status,
         string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
