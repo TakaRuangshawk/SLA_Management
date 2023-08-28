@@ -46,30 +46,99 @@ namespace SLA_Management.Controllers
         #region Action page
 
         [HttpPost]
-        public ActionResult InsertProbMaster(string probCodeStr, string probNameStr, string probTypeStr, string probTermStr)
+        public ActionResult InsertProbMaster(string username,string email,string probCodeStr, string probNameStr, string probTypeStr, string probTermStr)
         {
             bool result = false;
             string error = "incomplete information";
-            try
+            string _checkuser = "";
+            List<checkuserfeelview> checkruser = GetCheckUserFeelview(username, email);
+            foreach (var Data in checkruser)
             {
-                if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
-                    result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr);
+                if (Data.check == "yes")
+                {
+                    _checkuser = "yes";
+                }
+                else
+                {
+                    _checkuser = "no";
+                }
 
             }
-            catch (Exception ex)
+            
+            if(_checkuser == "yes")
             {
-                error = ex.Message;
+                try
+                {
+                    if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr);
+
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                }
+
+
+                if (result == false)
+                    if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
+
+                return Json(new { result = result, error = error });
             }
-
-
-            if (result == false)
-                if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
-
-            return Json(new { result = result, error = error });
+            else
+            {
+                return Json(new { result = result,error = "Your username or Your e-mail is incorrect. " });
+            }
+            
 
 
         }
+        #region check username and email from feelview
+        public List<checkuserfeelview> GetCheckUserFeelview(string user, string email)
+        {
+            string _sql = string.Empty;
 
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+
+                    _sql = "SELECT CASE WHEN COUNT(*) > 0 THEN 'yes' ELSE 'no' END AS _check FROM fv_system_users WHERE   ";
+                    _sql += " ACCOUNT = '" + user + "' AND EMAIL = '" + email + "'; ";
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetCheckUserFeelviewCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+        protected virtual List<checkuserfeelview> GetCheckUserFeelviewCollectionFromReader(IDataReader reader)
+        {
+            List<checkuserfeelview> recordlst = new List<checkuserfeelview>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetCheckUserFeelviewFromReader(reader));
+            }
+            return recordlst;
+        }
+        protected virtual checkuserfeelview GetCheckUserFeelviewFromReader(IDataReader reader)
+        {
+            checkuserfeelview record = new checkuserfeelview();
+
+            record.check = reader["_check"].ToString();
+            return record;
+        }
+        public class checkuserfeelview
+        {
+            public string check { get; set; }
+        }
+        #endregion
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord

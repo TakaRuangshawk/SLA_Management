@@ -16,9 +16,11 @@ namespace SLA_Management.Controllers
     public class HomeController : Controller
     {
         private IConfiguration _myConfiguration;
-        private static List<homeshowstatus> recordset_homeshowstatus = new List<homeshowstatus>();
+        private static List<feelviewstatus> recordset_homeshowstatus = new List<feelviewstatus>();
         private static List<comlogrecord> recordset_comlogrecord = new List<comlogrecord>();
         private static List<slatracking> recordset_slatracking = new List<slatracking>();
+        private static List<secone> recordset_secone = new List<secone>();
+        private static List<secone> recordset_secone_adm = new List<secone>();
         private DBService dBService;
         SqlCommand com = new SqlCommand();
         ConnectSQL_Server con;
@@ -78,6 +80,40 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.comlogATM = "-";
                 ViewBag.comlogADM = "-";
+            }
+            recordset_secone = GetSECOneStatus();
+            if(recordset_secone != null)
+            {
+                foreach (var data in recordset_secone)
+                {
+                    ViewBag.secone_online = data._online;
+                    ViewBag.secone_offline = data._offline;
+                }
+            }
+            else
+            {
+                ViewBag.secone_online = "-";
+                ViewBag.secone_offline = "-";
+            }
+            recordset_secone_adm = GetSECOneADMStatus();
+            if(recordset_secone_adm != null)
+            {
+                foreach (var data in recordset_secone_adm)
+                {
+                    ViewBag.secone_adm_online = data._online;
+                    ViewBag.secone_adm_offline = data._offline;
+                }
+            }
+            else
+            {
+                ViewBag.secone_adm_online = "-";
+                ViewBag.secone_adm_offline = "-";
+            }
+            if(recordset_secone != null && recordset_secone_adm != null)
+            {
+                ViewBag.TotalSECONE_online = (Convert.ToInt32(ViewBag.secone_adm_online)+Convert.ToInt32(ViewBag.secone_online)).ToString();
+                ViewBag.TotalSECONE_offine = (Convert.ToInt32(ViewBag.secone_adm_offline) + Convert.ToInt32(ViewBag.secone_offline)).ToString();
+                ViewBag.TotalSECONE = (Convert.ToInt32(ViewBag.TotalSECONE_online) + Convert.ToInt32(ViewBag.TotalSECONE_offine)).ToString();
             }
             ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
             return View(recordset_slatracking);
@@ -168,7 +204,91 @@ namespace SLA_Management.Controllers
             record.comlogATM = reader["comlogATM"].ToString();
             return record;
         }
-        public List<homeshowstatus> GetHomeStatus()
+        public List<secone> GetSECOneStatus()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_SECOne:FullNameConnection")))
+                {
+
+                    _sql = "SELECT SUM(CASE WHEN AGENT_STATUS = 1 THEN 1 ELSE 0 END) AS _online, SUM(CASE WHEN AGENT_STATUS != 1 or AGENT_STATUS is null THEN 1 ELSE 0 END) AS _offline   ";
+                    _sql += " FROM device_info  ";
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetSECOneStatusCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+        protected virtual List<secone> GetSECOneStatusCollectionFromReader(IDataReader reader)
+        {
+            List<secone> recordlst = new List<secone>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetSECOneStatusFromReader(reader));
+            }
+            return recordlst;
+        }
+        protected virtual secone GetSECOneStatusFromReader(IDataReader reader)
+        {
+            secone record = new secone();
+
+            record._online = reader["_online"].ToString();
+            record._offline = reader["_offline"].ToString();
+            return record;
+        }
+        public List<secone> GetSECOneADMStatus()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_SECOne_ADM:FullNameConnection")))
+                {
+
+                    _sql = "SELECT SUM(CASE WHEN AGENT_STATUS = 1 THEN 1 ELSE 0 END) AS _online, SUM(CASE WHEN AGENT_STATUS != 1 or AGENT_STATUS is null THEN 1 ELSE 0 END) AS _offline   ";
+                    _sql += " FROM device_info  ";
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetSECOneStatusADMCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+        protected virtual List<secone> GetSECOneStatusADMCollectionFromReader(IDataReader reader)
+        {
+            List<secone> recordlst = new List<secone>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetSECOneStatusADMFromReader(reader));
+            }
+            return recordlst;
+        }
+        protected virtual secone GetSECOneStatusADMFromReader(IDataReader reader)
+        {
+            secone record = new secone();
+
+            record._online = reader["_online"].ToString();
+            record._offline = reader["_offline"].ToString();
+            return record;
+        }
+        public List<feelviewstatus> GetHomeStatus()
         {
             string _sql = string.Empty;
 
@@ -198,18 +318,18 @@ namespace SLA_Management.Controllers
                 return null;
             }
         }
-        protected virtual List<homeshowstatus> GetHomeStatusCollectionFromReader(IDataReader reader)
+        protected virtual List<feelviewstatus> GetHomeStatusCollectionFromReader(IDataReader reader)
         {
-            List<homeshowstatus> recordlst = new List<homeshowstatus>();
+            List<feelviewstatus> recordlst = new List<feelviewstatus>();
             while (reader.Read())
             {
                 recordlst.Add(GetHomeStatusFromReader(reader));
             }
             return recordlst;
         }
-        protected virtual homeshowstatus GetHomeStatusFromReader(IDataReader reader)
+        protected virtual feelviewstatus GetHomeStatusFromReader(IDataReader reader)
         {
-            homeshowstatus record = new homeshowstatus();
+            feelviewstatus record = new feelviewstatus();
 
             record.onlineADM = reader["_onlineADM"].ToString();
             record.onlineATM = reader["_onlineATM"].ToString();

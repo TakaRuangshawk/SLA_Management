@@ -313,7 +313,7 @@
                             </a>
 
                             <button type="button" id="btnInsertProb" class="btn" name="InsertProbButton" title="Insert Problem Master" data-toggle="modal" data-target="#InsertProbModal" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
+                                <img src="~/images/icon_add.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
                             </button>
                         </div>
                     </div>
@@ -477,28 +477,47 @@
 
             <form action="InsertProbMaster" enctype="multipart/form-data" method="get" onsubmit="AJAXSubmit(this);return false;">
                 <div class="modal-body">
-
-                    <div class="row" style="margin-top: 15px;align-items:center;">
-                        <div class="col col-lg-1">
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>Username : </h>
                         </div>
-                        <div class="col col-lg-2" style="width: auto">
-                            <h>ProbCode : </h>
-                        </div>
-                        <div class="col-md-6" style="margin-left:56px;">
+                        <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("probCodeStr", ViewBag.probCodeStr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "probCode"})
+                                @Html.TextBox("username", ViewBag.username as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "username"})
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                       
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>Email : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextBox("email", ViewBag.email as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "email"})
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                      
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>ProblemCode : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextBox("probCodeStr", ViewBag.probCodeStr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "problemcode"})
                             </div>
                         </div>
                     </div>
 
-                    <div class="row" style="margin-top: 15px;align-items:center;">
-                        <div class="col col-lg-1">
+                    <div class="row" style="margin-top: 15px;align-items:center;display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>ErrorMessage : </h>
                         </div>
-                        <div class="col col-lg-2" style="width: auto">
-                            <h>Error message : </h>
-                        </div>
-                        <div class="col-md-6" style="margin-left:25px;">
+                        <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @Html.TextBox("probNameStr", ViewBag.probNameStr as string, new { @style = " border-radius: 10px;" ,@class = "form-control subsearch", @placeholder = "error message"})
@@ -506,13 +525,11 @@
                         </div>
                     </div>
 
-                    <div class="row" style="margin-top: 15px;align-items:center;">
-                        <div class="col col-lg-1">
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>ProblemType : </h>
                         </div>
-                        <div class="col col-lg-2" style="width: auto">
-                            <h>ProbType : </h>
-                        </div>
-                        <div class="col-md-6" style="margin-left:59px;">
+                        <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
@@ -534,20 +551,18 @@
                         </div>
                     </div>
 
-                    <div class="row" style="margin-top: 15px;align-items:center;">
-                        <div class="col col-lg-1">
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>TerminalType : </h>
                         </div>
-                        <div class="col col-lg-2" style="width: auto">
-                            <h>ProbTerm : </h>
-                        </div>
-                        <div class="col-md-6" style="margin-left:56px;">
+                        <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
                                 @Html.DropDownList("probTermStr", new SelectListItem[] {
-                                new SelectListItem(){ Text="G165", Value = "G165"  },
-                                new SelectListItem(){ Text="G262", Value = "G262"  },
-                                new SelectListItem(){ Text="G165;G262", Value = "G165;G262" }
+                                new SelectListItem(){ Text="ATM", Value = "G165"  },
+                                new SelectListItem(){ Text="ADM", Value = "G262"  },
+                                new SelectListItem(){ Text="ALL", Value = "G165;G262" }
                                 }, new
                                 {
                                 @class = "form-control dropdown"
@@ -910,9 +925,9 @@
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username='+$("#username").val() +'&email='+ $("email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val(),
             success: function (result) {
-                if (result.success == 'S') {
+                if (result.result ==  true) {
                     alert('Insert success! : ' +result.result);
                 }
                 else { alert('Insert unsuccess! : ' + result.error); }

@@ -31,7 +31,7 @@ namespace SLA_Management.Models.TermProbModel
         public string status { get; set; }
         public string terminalstatus { get; set; }
     }
-    public class homeshowstatus
+    public class feelviewstatus
     {
         public string onlineATM { get; set; }
         public string onlineADM { get; set; }
@@ -51,5 +51,10 @@ namespace SLA_Management.Models.TermProbModel
         public string APPNAME { get; set; }
         public string STATUS { get; set; }
         public string UPDATE_DATE { get; set; }
+    }
+    public class secone
+    {
+        public string _online { get; set; }
+        public string _offline { get; set; }
     }
 }
