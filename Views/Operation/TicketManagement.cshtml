@@ -147,7 +147,7 @@
                 <div class="col-md-1">
                     <label>Terminal ID : </label>
                 </div>
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                <div class="item col-md-10" style="border-color:#ced4da; background-color: transparent;">
                     <select class="selectpicker form-control subsearch" id="termid" name="termid" data-live-search="true">
                         <option data-tokens="" value="">--</option>
                         @foreach (var item in ViewBag.CurrentTermID)
@@ -164,6 +164,9 @@
                         }
                     </select>
                 </div>
+                
+            </div>
+            <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                 <div class="col-md-1">
                     <label>MainProblem : </label>
                 </div>
@@ -234,8 +237,6 @@
                         }
                     </select>
                 </div>
-            </div>
-            <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                 <div class="col-md-1">
                     <label>Rows : </label>
                 </div>
@@ -249,14 +250,7 @@
                     }, new {@class = "form-control selectpicker subsearch" , @name = "state"})
                     </div>
                 </div>
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-2">
-                </div>
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-2">
-                </div>
+               
             </div>
 
 
@@ -315,9 +309,9 @@
                     {
                         <tr>
                                 <td style="text-align:center;"> @Data.Job_No </td>
-                            <td style="text-align: center;">
-                                    <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.PROVINCE','@Data.MODEL_NAME','@Data.Terminal_Status','@Data.CIT_Request','@Data.TechSupport','@Data.Part_of_use','@Data.Sub_Solution','@Data.Main_Problem','@Data.Zone_Area','@Data.Assign_By','@Data.Open_Name','@Data.Service_Type','@Data.Aservice_Status','@Data.Job_No','@Data.Remark','@Data.Open_By','@Data.Contact_Name_Branch_CIT','@Data.Service_Team','@Data.Solving_Program','@Data.Problem_Detail','@Data.TERM_NAME','@Data.TERM_SEQ','@Data.TERM_ID','@Data.Status','@Data.Actual_Down_Time','@Data.Actual_Closed_Repair_Date','@Data.Actual_Appointment_Date','@Data.Actual_Open_Date','@Data.Down_Time','@Data.Closed_Repair_Date','@Data.Appointment_Date','@Data.Open_Date')"
-                               data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                                <td style="text-align: center;">
+                                    <img class="btn text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.PROVINCE','@Data.MODEL_NAME','@Data.Terminal_Status','@Data.CIT_Request','@Data.TechSupport','@Data.Part_of_use','@Data.Sub_Solution','@Data.Main_Problem','@Data.Zone_Area','@Data.Assign_By','@Data.Open_Name','@Data.Service_Type','@Data.Aservice_Status','@Data.Job_No','@Data.Remark','@Data.Open_By','@Data.Contact_Name_Branch_CIT','@Data.Service_Team','@Data.Solving_Program','@Data.Problem_Detail','@Data.TERM_NAME','@Data.TERM_SEQ','@Data.TERM_ID','@Data.Status','@Data.Actual_Down_Time','@Data.Actual_Closed_Repair_Date','@Data.Actual_Appointment_Date','@Data.Actual_Open_Date','@Data.Down_Time','@Data.Closed_Repair_Date','@Data.Appointment_Date','@Data.Open_Date')"
+                                         data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;" src="~/images/button_view.png" />
                             </td>
                             <td style="text-align:center;"> @Data.TERM_SEQ</td>
                                 <td style="text-align:center;"> @Data.TERM_ID </td>
@@ -377,27 +371,34 @@
     <div class="modal fade" id="myModal" role="dialog">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="container" style="padding: 10px;">
-                    <div style="padding-top:45px;"></div>
-                    <div class ="row">
-                        <div class="col-md-3 modelTopic">
-                            <p onclick="myFunction2()" class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">Terminal Info </p>
+                <div class="container" style="padding: 0;">
+                    <div style="padding:0;"></div>
+                    <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                        <div class="col-md-3 modelTopic" id="topic_term">
+                            <div onclick="myFunction2()" class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">
+                               <img src="~/images/button_term.png" style="width: 100%; height: 100%" class="rounded-lg p-0" alt="Terminal Info" />
+
+                            </div>
                         </div>
-                        <div class="col-md-3 modelTopic">
-                            <p onclick="myFunction()" class="text-center align-middle" style="text-align:center; font-size:20px; background-color:#f3cb9b; border-radius:40px;" id="Downtime_Info">Ticket Information </p>
+                        <div class="col-md-3 modelTopic" id="topic_ticket" style="background-color:orange;">
+                            <div onclick="myFunction()" class="text-center align-middle" style="text-align:center; font-size:20px; background-color:#f3cb9b; border-radius:40px;" id="Downtime_Info">
+                                <img src="~/images/button_ticket.png" style="width: 100%; height: 100%" class="rounded-lg p-0" alt="Ticket Info" />
+
+                            </div>
                         </div>
                         <div class="col-md-2 modelTopic">
 
                         </div>
-                       <div class="col-md-1 modelTopic">
-                            <p class="text-center align-middle" style="font-size:20px;">Status :</p> 
+                        <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                            <div class="text-center align-middle" style="font-size:20px;">Status :</div> 
                        </div>
-                       <div class="col-md-2 modelTextbox">
-                            @Html.TextBox("Status", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        <div class="col-md-2 modelTextbox" style="display: flex;align-items: center;margin: 0;">
+                               @Html.TextBox("Status", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+                           
                        </div>
                         
                     </div>
-                <div id="problem-info" style="display:block;">
+                <div id="problem-info" style="display:block;border: 20px solid orange;">
                     <div class="row" style="padding-top:15px;">
                         <div class="col-md-1">
                         </div>
@@ -636,7 +637,7 @@
                         <div style="padding-top : 30px;"></div>
                     </div>
                 </div>
-                <div id="terminal-info" style="display:none; ">
+                <div id="terminal-info" style="display:none;border: 20px solid orange;">
                     <div class="row" style="padding-top:15px;">
                         <div class="col-md-1">
                         </div>
@@ -730,7 +731,7 @@
                         </div>
                         
                     </div>
-                <div style="padding-bottom:45px;"></div>
+               
                 </div>
             </div>
         </div>
@@ -744,17 +745,23 @@
     var head_downtime = document.getElementById("Downtime_Info");
     var head_terminal = document.getElementById("Terminal_Info");
     var detail_terminal = document.getElementById("terminal-info");
+    var topic_term = document.getElementById("topic_term");
+    var topic_ticket = document.getElementById("topic_ticket");
     function myFunction() {
         detail_downtime.style.display = "block";
         detail_terminal.style.display = "none";
         head_downtime.style.backgroundColor = "#f3cb9b";
         head_terminal.style.backgroundColor = "white";
+        topic_term.style.backgroundColor = "lightgray";
+        topic_ticket.style.backgroundColor = "orange";
     }
     function myFunction2() {
         detail_terminal.style.display = "block";
         detail_downtime.style.display = "none";
         head_terminal.style.backgroundColor = "#f3cb9b";
         head_downtime.style.backgroundColor = "white";
+        topic_term.style.backgroundColor = "orange";
+        topic_ticket.style.backgroundColor = "lightgray";
 }
     var maxRows = @ViewBag.maxRows;
     var md_Count = @ViewBag.countrow;
