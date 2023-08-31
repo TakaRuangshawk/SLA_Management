@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace SLA_Management.Models
-{   
+namespace SLA_Management.Models.ReportModel
+{
     public class SLAReportMonthly
     {
         public long ID { get; set; }
@@ -67,5 +67,5 @@ namespace SLA_Management.Models
             return items;
         }
     }
-    
+
 }

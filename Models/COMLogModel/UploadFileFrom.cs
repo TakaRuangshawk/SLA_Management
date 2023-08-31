@@ -1,4 +1,4 @@
-﻿namespace SLA_Management.Models
+﻿namespace SLA_Management.Models.COMLogModel
 {
     public class UploadFileFrom
     {

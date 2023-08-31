@@ -1,4 +1,4 @@
-﻿namespace SLA_Management.Models
+﻿namespace SLA_Management.Models.ReportModel
 {
     public class Regulator
     {

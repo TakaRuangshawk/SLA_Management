@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Models;
+using SLA_Management.Models.COMLogModel;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;

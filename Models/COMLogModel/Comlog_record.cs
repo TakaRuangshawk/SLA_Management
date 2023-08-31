@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.COMLogModel
 {
     public class Comlog_record
     {
@@ -21,7 +21,7 @@ namespace SLA_Management.Models
         public string Remark { get => remark; set => remark = value; }
 
 
-       
+
 
 
         public override string ToString()

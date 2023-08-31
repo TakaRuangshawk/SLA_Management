@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.OperationModel
 {
     [Table("sla_tracking")]
     public class TrackingDetail
     {
 
-        public Int32 ID { get; set; }
+        public int ID { get; set; }
 
         public string APPNAME { get; set; }
 
@@ -24,13 +24,13 @@ namespace SLA_Management.Models
             IList<TrackingDetail> items = list.AsEnumerable().Select(row => new TrackingDetail
             {
                 //AcctNoTo = row.Field<string>("AcctNoTo") == null ? null : hide(row.Field<string>("AcctNoTo")),
-                ID = row.Field<Int32>("ID") == null ? 0 : row.Field<Int32>("ID"),
+                ID = row.Field<int>("ID") == null ? 0 : row.Field<int>("ID"),
                 APPNAME = row.Field<string>("APPNAME") == null ? null : row.Field<string>("APPNAME"),
                 UPDATE_DATE = row.Field<DateTime?>("UPDATE_DATE") == null ? null : chng_trandate(row.Field<DateTime>("UPDATE_DATE")),
                 STATUS = row.Field<string>("STATUS") == null ? null : row.Field<string>("STATUS"),
                 REMARK = row.Field<string>("REMARK") == null ? null : row.Field<string>("REMARK"),
                 USER_IP = row.Field<string>("USER_IP") == null ? null : row.Field<string>("USER_IP")
-               
+
 
                 //String.Format("{0:n}", Convert.ToInt64(Math.Floor(Convert.ToDouble(row.Field<double>("Amount")))))
             }).ToList();

@@ -5,6 +5,7 @@ using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Data.TermProb;
 using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;
 using System.Data;
@@ -25,7 +26,7 @@ namespace SLA_Management.Controllers
         private static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
         private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
-        private DBService dBService;
+        private DBService_TermProb dBService;
 
         #endregion
 
@@ -35,7 +36,7 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-            dBService = new DBService(_myConfiguration);
+            dBService = new DBService_TermProb(_myConfiguration);
         }
 
         #endregion

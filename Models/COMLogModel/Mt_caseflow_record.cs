@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.COMLogModel
 {
     public class Mt_caseflow_record
     {

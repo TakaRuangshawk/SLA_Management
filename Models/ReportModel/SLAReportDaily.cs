@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.ReportModel
 {
 
     public class SLAReportDaily
@@ -39,7 +39,7 @@ namespace SLA_Management.Models
         {
             IList<SLAReportDaily> items = list.AsEnumerable().Select(row => new SLAReportDaily
             {
-               
+
                 ID = row.Field<long>("ID") == null ? 0 : row.Field<long>("ID"),
                 Report_Date = DateOnly.FromDateTime(row.Field<DateTime>("Report_Date")) == null ? null : DateOnly.FromDateTime(row.Field<DateTime>("Report_Date")),
                 Open_Date = row.Field<DateTime>("Open_Date").ToString("dd-MM-yyyy HH:mm:ss") == null ? null : row.Field<DateTime>("Open_Date").ToString("dd-MM-yyyy HH:mm:ss"),
@@ -107,7 +107,7 @@ namespace SLA_Management.Models
         public string TechSupport { get; set; }
         public string CIT_Request { get; set; }
         public string Terminal_Status { get; set; }
-          
+
 
     }
     public class TicketJob

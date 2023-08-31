@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using SLAManagement.Data;
-using SLA_Management.Models;
 using PagedList;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,6 +12,8 @@ using MySqlX.XDevAPI.Common;
 using SLA_Management.Commons;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data;
+using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.ReportModel;
 
 namespace SLA_Management.Controllers
 {

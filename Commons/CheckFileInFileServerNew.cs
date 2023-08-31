@@ -1,5 +1,6 @@
 ﻿using Renci.SshNet;
-using SLA_Management.Models;
+using SLA_Management.Models.COMLogModel;
+using SLA_Management.Models.OperationModel;
 using SLAManagement.Data;
 using System.Collections.Generic;
 using System.Data;

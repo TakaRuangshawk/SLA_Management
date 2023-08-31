@@ -1,6 +1,7 @@
 ﻿
 using OfficeOpenXml;
-using SLA_Management.Models;
+using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
 

@@ -1,5 +1,5 @@
 ﻿using Renci.SshNet;
-using SLA_Management.Models;
+using SLA_Management.Models.COMLogModel;
 
 namespace SLA_Management.Commons
 {

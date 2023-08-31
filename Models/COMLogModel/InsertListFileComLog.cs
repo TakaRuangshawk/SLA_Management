@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.COMLogModel
 {
     public class InsertListFileComLog
     {
-        public InsertListFileComLog( string term_ID, string serialNo, string terminalName, string comLog, string fileServer, bool statusFile, string tOTAL_RECORD)
+        public InsertListFileComLog(string term_ID, string serialNo, string terminalName, string comLog, string fileServer, bool statusFile, string tOTAL_RECORD)
         {
-            
+
             Term_ID = term_ID;
             SerialNo = serialNo;
             TerminalName = terminalName;

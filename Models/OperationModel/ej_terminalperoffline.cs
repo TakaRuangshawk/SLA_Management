@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SLA_Management.Models
+namespace SLA_Management.Models.OperationModel
 {
     public class ej_terminalperoffline
     {

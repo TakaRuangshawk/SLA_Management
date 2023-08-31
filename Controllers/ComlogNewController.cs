@@ -2,6 +2,7 @@
 using OfficeOpenXml;
 using SLA_Management.Commons;
 using SLA_Management.Models;
+using SLA_Management.Models.COMLogModel;
 using System.Text;
 
 namespace SLA_Management.Controllers
