@@ -1,4 +1,4 @@
-﻿namespace SLA_Management.Models.TermProbModel
+﻿namespace SLA_Management.Models
 {
     public class Connect_MySqlModel
     {

@@ -5,6 +5,7 @@ using MySql.Data.MySqlClient;
 using PagedList;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Models;
 using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.Common;

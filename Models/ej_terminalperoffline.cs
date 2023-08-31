@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SLA_Management.Models.TermProbModel
+namespace SLA_Management.Models
 {
     public class ej_terminalperoffline
     {
@@ -36,7 +36,7 @@ namespace SLA_Management.Models.TermProbModel
         public string onlineATM { get; set; }
         public string onlineADM { get; set; }
         public string offlineATM { get; set; }
-        public string offlineADM { get; set;}
+        public string offlineADM { get; set; }
         public string comlogATM { get; set; }
         public string comlogADM { get; set; }
     }
