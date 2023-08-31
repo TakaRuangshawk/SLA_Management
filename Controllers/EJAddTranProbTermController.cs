@@ -3,8 +3,8 @@ using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using PagedList;
 using SLA_Management.Commons;
-using SLA_Management.Data.TermProbDB;
-using SLA_Management.Data.TermProbDB.ExcelUtilitie;
+using SLA_Management.Data;
+using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;
 using System.Data;
@@ -19,14 +19,13 @@ namespace SLA_Management.Controllers
     {
 
         #region Local Variable
-        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        SqlCommand com = new SqlCommand();
-        ConnectSQL_Server con;
-        static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
-        static ej_trandada_seek param = new ej_trandada_seek();
+        private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+        private SqlCommand com = new SqlCommand();
+        private ConnectSQL_Server con;
+        private static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
+        private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
         private DBService dBService;
-
 
         #endregion
 
@@ -39,106 +38,10 @@ namespace SLA_Management.Controllers
             dBService = new DBService(_myConfiguration);
         }
 
-
-
         #endregion
 
         #region Action page
 
-        [HttpPost]
-        public ActionResult InsertProbMaster(string username,string email,string probCodeStr, string probNameStr, string probTypeStr, string probTermStr)
-        {
-            bool result = false;
-            string error = "incomplete information";
-            string _checkuser = "";
-            List<checkuserfeelview> checkruser = GetCheckUserFeelview(username, email);
-            foreach (var Data in checkruser)
-            {
-                if (Data.check == "yes")
-                {
-                    _checkuser = "yes";
-                }
-                else
-                {
-                    _checkuser = "no";
-                }
-
-            }
-            
-            if(_checkuser == "yes")
-            {
-                try
-                {
-                    if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
-                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr);
-
-                }
-                catch (Exception ex)
-                {
-                    error = ex.Message;
-                }
-
-
-                if (result == false)
-                    if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
-
-                return Json(new { result = result, error = error });
-            }
-            else
-            {
-                return Json(new { result = result,error = "Your username or Your e-mail is incorrect. " });
-            }
-            
-
-
-        }
-        #region check username and email from feelview
-        public List<checkuserfeelview> GetCheckUserFeelview(string user, string email)
-        {
-            string _sql = string.Empty;
-
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-
-                    _sql = "SELECT CASE WHEN COUNT(*) > 0 THEN 'yes' ELSE 'no' END AS _check FROM fv_system_users WHERE   ";
-                    _sql += " ACCOUNT = '" + user + "' AND EMAIL = '" + email + "'; ";
-                    cn.Open();
-
-                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-
-                    return GetCheckUserFeelviewCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                return null;
-            }
-        }
-        protected virtual List<checkuserfeelview> GetCheckUserFeelviewCollectionFromReader(IDataReader reader)
-        {
-            List<checkuserfeelview> recordlst = new List<checkuserfeelview>();
-            while (reader.Read())
-            {
-                recordlst.Add(GetCheckUserFeelviewFromReader(reader));
-            }
-            return recordlst;
-        }
-        protected virtual checkuserfeelview GetCheckUserFeelviewFromReader(IDataReader reader)
-        {
-            checkuserfeelview record = new checkuserfeelview();
-
-            record.check = reader["_check"].ToString();
-            return record;
-        }
-        public class checkuserfeelview
-        {
-            public string check { get; set; }
-        }
-        #endregion
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
@@ -148,12 +51,13 @@ namespace SLA_Management.Controllers
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<string> terminalNames = new List<string>();
+           
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
-  
+
             ejLog_dataList.Clear();
 
-            DataTable terminalDBTable = GetClientFromDB();
+            DataTable terminalDBTable = dBService.GetClientFromDB();
             for (int i = 0; i < terminalDBTable.Rows.Count; i++)
             {
                 terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
@@ -161,11 +65,11 @@ namespace SLA_Management.Controllers
 
 
 
-           
+
             int pageNum = 1;
             try
             {
-                
+
 
                 if (cmdButton == "Clear")
                     return RedirectToAction("EJAddTranProbTermAction");
@@ -174,7 +78,7 @@ namespace SLA_Management.Controllers
                 #region Set viewBag and default data
                 if (null == TermID && null == FrDate && null == ToDate && null == page)
                 {
-                    
+
                     FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     page = 1;
@@ -193,7 +97,7 @@ namespace SLA_Management.Controllers
 
                 if (DBService.CheckDatabase())
                 {
-                    ProdMasData = GetMasterSysErrorWord();
+                    ProdMasData = dBService.GetMasterSysErrorWord();
                     ViewBag.ConnectDB = "true";
                 }
                 else
@@ -208,9 +112,28 @@ namespace SLA_Management.Controllers
                     foreach (ProblemMaster obj in ProdMasData)
                     {
                         if (ViewBag.ProbMaster == "")
-                            ViewBag.ProbMaster = obj.ProblemCode + "," + obj.ProblemName;
+                        {
+                            if (obj.ProblemName.Length > 65)
+                            {
+                                ViewBag.ProbMaster = obj.ProblemCode + "$" + obj.ProblemName;
+                            }
+                            else
+                            {
+                                ViewBag.ProbMaster = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            }
+                        }
                         else
-                            ViewBag.ProbMaster += "|" + obj.ProblemCode + "," + obj.ProblemName;
+                        {
+                            if (obj.ProblemName.Length > 65)
+                            {
+                                ViewBag.ProbMaster += "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                            }
+                            else
+                            {
+                                ViewBag.ProbMaster += "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            }
+                        }
+
                     }
                 }
 
@@ -276,7 +199,7 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
-                
+
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
@@ -297,7 +220,7 @@ namespace SLA_Management.Controllers
                         if (ddlProbMaster != null || TermID != null)
                         {
 
-                            recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
+                            recordset.AddRange(GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate));
 
                         }
 
@@ -307,7 +230,7 @@ namespace SLA_Management.Controllers
                 {
                     if (ddlProbMaster != null || TermID != null)
                     {
-                        recordset = GetErrorTermDeviceEJLog_DatabaseAll(param,strErrorWordSeparate);
+                        recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
                     }
                 }
                 #endregion
@@ -370,225 +293,27 @@ namespace SLA_Management.Controllers
             {
                 if (paramTemp.PROBNAME.Contains("SLA"))
                 {
-                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database_sla(paramTemp));
+                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_sla(paramTemp));
                 }
                 else if (Array.IndexOf(strErrorWordSeparate, paramTemp.PROBNAME) > -1)
                 {
-                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database_separate(paramTemp));
+                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_separate(paramTemp));
                 }
                 else
                 {
-                    ej_Trandeviceprobs.AddRange(GetErrorTermDeviceEJLog_Database(paramTemp));
+                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database(paramTemp));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
-           
+
 
             return ej_Trandeviceprobs;
 
         }
 
-
-
-
-        #region Database 
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLogCollectionFromReader(IDataReader reader)
-        {
-            int _seqNo = 1;
-            List<ej_trandeviceprob> recordlst = new List<ej_trandeviceprob>();
-            while (reader.Read())
-            {
-                recordlst.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
-                _seqNo++;
-            }
-
-            return recordlst;
-        }
-
-
-
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database(ej_trandada_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError", cn);
-
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
-                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
-
-                    cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
-
-
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_sla(ej_trandada_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_sla", cn);
-
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
-                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
-
-                    cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
-
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_separate(ej_trandada_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_separate", cn);
-
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
-                    cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
-
-                    cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
-
-        private ej_trandeviceprob GetErrorTermDeviceEJLogFromReader(IDataReader reader, int pSeqNo)
-        {
-            ej_trandeviceprob record = new ej_trandeviceprob();
-
-            record.Seqno = reader["serialnumber"].ToString();
-            record.TerminalID = reader["terminalid"].ToString();
-            record.BranchName = reader["branchname"].ToString();
-            record.Location = reader["locationbranch"].ToString();
-            record.ProbName = reader["probname"].ToString();
-            record.Remark = reader["remark"].ToString();
-            record.TransactionDate = Convert.ToDateTime(reader["trxdatetime"]);
-
-            return record;
-        }
-        private List<ej_trandeviceprob> GetErrorTermDeviceKWEJLog_Database(ej_trandada_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemErrorKW", cn);
-
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new MySqlParameter("?pStratDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
-                    cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
-                    cmd.Parameters.Add(new MySqlParameter("?pProbKeyWord", model.PROBKEYWORD));
-
-                    cn.Open();
-                    return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
-
-        private IDataReader ExecuteReader(DbCommand cmd)
-        {
-            return ExecuteReader(cmd, CommandBehavior.Default);
-        }
-
-        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
-        {
-            try
-            {
-                return cmd.ExecuteReader(behavior);
-            }
-            catch (MySqlException ex)
-            {
-                string err = "";
-                err = "Inner message : " + ex.InnerException.Message;
-                err += Environment.NewLine + "Message : " + ex.Message;
-                return null;
-            }
-        }
-
-        private List<ProblemMaster> GetMasterSysErrorWord()
-        {
-            List<ProblemMaster> _result = new List<ProblemMaster>();
-            DataTable _dt = new DataTable();
-            DBService _objDB = new DBService(_myConfiguration);
-            try
-            {
-
-                _dt = _objDB.GetAllMasterProblem();
-                foreach (DataRow _dr in _dt.Rows)
-                {
-                    ProblemMaster obj = new ProblemMaster();
-                    obj.ProblemCode = _dr["probcode"].ToString();
-                    obj.ProblemName = _dr["probname"].ToString();
-                    _result.Add(obj);
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return _result;
-        }
-
-        private DataTable GetClientFromDB()
-        {
-            DBService _objDB = new DBService(_myConfiguration);
-            DataTable _result = null;
-            try
-            {
-                _result = _objDB.GetClientData();
-            }
-            catch (Exception ex)
-            { }
-            return _result;
-        }
-
-
-
-        #endregion
 
         #region Excel
 
@@ -608,7 +333,7 @@ namespace SLA_Management.Controllers
                 if (ejLog_dataList == null || ejLog_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
-                ExcelUtilities obj = new ExcelUtilities(param);
+                ExcelUtilities_EJTermProb obj = new ExcelUtilities_EJTermProb(param);
 
 
                 // Session["PrefixRep"] = "EJAddTran";

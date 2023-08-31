@@ -1,17 +1,28 @@
 ﻿using MySql.Data.MySqlClient;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using System.Data;
+using System.Data.Common;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SLA_Management.Data
 {
     public class ConnectMySQL
     {
-        private MySqlConnection conn;
 
+        #region Local Variable
+        private string strConnection;
+        private string _strErrDB = string.Empty;
+        private  MySqlConnection conn = null;
+        private bool isConnect = false;
+        #endregion
+
+        #region Constructor
         public ConnectMySQL(string mySqlConnection)
         {
             //string stringConect = ConfigurationManager.AppSettings["oracleserver"].ToString();
-            this.conn = new MySqlConnection(mySqlConnection);
+            strConnection = mySqlConnection;
+            ConnectionDB = strConnection;
+            conn = new MySqlConnection(mySqlConnection);
         }
         public MySqlConnection Conn
         {
@@ -20,13 +31,143 @@ namespace SLA_Management.Data
                 return conn;
             }
         }
+        #endregion
+
+        #region Property
+        public string ConnectionDB
+        {
+            get { return strConnection; }
+            set { strConnection = value; }
+        }
+
+        public string ErrorMessDB
+        {
+            get { return _strErrDB; }
+            set { _strErrDB = value; }
+        }
+
+        public bool IsConnect
+        {
+            get
+            {
+                if (Conn != null && isConnect)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        //public MySqlConnection DbConnection
+        //{
+        //    get
+        //    {
+        //        if (conn != null)
+        //            return conn;
+        //        else
+        //        {
+        //            if (OpenDb())
+        //                return conn;
+        //            else
+        //                return null;
+        //        }
+        //    }
+        //}
+
+        #endregion
+
+        #region Public Function
+
+        public bool OpenDb()
+        {
+            try
+            {
+                conn = new MySqlConnection(strConnection);
+                conn.Open();
+                isConnect = true;
+                return true;
+            }
+            catch (MySqlException)
+            {
+
+                isConnect = false;
+                return false;
+            }
+        }
+
+        public DataTable GetDatatableNotParam(string sql)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                if (!IsConnect)
+                    OpenDb();
+                MySqlCommand mysqlcom = new MySqlCommand(sql, Conn);
+                MySqlDataAdapter mda = new MySqlDataAdapter(mysqlcom);
+                mda.Fill(dt);
+                CloseDb();
+            }
+            catch (MySqlException)
+            {
+
+            }
+            CloseDb();
+            return dt;
+
+        }
+        public bool ExecuteQueryNoneParam(string sql)
+        {
+            bool _return = false;
+            try
+            {
+                if (!IsConnect)
+                    OpenDb();
+
+                MySqlCommand command = new MySqlCommand();
+
+                command.Connection = Conn;
+                command.CommandType = CommandType.Text;
+                command.CommandText = sql;
+
+                if (command.ExecuteNonQuery() == 1)
+                    _return = true;
+
+                // DbConnection.Close();
+            }
+            catch (MySqlException ex)
+            {
+
+                ErrorMessDB = ex.Message;
+            }
+            CloseDb();
+            return _return;
+        }
+
+        public bool CloseDb()
+        {
+            try
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                    isConnect = false;
+                }
+                return true;
+            }
+            catch (MySqlException)
+            {
+
+                return false;
+            }
+        }
+
         public void OpenDB()
         {
             try
             {
                 conn.Open();
             }
-            catch (Exception ex)
+            catch (MySqlException)
             {
                 OpenDB();
             }
@@ -34,6 +175,15 @@ namespace SLA_Management.Data
         }
         public bool GetstateDB()
         {
+            try
+            {
+                OpenDB();
+            }
+            catch (MySqlException)
+            {
+
+            }
+            
 
             if (conn.State == ConnectionState.Open)
             {
@@ -59,7 +209,7 @@ namespace SLA_Management.Data
                 conn.Close();
                 return true;
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
                 //Log.Information("sql error:" + ex.Message);
                 Console.WriteLine("sql error:" + ex.Message);
@@ -82,7 +232,7 @@ namespace SLA_Management.Data
                 MySqlDataAdapter mda = new MySqlDataAdapter(com);
                 mda.Fill(dt);
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -106,7 +256,7 @@ namespace SLA_Management.Data
                 MySqlCommand com = new MySqlCommand(sql, conn);
                 com.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
                 Console.WriteLine(ex.Message);
             }
@@ -116,5 +266,8 @@ namespace SLA_Management.Data
             }
 
         }
+
+        #endregion
+
     }
 }

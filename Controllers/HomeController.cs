@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
-using SLA_Management.Data.TermProbDB;
+using SLA_Management.Data;
 using SLA_Management.Models;
 using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;

@@ -9,10 +9,10 @@ using System.Data;
 using SLA_Management.Models.TermProbModel;
 using MySql.Data.MySqlClient;
 using System.Data.Common;
-using SLA_Management.Data.TermProbDB;
-using SLA_Management.Data.TermProbDB.ExcelUtilitie;
 using MySqlX.XDevAPI.Common;
 using SLA_Management.Commons;
+using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Data;
 
 namespace SLA_Management.Controllers
 {

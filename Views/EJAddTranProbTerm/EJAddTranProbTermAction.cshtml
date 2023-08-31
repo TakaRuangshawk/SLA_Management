@@ -208,7 +208,7 @@
                                     char[] spMas = new char[] { '|' };
                                     string strMasterProb = ViewBag.ProbMaster;
                                     string[] arrMasterProb = strMasterProb.Split(spMas);
-                                    char[] spMas1 = new char[] { ',' };
+                                    char[] spMas1 = new char[] { '$' };
                                     foreach (string mas in arrMasterProb)
                                     {
 
@@ -489,7 +489,7 @@
                         </div>
                     </div>
                     <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
-                       
+
                         <div class="col-2 col-lg-2 text-nowrap" style="">
                             <h>Email : </h>
                         </div>
@@ -501,7 +501,7 @@
                         </div>
                     </div>
                     <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
-                      
+
                         <div class="col-2 col-lg-2 text-nowrap" style="">
                             <h>ProblemCode : </h>
                         </div>
@@ -575,6 +575,19 @@
                         </div>
                     </div>
 
+                    <div class="row" style="margin-top: 15px;align-items:center;display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>Memo : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextArea("memoStr", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
+                            </div>
+                        </div>
+                    </div>
+
+
 
                     <div style="margin-top:15px;">
                         <output name="result"></output>
@@ -582,8 +595,8 @@
 
                 </div>
                 <div class="modal-footer" style="background-color:#FFA500;">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" id="btnInsertProbMasterMain" class="btn btn-primary">Confirm</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="clearInsertDataProb()">Close</button>
+                    <button type="button" id="btnInsertProbMasterMain"  class="btn btn-primary">Confirm</button>
                 </div>
 
 
@@ -709,10 +722,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                                   <a style="color: #333333;">' +
+                                                                       <a style="color: #333333;">' +
                                 i++ +
                                 '\
-                                                                            </li>'
+                                                                                </li>'
                             )
                             .show();
                     } // end for i
@@ -792,7 +805,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                          var select = document.getElementById("seletePageNow");
+                                                              var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -925,17 +938,27 @@
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username='+$("#username").val() +'&email='+ $("email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&memoStr=' + $("#memoStr").val(),
             success: function (result) {
-                if (result.result ==  true) {
-                    alert('Insert success! : ' +result.result);
+                if (result.result == true) {
+                    alert('Insert success! : ' + result.result);
+                    clearInsertDataProb();                
+
                 }
-                else { alert('Insert unsuccess! : ' + result.error); }
+                else { 
+                    alert('Insert unsuccess! : ' + result.error); 
+                }
             },
             error: function (err) {
                 alert('@ViewBag.ErrorMsg');
             }
         });
+
+
+       
+        
+
+
     });
 
     $("#ddlProbMaster").on("change", function () {
@@ -944,6 +967,20 @@
         console.log("BBB -> selectValue : " + selectValue)
 
     });
+
+
+    function clearInsertDataProb(){
+
+        document.getElementById('username').value = "";
+        document.getElementById('email').value = "";
+        document.getElementById('probCodeStr').value = "";
+        document.getElementById('probNameStr').value = "";
+        document.getElementById('probTypeStr').value = "DEVICE";
+        document.getElementById('probTermStr').value = "G165";
+        document.getElementById('memoStr').value = "";
+        
+
+    }
 
 
 
