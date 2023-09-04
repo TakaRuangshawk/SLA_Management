@@ -103,12 +103,12 @@
         <div id="main_search" style="">
             @using (Html.BeginForm("CheckEJLastUpdate", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 5vw 0vw 5vw;white-space:nowrap;">
         
                     <div class="col-md-1" style="">
-                        <h>Terminal ID : </h>
+                        <h>Terminal : </h>
                     </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    @*<div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -127,8 +127,25 @@
 
                             }
                         </select>
+                    </div>*@
+                    <div class="item col-md-6" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TERM_ID)
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                                }
+                            }
+                        </select>
                     </div>
-                    <div class="col-md-1" style="">
+                    @*<div class="col-md-1" style="">
                         <h>Serial No : </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -150,7 +167,7 @@
 
                             }
                         </select>
-                    </div>
+                    </div>*@
                     <div class="col col-md-1" style="">
                         <h>Terminal Type : </h>
                     </div>
@@ -174,13 +191,13 @@
                     </div>
              
                 </div>
-           
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;">
+
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 5vw 0vw 5vw;">
                     <div class="col col-md-2">
                     </div>
                  
                 </div>
-                <div class="row " style="margin-top: 15px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;">
+                <div class="row " style="margin-top: 15px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 5vw 0vw 5vw">
             
                     <div class="col-md-1" style="">
                         <h>Duration's Uploading: </h>

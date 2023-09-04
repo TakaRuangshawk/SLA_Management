@@ -6,6 +6,7 @@ using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data.TermProb;
+using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;
 using System.Data;
@@ -27,6 +28,7 @@ namespace SLA_Management.Controllers
         private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
         private DBService_TermProb dBService;
+        private static ConnectMySQL db_fv;
 
         #endregion
 
@@ -37,6 +39,7 @@ namespace SLA_Management.Controllers
 
             _myConfiguration = myConfiguration;
             dBService = new DBService_TermProb(_myConfiguration);
+            db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
         }
 
         #endregion
@@ -58,11 +61,11 @@ namespace SLA_Management.Controllers
 
             ejLog_dataList.Clear();
 
-            DataTable terminalDBTable = dBService.GetClientFromDB();
-            for (int i = 0; i < terminalDBTable.Rows.Count; i++)
-            {
-                terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
-            }
+            //DataTable terminalDBTable = dBService.GetClientFromDB();
+            //for (int i = 0; i < terminalDBTable.Rows.Count; i++)
+            //{
+            //    terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
+            //}
 
 
 
@@ -138,7 +141,7 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                ViewBag.CurrentTID = terminalNames;
+                ViewBag.CurrentTID = GetDeviceInfoFeelview();
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
@@ -315,7 +318,17 @@ namespace SLA_Management.Controllers
 
         }
 
+        private static List<Device_info_record> GetDeviceInfoFeelview()
+        {
 
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_fv.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
         #region Excel
 
         [HttpPost]

@@ -128,12 +128,12 @@
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col-2" style="">
-                        <h>Terminal ID : </h>
+                        <h>Terminal : </h>
                     </div>
                     @* <div class="col-md-2" style="margin-left:30px">
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
-                    <div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
+                    @*<div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -150,6 +150,23 @@
                                 }
 
 
+                            }
+                        </select>
+                    </div>*@
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TermID)
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                                }
                             }
                         </select>
                     </div>
@@ -398,9 +415,9 @@
 
                                     <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
                                     <td> @Data.TransactionDate.TimeOfDay</td>
-                                    <td> @Data.TerminalID</td>
-                                    <td> @Data.Seqno </td>
-                                    <td> @Data.BranchName </td>
+                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;"> @Data.Seqno </td>
+                                    <td style="text-align:center;"> @Data.BranchName </td>
                                     <td> @Data.ProbName </td>
                                 </tr>
                             }
@@ -459,7 +476,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header" style="background-color:#FFA500;">
-                <h5 class="modal-title" id="exampleModalLabel" style="color:white;">Insert new master problem</h5>
+                <h5 class="modal-title" id="exampleModalLabel" style="color:white;">Add Message</h5>
 
             </div>
 

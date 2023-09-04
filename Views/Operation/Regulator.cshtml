@@ -46,9 +46,9 @@
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col-md-1" style="">
-                        <h>Terminal ID : </h>
+                        <h>Terminal : </h>
                     </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    @*<div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
                             @foreach (string item in ViewBag.CurrentTID)
@@ -67,55 +67,21 @@
 
                             }
                         </select>
-                    </div>
-                    <div class="col-md-1" style="">
-                        <h>From Date : </h>
-                    </div>
-                    <div class="col-md-2 date-form-control" style="">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
-                        </div>
-                    </div>
-                    <div class="col-md-1" style="">
-                        <h>To Date : </h>
-                    </div>
-                    <div class="col-md-2 date-form-control" style="">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
-                        </div>
-                    </div>
-                   
-
-                </div>
-           
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                 
-                </div>
-                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                    <div class="col-md-1" style="">
-                        <h>Serial No : </h>
-                    </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermSEQ" name="TermSEQ" data-live-search="true">
+                    </div>*@
+                    <div class="item col-md-6" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTSEQ)
+                            @foreach (var item in ViewBag.CurrentTID)
                             {
-                                if (@item != @ViewBag.TermSEQ)
-
+                                if (@item.TERM_ID != @ViewBag.TermID)
                                 {
-                                    <option data-tokens=@item>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
                                 else
                                 {
-                                    <option data-tokens=@item selected>@item</option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
                                 }
-
-
                             }
                         </select>
                     </div>
@@ -138,6 +104,58 @@
 
                         })
 
+                        </div>
+                    </div>
+                   
+
+                </div>
+           
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                 
+                </div>
+              <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    @*<div class="col-md-1" style="">
+                        <h>Serial No : </h>
+                    </div>
+                   <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="form-control subsearch selectpicker" id="TermSEQ" name="TermSEQ" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (string item in ViewBag.CurrentTSEQ)
+                            {
+                                if (@item != @ViewBag.TermSEQ)
+
+                                {
+                                    <option data-tokens=@item>@item</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens=@item selected>@item</option>
+
+                                }
+
+
+                            }
+                        </select>
+                    </div>*@
+                    
+                    <div class="col-md-1" style="">
+                        <h>From Date : </h>
+                    </div>
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                        </div>
+                    </div>
+                    <div class="col-md-1" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-md-2 date-form-control" style="">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                         </div>
                     </div>
                     <div class="col col-md-1" style="">

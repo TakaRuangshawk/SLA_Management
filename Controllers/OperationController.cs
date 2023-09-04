@@ -14,6 +14,7 @@ using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
+using System.Security.AccessControl;
 
 namespace SLA_Management.Controllers
 {
@@ -56,6 +57,7 @@ namespace SLA_Management.Controllers
         private DBService dBService;
         CultureInfo usaCulture = new CultureInfo("en-US");
         private static ConnectSQL_Server db;
+        private static ConnectMySQL db_fv;
         private static string sqlConnection;
         private static string sqlServer { get; set; }
         public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
@@ -68,6 +70,7 @@ namespace SLA_Management.Controllers
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
             db = new ConnectSQL_Server(sqlServer);
+            db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";
@@ -488,21 +491,8 @@ namespace SLA_Management.Controllers
             {
                 if (DBService.CheckDatabase())
                 {
-                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
-
-                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
-                    terminalSEQList = GetListTerminalSEQ(terminalIDAndSeqList);
-
-                    if (terminalIDList != null && terminalIDList.Count > 0)
-                    {
-                        ViewBag.CurrentTID = terminalIDList;
-
-                    }
-                    if (terminalSEQList != null && terminalSEQList.Count > 0)
-                    {
-                        ViewBag.CurrentTSEQ = terminalSEQList;
-
-                    }
+                    ViewBag.CurrentTID = GetDeviceInfoFeelview();
+                    ViewBag.TermID = TermID;
                     ViewBag.ConnectDB = "true";
                 }
                 else
@@ -913,7 +903,17 @@ namespace SLA_Management.Controllers
 
             return test;
         }
-    
+        private static List<Device_info_record> GetDeviceInfoFeelview()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_fv.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
         private static List<TicketJob> GetJobNumber(string frommonth,string tomonth)
         {
 
@@ -1215,7 +1215,7 @@ namespace SLA_Management.Controllers
         }
         #endregion
         #region CheckEJLastUpdate
-        public IActionResult CheckEJLastUpdate(string cmdButton, string TermID, string Hours,string TermSEQ,string TerminalType,string status,
+        public IActionResult CheckEJLastUpdate(string cmdButton, string termid, string Hours,string TermSEQ,string TerminalType,string status,
         string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
         int? page, string maxRows)
         {
@@ -1256,30 +1256,9 @@ namespace SLA_Management.Controllers
             ViewBag.CurrentHours = items;
             try
             {
-                if (DBService.CheckDatabase())
-                {
-                    terminalIDAndSeqList = GetTerminalAndSeqFromDB();
-
-                    terminalIDList = GetListTerminalID(terminalIDAndSeqList);
-                    terminalSEQList = GetListTerminalSEQ(terminalIDAndSeqList);
-
-                    if (terminalIDList != null && terminalIDList.Count > 0)
-                    {
-                        ViewBag.CurrentTID = terminalIDList;
-
-                    }
-                    if (terminalSEQList != null && terminalSEQList.Count > 0)
-                    {
-                        ViewBag.CurrentTSEQ = terminalSEQList;
-
-                    }
-                    ViewBag.ConnectDB = "true";
-                }
-                else
-                {
-                    ViewBag.ConnectDB = "false";
-                }
-                if (null == TermID && null == Hours  && null == page)
+                ViewBag.CurrentTID = GetDeviceInfoFeelview();
+                ViewBag.TERM_ID = termid;
+                if (null == termid && null == Hours  && null == page)
                 {
                     page = 1;
                 }
@@ -1287,16 +1266,16 @@ namespace SLA_Management.Controllers
                 {
                     // Return temp value back to it own variable
                     Hours = (Hours ?? currHours);
-                    TermID = (TermID ?? currTID);
+                    termid = (termid ?? currTID);
                     TermSEQ = (TermSEQ ?? currTSEQ);
                 }
-                ViewBag.CurrentTerminalno = TermID;
+                ViewBag.CurrentTerminalno = termid;
                 //ViewBag.CurrentHours = currHours;
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
-                if (null == TermID)
+                if (null == termid)
                     param_checkej.TerminalNo = currTID == null ? "" : currTID;
                 else
-                    param_checkej.TerminalNo = TermID == null ? "" : TermID;
+                    param_checkej.TerminalNo = termid == null ? "" : termid;
                 if (null == TermSEQ)
                     param_checkej.SerialNo = currTSEQ == null ? "" : currTSEQ;
                 else
@@ -1321,7 +1300,7 @@ namespace SLA_Management.Controllers
                 {
                     param_checkej.PAGESIZE = 50;
                 }
-                param_checkej.TerminalNo = TermID ?? "";
+                param_checkej.TerminalNo = termid ?? "";
                 param_checkej.SerialNo = TermSEQ ?? "";
                 recordset_ejloglastupdate = GetEJLastUpdate(param_checkej);
                 if (null == recordset_ejloglastupdate || recordset_ejloglastupdate.Count <= 0)
