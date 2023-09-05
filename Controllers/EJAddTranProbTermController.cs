@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
+using Mysqlx;
 using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
@@ -22,13 +23,11 @@ namespace SLA_Management.Controllers
 
         #region Local Variable
         private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        private SqlCommand com = new SqlCommand();
-        private ConnectSQL_Server con;
         private static List<ej_trandeviceprob> ejLog_dataList = new List<ej_trandeviceprob>();
         private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
         private DBService_TermProb dBService;
-        private static ConnectMySQL db_fv;
+
 
         #endregion
 
@@ -39,7 +38,7 @@ namespace SLA_Management.Controllers
 
             _myConfiguration = myConfiguration;
             dBService = new DBService_TermProb(_myConfiguration);
-            db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
+
         }
 
         #endregion
@@ -54,21 +53,11 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
-            List<string> terminalNames = new List<string>();
-           
+
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
 
             ejLog_dataList.Clear();
-
-            //DataTable terminalDBTable = dBService.GetClientFromDB();
-            //for (int i = 0; i < terminalDBTable.Rows.Count; i++)
-            //{
-            //    terminalNames.Add(terminalDBTable.Rows[i]["terminalid"].ToString().Replace(".", ""));
-            //}
-
-
-
 
             int pageNum = 1;
             try
@@ -113,35 +102,49 @@ namespace SLA_Management.Controllers
                 if (ProdMasData.Count > 0)
                 {
                     ViewBag.ProbMaster = "";
+                    string strTemp = string.Empty;
                     foreach (ProblemMaster obj in ProdMasData)
                     {
+                        strTemp = "";
                         if (ViewBag.ProbMaster == "")
                         {
                             if (obj.ProblemName.Length > 65)
                             {
-                                ViewBag.ProbMaster = obj.ProblemCode + "$" + obj.ProblemName;
+                                strTemp = obj.ProblemCode + "$" + obj.ProblemName;
                             }
                             else
                             {
-                                ViewBag.ProbMaster = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                                strTemp = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+
                             }
+
+                            if (strTemp.Length > 65) strTemp = obj.ProblemCode + "$" + obj.ProblemName;
+
                         }
                         else
                         {
                             if (obj.ProblemName.Length > 65)
                             {
-                                ViewBag.ProbMaster += "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
                             }
                             else
                             {
-                                ViewBag.ProbMaster += "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+
+
                             }
+                            if (strTemp.Length > 65) strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
+
+
                         }
+
+                        if (strTemp != null && strTemp != string.Empty)
+                            ViewBag.ProbMaster += strTemp;
 
                     }
                 }
 
-                ViewBag.CurrentTID = GetDeviceInfoFeelview();
+                ViewBag.CurrentTID = dBService.GetDeviceInfoFeelview();
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
@@ -280,7 +283,7 @@ namespace SLA_Management.Controllers
                 #endregion
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
@@ -288,7 +291,7 @@ namespace SLA_Management.Controllers
         }
         #endregion
 
-
+        #region Private function
         private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate)
         {
             List<ej_trandeviceprob> ej_Trandeviceprobs = new List<ej_trandeviceprob>();
@@ -318,17 +321,8 @@ namespace SLA_Management.Controllers
 
         }
 
-        private static List<Device_info_record> GetDeviceInfoFeelview()
-        {
+        #endregion
 
-            MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
-            DataTable testss = db_fv.GetDatatable(com);
-
-            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
-
-            return test;
-        }
         #region Excel
 
         [HttpPost]
@@ -464,12 +458,6 @@ namespace SLA_Management.Controllers
 
 
         #endregion
-
-
-
-
-
-
 
     }
 

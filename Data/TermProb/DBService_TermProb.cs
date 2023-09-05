@@ -1,10 +1,12 @@
 ﻿using MySql.Data.MySqlClient;
+using SLA_Management.Commons;
+using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
 using System.Data;
 
 namespace SLA_Management.Data.TermProb
 {
-    public  class DBService_TermProb : DBService
+    public class DBService_TermProb : DBService
     {
 
         #region Constructor
@@ -51,6 +53,18 @@ namespace SLA_Management.Data.TermProb
 
         }
 
+        public List<Device_info_record> GetDeviceInfoFeelview()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM fv_device_info order by TERM_SEQ;";
+            DataTable tableTemp = _objDb.GetDatatable(com);
+
+            List<Device_info_record> deviceInfoRecordsList = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(tableTemp);
+
+            return deviceInfoRecordsList;
+        }
+
         public DataTable GetAllMasterProblem()
         {
             DataTable _dt = new DataTable();
@@ -66,7 +80,7 @@ namespace SLA_Management.Data.TermProb
             { throw ex; }
         }
 
-      
+
 
         public List<ProblemMaster> GetMasterSysErrorWord()
         {
@@ -268,6 +282,7 @@ namespace SLA_Management.Data.TermProb
 
         #endregion
 
+        #region Protected/Private function
         protected virtual List<checkuserfeelview> GetCheckUserFeelviewCollectionFromReader(IDataReader reader)
         {
             List<checkuserfeelview> recordlst = new List<checkuserfeelview>();
@@ -284,6 +299,8 @@ namespace SLA_Management.Data.TermProb
             record.check = reader["_check"].ToString();
             return record;
         }
+
+        #endregion
 
     }
 }
