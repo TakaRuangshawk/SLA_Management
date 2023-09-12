@@ -226,11 +226,11 @@ namespace SLA_Management.Commons
                         DateTime getDate = start.AddDays(i);
                         //Console.WriteLine(getDate.ToString());
                         string comLogName = "COM" + getDate.Year + "" + getDate.Month.ToString("00") + "" + getDate.Day.ToString("00") + ".txt";
-                        if (termID == "")
+                        if (termID == "" || termID==null)
                         {
                             foreach (Device_info_record term in termIds)
                             {
-                                if (!sftp.Exists(configPath + term + "/" + comLogName))
+                                if (!sftp.Exists(configPath + term.TERM_ID + "/" + comLogName))
                                 {
                                     listData.Add(new ListDataComlogError(term.TERM_ID, comLogName.Replace(".txt", ""), 0, term.TERM_SEQ, term.TERM_NAME));
                                 }
@@ -246,7 +246,7 @@ namespace SLA_Management.Commons
                             }
                         }
                     }
-                    sftp.Dispose();
+                    sftp.Disconnect();
                 }
             }
             catch (Exception ex)

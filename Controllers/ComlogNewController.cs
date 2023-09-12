@@ -55,7 +55,7 @@ namespace SLA_Management.Controllers
                         filter.toDateTime = SetTime(DateTime.Now, 23, 59, 59);
                     }
 
-                    insertFileCOMLog_temp = dataErrorLog.GetListFileComLog(filter.term_id + "", (DateTime)filter.forDateTime, (DateTime)filter.toDateTime);
+                    insertFileCOMLog_temp = dataErrorLog.GetListFileComLog(filter.term_id, (DateTime)filter.forDateTime, (DateTime)filter.toDateTime);
                 }
             }
 
