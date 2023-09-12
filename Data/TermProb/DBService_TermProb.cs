@@ -34,7 +34,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + "1" + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
+                _sql = "INSERT INTO `ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + "1" + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);
@@ -72,7 +72,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "Select * From ejlog_problemmascode where status = '1'";
+                _sql = "Select * From ejlog_problemmascode where status = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
@@ -149,7 +149,7 @@ namespace SLA_Management.Data.TermProb
                     cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
                     cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
                     cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
-
+                    cmd.Parameters.Add(new MySqlParameter("?terminaltype", model.TERMINALTYPE));
                     cn.Open();
                     return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
                 }
@@ -176,6 +176,7 @@ namespace SLA_Management.Data.TermProb
                     cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
                     cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
                     cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
+                    cmd.Parameters.Add(new MySqlParameter("?terminaltype", model.TERMINALTYPE));
 
                     cn.Open();
                     return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));
@@ -202,6 +203,7 @@ namespace SLA_Management.Data.TermProb
                     cmd.Parameters.Add(new MySqlParameter("?pEndDate", model.TODATE));
                     cmd.Parameters.Add(new MySqlParameter("?pTerminalID", model.TERMID));
                     cmd.Parameters.Add(new MySqlParameter("?pProbMaster", model.PROBNAME));
+                    cmd.Parameters.Add(new MySqlParameter("?terminaltype", model.TERMINALTYPE));
 
                     cn.Open();
                     return GetErrorTermDeviceEJLogCollectionFromReader(ExecuteReader(cmd));

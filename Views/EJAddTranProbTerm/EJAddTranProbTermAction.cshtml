@@ -4,8 +4,7 @@
     string[] tableHeaders = new string[]
                                                                                                     {
 
-    "Date",
-    "Time",
+    "Date Time",
     "Serial No.",
     "Terminal ID ",
     "Terminal Name ",
@@ -216,7 +215,7 @@
                     <div class="col-2" style="">
                         <label for="ErrMeaaage">Error Message:</label>
                     </div>
-                    <div class="col-6" style="padding: 0px;">
+                    <div class="col-2" style="padding: 0px;">
                         <select name="ddlProbMaster" id="ddlProbMaster" style="" class="selectpicker" multiple>
                             @{
 
@@ -232,7 +231,7 @@
                                         string[] arrMasterProb1 = mas.Split(spMas1);
                                         string currentProbMaster = ViewBag.CurrentProbMaster;
 
-
+                                        
                                         if (!string.IsNullOrEmpty(currentProbMaster))
                                         {
                                             string[] currentProbMasterSpilt = currentProbMaster.Split(',');
@@ -271,13 +270,29 @@
                         </select>
                     </div>
                     @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
-                    @* <div class="col col-lg-2">
-                <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
-                <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
-                </div>
-                <div class="col-md-2">
-                @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
-                </div>*@
+                    <div class="col-2" style="">
+                        <h>TerminalType : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("terminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = ""  },
+                        new SelectListItem(){ Text="2in1", Value = "A"  },
+                        new SelectListItem(){ Text="LRM", Value = "L" },
+                        new SelectListItem(){ Text="CDM", Value = "R"  }
+                        }, new
+                        {
+                        @class = "form-control dropdown"
+                        ,
+                        @style = " border-radius: 10px;" ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
 
                     <div class="col-2" style="">
                         <h>Rows : </h>
@@ -287,10 +302,10 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="5", Value = "5"  },
-                        new SelectListItem(){ Text="10", Value = "10"  },
+
                         new SelectListItem(){ Text="50", Value = "50" },
                         new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="100", Value = "500"  },
                         new SelectListItem(){ Text="1000", Value = "1000"  }
                         }, new
                         {
@@ -413,11 +428,10 @@
                             {
                                 <tr>
 
-                                    <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
-                                    <td> @Data.TransactionDate.TimeOfDay</td>
-                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;"> @Data.TransactionDate.Date.ToString("yyyy-MM-dd") @Data.TransactionDate.TimeOfDay</td>
                                     <td style="text-align:center;"> @Data.Seqno </td>
-                                    <td style="text-align:center;"> @Data.BranchName </td>
+                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style=""> @Data.BranchName </td>
                                     <td> @Data.ProbName </td>
                                 </tr>
                             }
@@ -577,9 +591,10 @@
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
                                 @Html.DropDownList("probTermStr", new SelectListItem[] {
-                                new SelectListItem(){ Text="ATM", Value = "G165"  },
-                                new SelectListItem(){ Text="ADM", Value = "G262"  },
-                                new SelectListItem(){ Text="ALL", Value = "G165;G262" }
+                                new SelectListItem(){ Text="ALL", Value = "A;L;R" },
+                                new SelectListItem(){ Text="LRM", Value = "L"  },
+                                new SelectListItem(){ Text="CDM", Value = "R"  },
+                                new SelectListItem(){ Text="2IN1", Value = "A"  }
                                 }, new
                                 {
                                 @class = "form-control dropdown"
@@ -913,7 +928,7 @@
         $('table tr:gt(0)').each(function () {
             id++;
             if (count != 0) {
-                $(this).prepend('<td>' + id + '</td>');
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
             }
 
         });

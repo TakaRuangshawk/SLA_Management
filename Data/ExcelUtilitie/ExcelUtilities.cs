@@ -453,12 +453,13 @@ namespace SLA_Management.Data.ExcelUtilitie
 
 
                         excelWorksheet.Cells[nStartRowData, 1].Value = nSeq;
-                        excelWorksheet.Cells[nStartRowData, 2].Value = data.BranchName;
-                        excelWorksheet.Cells[nStartRowData, 3].Value = data.TerminalID;
-                        excelWorksheet.Cells[nStartRowData, 4].Value = data.Location;
-                        excelWorksheet.Cells[nStartRowData, 5].Value = data.ProbName;
-                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Remark;
-                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.Seqno;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.TerminalID;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.BranchName;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Location;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.ProbName;
+                        
 
 
                         nStartRowData++;

@@ -29,7 +29,6 @@
     <Folder Include="wwwroot\RegulatorExcel\excelfiles\" />
     <Folder Include="wwwroot\GatewayExcel\excelfiles\" />
     <Folder Include="wwwroot\TermProbExcel\excelfiles\" />
-    <Folder Include="wwwroot\TermProbExcel\Tempfiles\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +37,10 @@
     </Content>
     <Content Update="wwwroot\images\Pic_Page.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\TermProbExcel\InputTemplate\CheckProblemDevice.xlsx">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

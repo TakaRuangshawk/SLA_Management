@@ -27,6 +27,8 @@ namespace SLA_Management.Controllers
         private static ej_trandada_seek param = new ej_trandada_seek();
         private IConfiguration _myConfiguration;
         private DBService_TermProb dBService;
+        private DBService_TermProb_CDM dBService_CDM;
+        private DBService_TermProb_LRM dBService_LRM;
 
 
         #endregion
@@ -39,6 +41,9 @@ namespace SLA_Management.Controllers
             _myConfiguration = myConfiguration;
             dBService = new DBService_TermProb(_myConfiguration);
 
+            dBService_CDM = new DBService_TermProb_CDM(_myConfiguration); 
+            dBService_LRM = new DBService_TermProb_LRM(_myConfiguration);
+
         }
 
         #endregion
@@ -48,7 +53,7 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-        , string currPageSize, int? page, string maxRows, string KeyWordList)
+        , string currPageSize, int? page, string maxRows, string KeyWordList,string terminalType)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
@@ -108,32 +113,34 @@ namespace SLA_Management.Controllers
                         strTemp = "";
                         if (ViewBag.ProbMaster == "")
                         {
-                            if (obj.ProblemName.Length > 65)
-                            {
-                                strTemp = obj.ProblemCode + "$" + obj.ProblemName;
-                            }
-                            else
-                            {
-                                strTemp = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            //if (obj.ProblemName.Length > 65)
+                            //{
+                            //    strTemp = obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            //else
+                            //{
+                            //    strTemp = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            //}
 
-                            }
+                            strTemp = obj.ProblemCode + "$" + obj.Memo + " : " + obj.ProblemName;
 
-                            if (strTemp.Length > 65) strTemp = obj.ProblemCode + "$" + obj.ProblemName;
+                            //if (strTemp.Length > 65) strTemp = obj.ProblemCode + "$" + obj.ProblemName;
 
                         }
                         else
                         {
-                            if (obj.ProblemName.Length > 65)
-                            {
-                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
-                            }
-                            else
-                            {
-                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            //if (obj.ProblemName.Length > 65)
+                            //{
+                            //    strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            //else
+                            //{
+                            //    strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
 
 
-                            }
-                            if (strTemp.Length > 65) strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            strTemp = "|" + obj.ProblemCode + "$" + obj.Memo + " : " + obj.ProblemName;
+                            //if (strTemp.Length > 65) strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
 
 
                         }
@@ -144,7 +151,12 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                ViewBag.CurrentTID = dBService.GetDeviceInfoFeelview();
+                List<Device_info_record> term_2in1 = dBService.GetDeviceInfoFeelview();
+                List<Device_info_record> term_cdm = dBService_CDM.GetDeviceInfoFeelview();
+                List<Device_info_record> term_lrm = dBService_LRM.GetDeviceInfoFeelview();
+                term_2in1.AddRange(term_cdm);
+                term_2in1.AddRange(term_lrm);
+                ViewBag.CurrentTID = term_2in1;
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
@@ -156,7 +168,7 @@ namespace SLA_Management.Controllers
 
 
                 #region Set param
-
+                bool chk_date = false;
                 if (null == TermID)
                     param.TERMID = currTID == null ? "" : currTID;
                 else
@@ -165,6 +177,7 @@ namespace SLA_Management.Controllers
                 if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
                 {
                     param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
                 }
                 else
                 {
@@ -173,6 +186,7 @@ namespace SLA_Management.Controllers
                         param.FRDATE = FrDate + " 00:00:00";
                     else
                         param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
                 }
 
                 if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
@@ -206,7 +220,7 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
-
+                param.TERMINALTYPE = terminalType ?? "";
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
@@ -235,7 +249,7 @@ namespace SLA_Management.Controllers
                 }
                 else
                 {
-                    if (ddlProbMaster != null || TermID != null)
+                    if (chk_date)
                     {
                         recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
                     }
@@ -247,7 +261,7 @@ namespace SLA_Management.Controllers
                 long recCnt = 0;
 
                 if (String.IsNullOrEmpty(maxRows))
-                    ViewBag.maxRows = "5";
+                    ViewBag.maxRows = "50";
                 else
                     ViewBag.maxRows = maxRows;
 
@@ -455,7 +469,118 @@ namespace SLA_Management.Controllers
                 });
             }
         }
+        private IDataReader ExecuteReader(DbCommand cmd)
+        {
+            return ExecuteReader(cmd, CommandBehavior.Default);
+        }
+        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
+        {
+            try
+            {
+                return cmd.ExecuteReader(behavior);
+            }
+            catch (MySqlException ex)
+            {
+                string err = "";
+                err = "Inner message : " + ex.InnerException.Message;
+                err += Environment.NewLine + "Message : " + ex.Message;
+                return null;
+            }
+        }
+        [HttpPost]
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string memo)
+        {
+            bool result = false;
+            string error = "incomplete information";
+            string _checkuser = "";
+            List<checkuserfeelview> checkruser = GetCheckUserFeelview(username, email);
+            foreach (var Data in checkruser)
+            {
+                if (Data.check == "yes")
+                {
+                    _checkuser = "yes";
+                }
+                else
+                {
+                    _checkuser = "no";
+                }
 
+            }
+
+            if (_checkuser == "yes")
+            {
+                try
+                {
+                    if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr,memo,username);
+
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                }
+
+
+                if (result == false)
+                    if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
+
+                return Json(new { result = result, error = error });
+            }
+            else
+            {
+                return Json(new { result = result, error = "Your username or Your e-mail is incorrect. " });
+            }
+
+
+
+        }
+        #region check username and email from feelview
+        public List<checkuserfeelview> GetCheckUserFeelview(string user, string email)
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+
+                    _sql = "SELECT CASE WHEN COUNT(*) > 0 THEN 'yes' ELSE 'no' END AS _check FROM fv_system_users WHERE   ";
+                    _sql += " ACCOUNT = '" + user + "' AND EMAIL = '" + email + "'; ";
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetCheckUserFeelviewCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+        protected virtual List<checkuserfeelview> GetCheckUserFeelviewCollectionFromReader(IDataReader reader)
+        {
+            List<checkuserfeelview> recordlst = new List<checkuserfeelview>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetCheckUserFeelviewFromReader(reader));
+            }
+            return recordlst;
+        }
+        protected virtual checkuserfeelview GetCheckUserFeelviewFromReader(IDataReader reader)
+        {
+            checkuserfeelview record = new checkuserfeelview();
+
+            record.check = reader["_check"].ToString();
+            return record;
+        }
+        public class checkuserfeelview
+        {
+            public string check { get; set; }
+        }
+        #endregion
 
         #endregion
 
