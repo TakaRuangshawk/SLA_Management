@@ -614,7 +614,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextArea("memoStr", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
+                                @Html.TextArea("memo", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
                             </div>
                         </div>
                     </div>
@@ -970,7 +970,7 @@
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&memoStr=' + $("#memoStr").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&memo=' + $("#memo").val(),
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);

@@ -378,7 +378,7 @@ namespace SLA_Management.Controllers
 
 
 
-                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd");
 
                 strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderTermProb_Excel") + fname + ".xlsx";
 
@@ -429,7 +429,7 @@ namespace SLA_Management.Controllers
 
 
 
-                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                fname = "DeviceTermProbExcel_" + DateTime.Now.ToString("yyyyMMdd");
 
                 switch (rpttype.ToLower())
                 {
