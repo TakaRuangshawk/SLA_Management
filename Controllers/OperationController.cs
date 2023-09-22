@@ -64,7 +64,7 @@ namespace SLA_Management.Controllers
         #endregion
         public OperationController(IConfiguration myConfiguration)
         {
-            
+
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
@@ -94,7 +94,7 @@ namespace SLA_Management.Controllers
                 Month = DateTime.ParseExact(Month, "MMMM", CultureInfo.CurrentCulture).Month.ToString("D2");
             }
             Console.WriteLine(Year + " | " + Month);
-            FatchDataMainDowntime_m(TerminalID, TerminalSEQ, Month,Year,Orderby,Sortby);
+            FatchDataMainDowntime_m(TerminalID, TerminalSEQ, Month, Year, Orderby, Sortby);
             int pageSize = con.GetCountTable("SELECT COUNT(*) FROM " + slamonthlydowntime_table + "_" + Year + Month);
             if (pageSize == 0)
             {
@@ -102,7 +102,7 @@ namespace SLA_Management.Controllers
             }
             return View(messageRequestList_m.ToPagedList(1, pageSize));
         }
-        private void FatchDataMainDowntime_m(string TerminalID, string TerminalSEQ, string Month, string Year,string Orderby, string Sortby)
+        private void FatchDataMainDowntime_m(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby)
         {
             if (messageRequestList.Count > 0)
             {
@@ -116,10 +116,10 @@ namespace SLA_Management.Controllers
             {
                 com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_record as t2 on t1.TERM_ID =t2.TERM_ID ";
             }
-            if (TerminalSEQ != "" || TerminalID !="")
+            if (TerminalSEQ != "" || TerminalID != "")
             {
                 com.CommandText += "Where ";
-                
+
             }
             if (TerminalSEQ != "")
             {
@@ -137,15 +137,15 @@ namespace SLA_Management.Controllers
                     com.CommandText += " t1.TERM_ID = '" + TerminalID + "' ";
                 }
             }
-            if(Orderby != "TERM_SEQ")
+            if (Orderby != "TERM_SEQ")
             {
                 Orderby += ",TERM_SEQ";
             }
-            com.CommandText += " order by " + Orderby + " " +Sortby;
+            com.CommandText += " order by " + Orderby + " " + Sortby;
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
             messageRequestList_m = SLAReportMonthly.mapToList(con.GetDatatable(com)).ToList();
         }
-        public IActionResult SlaReportDaily(string TerminalID, string Month, string Year, string chk_date,string date, string maxRows)
+        public IActionResult SlaReportDaily(string TerminalID, string Month, string Year, string chk_date, string date, string maxRows)
         {
             string Day = "";
             if (maxRows == null || maxRows == "") maxRows = "200";
@@ -161,24 +161,24 @@ namespace SLA_Management.Controllers
             }
             if (date == null) date = DateTime.Now.ToString("yyyyMMdd");
             ViewBag.idCard = TerminalID;
-            if(Month != null)
+            if (Month != null)
             {
                 Month = DateTime.ParseExact(Month, "MMMM", CultureInfo.CurrentCulture).Month.ToString("D2");
             }
-            if(chk_date == "true")
+            if (chk_date == "true")
             {
                 if (date != null)
                 {
                     date = date.Replace("-", "");
-                    
-                    Year = date.Substring(0,4);
+
+                    Year = date.Substring(0, 4);
                     Month = date.Substring(4, 2);
                     Day = date.Substring(6, 2);
                     Console.WriteLine("test date data : " + date + "Year : " + Year + "Month : " + Month + "Day : " + Day);
 
                 }
             }
-            FatchDataMainDowntime(TerminalID, Day ,Month, Year);
+            FatchDataMainDowntime(TerminalID, Day, Month, Year);
             int pageSize = 0;
             if (Day != "")
             {
@@ -188,7 +188,7 @@ namespace SLA_Management.Controllers
             {
                 pageSize = con.GetCountTable("SELECT COUNT(*) FROM " + sladailydowntime_table + "_" + Year + Month);
             }
-            
+
             if (pageSize == 0)
             {
                 pageSize = 1;
@@ -213,7 +213,7 @@ namespace SLA_Management.Controllers
             ViewBag.status = status;
             ViewBag.idCard = TerminalID;
             ViewBag.Problem_Detail = Problem_Detail;
-            int pageSize = con.GetCountTable("SELECT COUNT(*) FROM "+ sladailydowntime_table);
+            int pageSize = con.GetCountTable("SELECT COUNT(*) FROM " + sladailydowntime_table);
             if (pageSize == 0)
             {
                 pageSize = 1;
@@ -221,7 +221,7 @@ namespace SLA_Management.Controllers
             //FatchDataMainDowntime(TerminalID, Problem_Detail, frDate, toDate, status);
             return View(messageRequestList.ToPagedList(1, pageSize));
         }
-        private void FatchDataMainDowntime(string TerminalID, string Day,string Month, string Year)
+        private void FatchDataMainDowntime(string TerminalID, string Day, string Month, string Year)
         {
             if (messageRequestList.Count > 0)
             {
@@ -260,9 +260,9 @@ namespace SLA_Management.Controllers
             //}
             #endregion 
             if (Day == null) Day = "";
-            if(Month == null) Month = "";
+            if (Month == null) Month = "";
             if (Year == null) Year = "";
-            if(Month != "" && Year != "")
+            if (Month != "" && Year != "")
             {
                 com.CommandText = startquery_reportdaily + sladailydowntime_table + "_" + Year + Month;
             }
@@ -270,7 +270,7 @@ namespace SLA_Management.Controllers
             if (TerminalID != "")
             {
                 com.CommandText += " WHERE  TERM_ID = '" + TerminalID + "' ";
-               
+
                 #region
                 //if (frDate != null && toDate != null)
                 //{
@@ -289,7 +289,7 @@ namespace SLA_Management.Controllers
             }
             if (Day != "")
             {
-                if(TerminalID != "")
+                if (TerminalID != "")
                 {
                     com.CommandText += " AND Report_Date between '" + Year + "-" + Month + "-" + Day + " ' and '" + Year + "-" + Month + "-" + Day + " '";
                 }
@@ -297,7 +297,7 @@ namespace SLA_Management.Controllers
                 {
                     com.CommandText += " Where Report_Date between '" + Year + "-" + Month + "-" + Day + " ' and '" + Year + "-" + Month + "-" + Day + " '";
                 }
-                
+
             }
             com.CommandText += " order by TERM_ID,Open_Date ASC";
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
@@ -312,11 +312,11 @@ namespace SLA_Management.Controllers
             SqlCommand sqlcomm = new SqlCommand(sql_binding_status, con_binding);
             con_binding.Open();
             SqlDataAdapter sda1 = new SqlDataAdapter(sqlcomm);
-            DataSet ds =  new DataSet();
+            DataSet ds = new DataSet();
             sda1.Fill(ds);
             ViewBag.statusname = ds.Tables[0];
             List<SelectListItem> getstatusname = new List<SelectListItem>();
-            foreach(System.Data.DataRow dr in ViewBag.statusname.Rows)
+            foreach (System.Data.DataRow dr in ViewBag.statusname.Rows)
             {
                 getstatusname.Add(new SelectListItem { Text = @dr["MODULE_DESC"].ToString(), Value = @dr["MODULE_DESC"].ToString() });
             }
@@ -467,7 +467,7 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                
+
             }
             com.CommandText += " order by UPDATE_DATE DESC";
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
@@ -477,8 +477,8 @@ namespace SLA_Management.Controllers
         }
         #endregion
         #region Regulator
-        public IActionResult Regulator(string cmdButton, string TermID,string TermSEQ, string FrDate, string ToDate,
-        string currTID,string currTSEQ, string currFr, string currTo, string lstPageSize, string currPageSize, 
+        public IActionResult Regulator(string cmdButton, string TermID, string TermSEQ, string FrDate, string ToDate,
+        string currTID, string currTSEQ, string currFr, string currTo, string lstPageSize, string currPageSize,
         int? page, string maxRows)
         {
             if (cmdButton == "Clear")
@@ -528,7 +528,7 @@ namespace SLA_Management.Controllers
 
                 if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
                 {
-                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd",usaCulture) + " 00:00:00";
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd", usaCulture) + " 00:00:00";
                 }
                 else
                 {
@@ -581,7 +581,7 @@ namespace SLA_Management.Controllers
             }
             catch (Exception ex)
             {
-              
+
             }
             return View(recordset_regulator.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
@@ -704,7 +704,7 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region CheckEJSize
-        
+
         public IActionResult CheckEJSize(string cmdButton, string TermID, string FrDate, string ToDate,
         string currTID, string currFr, string currTo, string lstPageSize, string currPageSize,
         int? page, string maxRows)
@@ -894,7 +894,7 @@ namespace SLA_Management.Controllers
         }
         private static List<Device_info_record> GetDeviceInfoRecord()
         {
-         
+
             SqlCommand com = new SqlCommand();
             com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1  order by TERM_SEQ;";
             DataTable testss = db.GetDatatable(com);
@@ -914,11 +914,11 @@ namespace SLA_Management.Controllers
 
             return test;
         }
-        private static List<TicketJob> GetJobNumber(string frommonth,string tomonth)
+        private static List<TicketJob> GetJobNumber(string frommonth, string tomonth)
         {
 
             SqlCommand com = new SqlCommand();
-            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail_"+ frommonth+ " union all SELECT Job_No FROM t_tsd_JobDetail_" + tomonth;
+            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail_" + frommonth + " union all SELECT Job_No FROM t_tsd_JobDetail_" + tomonth;
             DataTable testss = db.GetDatatable(com);
 
             List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
@@ -926,9 +926,9 @@ namespace SLA_Management.Controllers
             return test;
         }
         [HttpGet]
-        public IActionResult TicketManagement(string termid,string ticket,DateTime? todate, DateTime? fromdate,string mainproblem,string terminaltype,string jobno, int? maxRows, string cmdButton)
+        public IActionResult TicketManagement(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, int? maxRows, string cmdButton)
         {
-            
+
             int pageSize = 20;
             recordset_ticketManagement = new List<TicketManagement>();
             pageSize = maxRows.HasValue ? maxRows.Value : 100;
@@ -936,8 +936,8 @@ namespace SLA_Management.Controllers
             mainproblem = mainproblem ?? "";
             terminaltype = terminaltype ?? "";
             jobno = jobno ?? "";
-            
-            
+
+
             if (fromdate.HasValue && todate.HasValue)
             {
                 if (fromdate <= todate)
@@ -949,12 +949,12 @@ namespace SLA_Management.Controllers
                     }
                     DateTime _fromdate = (DateTime)fromdate;
                     DateTime _todate = (DateTime)todate;
-                    recordset_ticketManagement = GetTicketManagementFromSqlServer(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem,jobno,terminaltype);
+                    recordset_ticketManagement = GetTicketManagementFromSqlServer(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
                     ticket_dataList = recordset_ticketManagement;
                 }
             }
-           
-            DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1); 
+
+            DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
             DateTime job_todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
             ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyyMM"), job_todate.ToString("yyyyMM"));
             ViewBag.JobNo = jobno;
@@ -965,7 +965,7 @@ namespace SLA_Management.Controllers
             ViewBag.TERM_ID = termid;
             ViewBag.terminaltype = terminaltype;
             ViewBag.mainproblem = mainproblem;
-            if(fromdate != null)
+            if (fromdate != null)
             {
                 ViewBag.CurrentFr = fromdate;
             }
@@ -973,7 +973,7 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.CurrentFr = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).ToString("yyyy-MM-dd");
             }
-            if(todate != null)
+            if (todate != null)
             {
                 ViewBag.CurrentTo = todate;
             }
@@ -988,7 +988,7 @@ namespace SLA_Management.Controllers
             }
             return View(recordset_ticketManagement);
         }
-        public List<TicketManagement> GetTicketManagementFromSqlServer(string fromdate, string todate, string termid, string mainproblem,string jobno,string terminaltype)
+        public List<TicketManagement> GetTicketManagementFromSqlServer(string fromdate, string todate, string termid, string mainproblem, string jobno, string terminaltype)
         {
             List<TicketManagement> dataList = new List<TicketManagement>();
             DateTime fromdateTimeValue = DateTime.ParseExact(fromdate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -1013,27 +1013,33 @@ namespace SLA_Management.Controllers
                 return monthList;
             }
             List<string> monthList = GenerateMonthList(fordb_fromdate, fordb_todate);
+            //string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
+            //sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            //sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
+            //sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
+            //sqlQuery += " FROM t_tsd_JobDetail_" + fordb_fromdate + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
+            //if(fordb_fromdate != fordb_todate)
+            //{
+            //    if (fromdate != "")
+            //    {
+            //        sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+            //    }
+            //    else
+            //    {
+            //        sqlQuery += " a.Open_Date between '" + firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+            //    }
+            //}
+            //else
+            //{
+            //    sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+            //}
             string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
             sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
             sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
             sqlQuery += " FROM t_tsd_JobDetail_" + fordb_fromdate + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
-            if(fordb_fromdate != fordb_todate)
-            {
-                if (fromdate != "")
-                {
-                    sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-                }
-                else
-                {
-                    sqlQuery += " a.Open_Date between '" + firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-                }
-            }
-            else
-            {
-                sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
-            }
-           
+            sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+
             if (termid != "")
             {
                 sqlQuery += " and a.TERM_ID = '" + termid + "' ";
@@ -1050,57 +1056,58 @@ namespace SLA_Management.Controllers
             {
                 sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
             }
-            if (fordb_fromdate != fordb_todate)
-            {
+            sqlQuery += " order by a.Open_Date asc";
+            //if (fordb_fromdate != fordb_todate)
+            //{
 
-                foreach (string month in monthList)
-                {
-                    if (diff > 0)
-                    {
-                        sqlQuery += " UNION ALL SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
-                        sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
-                        sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
-                        sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-                        sqlQuery += " FROM t_tsd_JobDetail_" + month + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
-                        if (month != fordb_todate)
-                        {
-                            int checkyear = int.Parse(month.Substring(0, 4));
-                            int checkmonth = int.Parse(month.Substring(4, 2));
-                            DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
-                            DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
-                            sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + _lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-                        }
-                        else
-                        {
-                            int checkyear = int.Parse(month.Substring(0, 4));
-                            int  checkmonth = int.Parse(month.Substring(4, 2));
-                            DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
-                            DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
-                            sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
-                        }
-                        if (termid != "")
-                        {
-                            sqlQuery += " and a.TERM_ID = '" + termid + "' ";
-                        }
-                        if (jobno != "")
-                        {
-                            sqlQuery += " and a.Job_No ='" + jobno + "' ";
-                        }
-                        if (mainproblem != "")
-                        {
-                            sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
-                        }
-                        if (terminaltype != "")
-                        {
-                            sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
-                        }
-                        
-                    }
+            //    foreach (string month in monthList)
+            //    {
+            //        if (diff > 0)
+            //        {
+            //            sqlQuery += " UNION ALL SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
+            //            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            //            sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
+            //            sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
+            //            sqlQuery += " FROM t_tsd_JobDetail_" + month + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
+            //            if (month != fordb_todate)
+            //            {
+            //                int checkyear = int.Parse(month.Substring(0, 4));
+            //                int checkmonth = int.Parse(month.Substring(4, 2));
+            //                DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
+            //                DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
+            //                sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + _lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
+            //            }
+            //            else
+            //            {
+            //                int checkyear = int.Parse(month.Substring(0, 4));
+            //                int  checkmonth = int.Parse(month.Substring(4, 2));
+            //                DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
+            //                DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
+            //                sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+            //            }
+            //            if (termid != "")
+            //            {
+            //                sqlQuery += " and a.TERM_ID = '" + termid + "' ";
+            //            }
+            //            if (jobno != "")
+            //            {
+            //                sqlQuery += " and a.Job_No ='" + jobno + "' ";
+            //            }
+            //            if (mainproblem != "")
+            //            {
+            //                sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
+            //            }
+            //            if (terminaltype != "")
+            //            {
+            //                sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
+            //            }
 
-                    diff++;
-                }
-                sqlQuery += " order by a.Open_Date asc";
-            }
+            //        }
+
+            //        diff++;
+            //    }
+
+            //}
             try
             {
                 using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))
@@ -1124,7 +1131,7 @@ namespace SLA_Management.Controllers
             {
 
             }
-                return dataList;
+            return dataList;
         }
         protected virtual TicketManagement GetTicketManagementFromReader(IDataReader reader)
         {
@@ -1215,8 +1222,8 @@ namespace SLA_Management.Controllers
         }
         #endregion
         #region CheckEJLastUpdate
-        public IActionResult CheckEJLastUpdate(string cmdButton, string termid, string Hours,string TermSEQ,string TerminalType,string status,
-        string currTID, string currHours, string currTSEQ,string lstPageSize, string currPageSize,
+        public IActionResult CheckEJLastUpdate(string cmdButton, string termid, string Hours, string TermSEQ, string TerminalType, string status,
+        string currTID, string currHours, string currTSEQ, string lstPageSize, string currPageSize,
         int? page, string maxRows)
         {
             if (cmdButton == "Clear")
@@ -1242,14 +1249,14 @@ namespace SLA_Management.Controllers
                 ViewBag.status = status;
             }
             param_checkej.status = ViewBag.status;
-            param_checkej.TerminalType= ViewBag.TerminalType;
+            param_checkej.TerminalType = ViewBag.TerminalType;
             //add hours
             List<String> items = new List<String>();
             DateTime currentTime = DateTime.Now;
-           
+
             for (int i = 0; i <= currentTime.Hour; i++)
             {
-              
+
                 items.Add(i.ToString());
             }
 
@@ -1258,7 +1265,7 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.CurrentTID = GetDeviceInfoFeelview();
                 ViewBag.TERM_ID = termid;
-                if (null == termid && null == Hours  && null == page)
+                if (null == termid && null == Hours && null == page)
                 {
                     page = 1;
                 }
@@ -1281,7 +1288,7 @@ namespace SLA_Management.Controllers
                 else
                     param_checkej.SerialNo = TermSEQ == null ? "" : TermSEQ;
 
-                if ((Hours == null && currHours == null))   
+                if ((Hours == null && currHours == null))
                 {
 
                     param_checkej.Hours = currHours == null ? "" : currHours;
@@ -1314,7 +1321,7 @@ namespace SLA_Management.Controllers
                     recCnt = recordset_ejloglastupdate.Count;
                     ejloglastupdate_datalist = recordset_ejloglastupdate;
                     param_checkej.PAGESIZE = recordset_ejloglastupdate.Count;
-                    
+
                 }
 
 
@@ -1335,11 +1342,11 @@ namespace SLA_Management.Controllers
         }
         public List<ejloglastupdate> GetEJLastUpdate(ejchecksize_seek model)
         {
-            
+
             DateTime currentDate = DateTime.Now;
-            string formattedDate = currentDate.ToString("yyyyMMdd",usaCulture);
+            string formattedDate = currentDate.ToString("yyyyMMdd", usaCulture);
             string hours = "";
-            if(model.Hours != "")
+            if (model.Hours != "")
             {
                 hours = model.Hours;
             }
@@ -1358,13 +1365,13 @@ namespace SLA_Management.Controllers
                     _sql += " FROM gsb_adm_fv.ejournal_upload_log as a";
                     _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
                     _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
-                    _sql += " WHERE c.LASTTRAN_TIME is not null and a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > " + hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
+                    _sql += " WHERE c.LASTTRAN_TIME is not null and a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > " + hours + " AND a.FILE_NAME = 'EJ" + formattedDate + ".txt'";
 
                     if (model.TerminalNo.ToString() != "")
                     {
                         _sqlWhere += " and a.TERM_ID = '" + model.TerminalNo + "'";
                     }
-                    if(model.SerialNo.ToString() != "")
+                    if (model.SerialNo.ToString() != "")
                     {
                         _sqlWhere += " and b.TERM_SEQ = '" + model.SerialNo + "'";
                     }
@@ -1372,11 +1379,11 @@ namespace SLA_Management.Controllers
                     {
                         _sqlWhere += " and (TIMESTAMPDIFF(HOUR,a.UPDATE_DATE,c.LASTTRAN_TIME ) > 1 OR DATEDIFF(DATE(a.UPDATE_DATE), DATE(c.LASTTRAN_TIME)) > 0)";
                     }
-                    if(model.TerminalType.ToString() != "")
+                    if (model.TerminalType.ToString() != "")
                     {
-                        _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType +"'";
-                    }   
-                    _sql +=  _sqlWhere;
+                        _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType + "'";
+                    }
+                    _sql += _sqlWhere;
                     _sql += " group by a.TERM_ID order by c.LASTTRAN_TIME > DATE_ADD(a.UPDATE_DATE, INTERVAL 1 HOUR) desc ,b.TERM_SEQ asc";
 
                     cn.Open();
@@ -1440,7 +1447,7 @@ namespace SLA_Management.Controllers
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
-            
+
             try
             {
 
