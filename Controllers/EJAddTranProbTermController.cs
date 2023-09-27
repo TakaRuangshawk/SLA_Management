@@ -108,34 +108,34 @@ namespace SLA_Management.Controllers
                         strTemp = "";
                         if (ViewBag.ProbMaster == "")
                         {
-                            if (obj.ProblemName.Length > 65)
-                            {
-                                strTemp = obj.ProblemCode + "$" + obj.ProblemName;
-                            }
-                            else
-                            {
-                                strTemp = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            //if (obj.ProblemName.Length > 65)
+                            //{
+                            //    strTemp = obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            //else
+                            //{
+                            //    strTemp = obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
 
-                            }
+                            //}
 
-                            if (strTemp.Length > 65) strTemp = obj.ProblemCode + "$" + obj.ProblemName;
-
+                            //if (strTemp.Length > 65) strTemp = obj.ProblemCode + "$" + obj.ProblemName;
+                            strTemp = obj.ProblemCode + "$" + obj.Memo + " : " + obj.ProblemName;
                         }
                         else
                         {
-                            if (obj.ProblemName.Length > 65)
-                            {
-                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
-                            }
-                            else
-                            {
-                                strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
+                            //if (obj.ProblemName.Length > 65)
+                            //{
+                            //    strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            //else
+                            //{
+                            //    strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName + " : " + obj.Memo;
 
 
-                            }
-                            if (strTemp.Length > 65) strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
+                            //}
+                            //if (strTemp.Length > 65) strTemp = "|" + obj.ProblemCode + "$" + obj.ProblemName;
 
-
+                            strTemp = "|" + obj.ProblemCode + "$" + obj.Memo + " : " + obj.ProblemName;
                         }
 
                         if (strTemp != null && strTemp != string.Empty)
@@ -458,7 +458,54 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+    
+        [HttpPost]
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string memoStr)
+        {
+            bool result = false;
+            string error = "incomplete information";
+            string _checkuser = "";
+            var checkruser = dBService.GetCheckUserFeelview(username, email);
+            foreach (var Data in checkruser)
+            {
+                if (Data.check == "yes")
+                {
+                    _checkuser = "yes";
+                }
+                else
+                {
+                    _checkuser = "no";
+                }
 
+            }
+
+            if (_checkuser == "yes")
+            {
+                try
+                {
+                    if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memoStr,username);
+
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                }
+
+
+                if (result == false)
+                    if (dBService.ErrorMessage != null) error = dBService.ErrorMessage;
+
+                return Json(new { result = result, error = error });
+            }
+            else
+            {
+                return Json(new { result = result, error = "Your username or Your e-mail is incorrect. " });
+            }
+
+
+
+        }
     }
 
 }

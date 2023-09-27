@@ -46,11 +46,11 @@ namespace SLA_Management.Data.TermProb
                 }
 
 
-                return result;
+                
             }
             catch (Exception ex)
             { throw ex; }
-
+            return result;
         }
 
         public List<Device_info_record> GetDeviceInfoFeelview()
@@ -72,7 +72,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "Select * From ejlog_problemmascode where status = '1'";
+                _sql = "Select * From ejlog_problemmascode where status = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
