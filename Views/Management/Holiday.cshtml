@@ -8,44 +8,179 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function() {
-      var calendarEl = document.getElementById('calendar');
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'multiMonthYear,dayGridMonth'
-        },
-        //initialDate: '2023-01-01',
-        navLinks: true, // can click day/week names to navigate views
-        selectable: true,
-        selectMirror: true,
-        select: function(arg) {
-          var title = prompt('Event Title:');
-          if (title) {
-            calendar.addEvent({
-              title: title,
-              start: arg.start,
-              end: arg.end,
-              allDay: arg.allDay
-            })
-          }
-          calendar.unselect()
-        },
-        eventClick: function(arg) {
-          if (confirm('Are you sure you want to delete this event?')) {
-            arg.event.remove()
-          }
-        },
-
-        editable: true,
-        dayMaxEvents: true, // allow "more" link when too many events
-        events: '/Management/GetEvents',
-      });
-
-      calendar.render();
+      
+       
     });
+    function checkuser() {
+        // Get the value from the input element
+        var username = document.getElementById("username").value;
+        var email = document.getElementById("email").value;
+        var calendar = document.getElementById("calendar");
+        // Perform an AJAX request using the value
+        $.ajax({
+            url: '@Url.Action("CheckUser","Management")',
+            method: 'POST',
+            data: { username: username,
+                    email : email
+            },
+            success: function (response) {
+                console.log("Data retrieved:", response);
+                if(response === "yes"){
+                    document.getElementById("username").readOnly = true;
+                    document.getElementById("email").readOnly = true;
+                    document.getElementById("username").style.backgroundColor = "lightgray";
+                    document.getElementById("email").style.backgroundColor= "lightgray";
+                    var calendarEl = document.getElementById('calendar');
+                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'multiMonthYear,dayGridMonth'
+                        },
+                        //initialDate: '2023-01-01',
+                        navLinks: true, // can click day/week names to navigate views
+                        selectable: true,
+                        selectMirror: true,
+                        select: function (arg) {
+                            var title = prompt('Event Title:');
+                            if (title) {
+                                calendar.addEvent({
+                                    title: title,
+                                    start: arg.start,
+                                    end: arg.end,
+                                    allDay: arg.allDay
+                                });
+                                $.ajax({
+                                    url: '@Url.Action("CreateEvent","Management")', // Controller action for inserting events
+                                    type: 'POST',
+                                    data: {
+                                        title: title,
+                                        start: arg.start.toISOString(),
+                                        user: document.getElementById("username").value,
+                                    },
+                                    success: function (response) {
 
+                                    },
+                                    error: function (error) {
+
+                                    }
+                                });
+                            }
+                            calendar.unselect()
+                        },
+                        eventClick: function (arg) {
+                            if (confirm('Are you sure you want to delete this event?')) {
+                                $.ajax({
+                                    url: '@Url.Action("DeleteEvent","Management")', // Controller action for deleting events
+                                    type: 'POST',
+                                    data: {
+                                        title: arg.event.title,
+                                        start: arg.event.start.toISOString() // Convert to ISO format
+                                    },
+                                    success: function (response) {
+
+                                    },
+                                    error: function (error) {
+
+                                    }
+                                });
+                                arg.event.remove()
+
+                            }
+                        },
+
+                        editable: true,
+                        dayMaxEvents: true, // allow "more" link when too many events
+                        events: '@Url.Action("GetEvents","Management")',
+                    });
+
+                    calendar.render();
+                }
+                else{
+                    alert("Username หรือ E-mail ไม่ถูกต้อง");
+                }
+            },
+            error: function (error) {
+                console.error("Error:", error);
+                alert("Username หรือ E-mail ไม่ถูกต้อง");
+            }
+        });
+    }
 </script>
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+    }
+</style>
 <style>
   #calendar {
     width: 100%;
@@ -65,9 +200,58 @@
         color: #222222;
         text-decoration: #222222;
     }
-    .fc-day-sat { background-color:lightsteelblue; }
-    .fc-day-sun { background-color: #ffadad;  }
+
+    .fc-day-sat {
+        background-color:  #ffadad;
+    }
+    .fc-day-sun { 
+        background-color: #ffadad;  
+    }
 </style>
+<div class="container">
+    <div class="row">
+        <div class="col col-md-1">
+        </div>
+        <div class="col col-md-4">
+            <a class="text-white fs-4" id="header_search">Holiday</a>
+        </div>
+    </div>
+    <div id="main_search">
+
+        <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-evenly;padding:0vw 4vw 0vw 4vw;white-space:nowrap;">
+
+                <div class="col-md-1">
+                    <label>Username : </label>
+                </div>
+                <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <input type="text" id="username" placeholder="username(feelview)">
+                </div>
+                <div class="col-md-1">
+                    <label>Email : </label>
+                </div>
+                <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <input type="text" id="email" placeholder="e-mail(feelview)">
+                </div>
+
+                
+            </div>
+
+            <div class="row">
+
+                <div class="col" id="before-submit">
+                    <div id="submit">
+
+                    <button onclick="checkuser()" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                        
+                    </div>
+                </div>
+            </div>
+        
+    </div>
+</div>
 <div class="container-fluid">
+
     <div id="calendar"></div>
 </div>

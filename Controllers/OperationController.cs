@@ -918,7 +918,7 @@ namespace SLA_Management.Controllers
         {
 
             SqlCommand com = new SqlCommand();
-            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail_" + frommonth + " union all SELECT Job_No FROM t_tsd_JobDetail_" + tomonth;
+            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail where Open_Date between '" + frommonth + " 00:00:00' and '" + tomonth + " 23:59:59'"; ;
             DataTable testss = db.GetDatatable(com);
 
             List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
@@ -956,7 +956,7 @@ namespace SLA_Management.Controllers
 
             DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
             DateTime job_todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
-            ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyyMM"), job_todate.ToString("yyyyMM"));
+            ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"));
             ViewBag.JobNo = jobno;
             ViewBag.countrow = recordset_ticketManagement.Count;
             ViewBag.maxRows = pageSize;
@@ -1037,7 +1037,7 @@ namespace SLA_Management.Controllers
             sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
             sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-            sqlQuery += " FROM t_tsd_JobDetail_" + fordb_fromdate + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
+            sqlQuery += " FROM t_tsd_JobDetail a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
             sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
 
             if (termid != "")
