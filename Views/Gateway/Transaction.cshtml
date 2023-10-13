@@ -1,8 +1,9 @@
 ﻿@model PagedList.IPagedList<SLA_Management.Models.OperationModel.GatewayTransaction>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Gateway ";
     string[] tableHeaders = new string[]
     {
+    "ID",
     "Seqno ",
     "PhoneOTP ",
     "AcctNoTo ",
@@ -11,7 +12,8 @@
     "TransDateTime ",
     "TerminalID ",
     "Amount ",
-    "Status"
+    "Status",
+    "ErrorCode"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -48,114 +50,148 @@
 </style>
 
 <style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
     select.form-control {
         -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
     }
 </style>
 
 
-<div class="content contentHeader">
     <div class="container w-auto containerHeader">
-        <div class="row">
-            <div class="col col-lg-1">
-            </div>
-            <div class="col col-lg-4">
-                <p class="text-black fs-2">Gateway Transaction</p>
-            </div>
+   
+    <div class="row">
+        <div class="col col-md-1">
         </div>
+        <div class="col col-md-4">
+            <a class="text-white fs-4" id="header_search">Gateway Transaction</a>
+        </div>
+    </div>
 
-
-        <div style="margin-bottom: 50px;padding: 30px 0;margin-left: 50px;border: 1px solid black;">
+    <div id="main_search">
+    
             @using (Html.BeginForm("Transaction", "Gateway", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col-md-1">
-                    </div>
-                    <div class="col-md-2" style="width: 112px;">
+        <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+              
+                    <div class="col-md-1" style="width: 112px;">
                         <h>Terminal ID : </h>
                     </div>
                     <div class="col-md-2 " style="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("TermID", ViewBag.CurrentTerminalno as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID"})
+                        <div class="">
+                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("terminalno", ViewBag.CurrentTerminalno as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID"})
                         </div>
                     </div>
-                    @* <div class="col-md-2" style="margin-left:30px">
-                @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
-                </div>*@
-                    @*<div class="item col-md-2" style="margin-left:30px;border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTID)
-                            {
-                                if (@item != @ViewBag.TermID)
-
-                                {
-                                    <option data-tokens=@item>@item</option>
-                                }
-                                else
-                                {
-                                    <option data-tokens=@item selected>@item</option>
-
-                                }
-
-
-                            }
-                        </select>
-                    </div>*@
-                    <div class="col-md-2" style="width: 112px;">
+                 
+                    <div class="col-md-1" style="width: 112px;">
                         <h>From Date : </h>
                     </div>
-                    <div class="col-md-2 " style="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                    <div class="col-md-2 " style="">
+                        <div class="">
+                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                         </div>
                     </div>
-                    <div class="col-md-2" style="width: 112px;">
+                    <div class="col-md-1" style="width: 112px;">
                         <h>To Date : </h>
                     </div>
-                    <div class="col-md-2" style="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                    <div class="col-md-2" style="">
+                        <div class="">
+                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("todate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                         </div>
                     </div>
                 </div>
-                <div class="row" style ="margin-top: 15px;align-items:center;">
-                     <div class="col-md-1">
-                     </div>
-                        <div class="col-md-2" style="width: 112px;">
-                        <h>Phone NO : </h>
-                    </div>
-                    <div class="col-md-2" style ="margin-left:30px">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("phoneotp", ViewBag.CurrentPhoneotp as string, new { @class = "form-control subsearch", @placeholder = "Phone No" })
-                        </div>
-                    </div>
-                    <div class="col-md-2" style="width: 112px;">
+        <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+                 
+                    
+                    <div class="col-md-1" style="width: 112px;">
                         <h>Account To : </h>
                     </div>
                     <div class="col-md-2" style ="margin-left:30px">
-                        <div class="input-group">
+                        <div class="">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("acctnoto", ViewBag.CurrentAcctnoto as string, new { @class = "form-control subsearch", @placeholder = "Account No" })
                         </div>
                     </div>
-                      <div class="col-md-2" style="width: 112px;">
+                      <div class="col-md-1" style="width: 112px;">
                         <h>Trx Type : </h>
                     </div>
-                    <div class="col-md-2" style ="margin-left:30px">
-                        @*<div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("transtype", ViewBag.CurrentTranstype as string, new { @class = "form-control subsearch", @placeholder = "Trx. Type" })
-                        </div>*@
+                    <div class="col-md-2" style ="">
+                      
                          <div class="form-group">
-                        @Html.DropDownList("transtype", new SelectListItem[] {
+                            @Html.DropDownList("transtype", new SelectListItem[] {
                         new SelectListItem(){ Text="ALL", Value = ""  },
-                        new SelectListItem(){ Text="DEP", Value = "DEP"  },
-                        new SelectListItem(){ Text="PAY", Value = "PAY"  }
+                        new SelectListItem(){ Text="DEP : Deposit", Value = "DEP"  },
+                        new SelectListItem(){ Text="PAY : Payment", Value = "PAY"  }
                         }, new
                         {
                         @class = "form-control dropdown"
@@ -164,51 +200,38 @@
                         })
                         </div>
                     </div>
-                </div>
-                <div class="row" style ="margin-top: 15px;align-items:center;">
-                    <div class="col-md-1">
-                     </div>
-                        <div class="col-md-2" style="width: 112px;">
+                    <div class="col-md-1" style="width: 112px;">
                         <h>Status : </h>
                     </div>
-                    <div class="col-md-2" style ="margin-left:30px">
-                        @*<div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("updatestatus", ViewBag.CurrentUpdatestatus as string, new { @class = "form-control subsearch", @placeholder = "Status" })
-                        </div>*@
+                    <div class="col-md-2" style="">
                         <div class="form-group">
-                        @Html.DropDownList("updatestatus", new SelectListItem[] {
-                        new SelectListItem(){ Text="ALL", Value = ""  },
-                        new SelectListItem(){ Text="Y", Value = "Y"  },
-                        new SelectListItem(){ Text="N", Value = "N"  }
+                            @Html.DropDownList("status", new SelectListItem[] {
+                                new SelectListItem(){ Text="ALL", Value = ""  },
+                                new SelectListItem(){ Text="Y : Succeed", Value = "Y"  },
+                                new SelectListItem(){ Text="N : Failed", Value = "N"  }
                         }, new
                         {
-                        @class = "form-control dropdown"
-                        ,
-                        @name = "state"
-                        })
+                            @class = "form-control dropdown"
+                            ,
+                            @name = "state"
+                            })
                         </div>
-                    </div>
+            </div>
                 </div>
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                 
-                </div>
-                <div class="row " style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
-                    </div>
-                    <div class="col col-lg-1">
+
+        <div class="row " style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+
+                    <div style="width: 112px;"  class="col-md-1">
                         <h>Rows : </h>
                     </div>
 
-                    <div class="col-md-1" style="margin-left: 35px">
+                    <div class="col-md-2" style="">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        @Html.DropDownList("row", new SelectListItem[] {
                         new SelectListItem(){ Text="20", Value = "20"  },
                         new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="500", Value = "1000"  }
+                        new SelectListItem(){ Text="500", Value = "500"  }
                         }, new
                         {
                         @class = "form-control dropdown"
@@ -219,55 +242,37 @@
 
                         </div>
                     </div>
+                    <div style="width: 112px;" class="col-md-1"></div>
+                    <div class="col-md-2"></div>
+                    <div style="width: 112px;" class="col-md-1"></div>
+                    <div class="col-md-2"></div>
                 </div>
 
+                <div class="row">
 
-                <div class="row justify-content-md-center" style="margin-top: 15px">
+                    <div class="col" id="before-submit">
+                    <div id="submit">
 
-                    @if (ViewBag.ConnectDB == "false")
-                    {
-                        <div class="col col-lg-2">
-                            <p style="color: red "> Can't connect database !</p>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="button" id="btnsearch" class="btn btn-secondary" style="height:41px;">search  </button>
-                        </div>
-                        <div class="col col-lg-1">
-                            <button type="reset" id="btnclear" class="btn btn-secondary" style="height:41px;" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="col-lg-1">
-                        </div>
-                        <div class= "col-lg-2">
-                            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
-                        </div>
-                        <div class="col-lg-2">
-                            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-                        </div>
-                        <div class="col col-lg-2">
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-                                <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-                            </a>
-                        </div>
-                    }
-
-
+                        <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                    </button>
+                    <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                        <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                    </button>
+                   <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                        <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                    </a>
+                    </div>
+                    </div>
                 </div>
-
             }
 
         </div>
-
+</div>
+        <div class="container-fluid">
         <div class="table-responsive" style="overflow-x: hidden;">
             <table id="table-id" class="table table-striped custom-table">
-                <thead>
+                <thead id="t-header" style="">
                     <tr>
                         @{
                             foreach (var head in tableHeaders)
@@ -280,31 +285,7 @@
                 </thead>
 
                 <tbody>
-                    @{
-                        if (Model != null)
-                        {
-                            foreach (var Data in Model)
-                            {
-                                <tr>
-                                    <td> @Data.seqno </td>
-                                    <td> @Data.phoneotp </td>
-                                    <td> @Data.acctnoto</td>
-                                    <td> @Data.frombank</td>
-                                    <td> @Data.transtype</td>
-                                    <td> @Data.transdatetime</td>
-                                    <td> @Data.terminalno</td>
-                                    <td> @Data.amount</td>
-                                    <td> @Data.updatestatus </td>
-                                </tr>
-                            }
-
-                        }
-                        if (Model.Count == 0)
-                        {
-
-                        <td colspan="12" style="text-align: center;"> NO DATA </td>
-                        }
-                    }
+                  
                 </tbody>
 
 
@@ -312,25 +293,10 @@
 
 
             <div class="row">
-                <div class="col colPagination" style="padding-top:10px;z-index:1;">
-
-                    <nav>
-                        <div class="pagination">
-                            <li data-page="prev" id="back">
-                                <a style="color: #333333;"> < </a>
-                            </li>
-                            <!--	Here the JS Function Will Add the Rows -->
-                            <li data-page="next" id="prev">
-                                <a style="color: #333333;"> > </a>
-                            </li>
-
-                        </div>
-                    </nav>
-                </div>
                 <div class="col-md-2" style="z-index:2;">
                     <p style="font-size:16px;font-weight:bolder;">
                         Select page :
-                        @Html.DropDownList("seletePageNow", new SelectListItem[] {
+                        @Html.DropDownList("page", new SelectListItem[] {
 
                         }, new
                         {
@@ -338,285 +304,120 @@
                         })
                     </p>
                 </div>
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div id="prevnext" class="pagination" style="visibility:hidden;">
+                        <li data-page="prev" id="back" onclick="updateTable('prev')">
+                            <a style="color: #7a7a7a;"> < </a>
+                        </li>
+                        <li data-page="next" id="next" onclick="updateTable('next')">
+                            <a style="color: #7a7a7a;"> > </a>
+                        </li>
+
+                    </div>
+                </nav>
+            </div>
             </div>
 
         </div>
 
     </div>
 
-</div>
 
 
 <script>
-    @* $(document).ready(function () {
-        $(function () {
-
-        $('#FrDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-
-        $('#ToDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-        });
-        });*@
-
-        $("#GatewayDateRecheckDate").submit(function (e) {
-            var FrDateTemp = new Date($('#FrDate').val());
-            var ToDateTemp = new Date($('#ToDate').val());
-
-            if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
-                alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
-                return false;
-            } else {
-                return true;
-            }
-        });
-
-    getPagination('#table-id', @ViewBag.maxRows);
-
-
-    function getPagination(table, row) {
-        var lastPage = 1;
-
-        $('#maxRows')
-            .on('change', function (evt) {
-                $('.paginationprev').html('');
-
-                lastPage = 1;
-                $('.pagination')
-                    .find('li')
-                    .slice(1, -1)
-                    .remove();
-                var trnum = 0;
-                var maxRows = parseInt($(this).val());
-
-                if (maxRows == 5000) {
-                    $('.pagination').hide();
-                } else {
-                    $('.pagination').show();
-                }
-
-                var totalRows = $(table + ' tbody tr').length; // numbers of rows
-                $(table + ' tr:gt(0)').each(function () {
-                    // each TR in  table and not the header
-                    trnum++; // Start Counter
-                    if (trnum > maxRows) {
-                        // if tr number gt maxRows
-
-                        $(this).hide(); // fade it out
-                    }
-                    if (trnum <= maxRows) {
-                        $(this).show();
-                    } // else fade in Important in case if it ..
-                }); //  was fade out to fade it in
-                if (totalRows > maxRows) {
-                    // if tr total rows gt max rows option
-                    var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
-                    //	numbers of pages
-
-                    for (var i = 1; i <= pagenum;) {
-                        // for each page append pagination li
-                        $('.pagination #prev')
-                            .before(
-                                '<li data-page="' +
-                                i +
-                                '">\
-                                                               <a style="color: #333333;">' +
-                                i++ +
-                                '\
-                                                                        </li>'
-                            )
-                            .show();
-                    } // end for i
-                    $('#back').show();
-
-
-
-                } else {
-                    $('#back').hide();
-                    $('#prev').hide();
-                }
-
-                // end if row count > max rows
-                $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
-                $('.pagination li').on('click', function (evt) {
-                    // on click each page
-                    evt.stopImmediatePropagation();
-                    evt.preventDefault();
-                    var pageNum = $(this).attr('data-page'); // get it's number
-
-                    var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
-
-
-
-                    if (pageNum == 'prev') {
-                        if (lastPage == 1) {
-                            return;
-                        }
-                        pageNum = --lastPage;
-                    }
-                    if (maxRows < totalRows) {
-                        if (pageNum == 'next') {
-                            if (lastPage == $('.pagination li').length - 2) {
-                                return;
-                            }
-                            pageNum = ++lastPage;
-                        }
-                    }
-
-
-                    lastPage = pageNum;
-                    var trIndex = 0; // reset tr counter
-                    $('.pagination li').removeClass('active'); // remove active class from all li
-                    $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
-                    // $(this).addClass('active');					// add active class to the clicked
-                    limitPagging();
-                    $(table + ' tr:gt(0)').each(function () {
-                        // each tr in table not the header
-                        trIndex++; // tr index counter
-                        // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
-                        if (
-                            trIndex > maxRows * pageNum ||
-                            trIndex <= maxRows * pageNum - maxRows
-                        ) {
-                            $(this).hide();
-                        } else {
-                            $(this).show();
-                        } //else fade in
-                    }); // end of for each tr in table
-
-
-                    $('#seletePageNow').val(lastPage);
-
-
-
-
-                }); // end of on click pagination list
-
-                limitPagging();
-    @*Set value in seletePage box*@
-                    $('#seletePageNow')
-                        .find('option')
-                        .remove()
-                        .end();
-
-
-                var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
-
-
-                                                      var select = document.getElementById("seletePageNow");
-                for (var i = parseInt(pagenum); i > 0; i--) {
-                    var option = document.createElement('option');
-                    option.text = option.value = i;
-                    select.add(option, 0);
-                }
-
-                $('#seletePageNow').val(lastPage);
-
-            })
-            .val(row)
-            .change();
-
-
-
-        $('#seletePageNow')
-            .on('change', function (evt) {
-                // on click each page
-                evt.stopImmediatePropagation();
-                evt.preventDefault();
-                var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
-
-                var pageNum = $(this).val();
-
-                if (pageNum == null) pageNum = 1;
-
-
-
-
-
-                lastPage = pageNum;
-                var trIndex = 0; // reset tr counter
-                $('.pagination li').removeClass('active'); // remove active class from all li
-                $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
-                // $(this).addClass('active');					// add active class to the clicked
-                limitPagging();
-                $(table + ' tr:gt(0)').each(function () {
-                    // each tr in table not the header
-                    trIndex++; // tr index counter
-                    // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
-                    if (
-                        trIndex > maxRows * pageNum ||
-                        trIndex <= maxRows * pageNum - maxRows
-                    ) {
-                        $(this).hide();
-                    } else {
-                        $(this).show();
-                    } //else fade in
-                }); // end of for each tr in table
-            }).change();
-
-
-
-        // end of on select change
-
-        // END OF PAGINATION
-    }
-
-
-    function limitPagging() {
-        // alert($('.pagination li').length)
-
-        if ($('.pagination li').length > 7) {
-            if ($('.pagination li.active').attr('data-page') <= 3) {
-                $('.pagination li:gt(5)').hide();
-                $('.pagination li:lt(5)').show();
-                $('.pagination [data-page="next"]').show();
-            } if ($('.pagination li.active').attr('data-page') > 3) {
-                $('.pagination li:gt(0)').hide();
-                $('.pagination [data-page="next"]').show();
-                for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
-                    $('.pagination [data-page="' + i + '"]').show();
-
-                }
-
-            }
-        }
-    }
-
-
-
-    $(function () {
-        // Just to append id number for each row
-        $('table tr:eq(0)').prepend('<th> No </th>');
-
-        var id = 0;
-        var count = @Model.Count;
-
-        $('table tr:gt(0)').each(function () {
-            id++;
-            if (count != 0) {
-                $(this).prepend('<td>' + id + '</td>');
-            }
-
-        });
+    $("#page").change(function () {
+        updateTable('notsearch');
     });
+    function updateTable(search) {
+        var terminalno = $("#terminalno").val();
+        var acctnoto = $("#acctnoto").val();
+        var transtype = $("#transtype").val();
+        var todate = $("#todate").val();
+        var fromdate = $("#fromdate").val();
+        var status = $("#status").val();
+        var row = $("#row").val();
+        var page = $("#page").val();
+        var prevnextDiv = document.getElementById("prevnext");
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GatewayFetchData", "Gateway")',
+            data: {
+                terminalno: terminalno,
+                acctnoto: acctnoto,
+                transtype: transtype,
+                todate: todate,
+                fromdate: fromdate,
+                status: status,
+                row: row,
+                page: page,
+                search: search
+            },
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                var jsondata = data.jsonData;
+                var pages = data.page;
+                var currentpage = data.currentPage;
+                console.log(jsondata);
+                $("#table-id tbody").empty();
+                $.each(jsondata, function (index, item) {
+                    var row = $("<tr>");
+                    row.append($("<td>").css("text-align", "center").text(item.id));
+                    row.append($("<td>").css("text-align", "center").text(item.seqNo));
+                    row.append($("<td>").css("text-align", "center").text(item.phoneOTP));
+                    row.append($("<td>").css("text-align", "center").text(item.acctNoTo));
+                    row.append($("<td>").css("text-align", "center").text(item.fromBank));
+                    row.append($("<td>").css("text-align", "center").text(item.transType));
+                    row.append($("<td>").css("text-align", "right").text(item.transDateTime));
+                    row.append($("<td>").css("text-align", "center").text(item.terminalNo));
+                    row.append($("<td>").css("text-align", "right").text(item.amount));
+                    row.append($("<td>").css("text-align", "center").text(item.updateStatus));
+                    row.append($("<td>").text(item.errorCode));
+                    $("#table-id tbody").append(row);
+                    window.scrollTo(0, 0);
+                });
+                if (pages >= 1) {
+                    console.log(pages);
+                    $("#page").empty();
+                    for (var i = 1; i <= pages; i++) {
+                        var option = $('<option>', {
+                            value: i,
+                            text: i
+                        });
+                        if (i === currentpage) {
+                            option.prop("selected", true);
+                        }
+                        $("#page").append(option);
+                    }
+                    prevnextDiv.style.visibility = "visible";
+                }
+                else {
+                    $("#page").empty();
+                    var option = $('<option>', {
+                        value: 1,
+                        text: 1
+                    });
+                    $("#page").append(option);
+                    prevnextDiv.style.visibility = "hidden";
+                }
 
-    //  Developed By Yasser Mas
-    // yasser.mas2@gmail.com
+            },
+            error: function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            }
+        });
+    }
+
 
 
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-
+        var terminalno = $("#terminalno").val();
+        var fromdate = $("#fromdate").val();
+        var todate = $("#todate").val();
+        console.log(terminalno+' '+fromdate+' '+todate);
         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
             + '|' + "xlsx";
         var rptType = "xlsx";
@@ -626,7 +427,34 @@
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("Gateway_ExportExc", "Gateway")',
+            data: {
+                terminalno: terminalno,
+                todate: todate,
+                fromdate: fromdate
+            },
             success: function (result) {
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    data: '{ "exparams" : "' + expParams + '" }',
+                    contentType: 'application/json; charset=utf-8',
+                    url: '@Url.Action("Gateway_ExportExc", "Gateway")',
+                    data: {
+                        terminalno: terminalno,
+                        todate: todate,
+                        fromdate: fromdate
+                    },
+                    success: function (result) {
+                        if (result.success == 'S') {
+                            var url = '@Url.Action("DownloadExportFile", "Gateway")'
+                            window.location = '@Url.Action("DownloadExportFile", "Gateway")/?rpttype=' + rptType;
+                        }
+                        else { alert(result.errstr); }
+                    },
+                    error: function (err) {
+                        alert('@ViewBag.ErrorMsg');
+                    }
+                });
                 if (result.success == 'S') {
                     var url = '@Url.Action("DownloadExportFile", "Gateway")'
                     window.location = '@Url.Action("DownloadExportFile", "Gateway")/?rpttype=' + rptType;
@@ -637,6 +465,7 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
+       
     });
 
 

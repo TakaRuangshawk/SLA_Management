@@ -1,5 +1,6 @@
 ﻿
 using OfficeOpenXml;
+using SLA_Management.Controllers;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
@@ -38,7 +39,7 @@ namespace SLA_Management.Data.ExcelUtilitie
         #endregion
 
         #region Function 
-        public void GatewayOutput(List<GatewayTransaction> objData)
+        public void GatewayOutput(List<GatewayModel> objData,string terminal,string fromdate,string todate)
         {
             int nStartRowData = 0;
             string strTermID = string.Empty;
@@ -54,43 +55,49 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                 ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
-                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "GatewayTransaction.xlsx"));
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\GatewayExcel\\InputTemplate\\GatewayTransaction.xlsx"));
                 using (var oPackage = new ExcelPackage(oTemplate))
                 {
                     // ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
 
                     var oWorkbook = oPackage.Workbook;
-                    var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
 
-                    excelWorksheet.Name = "GatewayTransaction";
+                    //excelWorksheet.Name = "GatewayTransaction";
 
-                    if (param.TerminalNo == null || param.TerminalNo == "")
+                    if (GatewayController.tmp_term == null || GatewayController.tmp_term == "")
                     {
-                        param.TerminalNo = "All";
+                        terminal = "All";
+                    }
+                    else
+                    {
+                        terminal = GatewayController.tmp_term;
                     }
 
-                    excelWorksheet.Cells[2, 1].Value = "Gateway Report";
-                    excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
-                    excelWorksheet.Cells[4, 2].Value = param.FRDATE.Substring(0, 10);
-                    excelWorksheet.Cells[4, 4].Value = param.TODATE.Substring(0, 10);
+                    excelWorksheet.Cells[3, 1].Value = "Gateway Report";
+                    //excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
+                    excelWorksheet.Cells[4, 2].Value = GatewayController.tmp_fromdate;
+                    excelWorksheet.Cells[4, 4].Value = GatewayController.tmp_todate;
                     excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
-                    excelWorksheet.Cells[5, 2].Value = param.TerminalNo;
+                    excelWorksheet.Cells[5, 2].Value = terminal;
                     excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
 
-                    foreach (GatewayTransaction data in objData)
+                    foreach (GatewayModel data in objData)
                     {
 
 
 
-                        excelWorksheet.Cells[nStartRowData, 1].Value = data.seqno;
-                        excelWorksheet.Cells[nStartRowData, 2].Value = data.phoneotp;
-                        excelWorksheet.Cells[nStartRowData, 3].Value = data.acctnoto;
-                        excelWorksheet.Cells[nStartRowData, 4].Value = data.frombank;
-                        excelWorksheet.Cells[nStartRowData, 5].Value = data.transtype;
-                        excelWorksheet.Cells[nStartRowData, 6].Value = Convert.ToDateTime(data.transdatetime).ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
-                        excelWorksheet.Cells[nStartRowData, 7].Value = data.terminalno;
-                        excelWorksheet.Cells[nStartRowData, 8].Value = data.amount;
-                        excelWorksheet.Cells[nStartRowData, 9].Value = data.updatestatus;
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.Id;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.SeqNo;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.PhoneOTP;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.AcctNoTo;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.FromBank;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.TransType;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = Convert.ToDateTime(data.TransDateTime).ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.TerminalNo;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.Amount;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.UpdateStatus;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.ErrorCode;
 
 
                         nStartRowData++;

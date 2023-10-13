@@ -10,10 +10,13 @@ using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.Reflection.PortableExecutable;
+
 namespace SLA_Management.Controllers
 {
     public class GatewayController : Controller
     {
+        private readonly IConfiguration _configuration;
         #region Action page
 
         private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
@@ -23,128 +26,17 @@ namespace SLA_Management.Controllers
         private List<GatewayTransaction> recordset = new List<GatewayTransaction>();
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private static List<GatewayTransaction> gateway_dataList = new List<GatewayTransaction>();
-
-
+        private static List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
+        public static string tmp_term = "";
+        public static string tmp_fromdate = "";
+        public static string tmp_todate = "";
         private int pageNum = 1;
         private long recCnt = 0;
-        public IActionResult Transaction(string cmdButton, string TermID, string FrDate, string ToDate
-            , string currTID, string currFr, string currTo,string lstPageSize
-            , string currPageSize, int? page, string maxRows, string phoneotp, string acctnoto, string frombank, string transtype
-            , string amount, string updatestatus)
+        public IActionResult Transaction()
         {
-
-
-            if (String.IsNullOrEmpty(maxRows))
-                ViewBag.maxRows = "20";
-            else
-                ViewBag.maxRows = maxRows;
-
-            if (cmdButton == "Clear")
-                return RedirectToAction("Transaction");
-
-            try
-            {
-                
-
-                if (null == TermID && null == FrDate && null == ToDate && null == page)
-                {
-                    //FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    page = 1;
-                }
-                else
-                {
-                    // Return temp value back to it own variable
-                    FrDate = (FrDate ?? currFr);
-                    ToDate = (ToDate ?? currTo);
-                    TermID = (TermID ?? currTID);
-                }
-
-                // ViewBag.CurrentTID = (TermID ?? currTID);
-                ViewBag.CurrentTerminalno = TermID;
-                ViewBag.CurrentFr = (FrDate ?? currFr);
-                ViewBag.CurrentTo = (ToDate ?? currTo);
-                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
-                ViewBag.CurrentPhoneotp = phoneotp;
-                ViewBag.CurrentAcctnoto = acctnoto;
-                ViewBag.CurrentFrombank = frombank;
-                ViewBag.CurrentTranstype = transtype;
-                ViewBag.CurrentAmount = amount;
-                ViewBag.CurrentUpdatestatus = updatestatus;
-
-
-
-                if (null == TermID)
-                    param.TerminalNo = currTID == null ? "" : currTID;
-                else
-                    param.TerminalNo = TermID == null ? "" : TermID;
-
-                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
-                {
-                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
-                }
-                else
-                {
-                    param.FRDATE = FrDate + " 00:00:00";
-                }
-
-                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
-                {
-                    param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
-                }
-                else
-                {
-                    param.TODATE = ToDate + " 23:59:59";
-                }
-
-
-                if (null != lstPageSize || null != currPageSize)
-                {
-                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
-                        int.Parse(currPageSize) : int.Parse(lstPageSize);
-                }
-                else
-                {
-                    param.PAGESIZE = 20;
-                }
-                param.TerminalNo = TermID ?? "";
-                param.UpdateStatus = updatestatus ?? "";
-                param.trxtype = transtype ?? "";
-                param.PhoneOTP = phoneotp ?? "";
-                param.acctnoto = acctnoto ?? "";
-                recordset = GetGateway_Database(param);
-                
-
-                if (null == recordset || recordset.Count <= 0)
-                {
-                    ViewBag.NoData = "true";
-
-                }
-
-                else
-                {
-                    recCnt = recordset.Count;
-                    gateway_dataList = recordset;
-                    param.PAGESIZE = recordset.Count;
-                }
-
-
-                if (recCnt > 0)
-                {
-                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
-                }
-                else
-                    ViewBag.Records = "0";
-
-                pageNum = (page ?? 1);
-
-            }
-            catch (Exception ex)
-            {
-
-            }
-            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
+             ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd");
+             ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd");
+            return View();
         }
         #endregion
         #region Constructor
@@ -250,19 +142,20 @@ namespace SLA_Management.Controllers
         #region Excel
 
         [HttpPost]
-        public ActionResult Gateway_ExportExc()
+        public ActionResult Gateway_ExportExc(string terminal,string fromdate,string todate)
         {
             string fname = "";
-            string tsDate = "";
-            string teDate = "";
             string strPathSource = string.Empty;
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
+            terminal = terminal ?? "";
+            fromdate = fromdate ?? "";
+            todate = todate ?? "";
             try
             {
 
-                if (gateway_dataList == null || gateway_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                if (gatewaytransaction_dataList == null || gatewaytransaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
                 ExcelUtilities_gateway obj = new ExcelUtilities_gateway(param);
@@ -280,7 +173,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GatewayOutput(gateway_dataList);
+                obj.GatewayOutput(gatewaytransaction_dataList,terminal,fromdate,todate);
 
 
 
@@ -382,5 +275,143 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+      
+        
+        [HttpGet]
+        public IActionResult GatewayFetchData(string terminalno,string acctnoto,string transtype,string todate,string fromdate,string status,string row,string page,string search)
+        {
+            int _page;
+            if (page == null||search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if(search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            acctnoto = acctnoto ?? "";
+            transtype = transtype ?? "";
+            status = status ?? "";
+            tmp_fromdate = fromdate;
+            tmp_term = terminalno;
+            tmp_todate = todate;
+            List<GatewayModel> jsonData = new List<GatewayModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Modify the SQL query to use the 'input' parameter for filtering
+                string query = " SELECT Id,SeqNo,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
+                if(terminalno != "")
+                {
+                    query += " and TerminalNo = '" + terminalno + "'";
+                }
+                if (acctnoto != "")
+                {
+                    query += " and AcctNoTo = '" + acctnoto + "'";
+                }
+                if (transtype != "")
+                {
+                    query += " and TransType = '" + transtype + "'";
+                }
+                if (status != "")
+                {
+                    query += " and UpdateStatus = '" + status + "'";
+                }
+                MySqlCommand command = new MySqlCommand(query, connection);
+            
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        jsonData.Add(new GatewayModel
+                        {
+                            Id = reader["Id"].ToString(),
+                            SeqNo = reader["SeqNo"].ToString(),
+                            PhoneOTP = reader["PhoneOTP"].ToString(),
+                            AcctNoTo = reader["AcctNoTo"].ToString(),
+                            FromBank = reader["FromBank"].ToString(),
+                            TransType = reader["TransType"].ToString(),
+                            TransDateTime = Convert.ToDateTime(reader["TransDateTime"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                            TerminalNo = reader["TerminalNo"].ToString(),
+                            Amount = string.Format("{0:N0}", reader.GetInt32(reader.GetOrdinal("Amount"))),
+                            UpdateStatus = reader["UpdateStatus"].ToString(),
+                            ErrorCode = reader["ErrorCode"].ToString()
+                        });
+                    }
+                }
+            }
+            gatewaytransaction_dataList = jsonData;
+            int pages = jsonData.Count()/_row;
+            List<GatewayModel> filteredData = RangeFilter(jsonData, _page, _row);
+            var response = new DataResponse
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page
+            };
+            return Json(response);
+        }
+        
+        static List<GatewayModel> RangeFilter<GatewayModel>(List<GatewayModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+    }
+    public class GatewayModel
+    {
+        public string Id { get; set; }
+        public string SeqNo { get; set; }
+        public string PhoneOTP { get; set; }
+        public string AcctNoTo { get; set; }
+        public string FromBank { get; set; }
+        public string TransType { get; set; }
+        public string TransDateTime { get; set; }
+        public string TerminalNo { get; set; }
+        public string Amount { get; set; }
+        public string UpdateStatus { get; set; }
+        public string ErrorCode { get; set; }
+
+    }
+    public class DataResponse
+    {
+        public List<GatewayModel> JsonData { get; set; }
+        public int Page { get; set; }
+        public int currentPage { get; set; }
     }
 }
