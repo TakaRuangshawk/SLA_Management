@@ -323,11 +323,11 @@ namespace SLA_Management.Controllers
                 string query = " SELECT Id,SeqNo,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
                 if(terminalno != "")
                 {
-                    query += " and TerminalNo = '" + terminalno + "'";
+                    query += " and TerminalNo like '%" + terminalno + "%'";
                 }
                 if (acctnoto != "")
                 {
-                    query += " and AcctNoTo = '" + acctnoto + "'";
+                    query += " and AcctNoTo like '%" + acctnoto + "%'";
                 }
                 if (transtype != "")
                 {
@@ -362,7 +362,7 @@ namespace SLA_Management.Controllers
                 }
             }
             gatewaytransaction_dataList = jsonData;
-            int pages = jsonData.Count()/_row;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
             List<GatewayModel> filteredData = RangeFilter(jsonData, _page, _row);
             var response = new DataResponse
             {

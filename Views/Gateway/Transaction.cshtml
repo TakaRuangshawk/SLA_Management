@@ -307,11 +307,11 @@
             <div class="col colPagination" style="padding-top:10px;z-index:1;">
 
                 <nav>
-                    <div id="prevnext" class="pagination" style="visibility:hidden;">
-                        <li data-page="prev" id="back" onclick="updateTable('prev')">
+                    <div class="pagination">
+                        <li data-page="prev" id="prev" style="visibility:hidden;" onclick="updateTable('prev')">
                             <a style="color: #7a7a7a;"> < </a>
                         </li>
-                        <li data-page="next" id="next" onclick="updateTable('next')">
+                        <li data-page="next" id="next" style="visibility:hidden;" onclick=" updateTable('next')">
                             <a style="color: #7a7a7a;"> > </a>
                         </li>
 
@@ -339,7 +339,8 @@
         var status = $("#status").val();
         var row = $("#row").val();
         var page = $("#page").val();
-        var prevnextDiv = document.getElementById("prevnext");
+        var prevDiv = document.getElementById("prev");
+        var nextDiv = document.getElementById("next");
         $.ajax({
             type: "GET",
             url: '@Url.Action("GatewayFetchData", "Gateway")',
@@ -356,11 +357,11 @@
             },
             dataType: "json",
             success: function (data) {
-                console.log(data);
+
                 var jsondata = data.jsonData;
                 var pages = data.page;
                 var currentpage = data.currentPage;
-                console.log(jsondata);
+                console.log(data);
                 $("#table-id tbody").empty();
                 $.each(jsondata, function (index, item) {
                     var row = $("<tr>");
@@ -390,8 +391,8 @@
                             option.prop("selected", true);
                         }
                         $("#page").append(option);
-                    }
-                    prevnextDiv.style.visibility = "visible";
+
+                    }    
                 }
                 else {
                     $("#page").empty();
@@ -400,9 +401,29 @@
                         text: 1
                     });
                     $("#page").append(option);
-                    prevnextDiv.style.visibility = "hidden";
+                    
                 }
-
+                console.log(currentpage + "  " + pages + "  " + page)
+                if ((currentpage == 1 || page == null)&& pages > 1) {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "visible";
+                    console.log("one");
+                }
+                else if ((currentpage == pages)&& pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "hidden";
+                    console.log("two");
+                }
+                else if ((currentpage < pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "visible";
+                    console.log("three");
+                }
+                else{
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "hidden";
+                    console.log("four");
+                }
             },
             error: function (error) {
                 console.log("Error: " + JSON.stringify(error));
