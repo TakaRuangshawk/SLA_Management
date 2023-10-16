@@ -89,15 +89,16 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                         excelWorksheet.Cells[nStartRowData, 1].Value = data.Id;
                         excelWorksheet.Cells[nStartRowData, 2].Value = data.SeqNo;
-                        excelWorksheet.Cells[nStartRowData, 3].Value = data.PhoneOTP;
-                        excelWorksheet.Cells[nStartRowData, 4].Value = data.AcctNoTo;
-                        excelWorksheet.Cells[nStartRowData, 5].Value = data.FromBank;
-                        excelWorksheet.Cells[nStartRowData, 6].Value = data.TransType;
-                        excelWorksheet.Cells[nStartRowData, 7].Value = Convert.ToDateTime(data.TransDateTime).ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
-                        excelWorksheet.Cells[nStartRowData, 8].Value = data.TerminalNo;
-                        excelWorksheet.Cells[nStartRowData, 9].Value = data.Amount;
-                        excelWorksheet.Cells[nStartRowData, 10].Value = data.UpdateStatus;
-                        excelWorksheet.Cells[nStartRowData, 11].Value = data.ErrorCode;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.ThaiID;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.PhoneOTP;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.AcctNoTo;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.FromBank;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransType;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = Convert.ToDateTime(data.TransDateTime).ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.TerminalNo;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.Amount;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.UpdateStatus;
+                        excelWorksheet.Cells[nStartRowData, 12].Value = data.ErrorCode;
 
 
                         nStartRowData++;
