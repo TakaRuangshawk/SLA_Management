@@ -5,6 +5,7 @@
     {
     "ID",
     "Seqno ",
+    "ThaiID",
     "PhoneOTP ",
     "AcctNoTo ",
     "FromBank ",
@@ -144,7 +145,7 @@
                     <div class="col-md-1" style="width: 112px;">
                         <h>Terminal ID : </h>
                     </div>
-                    <div class="col-md-2 " style="margin-left:30px">
+                    <div class="col-md-2 " style="">
                         <div class="">
                             <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("terminalno", ViewBag.CurrentTerminalno as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID"})
@@ -176,7 +177,7 @@
                     <div class="col-md-1" style="width: 112px;">
                         <h>Account To : </h>
                     </div>
-                    <div class="col-md-2" style ="margin-left:30px">
+                    <div class="col-md-2" style ="">
                         <div class="">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("acctnoto", ViewBag.CurrentAcctnoto as string, new { @class = "form-control subsearch", @placeholder = "Account No" })
@@ -227,23 +228,40 @@
 
                     <div class="col-md-2" style="">
                         <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("row", new SelectListItem[] {
-                        new SelectListItem(){ Text="20", Value = "20"  },
-                        new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="500", Value = "500"  }
-                        }, new
-                        {
-                        @class = "form-control dropdown"
-                        ,
-                        @name = "state"
+                       
+                            @Html.DropDownList("row", new SelectListItem[] {
+                                new SelectListItem(){ Text="20", Value = "20"  },
+                                new SelectListItem(){ Text="100", Value = "100"  },
+                                new SelectListItem(){ Text="500", Value = "500"  }
+                            }, new
+                            {
+                                @class = "form-control dropdown"
+                                ,
+                                @name = "state"
 
-                        })
+                            })
 
                         </div>
                     </div>
-                    <div style="width: 112px;" class="col-md-1"></div>
-                    <div class="col-md-2"></div>
+                    <div style="width: 112px;" class="col-md-1">
+                        <h>Sort : </h>
+                    </div>
+                    <div class="col-md-2">
+                    <div class="form-group">
+                      
+                        @Html.DropDownList("sort", new SelectListItem[] {
+                            new SelectListItem(){ Text="ASC", Value = "asc"  },
+                            new SelectListItem(){ Text="DESC", Value = "desc"  }
+                        }, new
+                        {
+                            @class = "form-control dropdown"
+                            ,
+                            @name = "state"
+
+                        })
+
+                    </div>
+                    </div>
                     <div style="width: 112px;" class="col-md-1"></div>
                     <div class="col-md-2"></div>
                 </div>
@@ -339,6 +357,7 @@
         var status = $("#status").val();
         var row = $("#row").val();
         var page = $("#page").val();
+        var sort = $("#sort").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
         $.ajax({
@@ -353,7 +372,8 @@
                 status: status,
                 row: row,
                 page: page,
-                search: search
+                search: search,
+                sort: sort
             },
             dataType: "json",
             success: function (data) {
@@ -361,12 +381,13 @@
                 var jsondata = data.jsonData;
                 var pages = data.page;
                 var currentpage = data.currentPage;
-                console.log(data);
+         
                 $("#table-id tbody").empty();
                 $.each(jsondata, function (index, item) {
                     var row = $("<tr>");
                     row.append($("<td>").css("text-align", "center").text(item.id));
                     row.append($("<td>").css("text-align", "center").text(item.seqNo));
+                    row.append($("<td>").css("text-align", "center").text(item.thaiID));
                     row.append($("<td>").css("text-align", "center").text(item.phoneOTP));
                     row.append($("<td>").css("text-align", "center").text(item.acctNoTo));
                     row.append($("<td>").css("text-align", "center").text(item.fromBank));
@@ -380,7 +401,7 @@
                     window.scrollTo(0, 0);
                 });
                 if (pages >= 1) {
-                    console.log(pages);
+               
                     $("#page").empty();
                     for (var i = 1; i <= pages; i++) {
                         var option = $('<option>', {
@@ -407,22 +428,22 @@
                 if ((currentpage == 1 || page == null)&& pages > 1) {
                     prevDiv.style.visibility = "hidden";
                     nextDiv.style.visibility = "visible";
-                    console.log("one");
+                 
                 }
                 else if ((currentpage == pages)&& pages > 1) {
                     prevDiv.style.visibility = "visible";
                     nextDiv.style.visibility = "hidden";
-                    console.log("two");
+                 
                 }
                 else if ((currentpage < pages) && pages > 1) {
                     prevDiv.style.visibility = "visible";
                     nextDiv.style.visibility = "visible";
-                    console.log("three");
+                  
                 }
                 else{
                     prevDiv.style.visibility = "hidden";
                     nextDiv.style.visibility = "hidden";
-                    console.log("four");
+                   
                 }
             },
             error: function (error) {

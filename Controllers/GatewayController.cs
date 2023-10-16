@@ -278,7 +278,7 @@ namespace SLA_Management.Controllers
       
         
         [HttpGet]
-        public IActionResult GatewayFetchData(string terminalno,string acctnoto,string transtype,string todate,string fromdate,string status,string row,string page,string search)
+        public IActionResult GatewayFetchData(string terminalno,string acctnoto,string transtype,string todate,string fromdate,string status,string row,string page,string search,string sort)
         {
             int _page;
             if (page == null||search == "search")
@@ -320,7 +320,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = " SELECT Id,SeqNo,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
+                string query = " SELECT  ROW_NUMBER() OVER (ORDER BY Id) AS Id,SeqNo,ThaiID,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
                 if(terminalno != "")
                 {
                     query += " and TerminalNo like '%" + terminalno + "%'";
@@ -337,6 +337,14 @@ namespace SLA_Management.Controllers
                 {
                     query += " and UpdateStatus = '" + status + "'";
                 }
+                if(sort != "")
+                {
+                    query += " order by TransDateTime " + sort;
+                }
+                else
+                {
+                    query += " order by TransDateTime asc" ;
+                }
                 MySqlCommand command = new MySqlCommand(query, connection);
             
 
@@ -348,6 +356,7 @@ namespace SLA_Management.Controllers
                         {
                             Id = reader["Id"].ToString(),
                             SeqNo = reader["SeqNo"].ToString(),
+                            ThaiID = reader["ThaiID"].ToString(),
                             PhoneOTP = reader["PhoneOTP"].ToString(),
                             AcctNoTo = reader["AcctNoTo"].ToString(),
                             FromBank = reader["FromBank"].ToString(),
@@ -397,6 +406,7 @@ namespace SLA_Management.Controllers
     {
         public string Id { get; set; }
         public string SeqNo { get; set; }
+        public string ThaiID { get; set; }
         public string PhoneOTP { get; set; }
         public string AcctNoTo { get; set; }
         public string FromBank { get; set; }
