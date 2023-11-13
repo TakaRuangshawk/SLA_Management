@@ -20,7 +20,7 @@ namespace SLA_Management.Data.TermProb
         {
             ConnectString_MySQL = myConfiguration;
 
-             string _FullNameConnection = ConnectString_MySQL.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection");
+             string _FullNameConnection = ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection");
 
               _objDb = new ConnectMySQL(_FullNameConnection);
         }
@@ -29,7 +29,7 @@ namespace SLA_Management.Data.TermProb
         {
 
             MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            com.CommandText = "SELECT * FROM lrm_device_info order by TERM_SEQ;";
             DataTable tableTemp = _objDb.GetDatatable(com);
 
             List<Device_info_record> deviceInfoRecordsList = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(tableTemp);
