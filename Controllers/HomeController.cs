@@ -8,7 +8,8 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Drawing;
+using System.Security.Cryptography;
+using System.Text;
 using System.Globalization;
 
 namespace SLA_Management.Controllers
@@ -32,6 +33,7 @@ namespace SLA_Management.Controllers
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
         }
+        #region homeold
         public IActionResult Index()
         {
             recordset_homeshowstatus = GetHomeStatus();
@@ -336,6 +338,45 @@ namespace SLA_Management.Controllers
             record.offlineADM = reader["_offlineADM"].ToString();
             record.offlineATM = reader["_offlineATM"].ToString();
             return record;
+        }
+        #endregion
+        public IActionResult Login()
+        {
+
+            return View();
+        }
+        public static string GenerateSalt()
+        {
+            byte[] saltBytes = new byte[16]; // You can adjust the size as needed
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(saltBytes);
+            }
+            return Convert.ToBase64String(saltBytes);
+        }
+
+        // Function to hash the password using SHA256 with salt
+        public static string HashPassword(string password, string salt)
+        {
+            byte[] saltBytes = Convert.FromBase64String(salt);
+
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+                byte[] passwordWithSaltBytes = new byte[passwordBytes.Length + saltBytes.Length];
+
+                for (int i = 0; i < passwordBytes.Length; i++)
+                {
+                    passwordWithSaltBytes[i] = passwordBytes[i];
+                }
+                for (int i = 0; i < saltBytes.Length; i++)
+                {
+                    passwordWithSaltBytes[passwordBytes.Length + i] = saltBytes[i];
+                }
+
+                byte[] hashBytes = sha256.ComputeHash(passwordWithSaltBytes);
+                return Convert.ToBase64String(hashBytes);
+            }
         }
         public IActionResult Privacy()
         {
