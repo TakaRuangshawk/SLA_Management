@@ -25,13 +25,16 @@ namespace SLA_Management.Controllers
         private DBService dBService;
         SqlCommand com = new SqlCommand();
         ConnectSQL_Server con;
+        private static ConnectMySQL db_fv;
         CultureInfo usaCulture = new CultureInfo("en-US");
+        public static string _error;
         public HomeController(IConfiguration myConfiguration)
         {
 
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
+            db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection"));
         }
         #region homeold
         public IActionResult Index()
@@ -343,7 +346,59 @@ namespace SLA_Management.Controllers
         public IActionResult Login()
         {
 
+            ViewBag.error = _error;
             return View();
+        }
+      
+        public IActionResult Logout()
+        {
+            // Clear session
+            HttpContext.Session.Clear();
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+            Response.Headers["Expires"] = "0";
+            Response.Headers["Pragma"] = "no-cache";
+            // Redirect to the login page
+            return RedirectToAction("Login", "Home");
+        }
+        [HttpPost]
+        public IActionResult GetLogin(string username, string password)
+        {
+            string connectionString = _myConfiguration.GetConnectionString("ConnectString_Gateway");
+
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            {
+                connection.Open();
+
+                using (var command = new MySqlCommand("SELECT PasswordHash, Salt FROM Users WHERE Username = @Username", connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string storedHash = reader["PasswordHash"].ToString();
+                            string salt = reader["Salt"].ToString();
+
+                            // Hash the entered password with the stored salt
+                            string hashedPassword = HashPassword(password, salt);
+
+                            // Compare the hashed passwords
+                            if (storedHash == hashedPassword)
+                            {
+                                // Passwords match, set session and redirect
+                                HttpContext.Session.SetString("username", username);
+                                _error = "";
+                                return RedirectToAction("Transaction", "Gateway");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Invalid credentials, return to login view
+            _error = "Invalid username or password";
+            return RedirectToAction("Login", "Home");
         }
         public static string GenerateSalt()
         {
@@ -354,25 +409,27 @@ namespace SLA_Management.Controllers
             }
             return Convert.ToBase64String(saltBytes);
         }
-
+        // Function to update the last login timestamp
+        private void UpdateLastLoginTimestamp(string username, SqlConnection connection)
+        {
+            using (var updateCommand = new SqlCommand("UPDATE Users SET LastLogin = GETDATE() WHERE Username = @Username", connection))
+            {
+                updateCommand.Parameters.AddWithValue("@Username", username);
+                updateCommand.ExecuteNonQuery();
+            }
+        }
         // Function to hash the password using SHA256 with salt
         public static string HashPassword(string password, string salt)
         {
-            byte[] saltBytes = Convert.FromBase64String(salt);
+            byte[] saltBytes = Encoding.UTF8.GetBytes(salt);
 
             using (var sha256 = SHA256.Create())
             {
                 byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
                 byte[] passwordWithSaltBytes = new byte[passwordBytes.Length + saltBytes.Length];
 
-                for (int i = 0; i < passwordBytes.Length; i++)
-                {
-                    passwordWithSaltBytes[i] = passwordBytes[i];
-                }
-                for (int i = 0; i < saltBytes.Length; i++)
-                {
-                    passwordWithSaltBytes[passwordBytes.Length + i] = saltBytes[i];
-                }
+                Buffer.BlockCopy(passwordBytes, 0, passwordWithSaltBytes, 0, passwordBytes.Length);
+                Buffer.BlockCopy(saltBytes, 0, passwordWithSaltBytes, passwordBytes.Length, saltBytes.Length);
 
                 byte[] hashBytes = sha256.ComputeHash(passwordWithSaltBytes);
                 return Convert.ToBase64String(hashBytes);

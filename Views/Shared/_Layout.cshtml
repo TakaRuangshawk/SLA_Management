@@ -51,6 +51,9 @@
         case "Problem Management":
             forcss_header = "monitor";
             break;
+        case "Login - Gateway Transaction":
+            forcss_header = "home";
+            break;
         default:
             break;
     }
@@ -79,7 +82,7 @@
     }
 
     .bg_home {
-        background-image: url('/mointor/images/Pic_Home.png');
+        background-image: url('/images/Pic_Home.png');
         background-size: 100% 100%;
         background-position: top;
         background-repeat: no-repeat;
@@ -136,9 +139,9 @@
 
 @*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
 <img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
-<body class="bg_main bg_home" style="background-image: url('/monitor/images/Pic_Page.png');background-size:100% auto">
+<body class="bg_main bg_home" style="background-image: url('/images/Pic_Page.png');background-size:100% auto">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow">
             <div class="container-fluid">
                 <div>
                      <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
@@ -151,53 +154,7 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        @*<li class="nav-item nav-home">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                       <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Monitor
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Management</a>
-                                
-                                
-                                
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown nav-log">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Log Management
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">InsertFileCOMLog</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CheckEJSize">Check EJ Size(POC)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CheckEJLastUpdate">Log File Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="ComlogNew" asp-action="Index">COM Log Management</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown nav-report">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Report
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report(รายงานข้อมูลฝาก-ถอน)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Management</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaTracking">SLA Tracking(POC)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report Daily(POC)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report Monthly(POC)</a>
-                                
-                            </div>
-                        </li>      
-                        <li class="nav-item dropdown nav-report">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Management
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="Holiday">Holiday</a>              
-                            </div>
-                        </li>     *@
+                      
                          <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Gateway Monitor
@@ -206,12 +163,15 @@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Transaction</a>              
                             </div>
                         </li>   
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>  
     </header>
-    <div class="container-fluid">
+    <div class="container-fluid" style="padding:0px;margin:0px;>
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

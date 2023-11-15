@@ -1,4 +1,16 @@
-﻿@model PagedList.IPagedList<SLA_Management.Models.OperationModel.GatewayTransaction>
+﻿
+@{
+    byte[] usernameBytes;
+    if (Context.Session.TryGetValue("username", out usernameBytes))
+    {
+        string username = System.Text.Encoding.UTF8.GetString(usernameBytes);
+    }
+    else
+    {
+        Context.Response.Redirect("~/Home/Login");
+    }
+}
+@model PagedList.IPagedList<SLA_Management.Models.OperationModel.GatewayTransaction>
 @{
     ViewData["Title"] = "Gateway ";
     string[] tableHeaders = new string[]
@@ -345,6 +357,13 @@
 
 
 <script>
+    function DisableBackButton() {
+        window.history.forward();
+    }
+    DisableBackButton();
+    window.onload = DisableBackButton;
+    window.onpageshow = function (evt) { if (evt.persisted) DisableBackButton(); }
+    window.onunload = function () { void (0); };
     $("#page").change(function () {
         updateTable('notsearch');
     });

@@ -1,32 +1,30 @@
 ﻿@{
-    ViewBag.Title = "Login";
+    ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
 <head>
-    <title>Login V1</title>
+   <style>
+       header{
+            display: none !important;
+       }
+   </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!--===============================================================================================-->
     <link rel="icon" type="image/png" href="~/images/icons/favicon.ico" />
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/vendor/bootstrap/css/bootstrap.min.css">
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/vendor/animate/animate.css">
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/vendor/css-hamburgers/hamburgers.min.css">
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/vendor/select2/select2.min.css">
-    <!--===============================================================================================-->
     <link rel="stylesheet" type="text/css" href="~/css/util.css">
     <link rel="stylesheet" type="text/css" href="~/css/main.css">
-    <!--===============================================================================================-->
 </head>
 <body>
-
+ 
     <div class="limiter">
         <div class="container-login100">
             <div class="wrap-login100">
@@ -34,11 +32,11 @@
                     <img src="~/images/logo-data1.png" alt="dataone">
                 </div>
 
-                @using (Html.BeginForm("getLogin", "Login", FormMethod.Get, new { @class = "login100-form validate-form" }))
+                @using (Html.BeginForm("GetLogin", "Home", FormMethod.Post, new { @class = "login100-form validate-form" }))
                 {
 
                     <span class="login100-form-title">
-                        @ViewBag.Header
+                      Gateway Transaction
                     </span>
 
                     <div class="wrap-input100 validate-input" data-validate="Valid email is required: ex@abc.xyz">
@@ -101,6 +99,7 @@
     <!--===============================================================================================-->
     <script src="~/vendor/tilt/tilt.jquery.min.js"></script>
     <script>
+       
         $('.js-tilt').tilt({
             scale: 1.1
         })
@@ -111,7 +110,4 @@
                 //element.setAttribute("hidden", "hidden");
     </script>
     <!--===============================================================================================-->
-    <script src="~/js/main.js"></script>
-
 </body>
-</html>

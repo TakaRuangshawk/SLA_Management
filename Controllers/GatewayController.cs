@@ -1,5 +1,6 @@
 ﻿
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using PagedList;
@@ -34,9 +35,18 @@ namespace SLA_Management.Controllers
         private long recCnt = 0;
         public IActionResult Transaction()
         {
-             ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd");
-             ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd");
-            return View();
+            if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
+            {
+                ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd");
+                ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd");
+                return View();
+            }
+            else
+            {
+               
+                return RedirectToAction("Login","Home");
+            }
+            
         }
         #endregion
         #region Constructor
