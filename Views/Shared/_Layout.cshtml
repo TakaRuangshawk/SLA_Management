@@ -34,6 +34,9 @@
     <script src="~/lib/bootstrap-select.1.13.18/js/bootstrap-select.js"></script>
 </head>
 @{
+    int? role = Context.Session.GetInt32("role");
+}
+@{
     string selectHeader = "";
     string forcss_header = "";
     selectHeader = @ViewData["Title"].ToString();
@@ -51,7 +54,7 @@
         case "Problem Management":
             forcss_header = "monitor";
             break;
-        case "Login - Gateway Transaction":
+        case "Logout":
             forcss_header = "home";
             break;
         default:
@@ -59,6 +62,12 @@
     }
 }
 <style>
+    a{
+    color:black!important;
+    }
+    a:hover{
+    color:grey;
+    }
     li:hover{
         border-radius: 0px 0px 30px 0px;
         background-color: rgba(30,30,30,0.14);
@@ -142,18 +151,16 @@
 <body class="bg_main bg_home" style="background-image: url('/images/Pic_Page.png');background-size:100% auto">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow">
-            <div class="container-fluid">
+            <div class="container-fluid" style="padding-right: 0px;">
                 <div>
                      <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
                 </div>
-                
-                @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SLA Management</a>*@
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                @{if (role.HasValue)
+                    {
+                        if (role <= 1)
+                        {
+                                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 ml-auto">
                       
                          <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
@@ -162,16 +169,62 @@
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Transaction</a>              
                             </div>
-                        </li>   
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
                         </li>
+                        <li class="nav-item dropdown nav-report">
+                            <a class="nav-link" href="#" id="navbardrop" data-toggle="dropdown">
+                                User Management
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark nav-link" id="dropdownMenu2" data-toggle="modal" data-target="#myModal_user"  name="cmdButton" title=" ">Reset Password/Delete User </a>
+                            </div>
+                        </li>  
                     </ul>
+                    <ul class="nav navbar-nav flex-row justify-content-between ml-auto">
+                            <li class="dropdown order-1">
+                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"  name="cmdButton" title="เปลี่ยน Password">Change Password </a>
+                    </ul>
+                    <div class="d-flex">
+                        <a class="nav-link" style="background-color: wheat;border-radius: 20px;border: 1px grey solid;"asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
+                    </div>
                 </div>
+                            
+                        }
+                        else
+                        {
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 ml-auto">
+                      
+                         <li class="nav-item dropdown nav-report">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Gateway Monitor
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Transaction</a>              
+                            </div>
+                        </li>
+                    
+                    </ul>
+                    <ul class="nav navbar-nav flex-row justify-content-between ml-auto">
+                            <li class="dropdown order-1">
+                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"  name="cmdButton" title="เปลี่ยน Password">Change Password </a>
+                    </ul>
+                    <div class="d-flex">
+                        <a class="nav-link" style="background-color: wheat;border-radius: 20px;border: 1px grey solid;"asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
+                    </div>
+                </div>
+                        }
+                    }
+                }
+                @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SLA Management</a>*@
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
             </div>
         </nav>  
     </header>
-    <div class="container-fluid" style="padding:0px;margin:0px;>
+    <div class="container-fluid" style="padding:0px;margin:0px;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

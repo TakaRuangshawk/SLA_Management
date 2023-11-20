@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Globalization;
+using Microsoft.AspNetCore.Http;
 
 namespace SLA_Management.Controllers
 {
@@ -27,7 +28,8 @@ namespace SLA_Management.Controllers
         ConnectSQL_Server con;
         private static ConnectMySQL db_fv;
         CultureInfo usaCulture = new CultureInfo("en-US");
-        public static string _error;
+        public static string _error = "";
+        public static string _complete = "";
         public HomeController(IConfiguration myConfiguration)
         {
 
@@ -345,9 +347,19 @@ namespace SLA_Management.Controllers
         #endregion
         public IActionResult Login()
         {
+            if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
+            {
+                return RedirectToAction("Transaction", "Gateway");
+                
+            }
+            else
+            {
+                ViewBag.complete = _complete;
+                ViewBag.error = _error;
+                return View();
 
-            ViewBag.error = _error;
-            return View();
+            }
+            
         }
       
         public IActionResult Logout()
@@ -360,16 +372,21 @@ namespace SLA_Management.Controllers
             // Redirect to the login page
             return RedirectToAction("Login", "Home");
         }
+        public IActionResult CheckSession()
+        {
+            // Check if the "username" session variable exists
+            bool sessionIsValid = HttpContext.Session.TryGetValue("username", out _);
+            return Json(sessionIsValid);
+        }
         [HttpPost]
         public IActionResult GetLogin(string username, string password)
         {
-            string connectionString = _myConfiguration.GetConnectionString("ConnectString_Gateway");
-
+            _complete = "";
             using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
             {
                 connection.Open();
 
-                using (var command = new MySqlCommand("SELECT PasswordHash, Salt FROM Users WHERE Username = @Username", connection))
+                using (var command = new MySqlCommand("SELECT PasswordHash, Salt,Role FROM Users WHERE Username = @Username", connection))
                 {
                     command.Parameters.AddWithValue("@Username", username);
 
@@ -379,15 +396,17 @@ namespace SLA_Management.Controllers
                         {
                             string storedHash = reader["PasswordHash"].ToString();
                             string salt = reader["Salt"].ToString();
+                            int role = Convert.ToInt32(reader["Role"]);
 
                             // Hash the entered password with the stored salt
                             string hashedPassword = HashPassword(password, salt);
 
                             // Compare the hashed passwords
-                            if (storedHash == hashedPassword)
+                                if (storedHash == hashedPassword)
                             {
                                 // Passwords match, set session and redirect
                                 HttpContext.Session.SetString("username", username);
+                                HttpContext.Session.SetInt32("role", role);
                                 _error = "";
                                 return RedirectToAction("Transaction", "Gateway");
                             }
@@ -399,6 +418,48 @@ namespace SLA_Management.Controllers
             // Invalid credentials, return to login view
             _error = "Invalid username or password";
             return RedirectToAction("Login", "Home");
+        }
+        [HttpPost]
+        public IActionResult ResetPassword(string username)
+        {
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Generate a new salt and hash for the default password '111111'
+                string newSalt = GenerateSalt();
+                string hashedPassword = HashPassword("111111", newSalt);
+
+                // Update the password in the database
+                using (var command = new MySqlCommand("UPDATE Users SET PasswordHash = @PasswordHash, Salt = @Salt WHERE Username = @Username", connection))
+                {
+                    command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+                    command.Parameters.AddWithValue("@Salt", newSalt);
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            return Json(new { success = true, message = "Password reset successfully!" });
+        }
+        [HttpPost]
+        public IActionResult DeleteUser(string username)
+        {
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Update the status to 'Inactive' in the database
+                using (var command = new MySqlCommand("UPDATE Users SET Status = 'Inactive' WHERE Username = @Username", connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            return Json(new { success = true, message = "User deleted successfully!" });
         }
         public static string GenerateSalt()
         {
@@ -433,6 +494,85 @@ namespace SLA_Management.Controllers
 
                 byte[] hashBytes = sha256.ComputeHash(passwordWithSaltBytes);
                 return Convert.ToBase64String(hashBytes);
+            }
+        }
+        [HttpPost]
+        public IActionResult ChangePassword(string username, string oldPassword, string newPassword, string confirmPassword)
+        {
+            // Validate the input (You may want to add more comprehensive validation)
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmPassword))
+            {
+                return Json(new { success = false, message = "Please fill in all the required fields." });
+            }
+            if (oldPassword == newPassword)
+            {
+                return Json(new { success = false, message = "Password cannot be duplicated." });
+            }
+            // Perform your logic for changing the password
+            // You may want to check if the old password matches the stored password
+            // and if the new password matches the confirmed password
+
+            // Example: Updating the hashed and salted password in the MySQL database
+            try
+            {
+                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    // Check if old password matches
+                    var checkPasswordQuery = "SELECT PasswordHash, Salt FROM Users WHERE Username = @Username";
+                    using (var checkPasswordCommand = new MySqlCommand(checkPasswordQuery, connection))
+                    {
+                        checkPasswordCommand.Parameters.AddWithValue("@Username", username);
+
+                        using (var reader = checkPasswordCommand.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string storedHash = reader["PasswordHash"].ToString();
+                                string salt = reader["Salt"].ToString();
+
+                                // Hash the entered old password with the stored salt
+                                string hashedOldPassword = HashPassword(oldPassword, salt);
+
+                                // Compare the hashed old passwords
+                                if (storedHash != hashedOldPassword)
+                                {
+                                    return Json(new { success = false, message = "Old password does not match." });
+                                }
+                            }
+                            else
+                            {
+                                return Json(new { success = false, message = "User not found." });
+                            }
+                        }
+                    }
+
+                    // Generate a new salt
+                    string newSalt =GenerateSalt();
+
+                    // Hash the new password with the new salt
+                    string hashedNewPassword = HashPassword(newPassword, newSalt);
+
+                    // Update the password
+                    var updatePasswordQuery = "UPDATE Users SET PasswordHash = @NewPassword, Salt = @NewSalt WHERE Username = @Username";
+                    using (var updatePasswordCommand = new MySqlCommand(updatePasswordQuery, connection))
+                    {
+                        updatePasswordCommand.Parameters.AddWithValue("@NewPassword", hashedNewPassword);
+                        updatePasswordCommand.Parameters.AddWithValue("@NewSalt", newSalt);
+                        updatePasswordCommand.Parameters.AddWithValue("@Username", username);
+
+                        updatePasswordCommand.ExecuteNonQuery();
+                    }
+                }
+
+                // Return a JSON response indicating that the password has been changed
+                _complete = "Password changed successfully!";
+                return Json(new { success = true, message = "Password changed successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
         public IActionResult Privacy()

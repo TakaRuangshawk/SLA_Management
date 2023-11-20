@@ -9,97 +9,97 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = SLA_Management
 build_property.RootNamespace = SLA_Management
-build_property.ProjectDir = C:\Users\takar\OneDrive\Documents\GitHub\SLA_Management\
+build_property.ProjectDir = D:\Workspace\Git\SLA_Management\SLA_Management\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\takar\OneDrive\Documents\GitHub\SLA_Management
+build_property.MSBuildProjectDirectory = D:\Workspace\Git\SLA_Management\SLA_Management
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/ComlogNew/Index.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/ComlogNew/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbG9nTmV3XEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Comlog/Index.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Comlog/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbG9nXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/EJAddTranProbTerm/EJAddTranProbTermAction.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/EJAddTranProbTerm/EJAddTranProbTermAction.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRUpBZGRUcmFuUHJvYlRlcm1cRUpBZGRUcmFuUHJvYlRlcm1BY3Rpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Gateway/Transaction.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Gateway/Transaction.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2F0ZXdheVxUcmFuc2FjdGlvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Index - Copy.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Home/Index - Copy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleCAtIENvcHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Index.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Login.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Home/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Privacy.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Management/Holiday.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Management/Holiday.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxIb2xpZGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/CheckEJLastUpdate.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/CheckEJLastUpdate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXENoZWNrRUpMYXN0VXBkYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/CheckEJSize.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/CheckEJSize.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXENoZWNrRUpTaXplLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaReportDaily.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/SlaReportDaily.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydERhaWx5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaReportDaily_bk.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/SlaReportDaily_bk.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydERhaWx5X2JrLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaReportMonthly.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/SlaReportMonthly.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydE1vbnRobHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaTracking.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/SlaTracking.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVRyYWNraW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/TicketManagement.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/TicketManagement.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFRpY2tldE1hbmFnZW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/Error.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/_ViewImports.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/_ViewStart.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/Regulator.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/Regulator.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFJlZ3VsYXRvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = b-dznr9yo483
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/_Layout.cshtml]
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-n1zh8tboyp

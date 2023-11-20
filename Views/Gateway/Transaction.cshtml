@@ -26,7 +26,7 @@
     "TerminalID ",
     "Amount ",
     "Status",
-    "ErrorCode"
+    "ResultCode"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -134,6 +134,9 @@
 
     th {
         text-align: center;
+    }
+    .form-group{
+        margin-bottom:1em;
     }
 </style>
 
@@ -330,7 +333,8 @@
 
                         }, new
                         {
-                        @class = "form-control"
+                        @class = "form-control",
+                    onchange = "updateTable()"
                         })
                     </p>
                 </div>
@@ -355,17 +359,145 @@
     </div>
 
 
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;;width: 600px;">
+        <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
+            <form id="changePasswordForm" class="form" role="form">
+                <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Change Password</div>
+                <div class="form-group">
+                    <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
+                    <input name="username" id="emailInput" placeholder="Email" class="form-control form-control-sm" type="text" required="">
+                </div>
+                <div class="form-group">
+                    <small><p style="color:red;    margin-block-end: 0;">Reqiure*</p></small>
+                    <small><p style="color:black;    margin-block-end: 0;">Old Password</p></small>
+                    <input name="oldPassword" id="oldPasswordInput" placeholder="Old Password" class="form-control form-control-sm" type="password" required="" aria-describedby="passwordHelpBlock">
+                </div>
+                <div class="form-group">
+                    <small><p style="color:red;    margin-block-end: 0;">Reqiure*</p></small>
+                    <small><p style="color:black;    margin-block-end: 0;">New Password</p></small>
+                    <input name="newPassword" id="newPasswordInput" placeholder="New Password" class="form-control form-control-sm" type="password" required="">
+                </div>
+                <div class="form-group">
+                    <small><p style="color:red;    margin-block-end: 0;">Reqiure*</p></small>
+                    <small><p style="color:black;    margin-block-end: 0;">Confirm Password</p></small>
+                    <input name="confirmPassword" id="confirmPasswordInput" placeholder="Confirm Password" class="form-control form-control-sm" type="password" required="">
+                </div>
+                <div class="form-group" style="display: flex;justify-content: center;">
+                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                </div>
+                <div id="successMessage" style="color: green;"></div>
+                <div id="errorMessage" style="color: red;"></div>
+            </form>
+        </div>
+    </div>
+   
+</div>
+<div class="modal fade" id="myModal_user" role="dialog">
+    <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;;width: 600px;">
+        <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
+            <form id="resetPasswordForm" class="form" role="form">
+                <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Reset/Delete User</div>
+                <div class="form-group">
+                    <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
+                    <input name="username" id="username_rd" placeholder="Email" class="form-control form-control-sm" type="text" required="">
+                </div>
 
+                <div class="form-group" style="display: flex;justify-content: space-evenly;">
+                    <button type="button" class="btn btn-primary btn-block" onclick="confirmAction('delete')">Delete</button>
+                    <button type="button" class="btn btn-primary btn-block" onclick="confirmAction('reset')">Reset</button>
+                </div>
+                <div id="successMessage_rd" style="color: green;"></div>
+                <div id="errorMessage_rd" style="color: red;"></div>
+            </form>
+        </div>
+    </div>
+
+</div>
 <script>
-    function DisableBackButton() {
-        window.history.forward();
+    setInterval(function () {
+        // Use an AJAX request to check the session status on the server
+        $.ajax({
+            url: '@Url.Action("CheckSession", "Home")', // Adjust the URL based on your controller/action
+            method: 'GET',
+            success: function (result) {
+                if (!result) {
+                    // Session is null or expired, redirect to login page
+                    window.location.href = '@Url.Action("Login", "Home")'; // Adjust the URL based on your controller/action
+                }
+            },
+            error: function (error) {
+                console.error('Error checking session:', error);
+            }
+        });
+    }, 2000);
+    $(document).ready(function () {
+        $("#changePasswordForm").submit(function (event) {
+            event.preventDefault();
+
+            var formData = $(this).serialize();
+            console.log("test " + formData);
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("ChangePassword", "Home")",
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        // Password changed successfully
+                        $("#successMessage").text(response.message);
+                        window.location.href = "@Url.Action("Logout", "Home")";
+                        // You can also close the modal or perform any other actions
+                    } else {
+                        // Display error message
+                        $("#errorMessage").text(response.message);
+                    }
+                },
+                error: function () {
+                    // Handle the error
+                }
+            });
+        });
+    });
+    function confirmAction(action) {
+        var confirmationMessage = "Are you sure you want to " + action + " this user?";
+        if (confirm(confirmationMessage)) {
+            // User clicked OK, proceed with form submission
+            submitForm(action);
+        }
     }
-    DisableBackButton();
-    window.onload = DisableBackButton;
-    window.onpageshow = function (evt) { if (evt.persisted) DisableBackButton(); }
-    window.onunload = function () { void (0); };
-    $("#page").change(function () {
-        updateTable('notsearch');
+
+    function submitForm(action) {
+        // Set the data-action attribute dynamically based on the action
+        $('#resetPasswordForm').attr('data-action', action);
+        // Trigger the form submission
+        $('#resetPasswordForm').submit();
+    }
+    $(document).ready(function () {
+        $("#resetPasswordForm").submit(function (event) {
+            event.preventDefault();
+
+            var formData = $(this).serialize();
+            var action = $(document.activeElement).data('action');
+            console.log(action);
+
+            $.ajax({
+                type: "POST",
+                url: action === 'reset' ? "@Url.Action("ResetPassword", "Home")" : "@Url.Action("DeleteUser", "Home")",
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        // Display success message
+                        $("#successMessage_rd").text(response.message);
+                    } else {
+                        // Display error message
+                        $("#errorMessage_rd").text(response.message);
+                    }
+                },
+                error: function () {
+                    // Handle the error
+                }
+            });
+        });
     });
     function updateTable(search) {
         var terminalno = $("#terminalno").val();
