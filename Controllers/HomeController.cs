@@ -12,6 +12,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Configuration;
 
 namespace SLA_Management.Controllers
 {
@@ -386,7 +388,7 @@ namespace SLA_Management.Controllers
             {
                 connection.Open();
 
-                using (var command = new MySqlCommand("SELECT PasswordHash, Salt,Role FROM Users WHERE Username = @Username", connection))
+                using (var command = new MySqlCommand("SELECT PasswordHash, Salt,Role FROM Users WHERE Username = @Username and Status = 'Active'", connection))
                 {
                     command.Parameters.AddWithValue("@Username", username);
 
@@ -400,13 +402,14 @@ namespace SLA_Management.Controllers
 
                             // Hash the entered password with the stored salt
                             string hashedPassword = HashPassword(password, salt);
-
+                            reader.Close();
                             // Compare the hashed passwords
-                                if (storedHash == hashedPassword)
+                            if (storedHash == hashedPassword)
                             {
                                 // Passwords match, set session and redirect
                                 HttpContext.Session.SetString("username", username);
                                 HttpContext.Session.SetInt32("role", role);
+                                UpdateUserLastLogin(username,connection,"LastLogin");
                                 _error = "";
                                 return RedirectToAction("Transaction", "Gateway");
                             }
@@ -439,8 +442,9 @@ namespace SLA_Management.Controllers
 
                     command.ExecuteNonQuery();
                 }
+                UpdateUserLastLogin(username, connection, "UpdateDate");
             }
-
+            
             return Json(new { success = true, message = "Password reset successfully!" });
         }
         [HttpPost]
@@ -457,6 +461,7 @@ namespace SLA_Management.Controllers
 
                     command.ExecuteNonQuery();
                 }
+                UpdateUserLastLogin(username, connection, "UpdateDate");
             }
 
             return Json(new { success = true, message = "User deleted successfully!" });
@@ -471,9 +476,10 @@ namespace SLA_Management.Controllers
             return Convert.ToBase64String(saltBytes);
         }
         // Function to update the last login timestamp
-        private void UpdateLastLoginTimestamp(string username, SqlConnection connection)
+        private void UpdateUserLastLogin(string username, MySqlConnection connection,string whichdate)
         {
-            using (var updateCommand = new SqlCommand("UPDATE Users SET LastLogin = GETDATE() WHERE Username = @Username", connection))
+            // Update 'updatedate' column to current timestamp
+            using (var updateCommand = new MySqlCommand("UPDATE Users SET LastLogin = NOW() WHERE Username = @Username", connection))
             {
                 updateCommand.Parameters.AddWithValue("@Username", username);
                 updateCommand.ExecuteNonQuery();
@@ -564,6 +570,7 @@ namespace SLA_Management.Controllers
 
                         updatePasswordCommand.ExecuteNonQuery();
                     }
+                    UpdateUserLastLogin(username, connection, "UpdateDate");
                 }
 
                 // Return a JSON response indicating that the password has been changed
@@ -573,6 +580,41 @@ namespace SLA_Management.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        public IActionResult CreateUser(string username, string password, string role)
+        {
+            try
+            {
+                // Perform MySQL operation to create user
+                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    // Generate a salt and hash the password
+                    string salt = GenerateSalt();
+                    string hashedPassword = HashPassword(password, salt);
+
+                    // Insert the new user into the database
+                    using (var command = new MySqlCommand("INSERT INTO Users (Username, PasswordHash, Salt, Role, UpdateDate, Status) VALUES (@Username, @PasswordHash, @Salt, @Role, NOW(), 'Active')", connection))
+                    {
+                        command.Parameters.AddWithValue("@Username", username);
+                        command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+                        command.Parameters.AddWithValue("@Salt", salt);
+                        command.Parameters.AddWithValue("@Role", role);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                // Return success message
+                return Json(new { success = true, message = "User created successfully" });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                return Json(new { success = false, message = "Error creating user" });
             }
         }
         public IActionResult Privacy()

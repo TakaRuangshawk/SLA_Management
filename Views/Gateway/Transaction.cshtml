@@ -366,7 +366,7 @@
                 <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Change Password</div>
                 <div class="form-group">
                     <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
-                    <input name="username" id="emailInput" placeholder="Email" class="form-control form-control-sm" type="text" required="">
+                    <input name="username" id="emailInput" class="form-control form-control-sm" type="text" required="" value="@Context.Session.GetString("username")" readonly>
                 </div>
                 <div class="form-group">
                     <small><p style="color:red;    margin-block-end: 0;">Reqiure*</p></small>
@@ -384,7 +384,7 @@
                     <input name="confirmPassword" id="confirmPasswordInput" placeholder="Confirm Password" class="form-control form-control-sm" type="password" required="">
                 </div>
                 <div class="form-group" style="display: flex;justify-content: center;">
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    <button type="button" class="btn btn-primary btn-block" onclick="confirmAction_cp('change password')">Confirm</button>
                 </div>
                 <div id="successMessage" style="color: green;"></div>
                 <div id="errorMessage" style="color: red;"></div>
@@ -394,13 +394,19 @@
    
 </div>
 <div class="modal fade" id="myModal_user" role="dialog">
-    <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;;width: 600px;">
+    <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;width: 600px;">
         <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
             <form id="resetPasswordForm" class="form" role="form">
                 <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Reset/Delete User</div>
                 <div class="form-group">
                     <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
-                    <input name="username" id="username_rd" placeholder="Email" class="form-control form-control-sm" type="text" required="">
+                    <select id="SelectedUserId" name="SelectedUserId" class="form-control">
+                        <option value="">Select User</option>
+                        @foreach (var user in ViewBag.UserList)
+                        {
+                            <option value="@user.Username">@user.Username</option>
+                        }
+                    </select>
                 </div>
 
                 <div class="form-group" style="display: flex;justify-content: space-evenly;">
@@ -413,6 +419,39 @@
         </div>
     </div>
 
+</div>
+<div class="modal fade" id="myModel_create" role="dialog">
+    <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;width: 600px;">
+        <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
+            <!-- Your form for creating a user -->
+            <form id="createUserForm"class="form" role="form">
+                <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Create User</div>
+                <div class="form-group">
+                    <small><p style="color:black;margin-block-end: 0;">Username</p></small>
+                    <input class="form-control form-control-sm" type="text" id="username_create" name="username" required>
+                </div>
+                <div class="form-group">
+                    <small><p style="color:black;    margin-block-end: 0;">Password</p></small>
+                    <input class="form-control form-control-sm" type="password" id="password_create" name="password" required>
+                </div>
+                <div class="form-group">
+                    <small><p style="color:black;    margin-block-end: 0;">Confirm Password</p></small>
+                    <input class="form-control form-control-sm" type="password" id="confirmPassword_create" name="confirmPassword" required>
+                </div>
+                <div class="form-group">
+                    <small><p style="color:black;    margin-block-end: 0;">Role</p></small>
+                    <select class="form-control form-control-sm" id="role_create" name="role" required>
+                    <!-- Options will be dynamically added based on the user's role -->
+                </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:center;">
+                    <button class="btn btn-primary btn-block" type="button" id="submitCreateUser">Create User</button>
+                </div>
+                <div id="successMessage_create" style="color: green;"></div>
+                <div id="errorMessage_rd_create" style="color: red;"></div>
+            </form>
+        </div>
+    </div>
 </div>
 <script>
     setInterval(function () {
@@ -431,6 +470,26 @@
             }
         });
     }, 2000);
+    var userRole = @Context.Session.GetInt32("role");
+
+    // Function to update role options based on user's role
+    function updateRoleOptions() {
+        // Clear existing options
+        $('#role_create').empty();
+
+        // Define role names
+        var roleNames = ["Administrator", "Operator", "Customer"];
+
+        // Add options based on user's role
+        for (var i = userRole; i <= 2; i++) {
+            $('#role_create').append('<option value="' + i + '">' + i + " : " + roleNames[i] + '</option>');
+           
+        }
+        
+    }
+
+    // Initial update based on user's role
+    updateRoleOptions();
     $(document).ready(function () {
         $("#changePasswordForm").submit(function (event) {
             event.preventDefault();
@@ -458,30 +517,46 @@
             });
         });
     });
-    function confirmAction(action) {
+        function confirmAction(action) {
         var confirmationMessage = "Are you sure you want to " + action + " this user?";
         if (confirm(confirmationMessage)) {
             // User clicked OK, proceed with form submission
             submitForm(action);
         }
+        console.log(action);
     }
-
+    function confirmAction_cp(action) {
+        var confirmationMessage = "Are you sure you want to " + action + " this user?";
+        if (confirm(confirmationMessage)) {
+            // User clicked OK, proceed with form submission
+            submitForm_cp(action);
+        }
+        console.log(action);
+    }
     function submitForm(action) {
         // Set the data-action attribute dynamically based on the action
-        $('#resetPasswordForm').attr('data-action', action);
+        $('#resetPasswordForm').data('action', action);
         // Trigger the form submission
         $('#resetPasswordForm').submit();
+        console.log(action); // This will log the correct action now
+    }
+    function submitForm_cp(action) {
+        // Set the data-action attribute dynamically based on the action
+        $('#changePasswordForm').data('action', action);
+        // Trigger the form submission
+        $('#changePasswordForm').submit();
+        console.log(action); // This will log the correct action now
     }
     $(document).ready(function () {
         $("#resetPasswordForm").submit(function (event) {
             event.preventDefault();
 
             var formData = $(this).serialize();
-            var action = $(document.activeElement).data('action');
+            var action = $(this).data('action'); // Use $(this) to get the form's data-action attribute
             console.log(action);
 
             $.ajax({
-                type: "POST",
+                type: "POST", 
                 url: action === 'reset' ? "@Url.Action("ResetPassword", "Home")" : "@Url.Action("DeleteUser", "Home")",
                 data: formData,
                 success: function (response) {
@@ -495,6 +570,51 @@
                 },
                 error: function () {
                     // Handle the error
+                }
+            });
+        });
+    });
+    $(document).ready(function () {
+        // Submit form
+        $("#submitCreateUser").click(function () {
+            // Collect form data
+            var formData = {
+                username: $("#username_create").val(),
+                password: $("#password_create").val(),
+                confirmPassword: $("#confirmPassword_create").val(),
+                role: $("#role_create").val(),
+                // Add more fields as needed
+            };
+
+            // Check if passwords match
+            if (formData.password !== formData.confirmPassword) {
+                alert("Passwords do not match!");
+                return; // Stop further processing
+            }
+
+            // Send data to the server using AJAX
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("CreateUser", "Home")", // Replace with your actual controller and action
+                data: formData,
+                success: function (response) {
+                    // Handle success (e.g., close modal, show message, etc.)
+                    console.log(response);
+                    if (response.success) {
+                        // Display success message
+                        $("#successMessage_create").text(response.message);
+                    } else {
+                        // Display error message
+                        $("#errorMessage_create").text(response.message);
+                    }
+                    $("#username_create").val('');
+                    $("#password_create").val('');
+                    $("#confirmPassword_create").val('');
+                    $("#role_create").val('');
+                },
+                error: function (error) {
+                    // Handle error (e.g., show error message)
+                    console.log(error);
                 }
             });
         });

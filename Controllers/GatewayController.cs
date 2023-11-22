@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using MySql.Data.MySqlClient;
 using PagedList;
 using SLA_Management.Data;
@@ -33,13 +34,34 @@ namespace SLA_Management.Controllers
         public static string tmp_todate = "";
         private int pageNum = 1;
         private long recCnt = 0;
+        public class User
+        {
+            public int Id { get; set; }
+            public string Username { get; set; }
+         
+        }
         public IActionResult Transaction()
         {
             if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
             {
                 ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd");
                 ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd");
-                return View();
+                int? userRole = HttpContext.Session.GetInt32("role");
+                if (userRole.HasValue && userRole.Value <= 1)
+                {
+                    // Assuming you have a method to fetch user data from the MySQL table
+                    List<User> userList = GetUserListFromMySQL();
+
+                    // Store the user list in ViewBag
+                    ViewBag.UserList = userList;
+
+                    return View();
+                }
+                else
+                {
+                   ;
+                    return View();
+                }
             }
             else
             {
@@ -61,6 +83,34 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+        public List<User> GetUserListFromMySQL()
+        {
+            List<User> userList = new List<User>();
+
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            {
+                connection.Open();
+
+                using (var command = new MySqlCommand("SELECT id, Username FROM Users where Status = 'Active'", connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var user = new User
+                            {
+                                Id = Convert.ToInt32(reader["id"]),
+                                Username = reader["Username"].ToString()
+                            };
+
+                            userList.Add(user);
+                        }
+                    }
+                }
+            }
+
+            return userList;
+        }
         private List<GatewayTransaction> GetGateway_Database(gateway_seek model)
         {
             try
