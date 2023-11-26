@@ -50,6 +50,7 @@ namespace SLA_Management.Controllers
         private static List<ejloglastupdate> ejloglastupdate_datalist = new List<ejloglastupdate>();
         private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
+        private static List<AdminCardModel> admincard_dataList = new List<AdminCardModel>();
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
@@ -58,6 +59,7 @@ namespace SLA_Management.Controllers
         CultureInfo usaCulture = new CultureInfo("en-US");
         private static ConnectSQL_Server db;
         private static ConnectMySQL db_fv;
+        private static ConnectMySQL db_all;
         private static string sqlConnection;
         private static string sqlServer { get; set; }
         public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
@@ -71,6 +73,7 @@ namespace SLA_Management.Controllers
             sqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
             db = new ConnectSQL_Server(sqlServer);
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
+            db_all = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
             slamonthlydowntime_table = "sla_reportmonthly";
@@ -903,6 +906,17 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        private static List<Device_info_record> GetDeviceInfoLRM()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM lrm_device_info order by TERM_SEQ;";
+            DataTable testss = db_all.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
 
@@ -1428,6 +1442,174 @@ namespace SLA_Management.Controllers
             return record;
         }
         #endregion
+        #region Admin Card Monitor
+        [HttpGet]
+        public IActionResult AdminCardMonitor(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno,  string cmdButton)
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+
+            if (fromdate.HasValue && todate.HasValue)
+            {
+                if (fromdate <= todate)
+                {
+                    if ((DateTime)todate > DateTime.Now)
+                    {
+
+                        todate = SetTime(DateTime.Now, 23, 59, 59);
+                    }
+                    DateTime _fromdate = (DateTime)fromdate;
+                    DateTime _todate = (DateTime)todate;
+
+                }
+            }
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoLRM();
+            ViewBag.pageSize = pageSize;
+            if (fromdate != null)
+            {
+                ViewBag.CurrentFr = fromdate;
+            }
+            else
+            {
+                ViewBag.CurrentFr = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).ToString("yyyy-MM-dd");
+            }
+            if (todate != null)
+            {
+                ViewBag.CurrentTo = todate;
+            }
+            else
+            {
+                ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
+            }
+
+            return View(admincard_dataList);
+        }
+        [HttpGet]
+        public IActionResult AdminFetchData(string terminalno, string status,  string row, string page, string search, string sort)
+        {
+            int _page;
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            status = status ?? "";
+            List<AdminCardModel> jsonData = new List<AdminCardModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Modify the SQL query to use the 'input' parameter for filtering
+                string query = " SELECT  a.id,b.term_seq,b.term_id,b.term_name,a.admin_card_master, CASE WHEN a.admin_card_current = a.admin_card_master THEN 'Matched' ELSE 'Unmatched'END AS status,a.update_date FROM admin_card_management as a LEFT JOIN all_device_info as b ON a.term_id = b.term_id WHERE a.id IS not NULL ";
+                
+                if (terminalno != "")
+                {
+                    query += " and a.term_id like '%" + terminalno + "%'";
+                }
+                if (status == "Matched")
+                {
+                    query += " and  a.admin_card_current = a.admin_card_master ";
+                }
+                if (status == "Unmatched")
+                {
+                    query += " and  a.admin_card_current != a.admin_card_master ";
+                }
+             
+                query += " order by  CASE WHEN a.admin_card_current != a.admin_card_master THEN 0  ELSE 1 END asc, a.id asc";
+                MySqlCommand command = new MySqlCommand(query, connection);
+
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        jsonData.Add(new AdminCardModel
+                        {
+                            id = reader["id"].ToString(),
+                            term_seq = reader["term_seq"].ToString(),
+                            term_id = reader["term_id"].ToString(),
+                            term_name = reader["term_name"].ToString(),
+                            admin_card_master = reader["admin_card_master"].ToString(),
+                            status = reader["status"].ToString(),
+                            update_date = Convert.ToDateTime(reader["update_date"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                        });
+                    }
+                }
+            }
+            admincard_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<AdminCardModel> filteredData = RangeFilter(jsonData, _page, _row);
+            var response = new DataResponse
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page
+            };
+            return Json(response);
+        }
+
+        static List<AdminCardModel> RangeFilter<AdminCardModel>(List<AdminCardModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class AdminCardModel
+        {
+            public string id { get; set; }
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string admin_card_master { get; set; }
+            public string status { get; set; }
+            public string update_date { get; set; }
+        }
+        public class DataResponse
+        {
+            public List<AdminCardModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+        }
+        #endregion
         #region Excel
 
         [HttpPost]
@@ -1836,5 +2018,11 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+        public class DeviceInfo
+        {
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+        }
     }
 }
