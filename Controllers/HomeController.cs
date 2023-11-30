@@ -32,7 +32,7 @@ namespace SLA_Management.Controllers
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
         }
-        public IActionResult Index()
+        public IActionResult Index_bk()
         {
             recordset_homeshowstatus = GetHomeStatus();
             if(recordset_homeshowstatus != null)
@@ -117,6 +117,10 @@ namespace SLA_Management.Controllers
             }
             ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
             return View(recordset_slatracking);
+        }
+        public IActionResult Index()
+        {
+            return View();
         }
         public List<comlogrecord> GetComlogRecordFromSqlServer()
         {

@@ -1,24 +1,7 @@
-﻿@model List<SLA_Management.Models.OperationModel.slatracking>
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
-
 }
 <style>
-    #banner-fv{
-        background-color: #225789;
-        color: white;
-        font-size: 20px;
-        border-radius: 15px;
-        margin-top: 15px;
-        
-    }
-
-    #banner-so {
-        background-color: #027913;
-        color: white;
-        font-size: 20px;
-        border-radius: 15px;
-    }
     #comlogbox {
         text-align: center;
         display: flex !important;
@@ -37,496 +20,46 @@
         border-color:gray;
         border:outset;
     }
-    .ds-flex-center{
-        display:flex;
-        justify-content:center;
-    }
-    .ds-flex-spacearound{
-        display:flex;
-        justify-content:space-around;
-    }
-    .row{
-        margin:auto;
-    }
-    table{
-        background-color:white;    
-    }
-
-    .custom-table-home thead tr, .custom-table thead th {
-        border-top: none;
-        border-bottom: none !important;
-        color: #000;
-        background-color: #8fcaf4;
-        font-size: 1vw;
-        border-color: antiquewhite;
-        border: 3px solid lightgray;
-    }
-
-    .custom-table-home tbody th, .custom-table tbody td {
-        color: black;
-        padding-bottom: 20px;
-        padding-top: 20px;
-        font-weight: 300;
-        transition: .3s all ease;
-        border: 2px solid lightgray;
-    }
-    @@media (max-width: 1199px) {
-        #row-pic-welcome {
-            display: none;
-        }
-    }
-    @@media (min-width: 1200px) { 
-        #row-pic-welcome{
-            height: auto;
-            display: flex;
-            align-content: center;
-            justify-content: flex-end;
-        }
-
-        .sla-tracking-row{
-            padding-left:130px;
-        }
-    }
+     
+   
 </style>
 
 <div class="text-center" id="bg">
-
+    @*<h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>*@
     <div class="container-fluid">
         
         <div class="row" style="">
-            <div class="col-md-12 col-xl-6" id="main-left">
-                <div class="row" style="">
-        
-                    <div class="row" style="padding:0;">
-                        <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 0 1vh 1vw;border-radius: 15px 0px 0px 15px;">
-                            <div class="fs-5 text-nowrap" id="date" style="height: 100%; border-radius: 15px 0px 0px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;"></div>
-                        </div>
-                        <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 0;border-radius: 0px 15px 15px 0px;">
-                            <div class="fs-5" id="time" style="height: 100%; border-radius: 0px 15px 15px 0px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-end;align-items: center;font-weight: 700;padding-right: 1vw;"></div>
-                        </div>
-                        <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 0 1vh 1vw;border-radius: 15px 0px 0px 15px;">
-                            <div class="fs-6 text-nowrap" id="" style="height:100%; border-radius: 15px 0px 0px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: space-around;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
-                                <input type="checkbox" id="refreshCheckbox" />
-                                <label for="refreshCheckbox">Auto Refresh : </label>
-                            </div>
-                        </div>
-                        <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 0;border-radius: 0px 15px 15px 0px;">
-                            <div class="fs-6" id="" style="height:100%;border-radius: 0px 15px 15px 0px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: center;align-items: center;font-weight: 700;padding-right: 1vw;">
-                                <select id="refreshTime" onchange="handleRefreshTimeChange()" style="border: 1px solid lightgray;border-radius: 10px;">
-                                    <option value="5">5 seconds</option>
-                                    <option value="10">10 seconds</option>
-                                    <option value="30">30 seconds</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div id="banner-fv">
-                <div class="row ">
-                    <div class="col-12">
-                            <div class="row ds-flex-spacearound" style="padding-top:0.5vh;padding-bottom:0.5vh;">
-                                <div class="col-5 fs-5" style="text-align:left;white-space:nowrap">
-                                    Feelview จำนวนเครื่องทั้งหมด : @ViewBag.FVTotal เครื่อง
-                                </div>
-                                <div class="col-5">
-                                </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                    
-                <div class="row" id="maincard-status" style="border-radius:15px; background-color: rgba(255,255,255,1);">
-                <div class="col-6">
-                        <div class="row ds-flex-center">
-                  
-                            <div class="text-nowrap fs-6 col-10" style="padding-top:0.5vh;padding-bottom:0.5vh; text-align:left;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                            จำนวนเครื่อง Online : @ViewBag.onlineTotal เครื่อง
-                        </div>
-                    </div>
-                        <div class="row ds-flex-center">
-                          
-                            <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 15px 0px 0px 15px;background-color: rgb(19,163,5);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                            @ViewBag.onlineADM
-                        </div>
-                            <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 0px 15px 15px 0px;background-color: rgb(19,163,5);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                            @ViewBag.onlineATM
-                        </div>
-                           
-                    </div>
-                        <div class="row ds-flex-center">
-                           
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                            ADM
-                        </div>
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                            ATM
-                        </div>
-                            
-                        </div>
-                </div>
-                <div class="col-6">
-                        <div class="row ds-flex-center">
-                           
-                            <div class="text-nowrap fs-6 col-10" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:left;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                จำนวนเครื่อง Offline : @ViewBag.offlineTotal เครื่อง
-                            </div>
-                        </div>
-                        <div class="row ds-flex-center">
-                         
-                            <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 15px 0px 0px 15px;background-color: rgb(252,42,77);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                @ViewBag.OfflineADM
-                            </div>
-                            <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 0px 15px 15px 0px;background-color: rgb(252,42,77);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                @ViewBag.OfflineATM
-                            </div>
-                           
-                        </div>
-                        <div class="row ds-flex-center">
-
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                ADM
-                            </div>
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                ATM
-                            </div>
-                          
-                        </div>
-                    </div>
-
-                </div>
-                </div>
-                <div id="banner-so">
-                    <div class="row ">
-                        <div class="col-12">
-                            <div class="row ds-flex-spacearound" style="padding-top:0.5vh;padding-bottom:0.5vh;">
-                                <div class="fs-5 col-5" style="text-align:left;white-space:nowrap">
-                                    SECOne จำนวนเครื่องทั้งหมด : @ViewBag.TotalSECONE เครื่อง
-                                </div>
-                                <div class="col-5">
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="row" id="maincard-status" style="border-radius:15px; background-color: rgba(255,255,255,1);">
-                        <div class="col-6">
-                            <div class="row ds-flex-center">
-
-                                <div class="text-nowrap fs-6 col-10" style="padding-top:0.5vh;padding-bottom:0.5vh; text-align:left;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                                    จำนวนเครื่อง Online : @ViewBag.TotalSECONE_online เครื่อง
-                                </div>
-                            </div>
-                            <div class="row ds-flex-center">
-
-                                <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 15px 0px 0px 15px;background-color: rgb(19,163,5);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                    @ViewBag.secone_adm_online
-                                </div>
-                                <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 0px 15px 15px 0px;background-color: rgb(19,163,5);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                    @ViewBag.secone_online
-                                </div>
-
-                            </div>
-                            <div class="row ds-flex-center">
-
-                                <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                                    ADM
-                                </div>
-                                <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(19,163,5);">
-                                    ATM
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="row ds-flex-center">
-
-                                <div class="text-nowrap fs-6 col-10" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:left;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                    จำนวนเครื่อง Offline : @ViewBag.TotalSECONE_offine เครื่อง
-                                </div>
-                            </div>
-                            <div class="row ds-flex-center">
-
-                                <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 15px 0px 0px 15px;background-color: rgb(252,42,77);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                    @ViewBag.secone_adm_offline
-                                </div>
-                                <div class="fs-3 col-5" style="border:outset; text-align: center;display: flex!important;justify-content: center;align-items: flex-start;padding-left: 10px;font-weight: 700;border-radius: 0px 15px 15px 0px;background-color: rgb(252,42,77);color: whitesmoke;flex-wrap: wrap;font-size: 35px;height: 75px; align-content: center;">
-                                    @ViewBag.secone_offline
-                                </div>
-
-                            </div>
-                            <div class="row ds-flex-center">
-
-                                <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                    ADM
-                                </div>
-                                <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:rgb(252,42,77);">
-                                    ATM
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="row" id="maincard-comlog" style=" margin-top:15px; margin-bottom:15px; border-radius:15px; background-color: rgba(255,255,255,0.65);">
-                <div class="col-12">
-                    <div class="row ds-flex-spacearound">
-                     
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:left;font-weight: 700;color:black;white-space:nowrap;">
-                                จำนวน ComLog ที่อัพโหลด : @ViewBag.comlogTotal เครื่อง (ข้อมูลล่าสุด ณ วันที่ @ViewBag.DateNow)
-                            </div>
-                            <div class="col-5">
-                               
-                            </div>
-                    </div>
-                    <div class="row ds-flex-spacearound">
-                      
-                        <div class="fs-3 col-5" id="comlogbox">
-                            @ViewBag.comlogADM
-                        </div>
-          
-                        <div class="fs-3 col-5" id="comlogbox">
-                            @ViewBag.comlogATM
-                        </div>
-                       
-                    </div>
-                    <div class="row ds-flex-spacearound">
-                      
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
-                            ADM
-                        </div>
-
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
-                            ATM
-                        </div>
-                       
-                    </div>
-                  @*  <div class="row" id="maincard-ps" style="padding-top:15px;">
-                      
-                         <div class="col-11">
-                            <div style="display:flex;justify-content:left;  ">
-                                <p style="text-align:left;font-size: 1.1vw;font-weight: 700;color:black; background-color:rgba(255,255,255,0.7);border-radius:20px;padding:10px;">**หมายเหตุ : ข้อมูลอัพเดทล่าสุดใน ณ วันที่ @ViewBag.DateNow</p>
-                            </div>
-                         </div>
-
-                    </div>*@
-                </div>
-            </div>   
-            @*<div class="row" id="maincard-ps" style="">
-                <div class="col-1" style="width:35px;">
-
-                </div>
-                <div class="col-11">
-                        <div style="display:flex;justify-content:left;  ">
-                            <p style="text-align:left;font-size: 1.1vw;font-weight: 700;color:black;">**หมายเหตุ : ข้อมูลอัพเดทล่าสุดใน ณ วันที่ @ViewBag.DateNow</p>
-                        </div>
-                        
-                </div>
-
-            </div>*@
+            <div class="col-md-6 col-sm-12">
             </div>
-            <div class="col-md-12 col-xl-6">
-                <div id="row-pic-welcome" class="row" style="">
-                    <div class="col-12" style="display: flex;justify-content: flex-end;">
-                        <img id="" src="~/images/Pic_Welcome.png" alt="Logo" style="height: auto;width: 100%;max-width: 447px;">
+            <div class="col-md-6 col-sm-12">
+                <div class="row" style="justify-content: flex-end;margin-top: 40px;">
+                    <div class="col-12" style="width:70%;">
+                        <img src="~/images/Pic_Welcome.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:30vw;">
                     </div>
                 </div>
-                <div class="sla-tracking-row row" style="justify-content: flex-end;    margin-bottom: 40px;">
-                    <div class="col-12" style="background-color:rgba(255,255,255,0.6);border-radius:15px;">
-                       @* <img src="~/images/PIC_Computer.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:33vw;">*@
-                       <div class="row">
-                           <div class="fs-6 col-3" style="font-weight: bolder; padding:15px; margin:15px 0 15px 0; background-color:white; border-radius:15px;">
-                               SLA Tracking
-                           </div>
-                       </div>
-                       <div class="row">
-                            <table class="table table-striped custom-table-home" style="border-radius: 15px;">
-                                <thead>
-                                    <tr>
-                                        <th class="fs-6" scope="col">No</th>
-                                        <th class="fs-6" scope="col">Application</th>
-                                        <th class="fs-6" scope="col">Status</th>
-                                        <th class="fs-6" scope="col">Date/Time</th>
-                                    </tr>
-                                </thead>
-                             @*   <tbody>
-                                    <tr>
-                                        <td scope="row">1</td>
-                                        <td class="fs-6 text-start">appChangeAndUnzip</td>
-                                        <td>Ok</td>
-                                        <td>2023-08-15 01:05:43.640</td>
-                                    </tr>
-                                    <tr>
-                                        <td scope="row">2</td>
-                                        <td class="fs-6 text-start">InsertFileCOMLog</td>
-                                        <td>Ok</td>
-                                        <td>2023-08-15 01:51:39.333</td>
-                                    </tr>
-                                    <tr>
-                                        <td scope="row">3</td>
-                                        <td class="fs-6 text-start">NDCT</td>
-                                        <td>Ok</td>
-                                        <td>2023-07-28 15:49:10.330</td>
-                                    </tr>
-                                    <tr>
-                                        <td scope="row">4</td>
-                                        <td class="fs-6 text-start">Downtime</td>
-                                        <td>ERROR</td>
-                                        <td>2023-08-02 01:16:17.000</td>
-                                    </tr>
-                                    <tr>
-                                        <td scope="row">5</td>
-                                        <td class="fs-6 text-start">SLA Report</td>
-                                        <td>Ok</td>
-                                        <td>2023-03-26 11:10:42.000</td>
-                                    </tr>
-                                </tbody>*@
-                                <tbody>
-                                    @{
-                                        if (Model != null)
-                                        {
-                                            foreach (var Data in Model)
-                                            {
-                                                <tr>
-                                                    <td> @Data.no</td>
-                                                    <td  class="fs-6 text-start"> @Data.APPNAME</td>
-                                                    @{
-                                                        if (Data.STATUS.ToLower() == "ok")
-                                                        {
-                                                            <td style="display:flex;align-items:center;justify-content: center;">
-                                                                <img style="height:1.5rem;width:auto;" src="~/images/home_ok.png" />
-                                                            </td>
-                                                        }
-                                                        else if (Data.STATUS.ToLower() == "process" || Data.STATUS.ToLower() == "processing")
-                                                        {
-                                                            <td style="display:flex;align-items:center;">
-                                                                <img style="height:1.5rem;width:auto;" src="~/images/home_process.png" />
-                                                            </td>
-                                                        }
-                                                        else
-                                                        {
-                                                            <td style="display:flex;align-items:center;justify-content: center;">
-                                                                <img style="height:1.5rem;width:auto;" src="~/images/home_error.png" />
-                                                            </td>
-                                                        }
-
-                                                    }
-                                                    
-                                                    <td> @Data.UPDATE_DATE</td>
-                                                </tr>
-                                            }
-
-                                        }
-                                        try
-                                        {
-                                            if (Model.Count == 0)
-                                            {
-
-                                            <td colspan="12" style="text-align: center;"> NO DATA </td>
-                                            }
-                                        }
-                                        catch(Exception ex)
-                                        {
-                                            <td colspan="12" style="text-align: center;"> NO DATA </td>
-                                        }
-                                       
-                                    }
-                                </tbody>
-                            </table>
-                       </div>
-                        
+                <div class="row" style="justify-content: flex-end;">
+                    <div class="col-12">
+                        <img src="~/images/PIC_Computer.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:40vw;">
                     </div>
                 </div>
             </div>
         </div>
 
     </div>
- 
+    @*<div class="row" style="padding-top:50px">
+        <div class="col-md-1">
+
+        </div>
+        <div class="col-md-6">
+             <img src="~/images/CYBER-SECURITY.jpg" alt="Logo" align="left" style="height:100%;width:100%;" >
+        </div>
+        <div class="col-md-5">
+            <h1 class="text-center align-middle" style="color:orange;margin-top: 25%;width: 50%;padding: 10px;font-weight: 400;font-size: 100px;">WELCOME</h1>
+        </div>
+    </div>*@
 </div>
 
 <script>
-
-    function updateDateTime() {
-      var now = new Date();
-      var datetimeElement = document.getElementById('datetime');
-      var dateElement = document.getElementById('date');
-      var timeElement = document.getElementById('time');
-      var year = now.getFullYear();
-      var month = String(now.getMonth() + 1).padStart(2, '0');
-      var day = String(now.getDate()).padStart(2, '0');
-      var hours = String(now.getHours()).padStart(2, '0');
-      var minutes = String(now.getMinutes()).padStart(2, '0');
-      var seconds = String(now.getSeconds()).padStart(2, '0');
-
-        //var formattedDateTime = day + '-' + month + '-' + year + '      ' + hours + ':' + minutes + ':' + seconds;
-        var formatDate = day + '-' + month + '-' + year;
-        var formatTime = hours + ':' + minutes + ':' + seconds;
-      //datetimeElement.textContent = formattedDateTime;
-        dateElement.textContent = formatDate;
-        timeElement.textContent = formatTime;
-        }
-
-    // Update datetime initially
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-    // Update datetime every second
-    let refreshTimer;
-    function handleRefreshTimeChange() {
-        var selectedValue = document.getElementById("refreshTime").value;
-        localStorage.setItem("refreshTime", selectedValue);
-        clearTimeout(refreshTimer);
-        console.log(refreshTimer);
-        //schedulePageRefresh(selectedValue);
-    }
-  
- 
-        const refreshCheckbox = document.getElementById("refreshCheckbox");
-        const refreshTimeSelect = document.getElementById("refreshTime");
-
-        // Load checkbox state and time from localStorage if available
-        const savedCheckboxState = localStorage.getItem("checkboxState");
-        const savedRefreshTime = localStorage.getItem("refreshTime");
-
-        if (savedCheckboxState === "checked") {
-            refreshCheckbox.checked = true;
-        }
-
-        if (savedRefreshTime) {
-            refreshTimeSelect.value = savedRefreshTime;
-        }
-       
-        if (refreshCheckbox.checked){
-            schedulePageRefresh(refreshTimeSelect.value);
-        }
-    
-        refreshCheckbox.addEventListener("change", function () {
-            if (refreshCheckbox.checked) {
-                localStorage.setItem("checkboxState", "checked");
-                const selectedTime = refreshTimeSelect.value;
-                localStorage.setItem("refreshTime", selectedTime);
-                schedulePageRefresh(selectedTime);
-            } else {
-                localStorage.removeItem("checkboxState");
-                localStorage.removeItem("refreshTime");
-                clearTimeout(refreshTimer);
-            }
-        });
-        refreshTimeSelect.addEventListener("change", function () {
-            var selectedValue = document.getElementById("refreshTime").value;
-            console.log(selectedValue);
-            localStorage.setItem("refreshTime", selectedValue);
-            clearTimeout(refreshTimer);
-            schedulePageRefresh(selectedValue);
-        });
-        
-
-        function schedulePageRefresh(timeInSeconds) {
-            const milliseconds = timeInSeconds * 1000;
-            refreshTimer = setTimeout(function () {
-                location.reload();
-            }, milliseconds);
-        }
 
 </script>

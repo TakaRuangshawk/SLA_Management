@@ -4,7 +4,7 @@ using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
-
+using static SLA_Management.Controllers.OperationController;
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
@@ -459,7 +459,7 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 5].Value = data.BranchName;
                         excelWorksheet.Cells[nStartRowData, 6].Value = data.Location;
                         excelWorksheet.Cells[nStartRowData, 7].Value = data.ProbName;
-                        
+
 
 
                         nStartRowData++;
@@ -480,6 +480,83 @@ namespace SLA_Management.Data.ExcelUtilitie
 
 
     }
+    public class ExcelUtilities_AdminCardMonitor
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Contractor
+        
+        #endregion
+        #region Function 
+        public void GatewayOutput(List<AdminCardModel> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 8;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\AdminCardMonitor.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+                    excelWorksheet.Cells[2, 1].Value = "Admin Card Report";
+                    excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
+                    excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
+
+                    foreach (AdminCardModel data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.id;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.term_seq;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.term_id;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.term_name;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.admin_card_master;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.admin_password_digits;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.status;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.update_date;
+
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "AdminCardMonitor.xlsx"))));
+                    FileSaveAsXlsxFormat = "AdminCardMonitor.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
+    }
+
 
 
 }

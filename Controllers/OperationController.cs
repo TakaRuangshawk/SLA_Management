@@ -1488,9 +1488,10 @@ namespace SLA_Management.Controllers
             return View(admincard_dataList);
         }
         [HttpGet]
-        public IActionResult AdminFetchData(string terminalno, string status,  string row, string page, string search, string sort)
+        public IActionResult AdminFetchData(string terminalno, string status,  string row, string page, string search, string sort,string digits)
         {
             int _page;
+            
             if (page == null || search == "search")
             {
                 _page = 1;
@@ -1518,14 +1519,15 @@ namespace SLA_Management.Controllers
             }
             terminalno = terminalno ?? "";
             status = status ?? "";
+            sort = sort ?? "term_id";
             List<AdminCardModel> jsonData = new List<AdminCardModel>();
 
             using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
             {
                 connection.Open();
-
+            
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = " SELECT  a.id,b.term_seq,b.term_id,b.term_name,a.admin_card_master, CASE WHEN a.admin_card_current = a.admin_card_master THEN 'Matched' ELSE 'Unmatched'END AS status,a.update_date FROM admin_card_management as a LEFT JOIN all_device_info as b ON a.term_id = b.term_id WHERE a.id IS not NULL ";
+                string query = " SELECT b.term_seq,b.term_id,b.term_name,a.admin_card_master,CASE WHEN digit = 'GHBeCatDDCPinEntryState' THEN '6' WHEN digit = 'DDCPinEntryState' THEN '4' ELSE '-' END AS admin_password_digits ,CASE WHEN a.admin_card_current = a.admin_card_master THEN 'Matched' ELSE 'Unmatched'END AS status,GREATEST(a.update_date, a.update_date_state) as update_date\r\n FROM admin_card_management as a LEFT JOIN all_device_info as b ON a.term_id = b.term_id WHERE a.id IS not NULL ";
                 
                 if (terminalno != "")
                 {
@@ -1535,26 +1537,53 @@ namespace SLA_Management.Controllers
                 {
                     query += " and  a.admin_card_current = a.admin_card_master ";
                 }
-                if (status == "Unmatched")
+                else if (status == "Unmatched")
                 {
                     query += " and  a.admin_card_current != a.admin_card_master ";
                 }
-             
-                query += " order by  CASE WHEN a.admin_card_current != a.admin_card_master THEN 0  ELSE 1 END asc, a.id asc";
+                switch (digits)
+                {
+                    case "GHBeCatDDCPinEntryState":
+                        query += " and a.digit = 'GHBeCatDDCPinEntryState' ";
+                        break;
+                    case "DDCPinEntryState":
+                        query += " and a.digit = 'DDCPinEntryState' ";
+                        break;
+                }
+                switch (sort)
+                {
+                    case "term_id":
+                        query += " ORDER BY b.term_id asc;";
+                        break;
+                    case "branch_id":
+                        query += " ORDER BY SUBSTRING_INDEX(b.term_id, 'B', -1) asc;";
+                        break;
+                    case "term_seq":
+                        query += " ORDER BY b.term_seq asc;";
+                        break;
+                    case "status":
+                        query += " ORDER BY CASE WHEN a.admin_card_current != a.admin_card_master THEN 0  ELSE 1 END asc,b.term_id asc;";
+                        break;
+                    default:
+                        query += " ORDER BY b.term_id asc;";
+                        break;
+                }
                 MySqlCommand command = new MySqlCommand(query, connection);
 
-
+                int id_row = 0;
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
+                        id_row += 1;
                         jsonData.Add(new AdminCardModel
                         {
-                            id = reader["id"].ToString(),
+                            id = (id_row).ToString(),
                             term_seq = reader["term_seq"].ToString(),
                             term_id = reader["term_id"].ToString(),
                             term_name = reader["term_name"].ToString(),
                             admin_card_master = reader["admin_card_master"].ToString(),
+                            admin_password_digits = reader["admin_password_digits"].ToString(),
                             status = reader["status"].ToString(),
                             update_date = Convert.ToDateTime(reader["update_date"]).ToString("yyyy-MM-dd HH:mm:ss"),
                         });
@@ -1568,7 +1597,8 @@ namespace SLA_Management.Controllers
             {
                 JsonData = filteredData,
                 Page = pages,
-                currentPage = _page
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
             };
             return Json(response);
         }
@@ -1600,6 +1630,7 @@ namespace SLA_Management.Controllers
             public string term_seq { get; set; }
             public string term_name { get; set; }
             public string admin_card_master { get; set; }
+            public string admin_password_digits { get; set; }
             public string status { get; set; }
             public string update_date { get; set; }
         }
@@ -1608,6 +1639,7 @@ namespace SLA_Management.Controllers
             public List<AdminCardModel> JsonData { get; set; }
             public int Page { get; set; }
             public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
         }
         #endregion
         #region Excel
@@ -2024,5 +2056,136 @@ namespace SLA_Management.Controllers
             public string term_seq { get; set; }
             public string term_name { get; set; }
         }
+        #region Excel AdminCardMonitor
+
+        [HttpPost]
+        public ActionResult AdminCard_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+
+                if (admincard_dataList == null || admincard_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+                ExcelUtilities_AdminCardMonitor obj = new ExcelUtilities_AdminCardMonitor();
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(admincard_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "AdminCardMonitor_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult AdminCardMonitor_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "AdminCardMonitor_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
     }
 }
