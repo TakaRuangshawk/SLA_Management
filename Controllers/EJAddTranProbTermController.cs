@@ -60,6 +60,8 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
 
 
+           
+
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
 
             ejLog_dataList.Clear();
@@ -296,6 +298,13 @@ namespace SLA_Management.Controllers
                 }
                 #endregion
 
+                
+
+                if (recordset.Count > 0)
+                {
+                    recordset =  recordset.OrderByDescending(x => x.TransactionDate).ToList();
+                }
+
             }
             catch (Exception)
             {
@@ -370,6 +379,21 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
+                List<Device_info_record> term = dBService_LRM.GetDeviceInfoFeelview();
+                 term.AddRange(dBService_CDM.GetDeviceInfoFeelview());
+                 term.AddRange(dBService.GetDeviceInfoFeelview());
+
+                foreach (var termAll in term)
+                {
+                   
+                    var ejLog_dataListV2 = ejLog_dataList.FindAll(obj => obj.TerminalID == termAll.TERM_ID);
+                    foreach(var ejLog_ in ejLog_dataListV2)
+                    {
+                        ejLog_.Location = termAll.TERM_LOCATION;
+                    }
+                                       
+                }
+
                 obj.GenExcelFileDeviceTermPorb(ejLog_dataList);
 
 
@@ -414,7 +438,7 @@ namespace SLA_Management.Controllers
             }
         }
 
-
+        
 
         [HttpGet]
         public ActionResult DownloadExportFile(string rpttype)
@@ -488,7 +512,7 @@ namespace SLA_Management.Controllers
             }
         }
         [HttpPost]
-        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string memo)
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string displayflagStr ,string memo)
         {
             bool result = false;
             string error = "incomplete information";
@@ -512,7 +536,7 @@ namespace SLA_Management.Controllers
                 try
                 {
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
-                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr,memo,username);
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr,memo,username, displayflagStr);
 
                 }
                 catch (Exception ex)

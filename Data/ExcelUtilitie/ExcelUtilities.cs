@@ -450,7 +450,8 @@ namespace SLA_Management.Data.ExcelUtilitie
                     foreach (ej_trandeviceprob data in objData)
                     {
 
-
+                        
+                     
 
                         excelWorksheet.Cells[nStartRowData, 1].Value = nSeq;
                         excelWorksheet.Cells[nStartRowData, 2].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);

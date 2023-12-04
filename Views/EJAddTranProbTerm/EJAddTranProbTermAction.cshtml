@@ -432,7 +432,7 @@
                                     <td style="text-align:center;"> @Data.Seqno </td>
                                     <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style=""> @Data.BranchName </td>
-                                    <td> @Data.ProbName </td>
+                                    <td> @Data.Remark </td>
                                 </tr>
                             }
 
@@ -606,6 +606,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>DisplayFlag : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
+                                @Html.DropDownList("displayflagStr", new SelectListItem[] {
+                                new SelectListItem(){ Text = "1",Value = "1" },
+                                new SelectListItem(){ Text = "0",Value = "0" }
+                                }, new
+                                {
+                                @class = "form-control dropdown"
+                                ,
+                                @style = " border-radius: 10px;" ,
+                                @name = "state"
+
+                                })
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="row" style="margin-top: 15px;align-items:center;display: flex;justify-content: space-evenly;">
                         <div class="col-2 col-lg-2 text-nowrap" style="">
@@ -618,7 +640,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
 
 
                     <div style="margin-top:15px;">
@@ -628,7 +650,7 @@
                 </div>
                 <div class="modal-footer" style="background-color:#FFA500;">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="clearInsertDataProb()">Close</button>
-                    <button type="button" id="btnInsertProbMasterMain"  class="btn btn-primary">Confirm</button>
+                    <button type="button" id="btnInsertProbMasterMain" data-dismiss="modal" class="btn btn-primary">Confirm</button>
                 </div>
 
 
@@ -949,11 +971,12 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
+            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',           
             success: function (result) {
-                if (result.success == 'S') {
+                if (result.success == 'S') {                   
                     var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
                     window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
+                    
                 }
                 else { alert(result.errstr); }
             },
@@ -965,19 +988,18 @@
 
     $("#btnInsertProbMasterMain").click(function (e) {
         e.preventDefault();
-
         $.ajax({
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&memo=' + $("#memo").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val() ,
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);
                     clearInsertDataProb();                
 
                 }
-                else { 
+                else {                                      
                     alert('Insert unsuccess! : ' + result.error); 
                 }
             },
@@ -1008,8 +1030,9 @@
         document.getElementById('probCodeStr').value = "";
         document.getElementById('probNameStr').value = "";
         document.getElementById('probTypeStr').value = "DEVICE";
-        document.getElementById('probTermStr').value = "G165";
+        document.getElementById('probTermStr').value = "A;L;R";
         document.getElementById('memoStr').value = "";
+        document.getElementById('displayflagStr').value = "1";
         
 
     }
