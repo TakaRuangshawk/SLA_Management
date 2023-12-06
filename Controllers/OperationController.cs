@@ -1527,7 +1527,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
             
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = " SELECT b.term_seq,b.term_id,b.term_name,a.admin_card_master,CASE WHEN digit = 'GHBeCatDDCPinEntryState' THEN '6' WHEN digit = 'DDCPinEntryState' THEN '4' ELSE '-' END AS admin_password_digits ,CASE WHEN a.admin_card_current = a.admin_card_master THEN 'Matched' ELSE 'Unmatched'END AS status,GREATEST(a.update_date, a.update_date_state) as update_date\r\n FROM admin_card_management as a LEFT JOIN all_device_info as b ON a.term_id = b.term_id WHERE a.id IS not NULL ";
+                string query = " SELECT b.term_seq,b.term_id,b.term_name,a.admin_card_master,CASE WHEN digit = 'GHBeCatDDCPinEntryState' THEN '6' WHEN digit = 'DDCPinEntryState' THEN '4' ELSE '-' END AS admin_password_digits ,CASE WHEN a.admin_card_current = a.admin_card_master THEN 'Matched' ELSE 'Unmatched'END AS status,GREATEST(a.update_date, a.update_date_state) as update_date\r\n FROM admin_card_management as a LEFT JOIN all_device_info as b ON a.term_id = b.term_id WHERE a.id IS not NULL  and a.admin_card_master IS NOT NULL AND a.admin_card_master != '' and a.update_date IS NOT NULL and a.update_date_state IS NOT NULL  ";
                 
                 if (terminalno != "")
                 {
