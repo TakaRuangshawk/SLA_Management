@@ -14,6 +14,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Configuration;
+using Serilog;
 
 namespace SLA_Management.Controllers
 {
@@ -383,6 +384,12 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult GetLogin(string username, string password)
         {
+            using var log = new LoggerConfiguration()
+            .WriteTo.Console()
+            .WriteTo.File("log.txt")
+            .CreateLogger();
+
+            log.Information("Login : " + username);
             _complete = "";
             try
             {
@@ -413,6 +420,7 @@ namespace SLA_Management.Controllers
                                     HttpContext.Session.SetInt32("role", role);
                                     UpdateUserLastLogin(username, connection, "LastLogin");
                                     _error = "";
+                                    log.Information("username : " + username + " login complete");
                                     return RedirectToAction("Transaction", "Gateway");
                                 }
                             }
@@ -421,11 +429,14 @@ namespace SLA_Management.Controllers
                 }
 
                 // Invalid credentials, return to login view
+                
                 _error = "Invalid username or password";
+                log.Information(username+ " : " + _error);
             }
             catch (Exception ex)
             {
                 _error = "Something went wrong";
+                log.Error("error" + ex.ToString());
                 return RedirectToAction("Login", "Home");
             }
             return RedirectToAction("Login", "Home");
