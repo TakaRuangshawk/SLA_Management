@@ -384,42 +384,50 @@ namespace SLA_Management.Controllers
         public IActionResult GetLogin(string username, string password)
         {
             _complete = "";
-            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            try
             {
-                connection.Open();
-
-                using (var command = new MySqlCommand("SELECT PasswordHash, Salt,Role FROM Users WHERE Username = @Username and Status = 'Active'", connection))
+                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
                 {
-                    command.Parameters.AddWithValue("@Username", username);
+                    connection.Open();
 
-                    using (var reader = command.ExecuteReader())
+                    using (var command = new MySqlCommand("SELECT PasswordHash, Salt,Role FROM Users WHERE Username = @Username and Status = 'Active'", connection))
                     {
-                        if (reader.Read())
-                        {
-                            string storedHash = reader["PasswordHash"].ToString();
-                            string salt = reader["Salt"].ToString();
-                            int role = Convert.ToInt32(reader["Role"]);
+                        command.Parameters.AddWithValue("@Username", username);
 
-                            // Hash the entered password with the stored salt
-                            string hashedPassword = HashPassword(password, salt);
-                            reader.Close();
-                            // Compare the hashed passwords
-                            if (storedHash == hashedPassword)
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
                             {
-                                // Passwords match, set session and redirect
-                                HttpContext.Session.SetString("username", username);
-                                HttpContext.Session.SetInt32("role", role);
-                                UpdateUserLastLogin(username,connection,"LastLogin");
-                                _error = "";
-                                return RedirectToAction("Transaction", "Gateway");
+                                string storedHash = reader["PasswordHash"].ToString();
+                                string salt = reader["Salt"].ToString();
+                                int role = Convert.ToInt32(reader["Role"]);
+
+                                // Hash the entered password with the stored salt
+                                string hashedPassword = HashPassword(password, salt);
+                                reader.Close();
+                                // Compare the hashed passwords
+                                if (storedHash == hashedPassword)
+                                {
+                                    // Passwords match, set session and redirect
+                                    HttpContext.Session.SetString("username", username);
+                                    HttpContext.Session.SetInt32("role", role);
+                                    UpdateUserLastLogin(username, connection, "LastLogin");
+                                    _error = "";
+                                    return RedirectToAction("Transaction", "Gateway");
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Invalid credentials, return to login view
-            _error = "Invalid username or password";
+                // Invalid credentials, return to login view
+                _error = "Invalid username or password";
+            }
+            catch (Exception ex)
+            {
+                _error = "Something went wrong";
+                return RedirectToAction("Login", "Home");
+            }
             return RedirectToAction("Login", "Home");
         }
         [HttpPost]
