@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MySql.Data.MySqlClient;
 using PagedList;
+using Serilog;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Models.OperationModel;
@@ -374,7 +375,18 @@ namespace SLA_Management.Controllers
             tmp_term = terminalno;
             tmp_todate = todate;
             List<GatewayModel> jsonData = new List<GatewayModel>();
+            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
 
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+
+                log.Error("Error : " + ex.ToString());
+                return Json(new { success = false, message = "Something went wrong!" });
+            }
             using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
             {
                 connection.Open();

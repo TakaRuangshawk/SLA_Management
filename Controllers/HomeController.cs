@@ -386,7 +386,7 @@ namespace SLA_Management.Controllers
         {
             using var log = new LoggerConfiguration()
             .WriteTo.Console()
-            .WriteTo.File("log.txt")
+            .WriteTo.File("log"+ DateTime.Now.ToString("yyyyMMdd") + ".txt")
             .CreateLogger();
 
             log.Information("Login : " + username);
@@ -436,7 +436,7 @@ namespace SLA_Management.Controllers
             catch (Exception ex)
             {
                 _error = "Something went wrong";
-                log.Error("error" + ex.ToString());
+                log.Error("GetLogin Error : " + ex.ToString());
                 return RedirectToAction("Login", "Home");
             }
             return RedirectToAction("Login", "Home");
@@ -444,31 +444,52 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult ResetPassword(string username)
         {
-            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            using var log = new LoggerConfiguration()
+            .WriteTo.Console()
+            .WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
+            .CreateLogger();
+
+            try
             {
-                connection.Open();
 
-                // Generate a new salt and hash for the default password '111111'
-                string newSalt = GenerateSalt();
-                string hashedPassword = HashPassword("111111", newSalt);
-
-                // Update the password in the database
-                using (var command = new MySqlCommand("UPDATE Users SET PasswordHash = @PasswordHash, Salt = @Salt WHERE Username = @Username", connection))
-                {
-                    command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
-                    command.Parameters.AddWithValue("@Salt", newSalt);
-                    command.Parameters.AddWithValue("@Username", username);
-
-                    command.ExecuteNonQuery();
-                }
-                UpdateUserLastLogin(username, connection, "UpdateDate");
-            }
             
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    // Generate a new salt and hash for the default password '111111'
+                    string newSalt = GenerateSalt();
+                    string hashedPassword = HashPassword("111111", newSalt);
+
+                    // Update the password in the database
+                    using (var command = new MySqlCommand("UPDATE Users SET PasswordHash = @PasswordHash, Salt = @Salt WHERE Username = @Username", connection))
+                    {
+                        command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+                        command.Parameters.AddWithValue("@Salt", newSalt);
+                        command.Parameters.AddWithValue("@Username", username);
+
+                        command.ExecuteNonQuery();
+                    }
+                    UpdateUserLastLogin(username, connection, "UpdateDate");
+                }
+            }
+            catch (Exception ex)
+            {
+
+                log.Error("ResetPassword Error : " + ex.ToString());
+                return Json(new { success = false, message = "Something went wrong!" });
+            }
             return Json(new { success = true, message = "Password reset successfully!" });
         }
         [HttpPost]
         public IActionResult DeleteUser(string username)
         {
+            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
+
+            try
+            {
+
+            
             using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
             {
                 connection.Open();
@@ -482,7 +503,14 @@ namespace SLA_Management.Controllers
                 }
                 UpdateUserLastLogin(username, connection, "UpdateDate");
             }
+            }
+            catch (Exception ex)
+            {
 
+                log.Error("DeleteUser Error : " + ex.ToString());
+                return Json(new { success = false, message = "Something went wrong!" });
+
+            }
             return Json(new { success = true, message = "User deleted successfully!" });
         }
         public static string GenerateSalt()
@@ -524,7 +552,6 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult ChangePassword(string username, string oldPassword, string newPassword, string confirmPassword)
         {
-            // Validate the input (You may want to add more comprehensive validation)
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmPassword))
             {
                 return Json(new { success = false, message = "Please fill in all the required fields." });
@@ -533,18 +560,13 @@ namespace SLA_Management.Controllers
             {
                 return Json(new { success = false, message = "Password cannot be duplicated." });
             }
-            // Perform your logic for changing the password
-            // You may want to check if the old password matches the stored password
-            // and if the new password matches the confirmed password
 
-            // Example: Updating the hashed and salted password in the MySQL database
             try
             {
                 using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
                 {
                     connection.Open();
 
-                    // Check if old password matches
                     var checkPasswordQuery = "SELECT PasswordHash, Salt FROM Users WHERE Username = @Username";
                     using (var checkPasswordCommand = new MySqlCommand(checkPasswordQuery, connection))
                     {
@@ -574,7 +596,7 @@ namespace SLA_Management.Controllers
                     }
 
                     // Generate a new salt
-                    string newSalt =GenerateSalt();
+                    string newSalt = GenerateSalt();
 
                     // Hash the new password with the new salt
                     string hashedNewPassword = HashPassword(newPassword, newSalt);
@@ -604,6 +626,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult CreateUser(string username, string password, string role)
         {
+            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
             try
             {
                 // Perform MySQL operation to create user
@@ -633,7 +656,8 @@ namespace SLA_Management.Controllers
             catch (Exception ex)
             {
                 // Log the exception or handle it accordingly
-                return Json(new { success = false, message = "Error creating user" });
+                log.Error("Error : " + ex.ToString());
+                return Json(new { success = false, message = "Something went wrong!" });
             }
         }
         public IActionResult Privacy()
