@@ -51,6 +51,7 @@ namespace SLA_Management.Controllers
         private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
         private static List<AdminCardModel> admincard_dataList = new List<AdminCardModel>();
+        private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();  
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
@@ -917,6 +918,17 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        private static List<Device_info> GetDeviceInfoALL()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM all_device_info order by TERM_SEQ;";
+            DataTable testss = db_all.GetDatatable(com);
+
+            List<Device_info> test = ConvertDataTableToModel.ConvertDataTable<Device_info>(testss);
+
+            return test;
+        }
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
 
@@ -1485,7 +1497,7 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
             }
 
-            return View(admincard_dataList);
+            return View();
         }
         [HttpGet]
         public IActionResult AdminFetchData(string terminalno, string status,  string row, string page, string search, string sort,string digits)
@@ -1642,6 +1654,180 @@ namespace SLA_Management.Controllers
             public int TotalTerminal { get; set; }
         }
         #endregion
+        #region LastTransaction
+        [HttpGet]
+        public IActionResult LastTransaction()
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            return View();
+        }
+        [HttpGet]
+        public IActionResult LastTransactionFetchData(string terminalno, string row, string page, string search, string sort,string terminaltype)
+        {
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            terminaltype = terminaltype ?? "";
+            sort = sort ?? "term_id";
+            List<LastTransactionModel> jsonData = new List<LastTransactionModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Modify the SQL query to use the 'input' parameter for filtering
+                string query = " SELECT adi.term_seq,adi.term_id,adi.term_name,MAX(ede.trxdatetime) AS lastest_trxdatetime,MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) AS lastest_trxdatetime_success FROM all_device_info adi JOIN ejlog_devicetermprob_ejreport ede ON adi.term_id = ede.terminalid LEFT JOIN ejlog_mastertransaction ejm ON ejm.probterm = SUBSTRING(adi.term_id, 1, 1) where ede.trxdatetime between '"+ DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' and ede.probcode in (select probcode from ejlog_problemmascode where probcode like 'LASTTRANS%' ) ";
+
+
+                if (terminalno != "")
+                {
+                    query += " and adi.TERM_ID like '%" + terminalno + "%' ";
+                }
+                if (terminaltype != "")
+                {
+                    query += " and adi.TYPE_ID = '" + terminaltype + "' ";
+                }
+                query += " GROUP BY adi.term_seq, adi.term_id, adi.term_name ";
+                switch (sort)
+                {
+                    case "term_id":
+                        query += " ORDER BY adi.term_id asc;";
+                        break;
+                    case "branch_id":
+                        query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc;";
+                        break;
+                    case "term_seq":
+                        query += " ORDER BY adi.term_seq asc;";
+                        break;
+                    case "last_transaction":
+                        query += " ORDER BY lastest_trxdatetime_success asc,adi.term_id asc;";
+                        break;
+                    default:
+                        query += " ORDER BY adi.term_id asc;";
+                        break;
+                }
+                MySqlCommand command = new MySqlCommand(query, connection);
+
+                int id_row = 0;
+                string lastest_trxdatetime_row = "";
+                string lastest_trxdatetime_success_row = "";
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        id_row += 1;
+                        if (reader["lastest_trxdatetime"] != DBNull.Value && DateTime.TryParse(reader["lastest_trxdatetime"].ToString(), out DateTime trxDateTime))
+                        {
+                             lastest_trxdatetime_row = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                        }
+                        else
+                        {
+                             lastest_trxdatetime_row = "-";
+                        }
+                        if (reader["lastest_trxdatetime_success"] != DBNull.Value && DateTime.TryParse(reader["lastest_trxdatetime_success"].ToString(), out DateTime trxDateTime_success))
+                        {
+                             lastest_trxdatetime_success_row = trxDateTime_success.ToString("yyyy-MM-dd HH:mm:ss");
+                        }
+                        else
+                        {
+                             lastest_trxdatetime_success_row = "-";
+                        }
+                        jsonData.Add(new LastTransactionModel
+                        {
+
+                            no = (id_row).ToString(),
+                            term_seq = reader["term_seq"].ToString(),
+                            term_id = reader["term_id"].ToString(),
+                            term_name = reader["term_name"].ToString(),
+                            last_transaction = lastest_trxdatetime_row,
+                            last_transaction_success = lastest_trxdatetime_success_row,
+                        });
+                    }
+                }
+            }
+            lasttransaction_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<LastTransactionModel> filteredData = RangeFilter_lt(jsonData, _page, _row);
+            var response = new DataResponse_LastTransaction
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+
+        static List<LastTransactionModel> RangeFilter_lt<LastTransactionModel>(List<LastTransactionModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class LastTransactionModel
+        {
+            public string no { get; set; }
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string last_transaction { get; set; }
+            public string last_transaction_success { get; set; }
+
+        }
+        public class DataResponse_LastTransaction
+        {
+            public List<LastTransactionModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #endregion
+
         #region Excel
 
         [HttpPost]
@@ -2147,6 +2333,138 @@ namespace SLA_Management.Controllers
 
 
                 fname = "AdminCardMonitor_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
+
+        #region Excel AdminCardMonitor
+
+        [HttpPost]
+        public ActionResult LastTransaction_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+
+                if (admincard_dataList == null || admincard_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+                ExcelUtilities_LastTransaction obj = new ExcelUtilities_LastTransaction();
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(lasttransaction_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "LastTransaction_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult LastTransaction_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "LastTransaction_" + DateTime.Now.ToString("yyyyMMdd");
 
                 switch (rpttype.ToLower())
                 {

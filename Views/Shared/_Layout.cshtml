@@ -57,7 +57,7 @@
 }
 <style>
   li:hover{
-        border-radius: 0px 0px 30px 0px;
+        /*border-radius: 0px 0px 30px 0px;*/
         background-color: rgba(30,30,30,0.14);
     }
     .navbar {
@@ -79,7 +79,7 @@
     }
 
     .bg_home {
-        background-image: url('/images/Pic_Home.png');
+        background-image: url('/Operation/images/Pic_Home.png');
         background-size: 100% 100%;
         background-position: top;
         background-repeat: no-repeat;
@@ -136,7 +136,7 @@
 
 @*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
 <img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
-<body class="bg_main bg_home" style="background-image: url('/images/Pic_Page.png');background-size:100% auto">
+<body class="bg_main bg_home" style="background-image: url('/Operation/images/Pic_Page.png');background-size:100% auto">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow mb-3">
             <div class="container-fluid">
@@ -161,7 +161,7 @@
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="AdminCardMonitor">Admin Card Monitor</a>
-                                
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="LastTransaction">Last Transaction Monitor</a>
                                 
                                @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
                             </div>

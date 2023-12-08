@@ -47,4 +47,10 @@
         public string REMARK { get; set; }
         public DateTime UPDATE_DATE { get; set; }
     }
+    public class Device_info
+    {
+        public string term_id { get; set; }
+        public string term_seq { get; set; }
+        public string term_name { get; set; }
+    }
 }

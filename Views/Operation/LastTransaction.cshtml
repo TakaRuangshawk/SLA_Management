@@ -1,0 +1,414 @@
+﻿
+@{
+    ViewData["Title"] = "Last Transaction Monitor";
+    string[] tableHeaders = new string[]
+    {
+    "No.",
+    "Serial No. ",
+    "Terminal ID",
+    "Terminal Name ",
+    "Last Transaction",
+    "Last Transaction (Successful)"
+    };
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<style>
+    .btn-light {
+        border:1px solid darkgrey;
+        border-radius :10px;
+    }
+    h{
+        display:flex;
+        justify-content:center;
+    }
+</style>
+
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Last Transaction Monitor</a>
+            </div>
+        </div>
+
+
+        <div id="main_search" style="">
+            @using (Html.BeginForm("Regulator", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            {
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-md-1" style="">
+                        <h>Terminal : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.term_id != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.term_id data-tokens=@item.term_id>@item.term_seq : @item.term_id : @item.term_name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.term_id data-tokens=@item.term_id selected>@item.term_seq : @item.term_id : @item.term_name</option>
+
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h style ="display:flex;justify-content:center;">Terminal Type : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("terminaltype", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = "" },
+                        //new SelectListItem(){ Text="2IN1", Value = "2IN1" },
+                        //new SelectListItem(){ Text="LRM", Value = "LRM" },
+                        //new SelectListItem(){ Text="CDM", Value = "RDM" }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Sort : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("sort", new SelectListItem[] {
+                        new SelectListItem(){ Text="Terminal No", Value = "term_id" },
+                        new SelectListItem(){ Text="Branch No", Value = "branch_id" },
+                        new SelectListItem(){ Text="Serial No", Value = "term_seq" },
+                        new SelectListItem(){ Text="Last Successful", Value = "last_transaction" }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col col-md-1" style="">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50"  },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        
+                    </div>
+                    <div class="col col-md-1" style="">
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                 
+                </div>
+               
+                <div class="row justify-content-md-center" style="">
+
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            }
+
+        </div>
+
+     
+
+    </div>
+
+</div>
+<div class="container-fluid">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
+                <span id="recordCount"></span>
+            </a>
+        </div>
+    </div>
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    @{
+                        foreach (var head in tableHeaders)
+                        {
+                            <th scope="col" style="text-align:center"> @head </th>
+                        }
+                    }
+
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
+
+
+        </table>
+
+
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                        <li data-page="prev" id="prev" style="" onclick="updateTable('prev')">
+                            <a style="color: #7a7a7a;"> 
+                                <img src="~/images/arrow.png" width="127" height="53" alt="Logo" align="left" style="border: 0; width: 34px;height: 34px;">
+                            </a>
+                        </li>
+                        <li id="pageButtonsContainer"></li>
+                        <li data-page="next" id="next" style="" onclick=" updateTable('next')">
+                            <a style="color: #7a7a7a;">
+                                <img src="~/images/arrow.png" width="127" height="53" alt="Logo" align="left" style="border: 0;width: 34px;height: 34px;transform: scaleX(-1);">
+                            </a>
+                        </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control",onchange = "updateTable()"
+                    })
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    function updateTable(search) {
+        var terminalno = $("#TermID").val();
+        var row = $("#maxRows").val();
+        var page = $("#page").val();
+        var sort = $("#sort").val();
+        var terminaltype = $("#terminaltype").val();
+        var prevDiv = document.getElementById("prev");
+        var nextDiv = document.getElementById("next");
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("LastTransactionFetchData", "Operation")',
+            data: {
+                terminalno: terminalno,
+                status: status,
+                row: row,
+                page: page,
+                search: search,
+                sort: sort,
+                terminaltype: terminaltype
+            },
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                var jsondata = data.jsonData;
+                var pages = data.page;
+                var currentpage = data.currentPage;
+                var totalterminal = data.totalTerminal;
+                $('#recordCount').text(totalterminal);
+                $("#table-id tbody").empty();
+                $.each(jsondata, function (index, item) {
+                    var row = $("<tr>");
+                    row.append($("<td>").css("text-align", "center").text(item.no));
+                    row.append($("<td>").css("text-align", "center").text(item.term_seq));
+                    row.append($("<td>").css("text-align", "center").text(item.term_id));
+                    row.append($("<td>").css("text-align", "center").text(item.term_name));
+                    row.append($("<td>").css("text-align", "center").text(item.last_transaction));
+                    row.append($("<td>").css("text-align", "center").text(item.last_transaction_success));
+                    $("#table-id tbody").append(row);
+                    window.scrollTo(0, 0);
+                });
+                generatePageButtons(pages, currentpage);
+                if (pages >= 1) {
+
+                    $("#page").empty();
+                    for (var i = 1; i <= pages; i++) {
+                        var option = $('<option>', {
+                            value: i,
+                            text: i
+                        });
+                        if (i === currentpage) {
+                            option.prop("selected", true);
+                        }
+                        $("#page").append(option);
+
+                    }
+                }
+                else {
+                    $("#page").empty();
+                    var option = $('<option>', {
+                        value: 1,
+                        text: 1
+                    });
+                    $("#page").append(option);
+
+                }
+              
+                if ((currentpage == 1 || page == null) && pages > 1) {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "visible";
+
+                }
+                else if ((currentpage == pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "hidden";
+
+                }
+                else if ((currentpage < pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "visible";
+
+                }
+                else {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "hidden";
+
+                }
+
+            },
+            error: function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            }
+        });
+    }
+    function generatePageButtons(pages, currentpage) {
+        var pageButtonsContainer = $("#pageButtonsContainer");
+        pageButtonsContainer.empty();
+
+        var maxButtons = 5;
+        var startPage = Math.max(1, currentpage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(startPage + maxButtons - 1, pages);
+
+        for (var i = startPage; i <= endPage; i++) {
+            var button = $("<a>").text(i).click(function () {
+                $("#page").val($(this).text()); // Set #page value
+                updateTable();
+            });
+            button.css({
+                "display": "inline-flex",
+                "align-items": "center",
+                "justify-content": "center"
+            });
+            // Highlight the current page button
+            if (i === currentpage) {
+                button.addClass("current-page");
+            }
+
+            pageButtonsContainer.append(button);
+        }
+    }
+    updateTable("search");
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+            + '|' + "xlsx";
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: '{ "exparams" : "' + expParams + '" }',
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("LastTransaction_ExportExc", "Operation")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("LastTransaction_DownloadExportFile", "Operation")'
+                    window.location = '@Url.Action("LastTransaction_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+
+
+</script>

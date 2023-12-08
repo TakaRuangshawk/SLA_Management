@@ -557,7 +557,81 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_LastTransaction
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
 
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Contractor
+
+        #endregion
+        #region Function 
+        public void GatewayOutput(List<LastTransactionModel> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 8;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\LastTransaction.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+                    excelWorksheet.Cells[2, 1].Value = "Admin Card Report";
+                    excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
+                    excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
+
+                    foreach (LastTransactionModel data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.no;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.term_seq;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.term_id;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.term_name;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.last_transaction;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.last_transaction_success;
+
+
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "LastTransaction.xlsx"))));
+                    FileSaveAsXlsxFormat = "LastTransaction.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
+    }
 
 
 }
