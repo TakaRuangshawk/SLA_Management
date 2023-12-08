@@ -133,25 +133,25 @@
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
                     @*<div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTID)
-                            {
-                                if (@item != @ViewBag.TermID)
+                <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
+                <option data-tokens="" value="">--</option>
+                @foreach (string item in ViewBag.CurrentTID)
+                {
+                if (@item != @ViewBag.TermID)
 
-                                {
-                                    <option data-tokens=@item>@item</option>
-                                }
-                                else
-                                {
-                                    <option data-tokens=@item selected>@item</option>
+                {
+                <option data-tokens=@item>@item</option>
+                }
+                else
+                {
+                <option data-tokens=@item selected>@item</option>
 
-                                }
+                }
 
 
-                            }
-                        </select>
-                    </div>*@
+                }
+                </select>
+                </div>*@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
@@ -231,7 +231,7 @@
                                         string[] arrMasterProb1 = mas.Split(spMas1);
                                         string currentProbMaster = ViewBag.CurrentProbMaster;
 
-                                        
+
                                         if (!string.IsNullOrEmpty(currentProbMaster))
                                         {
                                             string[] currentProbMasterSpilt = currentProbMaster.Split(',');
@@ -640,7 +640,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
 
 
                     <div style="margin-top:15px;">
@@ -776,10 +776,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                                       <a style="color: #333333;">' +
+                                                                           <a style="color: #333333;">' +
                                 i++ +
                                 '\
-                                                                                </li>'
+                                                                                    </li>'
                             )
                             .show();
                     } // end for i
@@ -859,7 +859,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                              var select = document.getElementById("seletePageNow");
+                                                                  var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -971,12 +971,12 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',           
+            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
             success: function (result) {
-                if (result.success == 'S') {                   
+                if (result.success == 'S') {
                     var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
                     window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
-                    
+
                 }
                 else { alert(result.errstr); }
             },
@@ -988,19 +988,22 @@
 
     $("#btnInsertProbMasterMain").click(function (e) {
         e.preventDefault();
+        var value = $("#probNameStr").val();
+        var encodedString = encodeURIComponent(value);
+
         $.ajax({
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val() ,
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val(),
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);
-                    clearInsertDataProb();                
+                    clearInsertDataProb();
 
                 }
-                else {                                      
-                    alert('Insert unsuccess! : ' + result.error); 
+                else {
+                    alert('Insert unsuccess! : ' + result.error);
                 }
             },
             error: function (err) {
@@ -1009,8 +1012,8 @@
         });
 
 
-       
-        
+
+
 
 
     });
@@ -1023,7 +1026,7 @@
     });
 
 
-    function clearInsertDataProb(){
+    function clearInsertDataProb() {
 
         document.getElementById('username').value = "";
         document.getElementById('email').value = "";
@@ -1033,7 +1036,7 @@
         document.getElementById('probTermStr').value = "A;L;R";
         document.getElementById('memoStr').value = "";
         document.getElementById('displayflagStr').value = "1";
-        
+
 
     }
 
