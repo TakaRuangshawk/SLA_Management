@@ -439,7 +439,7 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                     if (param.TERMID == null || param.TERMID == "") param.TERMID = "All";
 
-                    excelWorksheet.Cells[2, 1].Value = "Terminal Device Error Report";
+                    excelWorksheet.Cells[2, 1].Value = "Problem Monitor Report";
                     excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
                     excelWorksheet.Cells[4, 2].Value = param.FRDATE.Substring(0, 10);
                     excelWorksheet.Cells[4, 4].Value = param.TODATE.Substring(0, 10);
