@@ -1,6 +1,6 @@
 ﻿@model PagedList.IPagedList<SLA_Management.Models.TermProbModel.ej_trandeviceprob>
 @{
-    ViewData["Title"] = "Problem Management";
+    ViewData["Title"] = "Problem Monitor";
     string[] tableHeaders = new string[]
                                                                                                     {
 
@@ -117,7 +117,7 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-4">
-                <a class="text-white fs-4" id="header_search">Problem Management</a>
+                <a class="text-white fs-4" id="header_search">Problem Monitor</a>
             </div>
         </div>
 
@@ -415,10 +415,10 @@
 
                                     <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
                                     <td> @Data.TransactionDate.TimeOfDay</td>
-                                    <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style="text-align:center;"> @Data.Seqno </td>
+                                    <td style="text-align:center;"> @Data.TerminalID</td>                                  
                                     <td style="text-align:center;"> @Data.BranchName </td>
-                                    <td> @Data.ProbName </td>
+                                    <td> @Data.Remark </td>
                                 </tr>
                             }
 
@@ -555,6 +555,8 @@
                                 new SelectListItem(){ Text="EJREPORT", Value = "EJREPORT"  },
                                 new SelectListItem(){ Text="NETWORK", Value = "NETWORK" },
                                 new SelectListItem(){ Text="COMMUNICATION", Value = "COMMUNICATION" },
+                                new SelectListItem(){ Text="CASH_REPORT", Value = "CASH_REPORT" },
+                                new SelectListItem(){ Text="EJLASTTRANS", Value = "EJLastTrans" },
                                 new SelectListItem(){ Text="ENGINEER_EVENT", Value = "ENGINEER_EVENT" }
                                 }, new
                                 {
@@ -592,6 +594,29 @@
                         </div>
                     </div>
 
+                    <div class="row" style="margin-top: 15px;align-items:center; display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>DisplayFlag : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
+                                @Html.DropDownList("displayflagStr", new SelectListItem[] {
+                                new SelectListItem(){ Text = "1",Value = "1" },
+                                new SelectListItem(){ Text = "0",Value = "0" }
+                                }, new
+                                {
+                                @class = "form-control dropdown"
+                                ,
+                                @style = " border-radius: 10px;" ,
+                                @name = "state"
+
+                                })
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row" style="margin-top: 15px;align-items:center;display: flex;justify-content: space-evenly;">
                         <div class="col-2 col-lg-2 text-nowrap" style="">
                             <h>Memo : </h>
@@ -599,7 +624,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextArea("memoStr", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
+                                @Html.TextArea("memo", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
                             </div>
                         </div>
                     </div>
@@ -950,12 +975,14 @@
 
     $("#btnInsertProbMasterMain").click(function (e) {
         e.preventDefault();
+        var value = $("#probNameStr").val();
+        var encodedString = encodeURIComponent(value);
 
         $.ajax({
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + $("#probNameStr").val() + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&memoStr=' + $("#memoStr").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val(),
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);

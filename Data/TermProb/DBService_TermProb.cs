@@ -26,7 +26,7 @@ namespace SLA_Management.Data.TermProb
         {
             public string check { get; set; }
         }
-        public bool InsertDataToProbMaster(string probCode, string probName, string probType, string probTerm, string memo, string username)
+        public bool InsertDataToProbMaster(string probCode, string probName, string probType, string probTerm, string memo, string username, string displayflag)
         {
             bool result = false;
 
@@ -34,7 +34,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + "1" + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
+                _sql = "INSERT INTO `gsb_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + displayflag + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);

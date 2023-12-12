@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using K4os.Compression.LZ4.Internal;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using Mysqlx;
@@ -156,7 +157,7 @@ namespace SLA_Management.Controllers
 
 
                 #region Set param
-
+                bool chk_date = false;
                 if (null == TermID)
                     param.TERMID = currTID == null ? "" : currTID;
                 else
@@ -165,6 +166,7 @@ namespace SLA_Management.Controllers
                 if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
                 {
                     param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
                 }
                 else
                 {
@@ -173,6 +175,7 @@ namespace SLA_Management.Controllers
                         param.FRDATE = FrDate + " 00:00:00";
                     else
                         param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
                 }
 
                 if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
@@ -206,7 +209,7 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
-
+                //param.TERMINALTYPE = terminalType ?? "";
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
@@ -235,7 +238,7 @@ namespace SLA_Management.Controllers
                 }
                 else
                 {
-                    if (ddlProbMaster != null || TermID != null)
+                    if (chk_date)
                     {
                         recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
                     }
@@ -281,6 +284,11 @@ namespace SLA_Management.Controllers
                     recordset.RemoveRange(5000, amountrecordset - 5000);
                 }
                 #endregion
+
+                if (recordset.Count > 0)
+                {
+                    recordset = recordset.OrderByDescending(x => x.TransactionDate).ToList();
+                }
 
             }
             catch (Exception)
@@ -460,7 +468,7 @@ namespace SLA_Management.Controllers
         #endregion
     
         [HttpPost]
-        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string memoStr)
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr, string displayflagStr, string memo)
         {
             bool result = false;
             string error = "incomplete information";
@@ -484,7 +492,7 @@ namespace SLA_Management.Controllers
                 try
                 {
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
-                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memoStr,username);
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
 
                 }
                 catch (Exception ex)
