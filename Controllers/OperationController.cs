@@ -1701,13 +1701,16 @@ namespace SLA_Management.Controllers
             terminaltype = terminaltype ?? "";
             sort = sort ?? "term_id";
             List<LastTransactionModel> jsonData = new List<LastTransactionModel>();
+            if(search == "search")
+            {
+
 
             using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
             {
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = " SELECT adi.term_seq,adi.term_id,adi.term_name,MAX(ede.trxdatetime) AS lastest_trxdatetime,MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) AS lastest_trxdatetime_success FROM all_device_info adi JOIN ejlog_devicetermprob_ejreport ede ON adi.term_id = ede.terminalid LEFT JOIN ejlog_mastertransaction ejm ON ejm.probterm = SUBSTRING(adi.term_id, 1, 1) where ede.trxdatetime between '"+ DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' and ede.probcode in (select probcode from ejlog_problemmascode where probcode like 'LASTTRANS%' ) ";
+                string query = " SELECT adi.term_seq,adi.term_id,adi.term_name,MAX(ede.trxdatetime) AS lastest_trxdatetime,MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) AS lastest_trxdatetime_success FROM all_device_info adi JOIN ejlog_devicetermprob_ejreport ede ON adi.term_id = ede.terminalid LEFT JOIN ejlog_mastertransaction ejm ON ejm.probterm = SUBSTRING(adi.term_id, 1, 1) where ede.trxdatetime between '"+ DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' and ede.probcode in (select probcode from ejlog_problemmascode where probtype = 'EJLastTrans' ) ";
 
 
                 if (terminalno != "")
@@ -1775,6 +1778,11 @@ namespace SLA_Management.Controllers
                         });
                     }
                 }
+            }
+            }
+            else
+            {
+                jsonData = lasttransaction_dataList;
             }
             lasttransaction_dataList = jsonData;
             int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);

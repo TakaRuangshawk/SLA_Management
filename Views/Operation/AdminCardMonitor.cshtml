@@ -307,6 +307,11 @@
                 var totalterminal = data.totalTerminal;
                 $('#recordCount').text(totalterminal);
                 $("#table-id tbody").empty();
+                 if (jsondata.length === 0) {
+                // Display a message when there is no data
+                var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
+                $("#table-id tbody").append(noDataRow);
+                } else {
                 $.each(jsondata, function (index, item) {
                     var row = $("<tr>");
                     row.append($("<td>").css("text-align", "center").text(item.id));
@@ -320,6 +325,7 @@
                     $("#table-id tbody").append(row);
                     window.scrollTo(0, 0);
                 });
+                }
                 generatePageButtons(pages, currentpage);
                 if (pages >= 1) {
 
