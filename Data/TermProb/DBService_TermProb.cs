@@ -80,9 +80,24 @@ namespace SLA_Management.Data.TermProb
             { throw ex; }
         }
 
+        public DataTable GetAllMasterProblemByDisplayFlagIs1()
+        {
+            DataTable _dt = new DataTable();
+            string _sql = string.Empty;
+
+            try
+            {
+                _sql = "Select * From ejlog_problemmascode where status = '1' and displayflag = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
+                _dt = _objDb.GetDatatableNotParam(_sql);
+                return _dt;
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
 
 
-        public List<ProblemMaster> GetMasterSysErrorWord()
+
+        public List<ProblemMaster> GetAllMasterSysErrorWord()
         {
             List<ProblemMaster> _result = new List<ProblemMaster>();
             DataTable _dt = new DataTable();
@@ -97,6 +112,33 @@ namespace SLA_Management.Data.TermProb
                     obj.ProblemCode = _dr["probcode"].ToString();
                     obj.ProblemName = _dr["probname"].ToString();
                     obj.Memo = _dr["memo"].ToString();
+                    obj.ProbType = _dr["probtype"].ToString();
+                    _result.Add(obj);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return _result;
+        }
+
+        public List<ProblemMaster> GetMasterSysErrorWord()
+        {
+            List<ProblemMaster> _result = new List<ProblemMaster>();
+            DataTable _dt = new DataTable();
+
+            try
+            {
+
+                _dt = GetAllMasterProblemByDisplayFlagIs1();
+                foreach (DataRow _dr in _dt.Rows)
+                {
+                    ProblemMaster obj = new ProblemMaster();
+                    obj.ProblemCode = _dr["probcode"].ToString();
+                    obj.ProblemName = _dr["probname"].ToString();
+                    obj.Memo = _dr["memo"].ToString();
+                    obj.ProbType = _dr["probtype"].ToString();
                     _result.Add(obj);
                 }
             }
@@ -124,11 +166,19 @@ namespace SLA_Management.Data.TermProb
         {
             int _seqNo = 1;
             List<ej_trandeviceprob> recordlst = new List<ej_trandeviceprob>();
-            while (reader.Read())
+            try
             {
-                recordlst.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
-                _seqNo++;
+                while (reader.Read())
+                {
+                    recordlst.Add(GetErrorTermDeviceEJLogFromReader(reader, _seqNo));
+                    _seqNo++;
+                }
             }
+            catch (Exception ex)
+            {
+
+            }
+            
 
             return recordlst;
         }
@@ -188,13 +238,13 @@ namespace SLA_Management.Data.TermProb
             }
         }
 
-        public List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_separate(ej_trandada_seek model)
+        public List<ej_trandeviceprob> GetErrorTermDeviceEJLog_Database_ejreport(ej_trandada_seek model)
         {
             try
             {
                 using (MySqlConnection cn = new MySqlConnection(FullNameConnection))
                 {
-                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_separate", cn);
+                    MySqlCommand cmd = new MySqlCommand("GenDeviceProblemError_ejreport", cn);
 
                     cmd.CommandType = CommandType.StoredProcedure;
 

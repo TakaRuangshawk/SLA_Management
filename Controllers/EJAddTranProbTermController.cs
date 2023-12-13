@@ -49,11 +49,12 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-        , string currPageSize, int? page, string maxRows, string KeyWordList)
+        , string currPageSize, int? page, string maxRows, string KeyWordList, string terminalType)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
+            List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
@@ -92,6 +93,12 @@ namespace SLA_Management.Controllers
                 if (DBService.CheckDatabase())
                 {
                     ProdMasData = dBService.GetMasterSysErrorWord();
+                    ProdAllMasData = dBService.GetAllMasterSysErrorWord();
+
+                    List<string> list = ProdAllMasData.Select(p => p.ProbType).Distinct().ToList();
+
+                    ViewBag.probTypeStr = list;
+
                     ViewBag.ConnectDB = "true";
                 }
                 else
@@ -144,6 +151,7 @@ namespace SLA_Management.Controllers
 
                     }
                 }
+
 
                 ViewBag.CurrentTID = dBService.GetDeviceInfoFeelview();
                 ViewBag.TermID = TermID;
@@ -209,7 +217,7 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
-                //param.TERMINALTYPE = terminalType ?? "";
+                
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
@@ -227,7 +235,7 @@ namespace SLA_Management.Controllers
                         //Console.WriteLine(KeyWord);
 
                         param.PROBNAME = KeyWord;
-                        if (ddlProbMaster != null || TermID != null)
+                        if (ddlProbMaster != null || TermID != null && param != null)
                         {
 
                             recordset.AddRange(GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate));
@@ -250,7 +258,7 @@ namespace SLA_Management.Controllers
                 long recCnt = 0;
 
                 if (String.IsNullOrEmpty(maxRows))
-                    ViewBag.maxRows = "5";
+                    ViewBag.maxRows = "50";
                 else
                     ViewBag.maxRows = maxRows;
 
@@ -287,6 +295,20 @@ namespace SLA_Management.Controllers
 
                 if (recordset.Count > 0)
                 {
+
+                    switch (terminalType)
+                    {
+                        case "G165":
+                            recordset.RemoveAll(item => item.TerminalID.Substring(item.TerminalID.Length - 4) == "G262");
+                            break;
+                        case "G262":
+                            recordset.RemoveAll(item => item.TerminalID.Substring(item.TerminalID.Length - 4) == "G165");
+                            break;
+                        default:
+                            
+                            break;
+                    }
+                  
                     recordset = recordset.OrderByDescending(x => x.TransactionDate).ToList();
                 }
 
@@ -312,7 +334,7 @@ namespace SLA_Management.Controllers
                 }
                 else if (Array.IndexOf(strErrorWordSeparate, paramTemp.PROBNAME) > -1)
                 {
-                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_separate(paramTemp));
+                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_ejreport(paramTemp));
                 }
                 else
                 {

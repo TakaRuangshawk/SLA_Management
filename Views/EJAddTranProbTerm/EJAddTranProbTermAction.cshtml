@@ -134,25 +134,25 @@
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
                     @*<div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (string item in ViewBag.CurrentTID)
-                            {
-                                if (@item != @ViewBag.TermID)
+                <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
+                <option data-tokens="" value="">--</option>
+                @foreach (string item in ViewBag.CurrentTID)
+                {
+                if (@item != @ViewBag.TermID)
 
-                                {
-                                    <option data-tokens=@item>@item</option>
-                                }
-                                else
-                                {
-                                    <option data-tokens=@item selected>@item</option>
+                {
+                <option data-tokens=@item>@item</option>
+                }
+                else
+                {
+                <option data-tokens=@item selected>@item</option>
 
-                                }
+                }
 
 
-                            }
-                        </select>
-                    </div>*@
+                }
+                </select>
+                </div>*@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
@@ -216,7 +216,7 @@
                     <div class="col-2" style="">
                         <label for="ErrMeaaage">Error Message:</label>
                     </div>
-                    <div class="col-6" style="padding: 0px;">
+                    <div class="col-2" style="padding: 0px;">
                         <select name="ddlProbMaster" id="ddlProbMaster" style="" class="selectpicker" multiple>
                             @{
 
@@ -271,6 +271,29 @@
                         </select>
                     </div>
                     @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
+                    <div class="col-2" style="">
+                        <h>TerminalType : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("terminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="ALL", Value = "G165;G262" },
+                        new SelectListItem(){ Text="ATM", Value = "G165"  },
+                        new SelectListItem(){ Text="ADM", Value = "G262"  }
+
+                        }, new
+                        {
+                        @class = "form-control dropdown"
+                        ,
+                        @style = " border-radius: 10px;" ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
                     @* <div class="col col-lg-2">
                 <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
                 <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
@@ -287,10 +310,9 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="5", Value = "5"  },
-                        new SelectListItem(){ Text="10", Value = "10"  },
                         new SelectListItem(){ Text="50", Value = "50" },
                         new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="500", Value = "500"  },
                         new SelectListItem(){ Text="1000", Value = "1000"  }
                         }, new
                         {
@@ -416,9 +438,9 @@
                                     <td> @Data.TransactionDate.Date.ToString("yyyy-MM-dd")</td>
                                     <td> @Data.TransactionDate.TimeOfDay</td>
                                     <td style="text-align:center;"> @Data.Seqno </td>
-                                    <td style="text-align:center;"> @Data.TerminalID</td>                                  
+                                    <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style="text-align:center;"> @Data.BranchName </td>
-                                    <td> @Data.Remark </td>
+                                    <td style="text-align:center;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
                                 </tr>
                             }
 
@@ -550,22 +572,13 @@
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
-                                @Html.DropDownList("probTypeStr", new SelectListItem[] {
-                                new SelectListItem(){ Text="DEVICE", Value = "DEVICE"  },
-                                new SelectListItem(){ Text="EJREPORT", Value = "EJREPORT"  },
-                                new SelectListItem(){ Text="NETWORK", Value = "NETWORK" },
-                                new SelectListItem(){ Text="COMMUNICATION", Value = "COMMUNICATION" },
-                                new SelectListItem(){ Text="CASH_REPORT", Value = "CASH_REPORT" },
-                                new SelectListItem(){ Text="EJLASTTRANS", Value = "EJLastTrans" },
-                                new SelectListItem(){ Text="ENGINEER_EVENT", Value = "ENGINEER_EVENT" }
-                                }, new
-                                {
-                                @class = "form-control dropdown"
-                                ,
-                                @style = " border-radius: 10px;" ,
-                                @name = "state"
-
-                                })
+                                <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in ViewBag.probTypeStr)
+                                    {
+                                        <option value=@item>@item </option>
+                                    }
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -579,9 +592,10 @@
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
                                 @Html.DropDownList("probTermStr", new SelectListItem[] {
+                                new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                                 new SelectListItem(){ Text="ATM", Value = "G165"  },
-                                new SelectListItem(){ Text="ADM", Value = "G262"  },
-                                new SelectListItem(){ Text="ALL", Value = "G165;G262" }
+                                new SelectListItem(){ Text="ADM", Value = "G262"  }
+
                                 }, new
                                 {
                                 @class = "form-control dropdown"
@@ -638,7 +652,7 @@
                 </div>
                 <div class="modal-footer" style="background-color:#FFA500;">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="clearInsertDataProb()">Close</button>
-                    <button type="button" id="btnInsertProbMasterMain"  class="btn btn-primary">Confirm</button>
+                    <button type="button" id="btnInsertProbMasterMain" class="btn btn-primary">Confirm</button>
                 </div>
 
 
@@ -764,10 +778,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                                       <a style="color: #333333;">' +
+                                                                           <a style="color: #333333;">' +
                                 i++ +
                                 '\
-                                                                                </li>'
+                                                                                    </li>'
                             )
                             .show();
                     } // end for i
@@ -847,7 +861,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                              var select = document.getElementById("seletePageNow");
+                                                                  var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -986,11 +1000,11 @@
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);
-                    clearInsertDataProb();                
+                    clearInsertDataProb();
 
                 }
-                else { 
-                    alert('Insert unsuccess! : ' + result.error); 
+                else {
+                    alert('Insert unsuccess! : ' + result.error);
                 }
             },
             error: function (err) {
@@ -999,8 +1013,8 @@
         });
 
 
-       
-        
+
+
 
 
     });
@@ -1013,7 +1027,7 @@
     });
 
 
-    function clearInsertDataProb(){
+    function clearInsertDataProb() {
 
         document.getElementById('username').value = "";
         document.getElementById('email').value = "";
@@ -1022,7 +1036,7 @@
         document.getElementById('probTypeStr').value = "DEVICE";
         document.getElementById('probTermStr').value = "G165";
         document.getElementById('memoStr').value = "";
-        
+
 
     }
 

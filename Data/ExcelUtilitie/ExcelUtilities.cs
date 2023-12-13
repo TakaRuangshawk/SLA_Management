@@ -439,7 +439,7 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                     if (param.TERMID == null || param.TERMID == "") param.TERMID = "All";
 
-                    excelWorksheet.Cells[2, 1].Value = "Terminal Device Error Report";
+                    excelWorksheet.Cells[2, 1].Value = "Problem Monitor Report";
                     excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
                     excelWorksheet.Cells[4, 2].Value = param.FRDATE.Substring(0, 10);
                     excelWorksheet.Cells[4, 4].Value = param.TODATE.Substring(0, 10);
@@ -452,13 +452,15 @@ namespace SLA_Management.Data.ExcelUtilitie
 
 
 
+
                         excelWorksheet.Cells[nStartRowData, 1].Value = nSeq;
-                        excelWorksheet.Cells[nStartRowData, 2].Value = data.BranchName;
-                        excelWorksheet.Cells[nStartRowData, 3].Value = data.TerminalID;
-                        excelWorksheet.Cells[nStartRowData, 4].Value = data.Location;
-                        excelWorksheet.Cells[nStartRowData, 5].Value = data.ProbName;
-                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Remark;
-                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.TransactionDate.ToString("yyyy-MM-dd HH:mm:ss", _cultureEnInfo);
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.Seqno;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.TerminalID;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.BranchName;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Location;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.ProbName;
+
 
 
                         nStartRowData++;

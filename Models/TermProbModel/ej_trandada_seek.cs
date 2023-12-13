@@ -16,6 +16,8 @@ namespace SLA_Management.Models.TermProbModel
         public string PROBKEYWORD { get; set; }
         public string MONTHPERIOD { get; set; }
         public string YEARPERIOD { get; set; }
+
+       
     }
 
     public class gateway_seek
