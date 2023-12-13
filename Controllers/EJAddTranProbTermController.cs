@@ -58,9 +58,10 @@ namespace SLA_Management.Controllers
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
+            List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
+            
 
-           
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
 
@@ -98,6 +99,11 @@ namespace SLA_Management.Controllers
                 if (DBService.CheckDatabase())
                 {
                     ProdMasData = dBService.GetMasterSysErrorWord();
+                    ProdAllMasData = dBService.GetAllMasterSysErrorWord();
+                    List<string> list = ProdAllMasData.Select(p => p.ProbType).Distinct().ToList();
+
+                    ViewBag.probTypeStr = list;
+
                     ViewBag.ConnectDB = "true";
                 }
                 else
@@ -297,8 +303,9 @@ namespace SLA_Management.Controllers
                     recordset.RemoveRange(5000, amountrecordset - 5000);
                 }
                 #endregion
-
                 
+             
+
 
                 if (recordset.Count > 0)
                 {

@@ -65,7 +65,7 @@ namespace SLA_Management.Data.TermProb
             return deviceInfoRecordsList;
         }
 
-        public DataTable GetAllMasterProblem()
+        public DataTable GetMasterProblemByDisplayFlagAndStatusIs1()
         {
             DataTable _dt = new DataTable();
             string _sql = string.Empty;
@@ -73,6 +73,21 @@ namespace SLA_Management.Data.TermProb
             try
             {
                 _sql = "Select * From ejlog_problemmascode where status = '1' and displayflag = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
+                _dt = _objDb.GetDatatableNotParam(_sql);
+                return _dt;
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+        public DataTable GetAllMasterProblem()
+        {
+            DataTable _dt = new DataTable();
+            string _sql = string.Empty;
+
+            try
+            {
+                _sql = "Select * From ejlog_problemmascode where status = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
@@ -90,6 +105,32 @@ namespace SLA_Management.Data.TermProb
             try
             {
 
+                _dt = GetMasterProblemByDisplayFlagAndStatusIs1();
+                foreach (DataRow _dr in _dt.Rows)
+                {
+                    ProblemMaster obj = new ProblemMaster();
+                    obj.ProblemCode = _dr["probcode"].ToString();
+                    obj.ProblemName = _dr["probname"].ToString();
+                    obj.Memo = _dr["memo"].ToString();
+                    obj.ProbType = _dr["probtype"].ToString();
+                    _result.Add(obj);
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return _result;
+        }
+
+        public List<ProblemMaster> GetAllMasterSysErrorWord()
+        {
+            List<ProblemMaster> _result = new List<ProblemMaster>();
+            DataTable _dt = new DataTable();
+
+            try
+            {
+
                 _dt = GetAllMasterProblem();
                 foreach (DataRow _dr in _dt.Rows)
                 {
@@ -97,6 +138,7 @@ namespace SLA_Management.Data.TermProb
                     obj.ProblemCode = _dr["probcode"].ToString();
                     obj.ProblemName = _dr["probname"].ToString();
                     obj.Memo = _dr["memo"].ToString();
+                    obj.ProbType = _dr["probtype"].ToString();
                     _result.Add(obj);
                 }
             }

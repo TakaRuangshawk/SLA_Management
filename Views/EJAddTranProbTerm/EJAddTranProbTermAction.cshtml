@@ -305,7 +305,7 @@
 
                         new SelectListItem(){ Text="50", Value = "50" },
                         new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="100", Value = "500"  },
+                        new SelectListItem(){ Text="500", Value = "500"  },
                         new SelectListItem(){ Text="1000", Value = "1000"  }
                         }, new
                         {
@@ -431,8 +431,8 @@
                                     <td style="text-align:center;"> @Data.TransactionDate.Date.ToString("yyyy-MM-dd") @Data.TransactionDate.TimeOfDay</td>
                                     <td style="text-align:center;"> @Data.Seqno </td>
                                     <td style="text-align:center;"> @Data.TerminalID</td>
-                                    <td style=""> @Data.BranchName </td>
-                                    <td> @Data.Remark </td>
+                                    <td style="text-align:center;"> @Data.BranchName </td>
+                                    <td style="text-align:center;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
                                 </tr>
                             }
 
@@ -564,22 +564,13 @@
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
-                                @Html.DropDownList("probTypeStr", new SelectListItem[] {
-                                new SelectListItem(){ Text="DEVICE", Value = "DEVICE"  },
-                                new SelectListItem(){ Text="EJREPORT", Value = "EJREPORT"  },
-                                new SelectListItem(){ Text="NETWORK", Value = "NETWORK" },
-                                new SelectListItem(){ Text="COMMUNICATION", Value = "COMMUNICATION" },
-                                new SelectListItem(){ Text="CASH_REPORT", Value = "CASH_REPORT" },
-                                new SelectListItem(){ Text="EJLASTTRANS", Value = "EJLastTrans" },
-                                new SelectListItem(){ Text="ENGINEER_EVENT", Value = "ENGINEER_EVENT" }
-                                }, new
-                                {
-                                @class = "form-control dropdown"
-                                ,
-                                @style = " border-radius: 10px;" ,
-                                @name = "state"
-
-                                })
+                                <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in ViewBag.probTypeStr)
+                                    {
+                                        <option value=@item>@item </option>
+                                    }
+                                </select>                           
                             </div>
                         </div>
                     </div>
