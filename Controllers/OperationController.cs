@@ -51,7 +51,8 @@ namespace SLA_Management.Controllers
         private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
         private static List<AdminCardModel> admincard_dataList = new List<AdminCardModel>();
-        private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();  
+        private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
+        private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();  
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
@@ -1835,7 +1836,170 @@ namespace SLA_Management.Controllers
             public int TotalTerminal { get; set; }
         }
         #endregion
+        #region CardRetain
+        [HttpGet]
+        public IActionResult CardRetain()
+        {
 
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            return View();
+        }
+        [HttpGet]
+        public IActionResult CardRetainFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype)
+        {
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            terminaltype = terminaltype ?? "";
+            sort = sort ?? "term_id";
+            List<CardRetainModel> jsonData = new List<CardRetainModel>();
+            if (search == "search")
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+                    // Modify the SQL query to use the 'input' parameter for filtering
+                    string query = " SELECT adi.term_seq as term_seq, t1.terminalid AS term_id, adi.term_name as term_name, SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS card_number, t1.trxdatetime AS trxdatetime_ejreport FROM logview.ejlog_devicetermprob_ejreport t1 LEFT JOIN logview.ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join logview.all_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'LASTTRANS_14' AND (t2.probcode = 'DEVICE05' OR t2.probcode = 'DEVICE14') AND (t2.remark LIKE '%RETAIN CARD%' or t2.remark like '%CARD RETAINED FAILED%') and t1.trxdatetime between '"+ DateTime.Now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' ";
+                    if (terminalno != "")
+                    {
+                        query += " and adi.TERM_ID like '%" + terminalno + "%' ";
+                    }
+                    if (terminaltype != "")
+                    {
+                        query += " and adi.TYPE_ID = '" + terminaltype + "' ";
+                    }
+                    query += " GROUP BY adi.term_seq, adi.term_id, adi.term_name ";
+                    switch (sort)
+                    {
+                        case "term_id":
+                            query += " ORDER BY adi.term_id asc;";
+                            break;
+                        case "branch_id":
+                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc;";
+                            break;
+                        case "term_seq":
+                            query += " ORDER BY adi.term_seq asc;";
+                            break;
+                        default:
+                            query += " ORDER BY adi.term_id asc;";
+                            break;
+                    }
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    int id_row = 0;
+                    string _trxdatetime = "";
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            if (reader["trxdatetime_ejreport"] != DBNull.Value && DateTime.TryParse(reader["trxdatetime_ejreport"].ToString(), out DateTime trxDateTime))
+                            {
+                                _trxdatetime = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            else
+                            {
+                                _trxdatetime = "-";
+                            }
+                            jsonData.Add(new CardRetainModel
+                            {
+
+                                no = (id_row).ToString(),
+                                term_seq = reader["term_seq"].ToString(),
+                                term_id = reader["term_id"].ToString(),
+                                term_name = reader["term_name"].ToString(),
+                                card_number = reader["card_number"].ToString(),
+                                trxdatetime = _trxdatetime,
+
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                jsonData = cardretain_dataList;
+            }
+            cardretain_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<CardRetainModel> filteredData = RangeFilter_cr(jsonData, _page, _row);
+            var response = new DataResponse_CardRetain
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+
+        static List<CardRetainModel> RangeFilter_cr<CardRetainModel>(List<CardRetainModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class CardRetainModel
+        {
+            public string no { get; set; }
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string card_number { get; set; }
+            public string trxdatetime { get; set; }
+
+        }
+        public class DataResponse_CardRetain
+        {
+            public List<CardRetainModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #endregion
         #region Excel
 
         [HttpPost]
@@ -2382,7 +2546,7 @@ namespace SLA_Management.Controllers
         }
         #endregion
 
-        #region Excel AdminCardMonitor
+        #region Excel LastTransaction
 
         [HttpPost]
         public ActionResult LastTransaction_ExportExc()
@@ -2513,5 +2677,138 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+
+        #region Excel CardRetain
+
+        [HttpPost]
+        public ActionResult CardRetain_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+
+                if (cardretain_dataList == null || cardretain_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+                ExcelUtilities_CardRetain obj = new ExcelUtilities_CardRetain();
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(cardretain_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult CardRetain_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
+
     }
 }

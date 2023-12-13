@@ -1,16 +1,14 @@
 ﻿
 @{
-    ViewData["Title"] = "Admin Card Monitor";
+    ViewData["Title"] = "Card Retain Monitor";
     string[] tableHeaders = new string[]
     {
     "No.",
     "Serial No. ",
     "Terminal ID",
     "Terminal Name ",
-    "Admin Card Track2 No ",
-    "Admin Password Digits",
-    "Status ",
-    "Update Date "
+    "Card No.",
+    "Transaction DateTime"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -40,13 +38,13 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-11">
-                <a class="text-white fs-4" id="header_search">Admin Card Monitor</a>
+                <a class="text-white fs-4" id="header_search">Card Retain Monitor</a>
             </div>
         </div>
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("AdminCardMonitor", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("CardRetain", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
@@ -61,13 +59,13 @@
                                 <option data-tokens="" value="">--</option>
                                 @foreach (var item in ViewBag.CurrentTID)
                                 {
-                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    if (@item.term_id != @ViewBag.TermID)
                                     {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        <option value=@item.term_id data-tokens=@item.term_id>@item.term_seq : @item.term_id : @item.term_name</option>
                                     }
                                     else
                                     {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        <option value=@item.term_id data-tokens=@item.term_id selected>@item.term_seq : @item.term_id : @item.term_name</option>
 
                                     }
                                 }
@@ -76,16 +74,17 @@
                         </div>
                     </div>
                     <div class="col col-md-1" style="">
-                        <h style ="display:flex;justify-content:center;">Admin Password Digits : </h>
+                        <h style ="display:flex;justify-content:center;">Terminal Type : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("digits", new SelectListItem[] {
+                        @Html.DropDownList("terminaltype", new SelectListItem[] {
                         new SelectListItem(){ Text="All", Value = "" },
-                        new SelectListItem(){ Text="4", Value = "DDCPinEntryState" },
-                        new SelectListItem(){ Text="6", Value = "GHBeCatDDCPinEntryState" }
+                        new SelectListItem(){ Text="2IN1", Value = "2IN1" },
+                        new SelectListItem(){ Text="LRM", Value = "LRM" },
+                        new SelectListItem(){ Text="CDM", Value = "RDM" }
                         }, new
                         {
                         @class = "form-control selectpicker subsearch"
@@ -95,30 +94,6 @@
                         })
                         </div>
                     </div>
-                    <div class="col col-md-1" style="">
-                        <h>Status : </h>
-                    </div>
-
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("Status", new SelectListItem[] {
-                        new SelectListItem(){ Text="All", Value = "" },
-                        new SelectListItem(){ Text="Matched", Value = "Matched" },
-                        new SelectListItem(){ Text="Unmatched", Value = "Unmatched" }
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
-                        </div>
-                    </div>
-
-                </div>
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-
                     <div class="col col-md-1" style="">
                         <h>Sort : </h>
                     </div>
@@ -130,7 +105,6 @@
                         new SelectListItem(){ Text="Terminal No", Value = "term_id" },
                         new SelectListItem(){ Text="Branch No", Value = "branch_id" },
                         new SelectListItem(){ Text="Serial No", Value = "term_seq" },
-                        new SelectListItem(){ Text="Status", Value = "status" }
                         }, new
                         {
                         @class = "form-control selectpicker subsearch"
@@ -141,6 +115,10 @@
 
                         </div>
                     </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
                     <div class="col col-md-1" style="">
                         <h>Rows : </h>
                     </div>
@@ -160,6 +138,13 @@
                         })
 
                         </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        
                     </div>
                     <div class="col col-md-1" style="">
                     </div>
@@ -209,7 +194,7 @@
     <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
         <div class="col" style="display: flex;justify-content: center;">
-            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
         </div>
         <div class="col" style="display: flex;justify-content: center;">
             <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
@@ -267,7 +252,7 @@
 
                     }, new
                     {
-                    @class = "form-control",onchange = "updateTable()"
+                    @class = "form-control",onchange = "updateTable('paging')"
                     })
                 </p>
             </div>
@@ -280,51 +265,48 @@
 
     function updateTable(search) {
         var terminalno = $("#TermID").val();
-        var status = $("#Status").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
         var sort = $("#sort").val();
-        var digits = $("#digits").val();
+        var terminaltype = $("#terminaltype").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
         $.ajax({
             type: "GET",
-            url: '@Url.Action("AdminFetchData", "Operation")',
+            url: '@Url.Action("CardRetainFetchData", "Operation")',
             data: {
                 terminalno: terminalno,
-                status: status,
                 row: row,
                 page: page,
                 search: search,
                 sort: sort,
-                digits: digits
+                terminaltype: terminaltype
             },
             dataType: "json",
             success: function (data) {
+                console.log(data);
                 var jsondata = data.jsonData;
                 var pages = data.page;
                 var currentpage = data.currentPage;
                 var totalterminal = data.totalTerminal;
                 $('#recordCount').text(totalterminal);
                 $("#table-id tbody").empty();
-                 if (jsondata.length === 0) {
-                // Display a message when there is no data
-                var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
-                $("#table-id tbody").append(noDataRow);
+                if (jsondata.length === 0) {
+                    // Display a message when there is no data
+                    var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
+                    $("#table-id tbody").append(noDataRow);
                 } else {
-                $.each(jsondata, function (index, item) {
-                    var row = $("<tr>");
-                    row.append($("<td>").css("text-align", "center").text(item.id));
-                    row.append($("<td>").css("text-align", "center").text(item.term_seq));
-                    row.append($("<td>").css("text-align", "center").text(item.term_id));
-                    row.append($("<td>").css("text-align", "center").text(item.term_name));
-                    row.append($("<td>").css("text-align", "center").text(item.admin_card_master));
-                    row.append($("<td>").css("text-align", "center").text(item.admin_password_digits));
-                    row.append($("<td>").css("text-align", "center").text(item.status));
-                    row.append($("<td>").css("text-align", "center").text(item.update_date));
-                    $("#table-id tbody").append(row);
-                    window.scrollTo(0, 0);
-                });
+                    $.each(jsondata, function (index, item) {
+                        var row = $("<tr>");
+                        row.append($("<td>").css("text-align", "center").text(item.no));
+                        row.append($("<td>").css("text-align", "center").text(item.term_seq));
+                        row.append($("<td>").css("text-align", "center").text(item.term_id));
+                        row.append($("<td>").css("text-align", "left").text(item.term_name));
+                        row.append($("<td>").css("text-align", "center").text(item.card_number));
+                        row.append($("<td>").css("text-align", "center").text(item.trxdatetime));
+                        $("#table-id tbody").append(row);
+                        window.scrollTo(0, 0);
+                    });
                 }
                 generatePageButtons(pages, currentpage);
                 if (pages >= 1) {
@@ -351,7 +333,7 @@
                     $("#page").append(option);
 
                 }
-              
+
                 if ((currentpage == 1 || page == null) && pages > 1) {
                     prevDiv.style.visibility = "hidden";
                     nextDiv.style.visibility = "visible";
@@ -390,7 +372,7 @@
         for (var i = startPage; i <= endPage; i++) {
             var button = $("<a>").text(i).click(function () {
                 $("#page").val($(this).text()); // Set #page value
-                updateTable();
+                updateTable('paging');
             });
             button.css({
                 "display": "inline-flex",
@@ -417,11 +399,11 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("AdminCard_ExportExc", "Operation")',
+            url: '@Url.Action("CardRetain_ExportExc", "Operation")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("AdminCardMonitor_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("AdminCardMonitor_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("CardRetain_DownloadExportFile", "Operation")'
+                    window.location = '@Url.Action("CardRetain_DownloadExportFile", "Operation")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
