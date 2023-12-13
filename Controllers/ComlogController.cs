@@ -7,7 +7,7 @@ using System.Text;
 
 namespace SLA_Management.Controllers
 {
-    public class ComlogNewController : Controller
+    public class ComlogController : Controller
     {
 
         private static string ipFileserver { get; set; }
@@ -24,7 +24,7 @@ namespace SLA_Management.Controllers
         private Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment { get; set; }
         private IConfiguration _myConfiguration { get; set; }
 
-        public ComlogNewController(Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment, IConfiguration configuration)
+        public ComlogController(Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment, IConfiguration configuration)
         {
             this.hostEnvironment = hostEnvironment;
             _myConfiguration = configuration;
@@ -93,7 +93,12 @@ namespace SLA_Management.Controllers
                         var filePath = Path.GetTempFileName();
                         Guid myuuid = Guid.NewGuid();
                         string myuuidAsString = myuuid.ToString();
-                        string targetFileSave = Path.Combine(pathApp, "UploadFile", myuuidAsString + "_" + uplodeTerminal_ID + "_" + _FileName);
+                        string pathDowload = Path.Combine(pathApp, "UploadFile");
+                        string targetFileSave = Path.Combine(pathDowload, myuuidAsString + "_" + uplodeTerminal_ID + "_" + _FileName);
+                        if (!Directory.Exists(pathDowload))
+                        {
+                            Directory.CreateDirectory(pathDowload);
+                        }
                         using (var stream = System.IO.File.Create(targetFileSave))
                         {
                             item.CopyTo(stream);
