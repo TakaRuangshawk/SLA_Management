@@ -15,6 +15,7 @@ using SLA_Management.Data;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using System.Security.AccessControl;
+using Org.BouncyCastle.Crypto.Modes.Gcm;
 
 namespace SLA_Management.Controllers
 {
@@ -1881,7 +1882,7 @@ namespace SLA_Management.Controllers
             }
             terminalno = terminalno ?? "";
             terminaltype = terminaltype ?? "";
-            sort = sort ?? "term_id";
+            sort = sort ?? "trxdatetime";
             List<CardRetainModel> jsonData = new List<CardRetainModel>();
             if (search == "search")
             {
@@ -1901,17 +1902,20 @@ namespace SLA_Management.Controllers
                     query += " GROUP BY adi.term_seq, adi.term_id, adi.term_name ";
                     switch (sort)
                     {
+                        case "trxdatetime":
+                            query += " ORDER BY t1.trxdatetime desc; ";
+                                break;
                         case "term_id":
-                            query += " ORDER BY adi.term_id asc;";
+                            query += " ORDER BY adi.term_id asc,t1.trxdatetime desc;";
                             break;
                         case "branch_id":
-                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc;";
+                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.trxdatetime desc;";
                             break;
                         case "term_seq":
-                            query += " ORDER BY adi.term_seq asc;";
+                            query += " ORDER BY adi.term_seq asc,t1.trxdatetime desc;";
                             break;
                         default:
-                            query += " ORDER BY adi.term_id asc;";
+                            query += " ORDER BY t1.trxdatetime desc;";
                             break;
                     }
                     MySqlCommand command = new MySqlCommand(query, connection);

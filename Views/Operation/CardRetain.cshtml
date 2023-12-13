@@ -102,6 +102,7 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                         @Html.DropDownList("sort", new SelectListItem[] {
+                        new SelectListItem(){ Text="Date Time", Value = "trxdatetime" },
                         new SelectListItem(){ Text="Terminal No", Value = "term_id" },
                         new SelectListItem(){ Text="Branch No", Value = "branch_id" },
                         new SelectListItem(){ Text="Serial No", Value = "term_seq" },
