@@ -600,7 +600,7 @@ namespace SLA_Management.Data.ExcelUtilitie
                     var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
                     //excelWorksheet.Name = "Regulator";
 
-                    excelWorksheet.Cells[2, 1].Value = "Admin Card Report";
+                    excelWorksheet.Cells[2, 1].Value = "Last Transaction Report";
                     excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
                     excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
 

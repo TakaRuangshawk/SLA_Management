@@ -1737,7 +1737,7 @@ namespace SLA_Management.Controllers
                         query += " ORDER BY adi.term_seq asc;";
                         break;
                     case "last_transaction":
-                        query += " ORDER BY lastest_trxdatetime_success asc,adi.term_id asc;";
+                        query += " ORDER BY MAX(ede.trxdatetime) asc;";
                         break;
                     default:
                         query += " ORDER BY adi.term_id asc;";
@@ -2803,7 +2803,7 @@ namespace SLA_Management.Controllers
             try
             {
 
-                if (admincard_dataList == null || admincard_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                if (lasttransaction_dataList == null || lasttransaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
 
