@@ -53,7 +53,8 @@ namespace SLA_Management.Controllers
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
         private static List<AdminCardModel> admincard_dataList = new List<AdminCardModel>();
         private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
-        private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();  
+        private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
+        private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
         private int pageNum = 1;
         private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
         private List<string> terminalIDList = new List<string>();
@@ -1999,6 +2000,242 @@ namespace SLA_Management.Controllers
         public class DataResponse_CardRetain
         {
             public List<CardRetainModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #endregion
+        #region Transactions
+        [HttpGet]
+        public IActionResult Transactions()
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            List<SDataValueModel> trxTypeData = GetDataBySdatagroup("TRX_TYPE");
+            ViewBag.TrxTypeData = trxTypeData;
+            return View();
+        }
+        [HttpGet]
+        public IActionResult TransactionsFetchData(string terminalno, string row, string page, string search, string sort, string order,string status,string trxtype,string rc)
+        {
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            sort = sort ?? "trxdatetime";
+            order = order ?? "asc";
+            status = status ?? "";
+            trxtype = trxtype ?? "";
+            rc = rc ?? "";
+            List<TransactionModel> jsonData = new List<TransactionModel>();
+            if (search == "search")
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+                    // Modify the SQL query to use the 'input' parameter for filtering
+                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc FROM logview.ejlog_history where trx_datetime is not null ";
+                    if (terminalno != "")
+                    {
+                        query += " and terminalid like '%" + terminalno + "%' ";
+                    }
+                    if(status != "")
+                    {
+                        query += " and trx_status = '" + status + "' ";
+                    }
+                    if (trxtype != "")
+                    {
+                        query += " and trx_type = '" + trxtype + "' ";
+                    }
+                    if (trxtype != "")
+                    {
+                        query += " and trx_type = '" + trxtype + "' ";
+                    }
+                    if(rc != "")
+                    {
+                        query += " AND (S_RC = '"+ rc + "' OR S_REMARK = '"+ rc +"') ";
+                    }
+                    switch (sort)
+                    {
+                        case "trxdatetime":
+                            query += " ORDER BY t1.trxdatetime " + order + " ; ";
+                            break;
+                        case "term_id":
+                            query += " ORDER BY adi.term_id asc,t1.trxdatetime desc;";
+                            break;
+                        case "branch_id":
+                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.trxdatetime desc;";
+                            break;
+                        case "term_seq":
+                            query += " ORDER BY adi.term_seq asc,t1.trxdatetime desc;";
+                            break;
+                        default:
+                            query += " ORDER BY trxdatetime" + order + " ; ";
+                            break;
+                    }
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    int id_row = 0;
+                    string _trxdatetime = "";
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            if (reader["trx_datetime"] != DBNull.Value && DateTime.TryParse(reader["trx_datetime"].ToString(), out DateTime trxDateTime))
+                            {
+                                _trxdatetime = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            else
+                            {
+                                _trxdatetime = "-";
+                            }
+                            jsonData.Add(new TransactionModel
+                            {
+
+                                no = (id_row).ToString(),
+                                seq = reader["seq"].ToString(),
+                                trx_datetime = _trxdatetime,
+                                trx_type = reader["trx_type"].ToString(),
+                                bankcode = reader["bankcode"].ToString(),
+                                s_other = reader["s_other"].ToString(),
+                                pan_no = reader["pan_no"].ToString(),
+                                fr_accno = reader["fr_accno"].ToString(),
+                                to_accno = reader["to_accno"].ToString(),
+                                trx_status = reader["trx_status"].ToString(),
+                                amt1 = reader["amt1"].ToString(),
+                                fee_amt1 = reader["fee_amt1"].ToString(),
+                                retract_amt1 = reader["retract_amt1"].ToString(),
+                                rc = reader["rc"].ToString(),
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                jsonData = transaction_dataList;
+            }
+            transaction_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<TransactionModel> filteredData = RangeFilter_tr(jsonData, _page, _row);
+            var response = new DataResponse_Transaction
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+        private List<SDataValueModel> GetDataBySdatagroup(string sdatagroup)
+        {
+            List<SDataValueModel> result = new List<SDataValueModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Assuming your table is named "YourTableName"
+                string query = "SELECT * FROM ejlog_masterdata WHERE sdatagroup = @sdatagroup";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@sdatagroup", sdatagroup);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Map the database columns to your model properties
+                            SDataValueModel data = new SDataValueModel
+                            {
+                                Sdatavalue = reader["sdatavalue"].ToString(),
+                                // Map other properties accordingly
+                            };
+
+                            result.Add(data);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        static List<TransactionModel> RangeFilter_tr<TransactionModel>(List<TransactionModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class SDataValueModel
+        {
+            public string Sdatavalue { get; set; }
+        }
+        public class TransactionModel
+        {
+            public string no { get; set; }
+            public string seq { get; set; }
+            public string trx_datetime { get; set; }
+            public string trx_type { get; set; }
+            public string bankcode { get; set; }
+            public string s_other { get; set; }
+            public string pan_no { get; set; }
+            public string fr_accno { get; set; }
+            public string to_accno { get; set; }
+            public string trx_status { get; set; }
+            public string amt1 { get; set; }
+            public string fee_amt1 { get; set; }
+            public string retract_amt1 { get; set; }
+            public string rc { get; set; }
+
+        }
+        public class DataResponse_Transaction
+        {
+            public List<TransactionModel> JsonData { get; set; }
             public int Page { get; set; }
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
