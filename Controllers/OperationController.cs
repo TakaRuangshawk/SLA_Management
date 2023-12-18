@@ -2018,10 +2018,14 @@ namespace SLA_Management.Controllers
             ViewBag.pageSize = pageSize;
             List<SDataValueModel> trxTypeData = GetDataBySdatagroup("TRX_TYPE");
             ViewBag.TrxTypeData = trxTypeData;
+            List<SDataValueModel> rcData = GetDataBySdatagroup("S_REMARK");
+            ViewBag.RCData = rcData;
+            ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+            ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
             return View();
         }
         [HttpGet]
-        public IActionResult TransactionsFetchData(string terminalno, string row, string page, string search, string sort, string order,string status,string trxtype,string rc)
+        public IActionResult TransactionsFetchData(string terminalno, string row, string page, string search, string sort, string order,string status,string trxtype,string rc,string todate,string fromdate)
         {
             int _page;
 
@@ -2056,6 +2060,8 @@ namespace SLA_Management.Controllers
             status = status ?? "";
             trxtype = trxtype ?? "";
             rc = rc ?? "";
+            fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
+            todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
             List<TransactionModel> jsonData = new List<TransactionModel>();
             if (search == "search")
             {
@@ -2063,7 +2069,7 @@ namespace SLA_Management.Controllers
                 {
                     connection.Open();
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc FROM logview.ejlog_history where trx_datetime is not null ";
+                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc FROM logview.ejlog_history where trx_datetime is not null and trx_datetime between '"+ fromdate +" 00:00:00' and '"+ todate +" 23:59:59' ";
                     if (terminalno != "")
                     {
                         query += " and terminalid like '%" + terminalno + "%' ";
@@ -2086,20 +2092,17 @@ namespace SLA_Management.Controllers
                     }
                     switch (sort)
                     {
-                        case "trxdatetime":
-                            query += " ORDER BY t1.trxdatetime " + order + " ; ";
+                        case "trx_datetime":
+                            query += " ORDER BY trx_datetime " + order + " ; ";
                             break;
-                        case "term_id":
-                            query += " ORDER BY adi.term_id asc,t1.trxdatetime desc;";
+                        case "trx_type":
+                            query += " ORDER BY trx_type " + order + " ; ";
                             break;
-                        case "branch_id":
-                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.trxdatetime desc;";
-                            break;
-                        case "term_seq":
-                            query += " ORDER BY adi.term_seq asc,t1.trxdatetime desc;";
+                        case "rc":
+                            query += " ORDER BY (S_RC AND S_REMARK) " + order + " ; ";
                             break;
                         default:
-                            query += " ORDER BY trxdatetime" + order + " ; ";
+                            query += " ORDER BY trx_datetime " + order + " ; ";
                             break;
                     }
                     MySqlCommand command = new MySqlCommand(query, connection);
