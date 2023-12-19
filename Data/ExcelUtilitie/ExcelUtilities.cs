@@ -707,5 +707,90 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_Transaction
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Contractor
+
+        #endregion
+        #region Function 
+        public void GatewayOutput(List<TransactionModel> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 7;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\Transaction.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+                 
+
+                    foreach (TransactionModel data in objData)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.no;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.seq;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.trx_datetime;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.trx_type;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.bankcode;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.s_other;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.pan_no;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.fr_accno;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.to_accno;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.trx_status;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.amt1;
+                        excelWorksheet.Cells[nStartRowData, 12].Value = data.fee_amt1;
+                        excelWorksheet.Cells[nStartRowData, 13].Value = data.retract_amt1;
+                        excelWorksheet.Cells[nStartRowData, 14].Value = data.rc;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+                    excelWorksheet.Cells[2, 8].Value = bankname_ej;
+                    excelWorksheet.Cells[3, 3].Value = fromtodate_ej;
+                    excelWorksheet.Cells[3, 8].Value = sortby_ej;
+                    excelWorksheet.Cells[3, 11].Value = orderby_ej;
+                    excelWorksheet.Cells[4, 3].Value = term_ej;
+                    excelWorksheet.Cells[4, 8].Value = branchname_ej;
+                    excelWorksheet.Cells[4, 11].Value = status_ej;
+                    excelWorksheet.Cells[5, 3].Value = totaltransaction_ej;
+                    excelWorksheet.Cells[5, 8].Value = trxtype_ej;
+                    excelWorksheet.Cells[5, 11].Value = rc_ej;
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "Transaction.xlsx"))));
+                    FileSaveAsXlsxFormat = "Transaction.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
+    }
 
 }

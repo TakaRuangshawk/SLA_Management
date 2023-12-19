@@ -16,6 +16,7 @@ using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using System.Security.AccessControl;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
+using System.Reflection.PortableExecutable;
 
 namespace SLA_Management.Controllers
 {
@@ -65,6 +66,18 @@ namespace SLA_Management.Controllers
         private static ConnectMySQL db_fv;
         private static ConnectMySQL db_all;
         private static string sqlConnection;
+        #region export transaction parameter
+        public static string bankname_ej;
+        public static string fromtodate_ej;
+        public static string sortby_ej;
+        public static string orderby_ej;
+        public static string term_ej;
+        public static string branchname_ej;
+        public static string status_ej;
+        public static string totaltransaction_ej;
+        public static string trxtype_ej;
+        public static string rc_ej;
+        #endregion
         private static string sqlServer { get; set; }
         public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
         #endregion
@@ -2092,13 +2105,13 @@ namespace SLA_Management.Controllers
                     }
                     switch (sort)
                     {
-                        case "trx_datetime":
+                        case "Datetime":
                             query += " ORDER BY trx_datetime " + order + " ; ";
                             break;
-                        case "trx_type":
+                        case "TransactionType":
                             query += " ORDER BY trx_type " + order + " ; ";
                             break;
-                        case "rc":
+                        case "ResponseCode":
                             query += " ORDER BY (S_RC AND S_REMARK) " + order + " ; ";
                             break;
                         default:
@@ -2148,6 +2161,16 @@ namespace SLA_Management.Controllers
                 jsonData = transaction_dataList;
             }
             transaction_dataList = jsonData;
+            bankname_ej = _myConfiguration.GetValue<string>("ProjectSetting:Bank") ?? "Bank";
+            fromtodate_ej = fromdate + " 00:00:00 - " + todate + " 23:59:59";
+            sortby_ej = sort;
+            orderby_ej = (order == "asc") ? "น้อยไปมาก" : (order == "desc") ? "มากไปน้อย" : "น้อยไปมาก";
+            term_ej = terminalno;
+            branchname_ej = GetBranchName(terminalno);
+            status_ej = (status == "") ? "เลือกทั้งหมด" : status;
+            totaltransaction_ej = jsonData.Count().ToString();
+            trxtype_ej = (trxtype == "") ? "เลือกทั้งหมด" : trxtype;
+            rc_ej = (rc == "")? "เลือกทั้งหมด":rc;
             int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
             List<TransactionModel> filteredData = RangeFilter_tr(jsonData, _page, _row);
             var response = new DataResponse_Transaction
@@ -2158,6 +2181,38 @@ namespace SLA_Management.Controllers
                 TotalTerminal = jsonData.Count(),
             };
             return Json(response);
+        }
+        private string GetBranchName(string termid)
+        {
+            string result = "";
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Assuming your table is named "YourTableName"
+                string query = "SELECT * FROM all_device_info WHERE term_id = @term_id";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@term_id", termid);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Map the database columns to your model properties
+                            deviceinfoModel data = new deviceinfoModel
+                            {
+                                term_name = reader["term_name"].ToString(),
+                                // Map other properties accordingly
+                            };
+
+                            result = data.term_name;
+                        }
+                    }
+                }
+            }
+            return result;
         }
         private List<SDataValueModel> GetDataBySdatagroup(string sdatagroup)
         {
@@ -2217,6 +2272,13 @@ namespace SLA_Management.Controllers
         public class SDataValueModel
         {
             public string Sdatavalue { get; set; }
+        }
+        public class deviceinfoModel
+        {
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string type_id { get; set; }
         }
         public class TransactionModel
         {
@@ -2652,12 +2714,6 @@ namespace SLA_Management.Controllers
 
 
         #endregion
-        public class DeviceInfo
-        {
-            public string term_id { get; set; }
-            public string term_seq { get; set; }
-            public string term_name { get; set; }
-        }
         #region Excel AdminCardMonitor
 
         [HttpPost]
@@ -3053,6 +3109,136 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+        #region Excel Transaction
 
+        [HttpPost]
+        public ActionResult Transaction_ExportExc()
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+
+                if (transaction_dataList == null || transaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+                ExcelUtilities_Transaction obj = new ExcelUtilities_Transaction();
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(transaction_dataList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "Transaction_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult Transaction_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "Transaction_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
     }
 }
