@@ -1750,7 +1750,7 @@ namespace SLA_Management.Controllers
                         query += " ORDER BY adi.term_seq asc;";
                         break;
                     case "last_transaction":
-                        query += " ORDER BY MAX(ede.trxdatetime) asc;";
+                        query += " ORDER BY MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) asc;";
                         break;
                     default:
                         query += " ORDER BY adi.term_id asc;";
@@ -1917,19 +1917,19 @@ namespace SLA_Management.Controllers
                     switch (sort)
                     {
                         case "trxdatetime":
-                            query += " ORDER BY t1.trxdatetime desc; ";
+                            query += " ORDER BY t2.trxdatetime asc; ";
                                 break;
                         case "term_id":
-                            query += " ORDER BY adi.term_id asc,t1.trxdatetime desc;";
+                            query += " ORDER BY adi.term_id asc,t2.trxdatetime asc;";
                             break;
                         case "branch_id":
-                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.trxdatetime desc;";
+                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t2.trxdatetime asc;";
                             break;
                         case "term_seq":
-                            query += " ORDER BY adi.term_seq asc,t1.trxdatetime desc;";
+                            query += " ORDER BY adi.term_seq asc,t2.trxdatetime asc;";
                             break;
                         default:
-                            query += " ORDER BY t1.trxdatetime desc;";
+                            query += " ORDER BY t2.trxdatetime asc;";
                             break;
                     }
                     MySqlCommand command = new MySqlCommand(query, connection);
