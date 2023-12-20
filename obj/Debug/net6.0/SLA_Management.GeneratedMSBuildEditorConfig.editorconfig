@@ -72,6 +72,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFRpY2tldE1hbmFnZW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/Transactions.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFRyYW5zYWN0aW9ucy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -91,6 +95,14 @@ build_metadata.AdditionalFiles.CssScope =
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/AdminCardMonitor.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXEFkbWluQ2FyZE1vbml0b3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-plj7ss28i5
+
+[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/CardRetain.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXENhcmRSZXRhaW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-c22b38u4xq
+
+[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/LastTransaction.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXExhc3RUcmFuc2FjdGlvbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = b-m9e7s1kyf1
 
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/Regulator.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFJlZ3VsYXRvci5jc2h0bWw=

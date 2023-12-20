@@ -2109,10 +2109,10 @@ namespace SLA_Management.Controllers
                             query += " ORDER BY trx_datetime " + order + " ; ";
                             break;
                         case "TransactionType":
-                            query += " ORDER BY trx_type " + order + " ; ";
+                            query += " ORDER BY trx_type " + order + " , trx_datetime " + order + " ; ";
                             break;
                         case "ResponseCode":
-                            query += " ORDER BY (S_RC AND S_REMARK) " + order + " ; ";
+                            query += " ORDER BY (S_RC AND S_REMARK) " + order + ", trx_datetime " + order + " ; ";
                             break;
                         default:
                             query += " ORDER BY trx_datetime " + order + " ; ";

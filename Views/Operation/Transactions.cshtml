@@ -292,8 +292,8 @@
                     <div class="form-group">
 
                         @Html.DropDownList("order", new SelectListItem[] {
-                            new SelectListItem(){ Text="ASC", Value = "asc"  },
-                            new SelectListItem(){ Text="DESC", Value = "desc"  }
+                            new SelectListItem(){ Text="น้อยไปมาก", Value = "asc"  },
+                            new SelectListItem(){ Text="มากไปน้อย", Value = "desc"  }
                         }, new
                         {
                         @class = "form-control dropdown"
@@ -312,9 +312,10 @@
                     <div class="form-group">
 
                         @Html.DropDownList("row", new SelectListItem[] {
-                    new SelectListItem(){ Text="20", Value = "20"  },
+                    new SelectListItem(){ Text="50", Value = "50"  },
                     new SelectListItem(){ Text="100", Value = "100"  },
-                    new SelectListItem(){ Text="500", Value = "500"  }
+                    new SelectListItem(){ Text="500", Value = "500"  },
+                    new SelectListItem(){ Text="1000", Value = "1000"  }
                     }, new
                     {
                     @class = "form-control dropdown"
@@ -482,7 +483,7 @@
                         var row = $("<tr>");
                         row.append($("<td>").css("text-align", "center").text(item.no));
                         row.append($("<td>").css("text-align", "center").text(item.seq));
-                        row.append($("<td>").css("text-align", "center").text(item.trx_datetime));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_datetime));
                         row.append($("<td>").css("text-align", "center").text(item.trx_type));
                         row.append($("<td>").css("text-align", "center").text(item.bankcode));
                         row.append($("<td>").css("text-align", "center").text(item.s_other));
