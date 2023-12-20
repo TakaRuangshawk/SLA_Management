@@ -269,6 +269,7 @@ namespace SLA_Management.Data.TermProb
             record.ProbName = reader["probname"].ToString();
             record.Remark = reader["remark"].ToString();
             record.TransactionDate = Convert.ToDateTime(reader["trxdatetime"]);
+            record.Memo = reader["probMemo"].ToString();
 
             return record;
         }

@@ -9,6 +9,7 @@
     "Terminal ID ",
     "Terminal Name ",
     "Event Name ",
+    "Event Desciption",
 
                                                                                                             };
 
@@ -432,7 +433,8 @@
                                     <td style="text-align:center;"> @Data.Seqno </td>
                                     <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style="text-align:center;"> @Data.BranchName </td>
-                                    <td style="text-align:center;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
+                                    <td style="text-align:center;"> @Data.Memo </td>
+                                    <td style="text-align:left;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
                                 </tr>
                             }
 
