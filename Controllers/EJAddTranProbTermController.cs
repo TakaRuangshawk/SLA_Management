@@ -151,9 +151,11 @@ namespace SLA_Management.Controllers
 
                     }
                 }
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
 
+                ViewBag.probTermStr = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
 
-                ViewBag.CurrentTID = dBService.GetDeviceInfoFeelview();
+                ViewBag.CurrentTID = device_Info_Records;
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
@@ -496,6 +498,7 @@ namespace SLA_Management.Controllers
             string error = "incomplete information";
             string _checkuser = "";
             var checkruser = dBService.GetCheckUserFeelview(username, email);
+          
             foreach (var Data in checkruser)
             {
                 if (Data.check == "yes")
@@ -514,7 +517,12 @@ namespace SLA_Management.Controllers
                 try
                 {
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
+                    {
+                        if (probTermStr == "ADM") probTermStr = "G262";
+                        else if (probTermStr == "ATM") probTermStr = "G165";
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
+                    }
+                       
 
                 }
                 catch (Exception ex)

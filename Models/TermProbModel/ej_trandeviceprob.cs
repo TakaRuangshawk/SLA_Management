@@ -21,5 +21,7 @@ namespace SLA_Management.Models.TermProbModel
         public string ProbName { get; set; }
 
         public string Remark { get; set; }
+
+        public string Memo { get; set; }
     }
 }

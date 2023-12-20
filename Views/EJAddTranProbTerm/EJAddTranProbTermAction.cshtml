@@ -10,6 +10,7 @@
     "Terminal ID ",
     "Terminal Name ",
     "Event Name ",
+    "Event Desciption",
 
                                                                                                             };
 
@@ -440,7 +441,8 @@
                                     <td style="text-align:center;"> @Data.Seqno </td>
                                     <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style="text-align:center;"> @Data.BranchName </td>
-                                    <td style="text-align:center;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
+                                    <td style="text-align:center;"> @Data.Memo </td>
+                                    <td style="text-align:left;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
                                 </tr>
                             }
 
@@ -590,8 +592,16 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                <select class="selectpicker form-control subsearch" id="probTermStr" name="probTermStr" data-live-search="true">
+                                    <option data-tokens="" value="G165;G262">ALL</option>
+                                    @foreach (var item in ViewBag.probTermStr)
+                                    {                                        
+                                        <option value=@item>@item </option>
+                                                         
+                                    }
+                                </select>
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
-                                @Html.DropDownList("probTermStr", new SelectListItem[] {
+                              @*  @Html.DropDownList("probTermStr", new SelectListItem[] {
                                 new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                                 new SelectListItem(){ Text="ATM", Value = "G165"  },
                                 new SelectListItem(){ Text="ADM", Value = "G262"  }
@@ -603,7 +613,7 @@
                                 @style = " border-radius: 10px;" ,
                                 @name = "state"
 
-                                })
+                                })*@
                             </div>
                         </div>
                     </div>
@@ -1033,8 +1043,8 @@
         document.getElementById('email').value = "";
         document.getElementById('probCodeStr').value = "";
         document.getElementById('probNameStr').value = "";
-        document.getElementById('probTypeStr').value = "DEVICE";
-        document.getElementById('probTermStr').value = "G165";
+        document.getElementById('probTypeStr').value = "";
+        document.getElementById('probTermStr').value = "";
         document.getElementById('memoStr').value = "";
 
 

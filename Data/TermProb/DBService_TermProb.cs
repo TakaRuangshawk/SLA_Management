@@ -274,6 +274,7 @@ namespace SLA_Management.Data.TermProb
             record.Location = reader["locationbranch"].ToString();
             record.ProbName = reader["probname"].ToString();
             record.Remark = reader["remark"].ToString();
+            record.Memo = reader["probMemo"].ToString();
             record.TransactionDate = Convert.ToDateTime(reader["trxdatetime"]);
 
             return record;
