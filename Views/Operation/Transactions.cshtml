@@ -53,6 +53,10 @@
         -ms-flex-pack: justify;
         justify-content: space-between;
     }
+
+    .form-control {
+        border-radius : 10px;
+    }
 </style>
 
 <style>
@@ -132,6 +136,9 @@
     .form-group {
         margin-bottom: 1em;
     }
+    h{
+        white-space:nowrap;
+    }
 </style>
 
 
@@ -147,16 +154,16 @@
 
     <div id="main_search">
 
-        @using (Html.BeginForm("Transactions", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+        @using (Html.BeginForm("Transactions", "Operation", FormMethod.Get, new { id = "",style = "padding: 0 4vw;" }))
         {
-            <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+            <div class="row" style="margin-top: 35px;display: flex;align-items: baseline;justify-content: space-evenly;">
 
                 <div class="col-md-1" style="width: 112px;">
                     <h>Terminal ID : </h>
                 </div>
                 <div class="col-md-2 " style="">
-                    <div class="form-group">
-                        <select class="selectpicker form-control subsearch" id="terminalno" name="TermID" data-live-search="true">
+                    <div class="">
+                        <select class="selectpicker form-control subsearch " id="terminalno" name="TermID" data-live-search="true">
 
                             <option data-tokens="" value="">--</option>
                             @foreach (var item in ViewBag.CurrentTID)
@@ -195,7 +202,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+            <div class="row" style="margin-top: 27px;display: flex;align-items: baseline;justify-content: space-evenly;">
 
 
                 <div class="col-md-1" style="width: 112px;">
@@ -203,7 +210,7 @@
                 </div>
                 <div class="col-md-2" style="">
                     <div class="form-group">
-                        <select class="selectpicker form-control subsearch" id="trxtype" name="TermID" data-live-search="true">
+                        <select class="selectpicker form-control subsearch " id="trxtype" name="TermID" data-live-search="true">
 
                             <option data-tokens="" value="">All</option>
                             @foreach (var item in ViewBag.trxTypeData)
@@ -234,7 +241,7 @@
                     new SelectListItem(){ Text="FAIL", Value = "FAIL"  }
                     }, new
                     {
-                    @class = "form-control dropdown"
+                    @class = "form-control dropdown "
                     ,
                     @name = "state"
                     })
@@ -246,7 +253,7 @@
                 <div class="col-md-2" style="">
 
                     <div class="form-group">
-                        <select class="selectpicker form-control subsearch" id="rc" name="TermID" data-live-search="true">
+                        <select class="selectpicker form-control subsearch " id="rc" name="TermID" data-live-search="true">
 
                             <option data-tokens="" value="">All</option>
                             @foreach (var item in ViewBag.RCData)
@@ -265,8 +272,8 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="row " style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+
+            <div class="row " style="margin-top: 15px;display: flex;align-items: baseline;justify-content: space-evenly;">
                 <div style="width: 112px;" class="col-md-1">
                     <h>Sort : </h>
                 </div>
@@ -278,7 +285,7 @@
                     new SelectListItem(){ Text="Response Code", Value = "ResponseCode"  }
                     }, new
                     {
-                    @class = "form-control dropdown"
+                    @class = "form-control dropdown "
                     ,
                     @name = "state"
 
@@ -296,7 +303,7 @@
                             new SelectListItem(){ Text="มากไปน้อย", Value = "desc"  }
                         }, new
                         {
-                        @class = "form-control dropdown"
+                    @class = "form-control dropdown "
                         ,
                         @name = "state"
 

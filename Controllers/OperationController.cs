@@ -1726,7 +1726,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = " SELECT adi.term_seq,adi.term_id,adi.term_name,MAX(ede.trxdatetime) AS lastest_trxdatetime,MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) AS lastest_trxdatetime_success FROM all_device_info adi JOIN ejlog_devicetermprob_ejreport ede ON adi.term_id = ede.terminalid LEFT JOIN ejlog_mastertransaction ejm ON ejm.probterm = SUBSTRING(adi.term_id, 1, 1) where ede.trxdatetime between '"+ DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' and ede.probcode in (select probcode from ejlog_problemmascode where probtype = 'EJLastTrans' ) ";
+                string query = " SELECT adi.term_seq,adi.term_id,adi.term_name,MAX(ede.trxdatetime) AS lastest_trxdatetime,MAX(CASE WHEN ede.remark = ejm.probname AND ejm.status = 'success' THEN ede.trxdatetime else '' END) AS lastest_trxdatetime_success FROM all_device_info adi JOIN ejlog_devicetermprob_ejreport ede ON adi.term_id = ede.terminalid LEFT JOIN ejlog_mastertransaction ejm ON ejm.probterm = SUBSTRING(adi.term_id, 1, 1) where ede.trxdatetime between '" + DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd HH:mm:ss") + "' and '"+ DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' and ede.probcode in (select probcode from ejlog_problemmascode where probtype = 'EJLastTrans' ) ";
 
 
                 if (terminalno != "")
@@ -1750,7 +1750,7 @@ namespace SLA_Management.Controllers
                         query += " ORDER BY adi.term_seq asc;";
                         break;
                     case "last_transaction":
-                        query += " ORDER BY MAX(CASE WHEN ede.remark = ejm.probname THEN ede.trxdatetime else '' END) asc;";
+                        query += " ORDER BY MAX(CASE WHEN ede.remark = ejm.probname AND ejm.status = 'success' THEN ede.trxdatetime else '' END) asc;";
                         break;
                     default:
                         query += " ORDER BY adi.term_id asc;";
