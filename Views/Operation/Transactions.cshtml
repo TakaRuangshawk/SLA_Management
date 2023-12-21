@@ -488,20 +488,20 @@
                 } else {
                     $.each(jsondata, function (index, item) {
                         var row = $("<tr>");
-                        row.append($("<td>").css("text-align", "center").text(item.no));
-                        row.append($("<td>").css("text-align", "center").text(item.seq));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.no));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.seq));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_datetime));
-                        row.append($("<td>").css("text-align", "center").text(item.trx_type));
-                        row.append($("<td>").css("text-align", "center").text(item.bankcode));
-                        row.append($("<td>").css("text-align", "center").text(item.s_other));
-                        row.append($("<td>").css("text-align", "center").text(item.pan_no));
-                        row.append($("<td>").css("text-align", "center").text(item.fr_accno));
-                        row.append($("<td>").css("text-align", "right").text(item.to_accno));
-                        row.append($("<td>").css("text-align", "center").text(item.trx_status));
-                        row.append($("<td>").css("text-align", "right").text(item.amt1));
-                        row.append($("<td>").css("text-align", "right").text(item.fee_amt1))
-                        row.append($("<td>").css("text-align", "right").text(item.retract_amt1))
-                        row.append($("<td>").css("text-align", "center").text(item.rc));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_type));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.bankcode));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.s_other));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.pan_no));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.fr_accno));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.to_accno));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_status));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.amt1));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.fee_amt1))
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.retract_amt1))
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.rc));
 
                         $("#table-id tbody").append(row);
                         window.scrollTo(0, 0);
