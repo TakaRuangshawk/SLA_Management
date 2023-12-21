@@ -459,7 +459,9 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 4].Value = data.TerminalID;
                         excelWorksheet.Cells[nStartRowData, 5].Value = data.BranchName;
                         excelWorksheet.Cells[nStartRowData, 6].Value = data.Location;
-                        excelWorksheet.Cells[nStartRowData, 7].Value = data.ProbName;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.Memo;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.Remark;
+
 
 
 
