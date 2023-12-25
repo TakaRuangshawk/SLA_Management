@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using Mysqlx;
@@ -102,7 +103,7 @@ namespace SLA_Management.Controllers
                     ProdAllMasData = dBService.GetAllMasterSysErrorWord();
                     List<string> list = ProdAllMasData.Select(p => p.ProbType).Distinct().ToList();
 
-                    ViewBag.probTypeStr = list;
+                    ViewBag.probTypeStr = new SelectList(list);  ;
 
                     ViewBag.ConnectDB = "true";
                 }

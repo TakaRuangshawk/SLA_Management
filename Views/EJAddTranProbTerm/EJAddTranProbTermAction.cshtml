@@ -565,14 +565,9 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
-                                <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
-                                    <option data-tokens="" value="">--</option>
-                                    @foreach (var item in ViewBag.probTypeStr)
-                                    {
-                                        <option value=@item>@item </option>
-                                    }
-                                </select>                           
+                                
+                                @Html.DropDownList("probTypeStr", ViewBag.probTypeStr as SelectList, "--", new { @class = "form-control" })
+                              
                             </div>
                         </div>
                     </div>
@@ -982,7 +977,7 @@
     });
 
     $("#btnInsertProbMasterMain").click(function (e) {
-        e.preventDefault();
+        e.preventDefault();      
         var value = $("#probNameStr").val();
         var encodedString = encodeURIComponent(value);
 
