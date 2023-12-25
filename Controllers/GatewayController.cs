@@ -60,7 +60,7 @@ namespace SLA_Management.Controllers
                 }
                 else
                 {
-                   ;
+                    ViewBag.UserList = new List<User>();
                     return View();
                 }
             }
