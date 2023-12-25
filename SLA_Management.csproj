@@ -26,10 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\RegulatorExcel\excelfiles\" />
     <Folder Include="wwwroot\GatewayExcel\excelfiles\" />
-    <Folder Include="wwwroot\TermProbExcel\excelfiles\" />
-    <Folder Include="wwwroot\TermProbExcel\Tempfiles\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,7 @@
 ﻿
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using MySql.Data.MySqlClient;
-using PagedList;
 using Serilog;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
@@ -13,7 +10,6 @@ using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
-using System.Reflection.PortableExecutable;
 
 namespace SLA_Management.Controllers
 {
