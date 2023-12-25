@@ -1,13 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Bcpg.OpenPgp;
-using SLA_Management.Models.TermProbModel;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Globalization;
-using System.Linq;
 
 
 namespace SLA_Management.Data

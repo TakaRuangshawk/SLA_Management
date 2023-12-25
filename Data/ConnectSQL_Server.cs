@@ -1,5 +1,4 @@
-﻿//using Microsoft.Data.SqlClient;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using System.Data;
 using System.Reflection;
 
@@ -13,7 +12,6 @@ namespace SLAManagement.Data
 
         public ConnectSQL_Server(string sqlConnection)
         {
-            //string stringConect = ConfigurationManager.AppSettings["oracleserver"].ToString();
             this.conn = new SqlConnection(sqlConnection);
         }
         public SqlConnection Conn
@@ -62,8 +60,6 @@ namespace SLAManagement.Data
             }
             catch (Exception ex)
             {
-                //Log.Information("sql error:" + ex.Message);
-                Console.WriteLine("sql error:" + ex.Message);
                 conn.Close();
                 return false;
             }
@@ -83,7 +79,6 @@ namespace SLAManagement.Data
             }
             catch (Exception ex)
             {
-                //Log.Information("sql error:" + ex.Message);
                 Console.WriteLine("sql error:" + ex.Message);
                 conn.Close();
                 return false;
@@ -106,7 +101,6 @@ namespace SLAManagement.Data
             }
             catch (Exception ex)
             {
-                //Log.Information("sql error:" + ex.Message);
                 Console.WriteLine("sql error:" + ex.Message);
                 conn.Close();
                 return 0;
@@ -127,7 +121,6 @@ namespace SLAManagement.Data
             }
             catch (Exception ex)
             {
-                //Log.Information("sql error:" + ex.Message);
                 Console.WriteLine("sql error:" + ex.Message);
                 conn.Close();
                 return false;
@@ -144,7 +137,6 @@ namespace SLAManagement.Data
                     OpenDB();
                 }
                 com.Connection = conn;
-                /* SqlCommand com = new SqlCommand(sql, conn);*/
 
                 SqlDataAdapter mda = new SqlDataAdapter(com);
                 mda.Fill(dt);

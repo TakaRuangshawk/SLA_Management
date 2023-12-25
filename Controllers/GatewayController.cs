@@ -5,7 +5,6 @@ using MySql.Data.MySqlClient;
 using Serilog;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
-using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.Common;
@@ -19,13 +18,10 @@ namespace SLA_Management.Controllers
         #region Action page
 
         private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        private static gateway_seek param = new gateway_seek();
         private IConfiguration _myConfiguration;
         private DBService dBService;
-        private List<GatewayTransaction> recordset = new List<GatewayTransaction>();
-        private List<terminalAndSeq> terminalIDAndSeqList = new List<terminalAndSeq>();
-        private static List<GatewayTransaction> gateway_dataList = new List<GatewayTransaction>();
         private static List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
+        private static gateway_seek param = new gateway_seek();
         public static string tmp_term = "";
         public static string tmp_fromdate = "";
         public static string tmp_todate = "";
@@ -108,59 +104,7 @@ namespace SLA_Management.Controllers
 
             return userList;
         }
-        private List<GatewayTransaction> GetGateway_Database(gateway_seek model)
-        {
-            try
-            {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_gateway:FullNameConnection")))
-                {
-                    MySqlCommand cmd = new MySqlCommand("gatewaytransaction", cn);
 
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new MySqlParameter("?PhoneOTP", model.PhoneOTP));
-                    cmd.Parameters.Add(new MySqlParameter("?acctnoto", model.acctnoto));
-                    cmd.Parameters.Add(new MySqlParameter("?termid", model.TerminalNo));
-                    cmd.Parameters.Add(new MySqlParameter("?trxtype", model.trxtype));
-                    cmd.Parameters.Add(new MySqlParameter("?UpdateStatus", model.UpdateStatus));
-                    cmd.Parameters.Add(new MySqlParameter("?FromDate", model.FRDATE));
-                    cmd.Parameters.Add(new MySqlParameter("?ToDate", model.TODATE));
-                    cn.Open();
-                    return GetGatewayCollectionFromReader(ExecuteReader(cmd));
-                }
-            }
-            catch (MySqlException ex)
-            {
-                string err = ex.Message;
-                return null;
-            }
-        }
-        private List<GatewayTransaction> GetGatewayCollectionFromReader(IDataReader reader)
-        {
-            string _seqNo = "";
-            string terminalIDTemp = "";
-            List<GatewayTransaction> resultList = new List<GatewayTransaction>();
-            while (reader.Read())
-            {
-                    resultList.Add(GetGatewayFromReader(reader, _seqNo));
-            }
-            return resultList;
-        }
-        private GatewayTransaction GetGatewayFromReader(IDataReader reader, string pSeqNo)
-        {
-            GatewayTransaction record = new GatewayTransaction();
-            
-            record.seqno = reader["SeqNo"].ToString();
-            record.terminalno = reader["terminalno"].ToString();
-            record.acctnoto = reader["AcctNoTo"].ToString();
-            record.frombank = reader["frombank"].ToString();
-            record.transtype = reader["transtype"].ToString();
-            record.amount = $"{reader["amount"]:n0}";
-            record.updatestatus = reader["updatestatus"].ToString();
-            record.transdatetime = reader["transdatetime"].ToString();
-            record.phoneotp = reader["phoneotp"].ToString();
-            return record;
-        }
         private IDataReader ExecuteReader(DbCommand cmd)
         {
             return ExecuteReader(cmd, CommandBehavior.Default);
@@ -181,21 +125,6 @@ namespace SLA_Management.Controllers
             }
         }
 
-        private string CheckAndGetSEQ(string terminalID, List<terminalAndSeq> terminalIDList)
-        {
-            string result = "";
-
-            foreach (var terminalIDTemp in terminalIDList)
-            {
-                if (terminalIDTemp.terminalid.Equals(terminalID))
-                {
-                    result = terminalIDTemp.TERM_SEQ;
-                    break;
-                }
-            }
-
-            return result;
-        }
         #region Excel
 
         [HttpPost]
@@ -371,7 +300,7 @@ namespace SLA_Management.Controllers
             tmp_term = terminalno;
             tmp_todate = todate;
             List<GatewayModel> jsonData = new List<GatewayModel>();
-            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
+            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
 
             try
             {
