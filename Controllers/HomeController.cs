@@ -386,9 +386,8 @@ namespace SLA_Management.Controllers
         {
             using var log = new LoggerConfiguration()
             .WriteTo.Console()
-            .WriteTo.File("log"+ DateTime.Now.ToString("yyyyMMdd") + ".txt")
+            .WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
             .CreateLogger();
-
             log.Information("Login : " + username);
             _complete = "";
             try
@@ -446,7 +445,7 @@ namespace SLA_Management.Controllers
         {
             using var log = new LoggerConfiguration()
             .WriteTo.Console()
-            .WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
+            .WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
             .CreateLogger();
 
             try
@@ -484,7 +483,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult DeleteUser(string username)
         {
-            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
+            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
 
             try
             {

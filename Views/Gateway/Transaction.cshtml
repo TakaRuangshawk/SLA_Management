@@ -555,15 +555,15 @@
     $(document).ready(function () {
         $("#resetPasswordForm").submit(function (event) {
             event.preventDefault();
-
-            var formData = $(this).serialize();
-            var action = $(this).data('action'); // Use $(this) to get the form's data-action attribute
-            console.log(action);
+            // Get the select element
+            var selectElement = document.getElementById("SelectedUserId");
+            var selectedValue = selectElement.value;
+            var action = $(this).data('action'); 
 
             $.ajax({
                 type: "POST", 
                 url: action === 'reset' ? "@Url.Action("ResetPassword", "Home")" : "@Url.Action("DeleteUser", "Home")",
-                data: formData,
+                data: { username: selectedValue },
                 success: function (response) {
                     if (response.success) {
                         // Display success message
@@ -805,11 +805,7 @@
                         alert('@ViewBag.ErrorMsg');
                     }
                 });
-                if (result.success == 'S') {
-                    var url = '@Url.Action("DownloadExportFile", "Gateway")'
-                    window.location = '@Url.Action("DownloadExportFile", "Gateway")/?rpttype=' + rptType;
-                }
-                else { alert(result.errstr); }
+
             },
             error: function (err) {
                 alert('@ViewBag.ErrorMsg');

@@ -8,7 +8,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
-using static SLA_Management.Controllers.EJAddTranProbTermController;
+
 
 namespace SLA_Management.Data
 {
