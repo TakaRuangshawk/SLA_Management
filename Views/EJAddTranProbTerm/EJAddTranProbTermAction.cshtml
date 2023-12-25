@@ -279,7 +279,8 @@
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("terminalType", new SelectListItem[] {
+                        @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+                       @* @Html.DropDownList("terminalType", new SelectListItem[] {
                         new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                         new SelectListItem(){ Text="ATM", Value = "G165"  },
                         new SelectListItem(){ Text="ADM", Value = "G262"  }
@@ -291,7 +292,7 @@
                         @style = " border-radius: 10px;" ,
                         @name = "state"
 
-                        })
+                        })*@
 
                         </div>
                     </div>
@@ -442,7 +443,7 @@
                                     <td style="text-align:center;"> @Data.TerminalID</td>
                                     <td style="text-align:center;"> @Data.BranchName </td>
                                     <td style="text-align:center;"> @Data.Memo </td>
-                                    <td style="text-align:left;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 150)); </td>
+                                    <td style="text-align:left;"> @Data.Remark.Substring(0, Math.Min(@Data.Remark.Length, 100)); </td>
                                 </tr>
                             }
 
@@ -573,14 +574,15 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.DropDownList("probTypeStr", ViewBag.probTypeStr as SelectList, "--", new { @class = "form-control" })
                                 @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
-                                <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
+                              @*  <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
                                     <option data-tokens="" value="">--</option>
                                     @foreach (var item in ViewBag.probTypeStr)
                                     {
                                         <option value=@item>@item </option>
                                     }
-                                </select>
+                                </select>*@
                             </div>
                         </div>
                     </div>
@@ -592,14 +594,16 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                <select class="selectpicker form-control subsearch" id="probTermStr" name="probTermStr" data-live-search="true">
+                                @Html.DropDownList("probTermStr", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+
+                               @* <select class="selectpicker form-control subsearch" id="probTermStr" name="probTermStr" data-live-search="true">
                                     <option data-tokens="" value="G165;G262">ALL</option>
                                     @foreach (var item in ViewBag.probTermStr)
                                     {                                        
                                         <option value=@item>@item </option>
                                                          
                                     }
-                                </select>
+                                </select>*@
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
                               @*  @Html.DropDownList("probTermStr", new SelectListItem[] {
                                 new SelectListItem(){ Text="ALL", Value = "G165;G262" },

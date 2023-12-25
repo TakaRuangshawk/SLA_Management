@@ -1,5 +1,6 @@
 ﻿using K4os.Compression.LZ4.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using Mysqlx;
@@ -56,6 +57,10 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
+            if (terminalType == "ADM") terminalType = "G262";
+            else if (terminalType == "ATM") terminalType = "G165";
+            else if (terminalType == "All") terminalType = "G165;G262";
+
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
 
@@ -97,7 +102,7 @@ namespace SLA_Management.Controllers
 
                     List<string> list = ProdAllMasData.Select(p => p.ProbType).Distinct().ToList();
 
-                    ViewBag.probTypeStr = list;
+                    ViewBag.probTypeStr = new SelectList(list);
 
                     ViewBag.ConnectDB = "true";
                 }
@@ -153,7 +158,12 @@ namespace SLA_Management.Controllers
                 }
                 List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
 
-                ViewBag.probTermStr = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
+                var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
+                var item = new List<string> { "All" };
+
+
+                ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
+                
 
                 ViewBag.CurrentTID = device_Info_Records;
                 ViewBag.TermID = TermID;
@@ -520,6 +530,8 @@ namespace SLA_Management.Controllers
                     {
                         if (probTermStr == "ADM") probTermStr = "G262";
                         else if (probTermStr == "ATM") probTermStr = "G165";
+                        else if (probTermStr == "All") probTermStr = "G165;G262";
+
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
                     }
                        
