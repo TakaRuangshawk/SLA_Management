@@ -11,6 +11,7 @@ using SLA_Management.Data.TermProb;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
 using SLAManagement.Data;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Drawing;
@@ -61,7 +62,18 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
-            
+
+
+
+
+            if (terminalType == "LRM") terminalType = "L";
+            else if (terminalType == "RDM") terminalType = "R";
+            else if (terminalType == "2IN1") terminalType = "A";
+            else terminalType = "";
+
+
+
+
 
 
             string[] strErrorWordSeparate = _myConfiguration.GetValue<string>("KeyWordSeparate").ToUpper().Split(',');
@@ -103,7 +115,7 @@ namespace SLA_Management.Controllers
                     ProdAllMasData = dBService.GetAllMasterSysErrorWord();
                     List<string> list = ProdAllMasData.Select(p => p.ProbType).Distinct().ToList();
 
-                    ViewBag.probTypeStr = new SelectList(list);  ;
+                    ViewBag.probTypeStr = new SelectList(list);
 
                     ViewBag.ConnectDB = "true";
                 }
@@ -165,6 +177,14 @@ namespace SLA_Management.Controllers
                 List<Device_info_record> term_lrm = dBService_LRM.GetDeviceInfoFeelview();
                 term_2in1.AddRange(term_cdm);
                 term_2in1.AddRange(term_lrm);
+
+                List<string> item = new List<string> { "All" };
+              
+
+                ViewBag.probTermStr = new SelectList(term_2in1.Select(x => x.TYPE_ID).Distinct().Concat(item).ToList());
+
+                ViewBag.terminalType = new SelectList(term_2in1.Select(x => x.TYPE_ID).Distinct());
+
                 ViewBag.CurrentTID = term_2in1;
                 ViewBag.TermID = TermID;
                 ViewBag.CurrentFr = (FrDate ?? currFr);
@@ -543,8 +563,18 @@ namespace SLA_Management.Controllers
             {
                 try
                 {
+
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
-                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr,memo,username, displayflagStr);
+                    {
+                        if (probTermStr == "ALL") probTermStr = "A;L;R";
+                        else if (probTermStr == "LRM") probTermStr = "L";
+                        else if (probTermStr == "CDM") probTermStr = "R";
+                        else if (probTermStr == "2IN1") probTermStr = "A";
+
+                        result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
+
+                    }
+                        
 
                 }
                 catch (Exception ex)

@@ -278,7 +278,8 @@
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("terminalType", new SelectListItem[] {
+                        @Html.DropDownList("terminalType", ViewBag.terminalType as SelectList, "--", new { @class = "form-control" })
+                       @* @Html.DropDownList("terminalType", new SelectListItem[] {
                         new SelectListItem(){ Text="All", Value = ""  },
                         new SelectListItem(){ Text="2in1", Value = "A"  },
                         new SelectListItem(){ Text="LRM", Value = "L" },
@@ -290,7 +291,7 @@
                         @style = " border-radius: 10px;" ,
                         @name = "state"
 
-                        })
+                        })*@
 
                         </div>
                     </div>
@@ -579,8 +580,10 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.DropDownList("probTermStr", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
-                                @Html.DropDownList("probTermStr", new SelectListItem[] {
+                              @*  @Html.DropDownList("probTermStr", new SelectListItem[] {
                                 new SelectListItem(){ Text="ALL", Value = "A;L;R" },
                                 new SelectListItem(){ Text="LRM", Value = "L"  },
                                 new SelectListItem(){ Text="CDM", Value = "R"  },
@@ -592,7 +595,7 @@
                                 @style = " border-radius: 10px;" ,
                                 @name = "state"
 
-                                })
+                                })*@
                             </div>
                         </div>
                     </div>
@@ -640,7 +643,7 @@
                 </div>
                 <div class="modal-footer" style="background-color:#FFA500;">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="clearInsertDataProb()">Close</button>
-                    <button type="button" id="btnInsertProbMasterMain" data-dismiss="modal" class="btn btn-primary">Confirm</button>
+                    <button type="button" id="btnInsertProbMasterMain"  class="btn btn-primary">Confirm</button>
                 </div>
 
 
