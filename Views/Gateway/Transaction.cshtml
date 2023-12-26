@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     byte[] usernameBytes;
     if (Context.Session.TryGetValue("username", out usernameBytes))
     {
@@ -34,6 +33,7 @@
 
 <head>
     <!-- Required meta tags -->
+    <title>transaction page</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
@@ -134,14 +134,15 @@
     th {
         text-align: center;
     }
-    .form-group{
-        margin-bottom:1em;
+
+    .form-group {
+        margin-bottom: 1em;
     }
 </style>
 
 
-    <div class="container w-auto containerHeader">
-   
+<div class="container w-auto containerHeader">
+
     <div class="row">
         <div class="col col-md-1">
         </div>
@@ -151,222 +152,223 @@
     </div>
 
     <div id="main_search">
-    
-            @using (Html.BeginForm("Transaction", "Gateway", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
-            {
-        <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
-              
-                    <div class="col-md-1" style="width: 112px;">
-                        <h>Terminal ID : </h>
-                    </div>
-                    <div class="col-md-2 " style="">
-                        <div class="">
-                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("terminalno", ViewBag.CurrentTerminalno as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID"})
-                        </div>
-                    </div>
-                 
-                    <div class="col-md-1" style="width: 112px;">
-                        <h>From Date : </h>
-                    </div>
-                    <div class="col-md-2 " style="">
-                        <div class="">
-                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
-                        </div>
-                    </div>
-                    <div class="col-md-1" style="width: 112px;">
-                        <h>To Date : </h>
-                    </div>
-                    <div class="col-md-2" style="">
-                        <div class="">
-                            <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("todate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
-                        </div>
+
+        @using (Html.BeginForm("Transaction", "Gateway", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+        {
+            <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+
+                <div class="col-md-1" style="width: 112px;">
+                    <h>Terminal ID : </h>
+                </div>
+                <div class="col-md-2 " style="">
+                    <div class="">
+                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("terminalno", ViewBag.CurrentTerminalno as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID"})
                     </div>
                 </div>
-        <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
-                 
-                    
-                    <div class="col-md-1" style="width: 112px;">
-                        <h>Account To : </h>
+
+                <div class="col-md-1" style="width: 112px;">
+                    <h>From Date : </h>
+                </div>
+                <div class="col-md-2 " style="">
+                    <div class="">
+                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
                     </div>
-                    <div class="col-md-2" style ="">
-                        <div class="">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("acctnoto", ViewBag.CurrentAcctnoto as string, new { @class = "form-control subsearch", @placeholder = "Account No" })
-                        </div>
+                </div>
+                <div class="col-md-1" style="width: 112px;">
+                    <h>To Date : </h>
+                </div>
+                <div class="col-md-2" style="">
+                    <div class="">
+                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("todate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
                     </div>
-                      <div class="col-md-1" style="width: 112px;">
-                        <h>Trx Type : </h>
-                    </div>
-                    <div class="col-md-2" style ="">
-                      
-                         <div class="form-group">
-                            @Html.DropDownList("transtype", new SelectListItem[] {
-                        new SelectListItem(){ Text="ALL", Value = ""  },
-                        new SelectListItem(){ Text="DEP : Deposit", Value = "DEP"  },
-                        new SelectListItem(){ Text="PAY : Payment", Value = "PAY"  }
-                        }, new
-                        {
-                        @class = "form-control dropdown"
-                        ,
-                        @name = "state"
-                        })
-                        </div>
-                    </div>
-                    <div class="col-md-1" style="width: 112px;">
-                        <h>Status : </h>
-                    </div>
-                    <div class="col-md-2" style="">
-                        <div class="form-group">
-                            @Html.DropDownList("status", new SelectListItem[] {
-                                new SelectListItem(){ Text="ALL", Value = ""  },
-                                new SelectListItem(){ Text="Y : Succeed", Value = "Y"  },
-                                new SelectListItem(){ Text="N : Failed", Value = "N"  }
-                        }, new
-                        {
-                            @class = "form-control dropdown"
-                            ,
-                            @name = "state"
-                            })
-                        </div>
+                </div>
             </div>
+            <div class="row" style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+
+
+                <div class="col-md-1" style="width: 112px;">
+                    <h>Account To : </h>
                 </div>
-
-        <div class="row " style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
-
-                    <div style="width: 112px;"  class="col-md-1">
-                        <h>Rows : </h>
+                <div class="col-md-2" style="">
+                    <div class="">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("acctnoto", ViewBag.CurrentAcctnoto as string, new { @class = "form-control subsearch", @placeholder = "Account No" })
                     </div>
+                </div>
+                <div class="col-md-1" style="width: 112px;">
+                    <h>Trx Type : </h>
+                </div>
+                <div class="col-md-2" style="">
 
-                    <div class="col-md-2" style="">
-                        <div class="form-group">
-                       
-                            @Html.DropDownList("row", new SelectListItem[] {
-                                new SelectListItem(){ Text="20", Value = "20"  },
-                                new SelectListItem(){ Text="100", Value = "100"  },
-                                new SelectListItem(){ Text="500", Value = "500"  }
-                            }, new
-                            {
-                                @class = "form-control dropdown"
-                                ,
-                                @name = "state"
-
-                            })
-
-                        </div>
-                    </div>
-                    <div style="width: 112px;" class="col-md-1">
-                        <h>Sort : </h>
-                    </div>
-                    <div class="col-md-2">
                     <div class="form-group">
-                      
-                        @Html.DropDownList("sort", new SelectListItem[] {
-                            new SelectListItem(){ Text="ASC", Value = "asc"  },
-                            new SelectListItem(){ Text="DESC", Value = "desc"  }
-                        }, new
-                        {
-                            @class = "form-control dropdown"
-                            ,
-                            @name = "state"
-
-                        })
-
+                        @Html.DropDownList("transtype", new SelectListItem[] {
+                    new SelectListItem(){ Text="ALL", Value = ""  },
+                    new SelectListItem(){ Text="DEP : Deposit", Value = "DEP"  },
+                    new SelectListItem(){ Text="PAY : Payment", Value = "PAY"  }
+                    }, new
+                    {
+                    @class = "form-control dropdown"
+                    ,
+                    @name = "state"
+                    })
                     </div>
+                </div>
+                <div class="col-md-1" style="width: 112px;">
+                    <h>Status : </h>
+                </div>
+                <div class="col-md-2" style="">
+                    <div class="form-group">
+                        @Html.DropDownList("status", new SelectListItem[] {
+                    new SelectListItem(){ Text="ALL", Value = ""  },
+                    new SelectListItem(){ Text="Y : Succeed", Value = "Y"  },
+                    new SelectListItem(){ Text="N : Failed", Value = "N"  }
+                    }, new
+                    {
+                    @class = "form-control dropdown"
+                    ,
+                    @name = "state"
+                    })
                     </div>
-                    <div style="width: 112px;" class="col-md-1"></div>
-                    <div class="col-md-2"></div>
+                </div>
+            </div>
+
+            <div class="row " style="margin-top: 35px;display: flex;align-items: center;justify-content: center;">
+
+                <div style="width: 112px;" class="col-md-1">
+                    <h>Rows : </h>
                 </div>
 
-                <div class="row">
+                <div class="col-md-2" style="">
+                    <div class="form-group">
 
-                    <div class="col" id="before-submit">
+                        @Html.DropDownList("row", new SelectListItem[] {
+                    new SelectListItem(){ Text="20", Value = "20"  },
+                    new SelectListItem(){ Text="100", Value = "100"  },
+                    new SelectListItem(){ Text="500", Value = "500"  }
+                    }, new
+                    {
+                    @class = "form-control dropdown"
+                    ,
+                    @name = "state"
+
+                    })
+
+                    </div>
+                </div>
+                <div style="width: 112px;" class="col-md-1">
+                    <h>Sort : </h>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+
+                        @Html.DropDownList("sort", new SelectListItem[] {
+                    new SelectListItem(){ Text="ASC", Value = "asc"  },
+                    new SelectListItem(){ Text="DESC", Value = "desc"  }
+                    }, new
+                    {
+                    @class = "form-control dropdown"
+                    ,
+                    @name = "state"
+
+                    })
+
+                    </div>
+                </div>
+                <div style="width: 112px;" class="col-md-1"></div>
+                <div class="col-md-2"></div>
+            </div>
+
+            <div class="row">
+
+                <div class="col" id="before-submit">
                     <div id="submit">
 
                         <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
-                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                    </button>
-                    <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
-                        <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
-                    </button>
-                   <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                        <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                    </a>
-                    </div>
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                        <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                        </button>
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                        </a>
                     </div>
                 </div>
-            }
+            </div>
+        }
 
-        </div>
+    </div>
 </div>
-        <div class="container-fluid">
-        <div class="table-responsive" style="overflow-x: hidden;">
-            <table id="table-id" class="table table-striped custom-table">
-                <thead id="t-header" style="">
-                    <tr>
-                        @{
-                            foreach (var head in tableHeaders)
-                            {
-                                <th scope="col" style="text-align:center"> @head </th>
-                            }
-                        }
-
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td colspan="12" style="text-align:center;">No data</td>
-                    </tr>
-                </tbody>
-
-
-            </table>
-
-
-            <div class="row">
-                <div class="col-md-2" style="z-index:2;">
-                    <p style="font-size:16px;font-weight:bolder;">
-                        Select page :
-                        @Html.DropDownList("page", new SelectListItem[] {
-
-                        }, new
+<div class="container-fluid">
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <caption>tableHeaders</caption>
+            <thead id="t-header" style="">
+                <tr>
+                    @{
+                        foreach (var head in tableHeaders)
                         {
-                        @class = "form-control",
+                            <th scope="col" style="text-align:center"> @head </th>
+                        }
+                    }
+
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td colspan="12" style="text-align:center;">No data</td>
+                </tr>
+            </tbody>
+
+
+        </table>
+
+
+        <div class="row">
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control",
                     onchange = "updateTable()"
-                        })
-                    </p>
-                </div>
+                    })
+                </p>
+            </div>
             <div class="col colPagination" style="padding-top:10px;z-index:1;">
 
                 <nav>
                     <div class="pagination">
                         <ul style="display:flex;">
-                        <li data-page="prev" id="prev" style="visibility:hidden;" onclick="updateTable('prev')">
-                            <a style="color: #7a7a7a;"> < </a>
-                        </li>
-                        <li id="pageButtonsContainer"></li>
+                            <li data-page="prev" id="prev" style="visibility:hidden;" onclick="updateTable('prev')">
+                                <a style="color: #7a7a7a;"> < </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
 
-                        <li data-page="next" id="next" style="visibility:hidden;" onclick=" updateTable('next')">
-                            <a style="color: #7a7a7a;"> > </a>
-                        </li>
+                            <li data-page="next" id="next" style="visibility:hidden;" onclick=" updateTable('next')">
+                                <a style="color: #7a7a7a;"> > </a>
+                            </li>
                         </ul>
                     </div>
                 </nav>
             </div>
-            </div>
-
         </div>
 
     </div>
+
+</div>
 
 
 <div class="modal fade" id="myModal" role="dialog">
     <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;;width: 600px;">
         <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
-            <form id="changePasswordForm" class="form" role="form">
+            <form id="changePasswordForm" class="form" role="form" aria-label="changePasswordForm">
                 <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Change Password</div>
                 <div class="form-group">
                     <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
@@ -395,13 +397,13 @@
             </form>
         </div>
     </div>
-   
+
 </div>
 
 <div class="modal fade" id="myModal_user" role="dialog">
     <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;width: 600px;">
         <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
-            <form id="resetPasswordForm" class="form" role="form">
+            <form id="resetPasswordForm" class="form" role="form" aria-label="resetPasswordForm">
                 <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Reset/Delete User</div>
                 <div class="form-group">
                     <small><p style="color:black;    margin-block-end: 0;">Username</p></small>
@@ -429,7 +431,7 @@
     <div class="modal-dialog modal-xl" style="display: flex;justify-content: center;width: 600px;">
         <div class="modal-content" style="padding: 0.5rem 3rem 0.5rem 3rem;">
             <!-- Your form for creating a user -->
-            <form id="createUserForm"class="form" role="form">
+            <form id="createUserForm" class="form" role="form" aria-label="createUserForm">
                 <div class="fs-5 text-black" style="margin-bottom:1rem;bottom:0.5rem;">Create User</div>
                 <div class="form-group">
                     <small><p style="color:black;margin-block-end: 0;">Username</p></small>
@@ -446,8 +448,8 @@
                 <div class="form-group">
                     <small><p style="color:black;    margin-block-end: 0;">Role</p></small>
                     <select class="form-control form-control-sm" id="role_create" name="role" required>
-                    <!-- Options will be dynamically added based on the user's role -->
-                </select>
+                        <!-- Options will be dynamically added based on the user's role -->
+                    </select>
                 </div>
                 <div class="form-group" style="display:flex; justify-content:center;">
                     <button class="btn btn-primary btn-block" type="button" id="submitCreateUser">Create User</button>
@@ -488,9 +490,9 @@
         // Add options based on user's role
         for (var i = userRole; i <= 2; i++) {
             $('#role_create').append('<option value="' + i + '">' + i + " : " + roleNames[i] + '</option>');
-           
+
         }
-        
+
     }
 
     // Initial update based on user's role
@@ -522,7 +524,7 @@
             });
         });
     });
-        function confirmAction(action) {
+    function confirmAction(action) {
         var confirmationMessage = "Are you sure you want to " + action + " this user?";
         if (confirm(confirmationMessage)) {
             // User clicked OK, proceed with form submission
@@ -558,10 +560,10 @@
             // Get the select element
             var selectElement = document.getElementById("SelectedUserId");
             var selectedValue = selectElement.value;
-            var action = $(this).data('action'); 
+            var action = $(this).data('action');
 
             $.ajax({
-                type: "POST", 
+                type: "POST",
                 url: action === 'reset' ? "@Url.Action("ResetPassword", "Home")" : "@Url.Action("DeleteUser", "Home")",
                 data: { username: selectedValue },
                 success: function (response) {
@@ -657,34 +659,34 @@
                 var jsondata = data.jsonData;
                 var pages = data.page;
                 var currentpage = data.currentPage;
-         
+
                 $("#table-id tbody").empty();
                 if (jsondata.length === 0) {
-                // Display a message when there is no data
-                var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
-                $("#table-id tbody").append(noDataRow);
+                    // Display a message when there is no data
+                    var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
+                    $("#table-id tbody").append(noDataRow);
                 } else {
-                $.each(jsondata, function (index, item) {
-                    var row = $("<tr>");
-                    row.append($("<td>").css("text-align", "center").text(item.id));
-                    row.append($("<td>").css("text-align", "center").text(item.seqNo));
-                    row.append($("<td>").css("text-align", "center").text(item.thaiID));
-                    row.append($("<td>").css("text-align", "center").text(item.phoneOTP));
-                    row.append($("<td>").css("text-align", "center").text(item.acctNoTo));
-                    row.append($("<td>").css("text-align", "center").text(item.fromBank));
-                    row.append($("<td>").css("text-align", "center").text(item.transType));
-                    row.append($("<td>").css("text-align", "right").text(item.transDateTime));
-                    row.append($("<td>").css("text-align", "center").text(item.terminalNo));
-                    row.append($("<td>").css("text-align", "right").text(item.amount));
-                    row.append($("<td>").css("text-align", "center").text(item.updateStatus));
-                    row.append($("<td>").text(item.errorCode));
-                    $("#table-id tbody").append(row);
-                    window.scrollTo(0, 0);
-                });
+                    $.each(jsondata, function (index, item) {
+                        var row = $("<tr>");
+                        row.append($("<td>").css("text-align", "center").text(item.id));
+                        row.append($("<td>").css("text-align", "center").text(item.seqNo));
+                        row.append($("<td>").css("text-align", "center").text(item.thaiID));
+                        row.append($("<td>").css("text-align", "center").text(item.phoneOTP));
+                        row.append($("<td>").css("text-align", "center").text(item.acctNoTo));
+                        row.append($("<td>").css("text-align", "center").text(item.fromBank));
+                        row.append($("<td>").css("text-align", "center").text(item.transType));
+                        row.append($("<td>").css("text-align", "right").text(item.transDateTime));
+                        row.append($("<td>").css("text-align", "center").text(item.terminalNo));
+                        row.append($("<td>").css("text-align", "right").text(item.amount));
+                        row.append($("<td>").css("text-align", "center").text(item.updateStatus));
+                        row.append($("<td>").text(item.errorCode));
+                        $("#table-id tbody").append(row);
+                        window.scrollTo(0, 0);
+                    });
                     generatePageButtons(pages, currentpage);
                 }
                 if (pages >= 1) {
-               
+
                     $("#page").empty();
                     for (var i = 1; i <= pages; i++) {
                         var option = $('<option>', {
@@ -696,7 +698,7 @@
                         }
                         $("#page").append(option);
 
-                    }    
+                    }
                 }
                 else {
                     $("#page").empty();
@@ -705,28 +707,28 @@
                         text: 1
                     });
                     $("#page").append(option);
-                    
+
                 }
                 console.log(currentpage + "  " + pages + "  " + page)
-                if ((currentpage == 1 || page == null)&& pages > 1) {
+                if ((currentpage == 1 || page == null) && pages > 1) {
                     prevDiv.style.visibility = "hidden";
                     nextDiv.style.visibility = "visible";
-                 
+
                 }
-                else if ((currentpage == pages)&& pages > 1) {
+                else if ((currentpage == pages) && pages > 1) {
                     prevDiv.style.visibility = "visible";
                     nextDiv.style.visibility = "hidden";
-                 
+
                 }
                 else if ((currentpage < pages) && pages > 1) {
                     prevDiv.style.visibility = "visible";
                     nextDiv.style.visibility = "visible";
-                  
+
                 }
-                else{
+                else {
                     prevDiv.style.visibility = "hidden";
                     nextDiv.style.visibility = "hidden";
-                   
+
                 }
             },
             error: function (error) {
@@ -767,7 +769,7 @@
         var terminalno = $("#terminalno").val();
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
-        console.log(terminalno+' '+fromdate+' '+todate);
+        console.log(terminalno + ' ' + fromdate + ' ' + todate);
         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
             + '|' + "xlsx";
         var rptType = "xlsx";
@@ -811,7 +813,7 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
-       
+
     });
 
 
