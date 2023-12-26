@@ -9,6 +9,8 @@ using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SLA_Management.Controllers
 {
@@ -27,6 +29,10 @@ namespace SLA_Management.Controllers
         public static string tmp_todate = "";
         private int pageNum = 1;
         private long recCnt = 0;
+        private string rawConfig;
+        DecryptConfig decryptConfig = new DecryptConfig();
+
+
         public class User
         {
             public int Id { get; set; }
@@ -70,17 +76,21 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
+            rawConfig = _myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection");
+          
+            rawConfig = decryptConfig.DecryptString(rawConfig, decryptConfig.EnsureKeySize("boom"));
             dBService = new DBService(_myConfiguration);
         }
 
 
 
         #endregion
+      
         public List<User> GetUserListFromMySQL()
         {
             List<User> userList = new List<User>();
 
-            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            using (var connection = new MySqlConnection(rawConfig))
             {
                 connection.Open();
 
@@ -312,7 +322,9 @@ namespace SLA_Management.Controllers
                 log.Error("Error : " + ex.ToString());
                 return Json(new { success = false, message = "Something went wrong!" });
             }
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+
+
+            using (MySqlConnection connection = new MySqlConnection(rawConfig))
             {
                 connection.Open();
 

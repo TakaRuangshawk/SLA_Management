@@ -23,19 +23,27 @@ namespace SLA_Management.Controllers
         private IConfiguration _myConfiguration;
         private DBService dBService;
         SqlCommand com = new SqlCommand();
-        ConnectSQL_Server con;
+       
         private static ConnectMySQL db_fv;
         CultureInfo usaCulture = new CultureInfo("en-US");
         public static string _error = "";
-        public static string _complete = "";
+        public static string _complete = "";      
+        DecryptConfig decryptConfig = new DecryptConfig();
+        private string dbFullName;
         public HomeController(IConfiguration myConfiguration)
         {
 
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
-            con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
-            db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection"));
+            
+            
+
+            dbFullName = decryptConfig.DecryptString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection"), decryptConfig.EnsureKeySize("boom"));
+
+            db_fv = new ConnectMySQL(dbFullName);
         }
+
+        
         public IActionResult Login()
         {
             if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
@@ -80,7 +88,7 @@ namespace SLA_Management.Controllers
             _complete = "";
             try
             {
-                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                using (var connection = new MySqlConnection(dbFullName))
                 {
                     connection.Open();
 
@@ -140,7 +148,7 @@ namespace SLA_Management.Controllers
             {
 
             
-            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            using (var connection = new MySqlConnection(dbFullName))
                 {
                     connection.Open();
 
@@ -177,7 +185,7 @@ namespace SLA_Management.Controllers
             {
 
             
-            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+            using (var connection = new MySqlConnection(dbFullName))
             {
                 connection.Open();
 
@@ -250,7 +258,7 @@ namespace SLA_Management.Controllers
 
             try
             {
-                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                using (var connection = new MySqlConnection(dbFullName))
                 {
                     connection.Open();
 
@@ -317,7 +325,7 @@ namespace SLA_Management.Controllers
             try
             {
                 // Perform MySQL operation to create user
-                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection")))
+                using (var connection = new MySqlConnection(dbFullName))
                 {
                     connection.Open();
 
