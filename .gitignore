@@ -351,4 +351,3 @@ MigrationBackup/
 /wwwroot_BAK/TermProbExcel
 /wwwroot_BAK
 /.config/dotnet-tools.json
-/.sonarqube
