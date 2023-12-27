@@ -13,9 +13,9 @@ namespace SLA_Management.Controllers
         
         #region Action page
         private readonly IConfiguration _myConfiguration;
-        private string tmp_term = "";
-        private string tmp_fromdate = "";
-        private string tmp_todate = "";
+        private readonly string tmp_term = "";
+        private readonly string tmp_fromdate = "";
+        private readonly string tmp_todate = "";
         private readonly string rawConfig;
         readonly Loger log = new Loger();
         public class UserDetail
@@ -268,16 +268,16 @@ namespace SLA_Management.Controllers
         #endregion
         public class GatewayFetchDataModel
         {
-            public string terminalno { get; set; }
-            public string acctnoto { get; set; }
-            public string transtype { get; set; }
-            public string todate { get; set; }
-            public string fromdate { get; set; }
-            public string status { get; set; }
-            public string row { get; set; }
-            public string page { get; set; }
-            public string search { get; set; }
-            public string sort { get; set; }
+            public string? terminalno { get; set; }
+            public string? acctnoto { get; set; }
+            public string? transtype { get; set; }
+            public string? todate { get; set; }
+            public string? fromdate { get; set; }
+            public string? status { get; set; }
+            public string? row { get; set; }
+            public string? page { get; set; }
+            public string? search { get; set; }
+            public string? sort { get; set; }
         }
         [HttpGet]
         public IActionResult GatewayFetchData(GatewayFetchDataModel model)
