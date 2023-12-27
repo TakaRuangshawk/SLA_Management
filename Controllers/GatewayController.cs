@@ -115,20 +115,75 @@ namespace SLA_Management.Controllers
 
         #region Excel
 
-        [HttpPost]
-        public ActionResult Gateway_ExportExc(string terminal,string fromdate,string todate)
+        [HttpGet]
+        public ActionResult Gateway_ExportExc(string terminalno, string fromdate,string todate,string acctnoto, string transtype,string status)
         {
             string fname = "";
             string strPathSource = string.Empty;
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
-            terminal = terminal ?? "";
-            fromdate = fromdate ?? "";
-            todate = todate ?? "";
+            terminalno = terminalno ?? string.Empty;
+            fromdate = fromdate ?? string.Empty;
+            todate = todate ?? string.Empty;
+            transtype = transtype ?? string.Empty;
+            acctnoto = acctnoto ?? string.Empty;
+            status = status ?? string.Empty;
             try
             {
+                List<GatewayModel> jsonData = new List<GatewayModel>();
+                using (MySqlConnection connection = new MySqlConnection(rawConfig))
+                {
+                    connection.Open();
 
+
+                    string query = " SELECT  ROW_NUMBER() OVER (ORDER BY Id) AS Id,SeqNo,ThaiID,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' ";
+                    if (terminalno != "")
+                    {
+                        query += " and TerminalNo like '%" + terminalno + "%'";
+                    }
+                    if (acctnoto != "")
+                    {
+                        query += " and AcctNoTo like '%" + acctnoto + "%'";
+                    }
+                    if (transtype != "")
+                    {
+                        query += " and TransType = '" + transtype + "'";
+                    }
+                    if (status != "")
+                    {
+                        query += " and UpdateStatus = '" + status + "'";
+                    }
+                    else
+                    {
+                        query += " order by TransDateTime asc";
+                    }
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            jsonData.Add(new GatewayModel
+                            {
+                                Id = reader["Id"].ToString() ?? "",
+                                SeqNo = reader["SeqNo"].ToString() ?? "",
+                                ThaiID = reader["ThaiID"].ToString() ?? "",
+                                PhoneOTP = reader["PhoneOTP"].ToString() ?? "",
+                                AcctNoTo = reader["AcctNoTo"].ToString() ?? "",
+                                FromBank = reader["FromBank"].ToString() ?? "",
+                                TransType = reader["TransType"].ToString() ?? "",
+                                TransDateTime = Convert.ToDateTime(reader["TransDateTime"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                                TerminalNo = reader["TerminalNo"].ToString() ?? "",
+                                Amount = string.Format("{0:N0}", reader.GetInt32(reader.GetOrdinal("Amount"))),
+                                UpdateStatus = reader["UpdateStatus"].ToString() ?? "",
+                                ErrorCode = reader["ErrorCode"].ToString() ?? ""
+                            });
+                        }
+                    }
+                }
+                gatewaytransaction_dataList = jsonData;
                 if (gatewaytransaction_dataList == null || gatewaytransaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
@@ -147,7 +202,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GatewayOutput(gatewaytransaction_dataList,terminal,fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
+                obj.GatewayOutput(gatewaytransaction_dataList, terminalno, fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
 
 
 

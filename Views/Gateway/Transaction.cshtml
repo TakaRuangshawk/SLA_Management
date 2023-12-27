@@ -455,7 +455,7 @@
                     <button class="btn btn-primary btn-block" type="button" id="submitCreateUser">Create User</button>
                 </div>
                 <div id="successMessage_create" style="color: green;"></div>
-                <div id="errorMessage_rd_create" style="color: red;"></div>
+                <div id="errorMessage_create" style="color: red;"></div>
             </form>
         </div>
     </div>
@@ -576,7 +576,7 @@
                     }
                 },
                 error: function () {
-                    // Handle the error
+                   
                 }
             });
         });
@@ -607,20 +607,25 @@
                 success: function (response) {
                     // Handle success (e.g., close modal, show message, etc.)
                     console.log(response);
-                    if (response.success) {
+                    if (response.success === true) {
                         // Display success message
                         $("#successMessage_create").text(response.message);
-                    } else {
+                        $("#username_create").val('');
+                        $("#password_create").val('');
+                        $("#confirmPassword_create").val('');
+                    } else if (response.success === false) {
                         // Display error message
                         $("#errorMessage_create").text(response.message);
+                        $("#password_create").val('');
                     }
-                    $("#username_create").val('');
-                    $("#password_create").val('');
-                    $("#confirmPassword_create").val('');
-                    $("#role_create").val('');
+                    else{
+                        $("#errorMessage_create").text(response.message);
+                    }
+                   
                 },
                 error: function (error) {
                     // Handle error (e.g., show error message)
+                    $("#errorMessage_create").text(response.message);
                     console.log(error);
                 }
             });
@@ -769,26 +774,30 @@
         var terminalno = $("#terminalno").val();
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
+        var acctnoto = $("#acctnoto").val();
+        var transtype = $("#transtype").val();
+        var status = $("#status").val();
         console.log(terminalno + ' ' + fromdate + ' ' + todate);
         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
             + '|' + "xlsx";
         var rptType = "xlsx";
         $.ajax({
-            type: "POST",
+            type: "GET",
             dataType: "json",
-            data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("Gateway_ExportExc", "Gateway")',
             data: {
                 terminalno: terminalno,
                 todate: todate,
-                fromdate: fromdate
+                fromdate: fromdate,
+                acctnoto: acctnoto,
+                transtype: transtype,
+                status: status
             },
             success: function (result) {
                 $.ajax({
-                    type: "POST",
+                    type: "GET",
                     dataType: "json",
-                    data: '{ "exparams" : "' + expParams + '" }',
                     contentType: 'application/json; charset=utf-8',
                     url: '@Url.Action("Gateway_ExportExc", "Gateway")',
                     data: {

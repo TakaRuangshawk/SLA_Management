@@ -305,38 +305,47 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult CreateUser(string username, string password, string role)
         {
-           
-            try
+            username = username ?? "";
+            password = password ?? "";
+            role = role ?? "";
+            if(username != "" && password != "" && role != "")
             {
-               
-                using (var connection = new MySqlConnection(dbFullName))
+                try
                 {
-                    connection.Open();
 
-                    
-                    string salt = GenerateSalt();
-                    string hashedPassword = HashPassword(password, salt);
-
-                   
-                    using (var command = new MySqlCommand("INSERT INTO Users (Username, PasswordHash, Salt, Role, UpdateDate, Status) VALUES (@Username, @PasswordHash, @Salt, @Role, NOW(), 'Active')", connection))
+                    using (var connection = new MySqlConnection(dbFullName))
                     {
-                        command.Parameters.AddWithValue("@Username", username);
-                        command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
-                        command.Parameters.AddWithValue("@Salt", salt);
-                        command.Parameters.AddWithValue("@Role", role);
+                        connection.Open();
 
-                        command.ExecuteNonQuery();
+
+                        string salt = GenerateSalt();
+                        string hashedPassword = HashPassword(password, salt);
+
+
+                        using (var command = new MySqlCommand("INSERT INTO Users (Username, PasswordHash, Salt, Role, UpdateDate, Status) VALUES (@Username, @PasswordHash, @Salt, @Role, NOW(), 'Active')", connection))
+                        {
+                            command.Parameters.AddWithValue("@Username", username);
+                            command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+                            command.Parameters.AddWithValue("@Salt", salt);
+                            command.Parameters.AddWithValue("@Role", role);
+
+                            command.ExecuteNonQuery();
+                        }
                     }
-                }
 
-                
-                return Json(new { success = true, message = "User created successfully" });
+
+                    return Json(new { success = true, message = "User created successfully!" });
+                }
+                catch (Exception ex)
+                {
+
+                    log.WriteErrLog("Error : " + ex.ToString());
+                    return Json(new { success = false, message = "Something went wrong!" });
+                }
             }
-            catch (Exception ex)
+            else
             {
-               
-                log.WriteErrLog("Error : " + ex.ToString());
-                return Json(new { success = false, message = "Something went wrong!" });
+                return Json(new { success = false, message = "Please fill out the form!" });
             }
         }
         public IActionResult Privacy()
