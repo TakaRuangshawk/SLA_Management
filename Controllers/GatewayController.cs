@@ -266,74 +266,83 @@ namespace SLA_Management.Controllers
         }
 
         #endregion
-
+        public class GatewayFetchDataModel
+        {
+            public string terminalno { get; set; }
+            public string acctnoto { get; set; }
+            public string transtype { get; set; }
+            public string todate { get; set; }
+            public string fromdate { get; set; }
+            public string status { get; set; }
+            public string row { get; set; }
+            public string page { get; set; }
+            public string search { get; set; }
+            public string sort { get; set; }
+        }
         [HttpGet]
-        public IActionResult GatewayFetchData(string terminalno,string acctnoto,string transtype,string todate,string fromdate,string status,string row,string page,string search,string sort)
+        public IActionResult GatewayFetchData(GatewayFetchDataModel model)
         {
             int _page;
-            if (page == null||search == "search")
+            if (model.page == null || model.search == "search")
             {
                 _page = 1;
             }
             else
             {
-                _page = int.Parse(page);
+                _page = int.Parse(model.page);
             }
-            if (search == "next")
+            if (model.search == "next")
             {
                 _page++;
             }
-            else if(search == "prev")
+            else if (model.search == "prev")
             {
                 _page--;
             }
             int _row;
-            if (row == null)
+            if (model.row == null)
             {
                 _row = 20;
             }
             else
             {
-                _row = int.Parse(row);
+                _row = int.Parse(model.row);
             }
-            terminalno = terminalno ?? "";
-            acctnoto = acctnoto ?? "";
-            transtype = transtype ?? "";
-            status = status ?? "";
-            tmp_fromdate = fromdate;
-            tmp_term = terminalno;
-            tmp_todate = todate;
+            model.terminalno = model.terminalno ?? "";
+            model.acctnoto = model.acctnoto ?? "";
+            model.transtype = model.transtype ?? "";
+            model.status = model.status ?? "";
 
             List<GatewayModel> jsonData = new List<GatewayModel>();
             using (MySqlConnection connection = new MySqlConnection(rawConfig))
             {
                 connection.Open();
 
-                
-                string query = " SELECT  ROW_NUMBER() OVER (ORDER BY Id) AS Id,SeqNo,ThaiID,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
-                if(terminalno != "")
+
+                string query = " SELECT  ROW_NUMBER() OVER (ORDER BY Id) AS Id,SeqNo,ThaiID,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + model.fromdate + " 00:00:00' and '" + model.todate + " 23:59:59' ";
+                if (model.terminalno != "")
                 {
-                    query += " and TerminalNo like '%" + terminalno + "%'";
+                    query += " and TerminalNo like '%" + model.terminalno + "%'";
                 }
-                if (acctnoto != "")
+                if (model.acctnoto != "")
                 {
-                    query += " and AcctNoTo like '%" + acctnoto + "%'";
+                    query += " and AcctNoTo like '%" + model.acctnoto + "%'";
                 }
-                if (transtype != "")
+                if (model.transtype != "")
                 {
-                    query += " and TransType = '" + transtype + "'";
+                    query += " and TransType = '" + model.transtype + "'";
                 }
-                if (status != "")
+                if (model.status != "")
                 {
-                    query += " and UpdateStatus = '" + status + "'";
+                    query += " and UpdateStatus = '" + model.status + "'";
                 }
-                if(sort != "")
+                if (model.sort != "")
                 {
-                    query += " order by TransDateTime " + sort + " order by TransDateTime asc";
+                    query += " order by TransDateTime " + model.sort;
                 }
 
                 MySqlCommand command = new MySqlCommand(query, connection);
-            
+
 
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
@@ -357,7 +366,7 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
-             
+
             int pages = (int)Math.Ceiling((double)jsonData.Count / _row);
             List<GatewayModel> filteredData = RangeFilter(jsonData, _page, _row);
             var response = new DataResponse
@@ -370,7 +379,6 @@ namespace SLA_Management.Controllers
             log.WriteLogFile("response : " + response);
             return Json(response);
         }
-        
         static List<GatewayModel> RangeFilter<GatewayModel>(List<GatewayModel> inputList, int page, int row)
         {
             int start_row;
