@@ -4,15 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-       <!-- Style -->
-   @* <link rel="stylesheet" href="~/css/style.css">
-    <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SLA_Management.styles.css" asp-append-version="true" />
-    <link rel="shortcut icon" href="~/images/favicon.ico" type="image/x-icon"/>
-    <script src="~/js/jquery-3.3.1.min.js"></script>
-    <script src="~/js/bootstrap.min.js"></script>*@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -39,7 +30,7 @@
 @{
     string selectHeader = "";
     string forcss_header = "";
-    selectHeader = @ViewData["Title"].ToString();
+    selectHeader = @ViewData["Title"]?.ToString() ?? "";
     switch (selectHeader)
     {
         case "Home Page":
@@ -146,14 +137,13 @@
     }
 }
 
-@*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
-<img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
+
 <body class="bg_main bg_home" style="background-image: url('/Operation/images/Pic_Page.png');background-size:100% auto">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow">
             <div class="container-fluid" style="padding-right: 0px;">
                 <div>
-                     <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
+                     <img src="~/images/2.png" width="127" height="53" alt="Logo"  style="padding-right:30px;" >
                 </div>
                 @{if (role.HasValue)
                     {
@@ -175,14 +165,14 @@
                                 User Management
                             </a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark nav-link" id="dropdownMenu0" data-toggle="modal" data-target="#myModel_create"  name="cmdButton" title="สร้าง User">Create User </a>
-                                <a class="dropdown-item text-dark nav-link" id="dropdownMenu2" data-toggle="modal" data-target="#myModal_user"  name="cmdButton" title="รีเซ็ตPassword/ลบ User">Reset Password/Delete User </a>
+                                <a class="dropdown-item text-dark nav-link" id="dropdownMenu0" data-toggle="modal" data-target="#myModel_create"  title="สร้าง User">Create User </a>
+                                <a class="dropdown-item text-dark nav-link" id="dropdownMenu2" data-toggle="modal" data-target="#myModal_user"  title="รีเซ็ตPassword/ลบ User">Reset Password/Delete User </a>
                             </div>
                         </li>  
                     </ul>
                     <ul class="nav navbar-nav flex-row justify-content-between ml-auto">
                             <li class="dropdown order-1">
-                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"  name="cmdButton" title="เปลี่ยน Password">Change Password </a>
+                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"   title="เปลี่ยน Password">Change Password </a>
                     </ul>
                     <div class="d-flex">
                         <a class="nav-link" style="background-color: wheat;border-radius: 20px;border: 1px grey solid;"asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
@@ -207,7 +197,7 @@
                     </ul>
                     <ul class="nav navbar-nav flex-row justify-content-between ml-auto">
                             <li class="dropdown order-1">
-                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"  name="cmdButton" title="เปลี่ยน Password">Change Password </a>
+                                <a id="dropdownMenu1" data-toggle="modal" data-target="#myModal" class="nav-link dropdown-toggle"   title="เปลี่ยน Password">Change Password </a>
                     </ul>
                     <div class="d-flex">
                         <a class="nav-link" style="background-color: wheat;border-radius: 20px;border: 1px grey solid;"asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
@@ -216,7 +206,7 @@
                         }
                     }
                 }
-                @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SLA Management</a>*@
+           
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -268,7 +258,7 @@
     <script>
         if("@ViewData["Title"]"==="Home Page"){
             document.addEventListener('DOMContentLoaded', function () {
-                // Get the element with the class 'example-class'
+              
                 const element = document.querySelector('.bg_main');
                 if (element) {
                     element.style.removeProperty('background-image');
@@ -278,7 +268,7 @@
         }
         
     </script>
-    @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
+   
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

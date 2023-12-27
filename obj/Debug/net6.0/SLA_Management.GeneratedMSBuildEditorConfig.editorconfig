@@ -9,45 +9,45 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = SLA_Management
 build_property.RootNamespace = SLA_Management
-build_property.ProjectDir = C:\Users\takar\OneDrive\Documents\GitHub\SLA_Management\
+build_property.ProjectDir = D:\Playground_VS\SLA_Management_WebGHB\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\takar\OneDrive\Documents\GitHub\SLA_Management
+build_property.MSBuildProjectDirectory = D:\Playground_VS\SLA_Management_WebGHB
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Gateway/Transaction.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Gateway/Transaction.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2F0ZXdheVxUcmFuc2FjdGlvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Index.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Login.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Home/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Home/Privacy.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/Error.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/_ViewImports.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/_ViewStart.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Shared/_Layout.cshtml]
+[D:/Playground_VS/SLA_Management_WebGHB/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-n1zh8tboyp

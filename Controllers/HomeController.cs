@@ -2,51 +2,39 @@
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
 using SLA_Management.Models;
-using SLA_Management.Models.OperationModel;
-using SLAManagement.Data;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Globalization;
-using Microsoft.AspNetCore.Http;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using System.Configuration;
-using Serilog;
+
 
 namespace SLA_Management.Controllers
 {
     public class HomeController : Controller
     {
-        private IConfiguration _myConfiguration;
-        private DBService dBService;
-        SqlCommand com = new SqlCommand();
-       
-        private static ConnectMySQL db_fv;
-        CultureInfo usaCulture = new CultureInfo("en-US");
-        public static string _error = "";
-        public static string _complete = "";      
-        DecryptConfig decryptConfig = new DecryptConfig();
-        private string dbFullName;
+        
+        
+        private  string _error = "";
+        private  string _complete = "";      
+        readonly DecryptConfig decryptConfig = new DecryptConfig();
+        private readonly string dbFullName;
+
+        readonly Loger log = new Loger();
+
         public HomeController(IConfiguration myConfiguration)
         {
-
+            IConfiguration _myConfiguration;
             _myConfiguration = myConfiguration;
-            dBService = new DBService(_myConfiguration);
-            
-            
+            dbFullName = decryptConfig.DecryptString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "", decryptConfig.EnsureKeySize("boom"));
+           
 
-            dbFullName = decryptConfig.DecryptString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection"), decryptConfig.EnsureKeySize("boom"));
-
-            db_fv = new ConnectMySQL(dbFullName);
         }
 
         
         public IActionResult Login()
         {
-            if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
+            if (HttpContext.Session.TryGetValue("username", out byte[]? usernameBytes))
             {
                 return RedirectToAction("Transaction", "Gateway");
                 
@@ -63,28 +51,26 @@ namespace SLA_Management.Controllers
       
         public IActionResult Logout()
         {
-            // Clear session
+            
             HttpContext.Session.Clear();
             Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
             Response.Headers["Expires"] = "0";
             Response.Headers["Pragma"] = "no-cache";
-            // Redirect to the login page
+           
             return RedirectToAction("Login", "Home");
         }
         public IActionResult CheckSession()
         {
-            // Check if the "username" session variable exists
+           
             bool sessionIsValid = HttpContext.Session.TryGetValue("username", out _);
             return Json(sessionIsValid);
         }
         [HttpPost]
         public IActionResult GetLogin(string username, string password)
         {
-            using var log = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
-            .CreateLogger();
-            log.Information("Login : " + username);
+        
+            log.WriteLogFile("Login : " + username);
+
             _complete = "";
             try
             {
@@ -100,22 +86,22 @@ namespace SLA_Management.Controllers
                         {
                             if (reader.Read())
                             {
-                                string storedHash = reader["PasswordHash"].ToString();
-                                string salt = reader["Salt"].ToString();
+                                string storedHash = reader["PasswordHash"].ToString() ?? "";
+                                string salt = reader["Salt"].ToString() ?? "";
                                 int role = Convert.ToInt32(reader["Role"]);
 
-                                // Hash the entered password with the stored salt
+                                
                                 string hashedPassword = HashPassword(password, salt);
                                 reader.Close();
-                                // Compare the hashed passwords
+                               
                                 if (storedHash == hashedPassword)
                                 {
-                                    // Passwords match, set session and redirect
+                                    
                                     HttpContext.Session.SetString("username", username);
                                     HttpContext.Session.SetInt32("role", role);
-                                    UpdateUserLastLogin(username, connection, "LastLogin");
+                                    UpdateUserLastLogin(username, connection); 
                                     _error = "";
-                                    log.Information("username : " + username + " login complete");
+                                    log.WriteLogFile("username : " + username + " login complete");
                                     return RedirectToAction("Transaction", "Gateway");
                                 }
                             }
@@ -123,15 +109,15 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                // Invalid credentials, return to login view
+                
                 
                 _error = "Invalid username or password";
-                log.Information(username+ " : " + _error);
+                log.WriteLogFile(username+ " : " + _error);
             }
             catch (Exception ex)
             {
                 _error = "Something went wrong";
-                log.Error("GetLogin Error : " + ex.ToString());
+                log.WriteErrLog("GetLogin Error : " + ex.ToString());
                 return RedirectToAction("Login", "Home");
             }
             return RedirectToAction("Login", "Home");
@@ -139,10 +125,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult ResetPassword(string username)
         {
-            using var log = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt")
-            .CreateLogger();
+          
 
             try
             {
@@ -152,11 +135,11 @@ namespace SLA_Management.Controllers
                 {
                     connection.Open();
 
-                    // Generate a new salt and hash for the default password '111111'
+                   
                     string newSalt = GenerateSalt();
                     string hashedPassword = HashPassword("111111", newSalt);
 
-                    // Update the password in the database
+                    
                     using (var command = new MySqlCommand("UPDATE Users SET PasswordHash = @PasswordHash, Salt = @Salt WHERE Username = @Username", connection))
                     {
                         command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
@@ -165,13 +148,13 @@ namespace SLA_Management.Controllers
 
                         command.ExecuteNonQuery();
                     }
-                    UpdateUserLastLogin(username, connection, "UpdateDate");
+                    UpdateUserLastLogin(username, connection);
                 }
             }
             catch (Exception ex)
             {
 
-                log.Error("ResetPassword Error : " + ex.ToString());
+                log.WriteErrLog("ResetPassword Error : " + ex.ToString());
                 return Json(new { success = false, message = "Something went wrong!" });
             }
             return Json(new { success = true, message = "Password reset successfully!" });
@@ -179,7 +162,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult DeleteUser(string username)
         {
-            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
+          
 
             try
             {
@@ -189,20 +172,20 @@ namespace SLA_Management.Controllers
             {
                 connection.Open();
 
-                // Update the status to 'Inactive' in the database
+                
                 using (var command = new MySqlCommand("UPDATE Users SET Status = 'Inactive' WHERE Username = @Username", connection))
                 {
                     command.Parameters.AddWithValue("@Username", username);
 
                     command.ExecuteNonQuery();
                 }
-                UpdateUserLastLogin(username, connection, "UpdateDate");
+                UpdateUserLastLogin(username, connection);
             }
             }
             catch (Exception ex)
             {
 
-                log.Error("DeleteUser Error : " + ex.ToString());
+                log.WriteErrLog("DeleteUser Error : " + ex.ToString());
                 return Json(new { success = false, message = "Something went wrong!" });
 
             }
@@ -210,17 +193,18 @@ namespace SLA_Management.Controllers
         }
         public static string GenerateSalt()
         {
-            byte[] saltBytes = new byte[16]; // You can adjust the size as needed
-            using (var rng = new RNGCryptoServiceProvider())
+            byte[] saltBytes = new byte[16];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(saltBytes);
             }
             return Convert.ToBase64String(saltBytes);
         }
 
-        private void UpdateUserLastLogin(string username, MySqlConnection connection,string whichdate)
+        private static void UpdateUserLastLogin(string username, MySqlConnection connection)
         {
-            // Update 'updatedate' column to current timestamp
+            
+          
             using (var updateCommand = new MySqlCommand("UPDATE Users SET LastLogin = NOW() WHERE Username = @Username", connection))
             {
                 updateCommand.Parameters.AddWithValue("@Username", username);
@@ -271,13 +255,13 @@ namespace SLA_Management.Controllers
                         {
                             if (reader.Read())
                             {
-                                string storedHash = reader["PasswordHash"].ToString();
-                                string salt = reader["Salt"].ToString();
+                                string storedHash = reader["PasswordHash"].ToString() ?? "";
+                                string salt = reader["Salt"].ToString() ?? "";
 
-                                // Hash the entered old password with the stored salt
+                               
                                 string hashedOldPassword = HashPassword(oldPassword, salt);
 
-                                // Compare the hashed old passwords
+                               
                                 if (storedHash != hashedOldPassword)
                                 {
                                     return Json(new { success = false, message = "Old password does not match." });
@@ -290,13 +274,13 @@ namespace SLA_Management.Controllers
                         }
                     }
 
-                    // Generate a new salt
+                    
                     string newSalt = GenerateSalt();
 
-                    // Hash the new password with the new salt
+                   
                     string hashedNewPassword = HashPassword(newPassword, newSalt);
 
-                    // Update the password
+                    
                     var updatePasswordQuery = "UPDATE Users SET PasswordHash = @NewPassword, Salt = @NewSalt WHERE Username = @Username";
                     using (var updatePasswordCommand = new MySqlCommand(updatePasswordQuery, connection))
                     {
@@ -306,10 +290,10 @@ namespace SLA_Management.Controllers
 
                         updatePasswordCommand.ExecuteNonQuery();
                     }
-                    UpdateUserLastLogin(username, connection, "UpdateDate");
+                    UpdateUserLastLogin(username, connection);
                 }
 
-                // Return a JSON response indicating that the password has been changed
+               
                 _complete = "Password changed successfully!";
                 return Json(new { success = true, message = "Password changed successfully!" });
             }
@@ -321,19 +305,19 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public IActionResult CreateUser(string username, string password, string role)
         {
-            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
+           
             try
             {
-                // Perform MySQL operation to create user
+               
                 using (var connection = new MySqlConnection(dbFullName))
                 {
                     connection.Open();
 
-                    // Generate a salt and hash the password
+                    
                     string salt = GenerateSalt();
                     string hashedPassword = HashPassword(password, salt);
 
-                    // Insert the new user into the database
+                   
                     using (var command = new MySqlCommand("INSERT INTO Users (Username, PasswordHash, Salt, Role, UpdateDate, Status) VALUES (@Username, @PasswordHash, @Salt, @Role, NOW(), 'Active')", connection))
                     {
                         command.Parameters.AddWithValue("@Username", username);
@@ -345,13 +329,13 @@ namespace SLA_Management.Controllers
                     }
                 }
 
-                // Return success message
+                
                 return Json(new { success = true, message = "User created successfully" });
             }
             catch (Exception ex)
             {
-                // Log the exception or handle it accordingly
-                log.Error("Error : " + ex.ToString());
+               
+                log.WriteErrLog("Error : " + ex.ToString());
                 return Json(new { success = false, message = "Something went wrong!" });
             }
         }
@@ -365,23 +349,7 @@ namespace SLA_Management.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        private IDataReader ExecuteReader(DbCommand cmd)
-        {
-            return ExecuteReader(cmd, CommandBehavior.Default);
-        }
-        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
-        {
-            try
-            {
-                return cmd.ExecuteReader(behavior);
-            }
-            catch (MySqlException ex)
-            {
-                string err = "";
-                err = "Inner message : " + ex.InnerException.Message;
-                err += Environment.NewLine + "Message : " + ex.Message;
-                return null;
-            }
-        }
+      
+       
     }
 }

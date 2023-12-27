@@ -1,32 +1,33 @@
-﻿
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using SLA_Management.Controllers;
-using SLA_Management.Models.TermProbModel;
 using System.Globalization;
 
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
-    public class ExcelUtilities_gateway
+    public class ExcelUtilitiesgateway
     {
         #region  Local Variable
 
-        gateway_seek param = null;
-        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+        
+        readonly CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        readonly Loger log = new Loger();
 
         #endregion
 
         #region Property
-        public string PathDefaultTemplate { get; set; }
+        public string? PathDefaultTemplate { get; set; }
 
-        public string FileSaveAsXlsxFormat { get; set; }
+        public string? FileSaveAsXlsxFormat { get; set; }
+
 
         #endregion
 
         #region Contractor
-        public ExcelUtilities_gateway(gateway_seek paramTemp)
+        public ExcelUtilitiesgateway()
         {
-            param = paramTemp;
+           
         }
 
 
@@ -34,13 +35,10 @@ namespace SLA_Management.Data.ExcelUtilitie
         #endregion
 
         #region Function 
-        public void GatewayOutput(List<GatewayModel> objData,string terminal,string fromdate,string todate)
+        public void GatewayOutput(List<GatewayModel> objData,string terminal,string fromdate,string todate,string tmp_term , string tmp_fromdate,string tmp_todate)
         {
             int nStartRowData = 0;
-            string strTermID = string.Empty;
-            string strBranchName = string.Empty;
-            string strLocation = string.Empty;
-            string strProbName = string.Empty;
+          
             int nSeq = 1;
 
 
@@ -50,29 +48,29 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                 ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
-                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\GatewayExcel\\InputTemplate\\GatewayTransaction.xlsx"));
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate ?? "", "wwwroot\\GatewayExcel\\InputTemplate\\GatewayTransaction.xlsx"));
                 using (var oPackage = new ExcelPackage(oTemplate))
                 {
-                    // ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+                    
 
                     var oWorkbook = oPackage.Workbook;
                     var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
 
-                    //excelWorksheet.Name = "GatewayTransaction";
+                   
 
-                    if (GatewayController.tmp_term == null || GatewayController.tmp_term == "")
+                    if (tmp_term == null || tmp_term == "")
                     {
                         terminal = "All";
                     }
                     else
                     {
-                        terminal = GatewayController.tmp_term;
+                        terminal = tmp_term;
                     }
 
                     excelWorksheet.Cells[3, 1].Value = "Gateway Report";
-                    //excelWorksheet.Cells[3, 1].Value = "AS AT " + param.FRDATE.Substring(0, 10) + "-" + param.TODATE.Substring(0, 10);
-                    excelWorksheet.Cells[4, 2].Value = GatewayController.tmp_fromdate;
-                    excelWorksheet.Cells[4, 4].Value = GatewayController.tmp_todate;
+                  
+                    excelWorksheet.Cells[4, 2].Value = tmp_fromdate;
+                    excelWorksheet.Cells[4, 4].Value = tmp_todate;
                     excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo);
                     excelWorksheet.Cells[5, 2].Value = terminal;
                     excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo);
@@ -101,13 +99,16 @@ namespace SLA_Management.Data.ExcelUtilitie
 
                     }
 
-                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "GatewayTransaction.xlsx"))));
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate ?? "".Replace("InputTemplate", "tempfiles"), "GatewayTransaction.xlsx"))));
                     FileSaveAsXlsxFormat = "GatewayTransaction.xlsx";
                 }
 
             }
             catch (Exception ex)
-            { throw ex; }
+            {
+                log.WriteErrLog("GatewayOutput error : " + ex);
+                throw;
+            }
         }
 
         #endregion

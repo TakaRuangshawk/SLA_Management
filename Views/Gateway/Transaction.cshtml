@@ -1,5 +1,5 @@
 ﻿@{
-    byte[] usernameBytes;
+    byte[]? usernameBytes;
     if (Context.Session.TryGetValue("username", out usernameBytes))
     {
         string username = System.Text.Encoding.UTF8.GetString(usernameBytes);
@@ -304,8 +304,8 @@
 </div>
 <div class="container-fluid">
     <div class="table-responsive" style="overflow-x: hidden;">
-        <table id="table-id" class="table table-striped custom-table">
-            <caption>tableHeaders</caption>
+        <table id="table-id" class="table table-striped custom-table" aria-describedby="table">
+
             <thead id="t-header" style="">
                 <tr>
                     @{

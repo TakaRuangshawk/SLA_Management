@@ -1,64 +1,57 @@
-﻿
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
-using Serilog;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
-using SLA_Management.Models.TermProbModel;
 using System.Data;
-using System.Data.Common;
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
+
 
 namespace SLA_Management.Controllers
 {
     public class GatewayController : Controller
     {
-        private readonly IConfiguration _configuration;
+        
         #region Action page
+     
+        private readonly IConfiguration _myConfiguration;
+       
+        private  List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
+     
+        private string tmp_term = "";
+        private string tmp_fromdate = "";
+        private string tmp_todate = "";
+       
+       
+        private readonly string rawConfig;
+        readonly DecryptConfig decryptConfig = new DecryptConfig();
+        readonly Loger log = new Loger();
 
-        private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
-        private IConfiguration _myConfiguration;
-        private DBService dBService;
-        private static List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
-        private static gateway_seek param = new gateway_seek();
-        public static string tmp_term = "";
-        public static string tmp_fromdate = "";
-        public static string tmp_todate = "";
-        private int pageNum = 1;
-        private long recCnt = 0;
-        private string rawConfig;
-        DecryptConfig decryptConfig = new DecryptConfig();
-
-
-        public class User
+        public class UserDetail
         {
             public int Id { get; set; }
-            public string Username { get; set; }
+            public string? Username { get; set; }
          
         }
         public IActionResult Transaction()
         {
-            if (HttpContext.Session.TryGetValue("username", out byte[] usernameBytes))
+            
+            if (HttpContext.Session.TryGetValue("username", out byte[]? usernameBytes))
             {
                 ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd");
                 ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd");
                 int? userRole = HttpContext.Session.GetInt32("role");
                 if (userRole.HasValue && userRole.Value <= 1)
                 {
-                    // Assuming you have a method to fetch user data from the MySQL table
-                    List<User> userList = GetUserListFromMySQL();
+                   
+                    List<UserDetail> userList = GetUserListFromMySQL();
 
-                    // Store the user list in ViewBag
+                    
                     ViewBag.UserList = userList;
 
                     return View();
                 }
                 else
                 {
-                    ViewBag.UserList = new List<User>();
+                    ViewBag.UserList = new List<UserDetail>();
                     return View();
                 }
             }
@@ -76,19 +69,20 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-            rawConfig = _myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection");
+           
+            rawConfig = _myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "";
           
             rawConfig = decryptConfig.DecryptString(rawConfig, decryptConfig.EnsureKeySize("boom"));
-            dBService = new DBService(_myConfiguration);
+
         }
 
 
 
         #endregion
       
-        public List<User> GetUserListFromMySQL()
+        public List<UserDetail> GetUserListFromMySQL()
         {
-            List<User> userList = new List<User>();
+            List<UserDetail> userList = new List<UserDetail>();
 
             using (var connection = new MySqlConnection(rawConfig))
             {
@@ -100,7 +94,7 @@ namespace SLA_Management.Controllers
                     {
                         while (reader.Read())
                         {
-                            var user = new User
+                            var user = new UserDetail
                             {
                                 Id = Convert.ToInt32(reader["id"]),
                                 Username = reader["Username"].ToString()
@@ -115,25 +109,9 @@ namespace SLA_Management.Controllers
             return userList;
         }
 
-        private IDataReader ExecuteReader(DbCommand cmd)
-        {
-            return ExecuteReader(cmd, CommandBehavior.Default);
-        }
+       
 
-        private IDataReader ExecuteReader(DbCommand cmd, CommandBehavior behavior)
-        {
-            try
-            {
-                return cmd.ExecuteReader(behavior);
-            }
-            catch (MySqlException ex)
-            {
-                string err = "";
-                err = "Inner message : " + ex.InnerException.Message;
-                err += Environment.NewLine + "Message : " + ex.Message;
-                return null;
-            }
-        }
+      
 
         #region Excel
 
@@ -154,10 +132,10 @@ namespace SLA_Management.Controllers
                 if (gatewaytransaction_dataList == null || gatewaytransaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
-                ExcelUtilities_gateway obj = new ExcelUtilities_gateway(param);
+                ExcelUtilitiesgateway obj = new ExcelUtilitiesgateway();
 
 
-                // Session["PrefixRep"] = "EJAddTran";
+                
 
                 string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderGatewayTemplate_Excel");
 
@@ -169,7 +147,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GatewayOutput(gatewaytransaction_dataList,terminal,fromdate,todate);
+                obj.GatewayOutput(gatewaytransaction_dataList,terminal,fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
 
 
 
@@ -220,8 +198,7 @@ namespace SLA_Management.Controllers
         {
             string fname = "";
             string tempPath = "";
-            string tsDate = "";
-            string teDate = "";
+          
             try
             {
 
@@ -248,11 +225,11 @@ namespace SLA_Management.Controllers
 
 
 
-                if (rpttype.ToLower().EndsWith("s") == true)
+                if (rpttype.ToLower().EndsWith('s'))
                     return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
-                else if (rpttype.ToLower().EndsWith("f") == true)
+                else if (rpttype.ToLower().EndsWith('f'))
                     return File(tempPath + "xml", "application/pdf", fname);
-                else  //(rpttype.ToLower().EndsWith("v") == true)
+                else  
                     return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
 
 
@@ -309,26 +286,13 @@ namespace SLA_Management.Controllers
             tmp_fromdate = fromdate;
             tmp_term = terminalno;
             tmp_todate = todate;
+
             List<GatewayModel> jsonData = new List<GatewayModel>();
-            using var log = new LoggerConfiguration().WriteTo.Console().WriteTo.File("Logs/log" + DateTime.Now.ToString("yyyyMMdd") + ".txt").CreateLogger();
-
-            try
-            {
-
-            }
-            catch (Exception ex)
-            {
-
-                log.Error("Error : " + ex.ToString());
-                return Json(new { success = false, message = "Something went wrong!" });
-            }
-
-
             using (MySqlConnection connection = new MySqlConnection(rawConfig))
             {
                 connection.Open();
 
-                // Modify the SQL query to use the 'input' parameter for filtering
+                
                 string query = " SELECT  ROW_NUMBER() OVER (ORDER BY Id) AS Id,SeqNo,ThaiID,PhoneOTP,AcctNoTo,FromBank,TransType,TransDateTime,TerminalNo,Amount,UpdateStatus,ErrorCode FROM bank_transaction WHERE TransDateTime between '" + fromdate + " 00:00:00' and '"+ todate +" 23:59:59' ";
                 if(terminalno != "")
                 {
@@ -363,24 +327,24 @@ namespace SLA_Management.Controllers
                     {
                         jsonData.Add(new GatewayModel
                         {
-                            Id = reader["Id"].ToString(),
-                            SeqNo = reader["SeqNo"].ToString(),
-                            ThaiID = reader["ThaiID"].ToString(),
-                            PhoneOTP = reader["PhoneOTP"].ToString(),
-                            AcctNoTo = reader["AcctNoTo"].ToString(),
-                            FromBank = reader["FromBank"].ToString(),
-                            TransType = reader["TransType"].ToString(),
+                            Id = reader["Id"].ToString() ?? "",
+                            SeqNo = reader["SeqNo"].ToString() ?? "",
+                            ThaiID = reader["ThaiID"].ToString() ?? "",
+                            PhoneOTP = reader["PhoneOTP"].ToString() ?? "",
+                            AcctNoTo = reader["AcctNoTo"].ToString() ?? "",
+                            FromBank = reader["FromBank"].ToString() ?? "",
+                            TransType = reader["TransType"].ToString() ?? "",
                             TransDateTime = Convert.ToDateTime(reader["TransDateTime"]).ToString("yyyy-MM-dd HH:mm:ss"),
-                            TerminalNo = reader["TerminalNo"].ToString(),
+                            TerminalNo = reader["TerminalNo"].ToString() ?? "",
                             Amount = string.Format("{0:N0}", reader.GetInt32(reader.GetOrdinal("Amount"))),
-                            UpdateStatus = reader["UpdateStatus"].ToString(),
-                            ErrorCode = reader["ErrorCode"].ToString()
+                            UpdateStatus = reader["UpdateStatus"].ToString() ?? "",
+                            ErrorCode = reader["ErrorCode"].ToString() ?? ""
                         });
                     }
                 }
             }
             gatewaytransaction_dataList = jsonData;
-            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            int pages = (int)Math.Ceiling((double)jsonData.Count / _row);
             List<GatewayModel> filteredData = RangeFilter(jsonData, _page, _row);
             var response = new DataResponse
             {
@@ -388,13 +352,15 @@ namespace SLA_Management.Controllers
                 Page = pages,
                 currentPage = _page
             };
+
+            log.WriteLogFile("response : " + response);
             return Json(response);
         }
         
         static List<GatewayModel> RangeFilter<GatewayModel>(List<GatewayModel> inputList, int page, int row)
         {
             int start_row;
-            int end_row;
+           
             if (page == 1)
             {
                 start_row = 0;
@@ -403,33 +369,29 @@ namespace SLA_Management.Controllers
             {
                 start_row = (page - 1) * row;
             }
-            end_row = start_row + row - 1;
-            if (inputList.Count < end_row)
-            {
-                end_row = inputList.Count - 1;
-            }
+           
             return inputList.Skip(start_row).Take(row).ToList();
         }
     }
     public class GatewayModel
     {
-        public string Id { get; set; }
-        public string SeqNo { get; set; }
-        public string ThaiID { get; set; }
-        public string PhoneOTP { get; set; }
-        public string AcctNoTo { get; set; }
-        public string FromBank { get; set; }
-        public string TransType { get; set; }
-        public string TransDateTime { get; set; }
-        public string TerminalNo { get; set; }
-        public string Amount { get; set; }
-        public string UpdateStatus { get; set; }
-        public string ErrorCode { get; set; }
+        public string? Id { get; set; }
+        public string? SeqNo { get; set; }
+        public string? ThaiID { get; set; }
+        public string? PhoneOTP { get; set; }
+        public string? AcctNoTo { get; set; }
+        public string? FromBank { get; set; }
+        public string? TransType { get; set; }
+        public string? TransDateTime { get; set; }
+        public string? TerminalNo { get; set; }
+        public string? Amount { get; set; }
+        public string? UpdateStatus { get; set; }
+        public string? ErrorCode { get; set; }
 
     }
     public class DataResponse
     {
-        public List<GatewayModel> JsonData { get; set; }
+        public List<GatewayModel>? JsonData { get; set; }
         public int Page { get; set; }
         public int currentPage { get; set; }
     }
