@@ -19,12 +19,13 @@ namespace SLA_Management.Controllers
 
         private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
         private IConfiguration _myConfiguration;
-        private DBService dBService;
+
         private static List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
         private static gateway_seek param = new gateway_seek();
-        public static string tmp_term = "";
-        public static string tmp_fromdate = "";
-        public static string tmp_todate = "";
+        private static string tmp_term = "";
+        private static string tmp_fromdate = "";
+        private static string tmp_todate = "";
+        
         private int pageNum = 1;
         private long recCnt = 0;
         public class User
@@ -70,7 +71,6 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-            dBService = new DBService(_myConfiguration);
         }
 
 
