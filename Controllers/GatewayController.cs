@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EncryptData.Net;
+using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
@@ -11,20 +12,13 @@ namespace SLA_Management.Controllers
     {
         
         #region Action page
-     
         private readonly IConfiguration _myConfiguration;
-       
-          
-     
         private string tmp_term = "";
         private string tmp_fromdate = "";
         private string tmp_todate = "";
-       
-       
         private readonly string rawConfig;
         readonly DecryptConfig decryptConfig = new DecryptConfig();
         readonly Loger log = new Loger();
-
         public class UserDetail
         {
             public int Id { get; set; }
@@ -41,12 +35,8 @@ namespace SLA_Management.Controllers
                 int? userRole = HttpContext.Session.GetInt32("role");
                 if (userRole.HasValue && userRole.Value <= 1)
                 {
-                   
                     List<UserDetail> userList = GetUserListFromMySQL();
-
-                    
                     ViewBag.UserList = userList;
-
                     return View();
                 }
                 else
@@ -69,10 +59,9 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-           
-            rawConfig = _myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "";
-          
-            rawConfig = decryptConfig.DecryptString(rawConfig, decryptConfig.EnsureKeySize("boom"));
+
+            AesEncryption encryptData = new AesEncryption();
+            rawConfig = encryptData.DecryptConnectionString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "") ;
 
         }
 
@@ -108,10 +97,6 @@ namespace SLA_Management.Controllers
 
             return userList;
         }
-
-       
-
-      
 
         #region Excel
 
@@ -189,11 +174,7 @@ namespace SLA_Management.Controllers
                 string strPath = Environment.CurrentDirectory;
                 ExcelUtilitiesgateway obj = new ExcelUtilitiesgateway();
 
-
-                
-
                 string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderGatewayTemplate_Excel");
-
 
                 if (!Directory.Exists(folder_name))
                 {
@@ -204,16 +185,11 @@ namespace SLA_Management.Controllers
 
                 obj.GatewayOutput(jsonData, terminalno, fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
 
-
-
                 strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
-
-
 
                 fname = "GatewayTransaction_" + DateTime.Now.ToString("yyyyMMdd");
 
                 strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderGateway_Excel") + fname + ".xlsx";
-
 
                 if (obj.FileSaveAsXlsxFormat != null)
                 {
@@ -246,8 +222,6 @@ namespace SLA_Management.Controllers
             }
         }
 
-
-
         [HttpGet]
         public ActionResult DownloadExportFile(string rpttype)
         {
@@ -256,9 +230,6 @@ namespace SLA_Management.Controllers
           
             try
             {
-
-
-
 
                 fname = "GatewayTransaction_" + DateTime.Now.ToString("yyyyMMdd");
 
@@ -276,10 +247,6 @@ namespace SLA_Management.Controllers
                 }
 
                 tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderGateway_Excel") + fname);
-
-
-
-
                 if (rpttype.ToLower().EndsWith('s'))
                     return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
                 else if (rpttype.ToLower().EndsWith('f'))
@@ -301,10 +268,8 @@ namespace SLA_Management.Controllers
             }
         }
 
-
         #endregion
-      
-        
+
         [HttpGet]
         public IActionResult GatewayFetchData(string terminalno,string acctnoto,string transtype,string todate,string fromdate,string status,string row,string page,string search,string sort)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EncryptData.Net;
+using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
 using SLA_Management.Models;
@@ -19,15 +20,14 @@ namespace SLA_Management.Controllers
         private  string _complete = "";      
         readonly DecryptConfig decryptConfig = new DecryptConfig();
         private readonly string dbFullName;
-
         readonly Loger log = new Loger();
 
         public HomeController(IConfiguration myConfiguration)
         {
             IConfiguration _myConfiguration;
             _myConfiguration = myConfiguration;
-            dbFullName = decryptConfig.DecryptString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "", decryptConfig.EnsureKeySize("boom"));
-           
+            AesEncryption encryptData = new AesEncryption();
+            dbFullName = encryptData.DecryptConnectionString(_myConfiguration.GetValue<string>("ConnectString_Gateway:FullNameConnection") ?? "");
 
         }
 
@@ -112,7 +112,7 @@ namespace SLA_Management.Controllers
                 
                 
                 _error = "Invalid username or password";
-                log.WriteLogFile(username+ " : " + _error);
+                log.WriteErrLog(username+ " : " + _error);
             }
             catch (Exception ex)
             {
@@ -299,6 +299,7 @@ namespace SLA_Management.Controllers
             }
             catch (Exception ex)
             {
+                log.WriteErrLog("Change Password Error : " + ex.ToString());
                 return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
@@ -316,7 +317,10 @@ namespace SLA_Management.Controllers
                     using (var connection = new MySqlConnection(dbFullName))
                     {
                         connection.Open();
-
+                        if (IsUsernameDuplicate(connection, username))
+                        {
+                            return Json(new { success = false, message = "Username already exists. Please choose a different username." });
+                        }
 
                         string salt = GenerateSalt();
                         string hashedPassword = HashPassword(password, salt);
@@ -346,6 +350,15 @@ namespace SLA_Management.Controllers
             else
             {
                 return Json(new { success = false, message = "Please fill out the form!" });
+            }
+        }
+        private bool IsUsernameDuplicate(MySqlConnection connection, string username)
+        {
+            using (var command = new MySqlCommand("SELECT COUNT(*) FROM Users WHERE Username = @Username", connection))
+            {
+                command.Parameters.AddWithValue("@Username", username);
+                var count = (long)command.ExecuteScalar();
+                return count > 0;
             }
         }
         public IActionResult Privacy()
