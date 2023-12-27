@@ -18,7 +18,6 @@ namespace SLA_Management.Controllers
         
         private  string _error = "";
         private  string _complete = "";      
-        readonly DecryptConfig decryptConfig = new DecryptConfig();
         private readonly string dbFullName;
         readonly Loger log = new Loger();
 
@@ -352,7 +351,7 @@ namespace SLA_Management.Controllers
                 return Json(new { success = false, message = "Please fill out the form!" });
             }
         }
-        private bool IsUsernameDuplicate(MySqlConnection connection, string username)
+        private static bool IsUsernameDuplicate(MySqlConnection connection, string username)
         {
             using (var command = new MySqlCommand("SELECT COUNT(*) FROM Users WHERE Username = @Username", connection))
             {

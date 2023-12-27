@@ -17,7 +17,6 @@ namespace SLA_Management.Controllers
         private string tmp_fromdate = "";
         private string tmp_todate = "";
         private readonly string rawConfig;
-        readonly DecryptConfig decryptConfig = new DecryptConfig();
         readonly Loger log = new Loger();
         public class UserDetail
         {
