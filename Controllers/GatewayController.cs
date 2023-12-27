@@ -103,11 +103,11 @@ namespace SLA_Management.Controllers
         [HttpGet]
         public ActionResult Gateway_ExportExc(string terminalno, string fromdate,string todate,string acctnoto, string transtype,string status)
         {
-            string fname = "";
-            string strPathSource = string.Empty;
-            string strPathDesc = string.Empty;
-            string strSuccess = string.Empty;
-            string strErr = string.Empty;
+            string fname;
+            string strPathSource;
+            string strPathDesc;
+            string strSuccess;
+            string strErr;       
             terminalno = terminalno ?? string.Empty;
             fromdate = fromdate ?? string.Empty;
             todate = todate ?? string.Empty;
@@ -139,10 +139,8 @@ namespace SLA_Management.Controllers
                     {
                         query += " and UpdateStatus = '" + status + "'";
                     }
-                    else
-                    {
-                        query += " order by TransDateTime asc";
-                    }
+                    query += " order by TransDateTime asc";
+
                     MySqlCommand command = new MySqlCommand(query, connection);
 
 
@@ -332,12 +330,9 @@ namespace SLA_Management.Controllers
                 }
                 if(sort != "")
                 {
-                    query += " order by TransDateTime " + sort;
+                    query += " order by TransDateTime " + sort + " order by TransDateTime asc";
                 }
-                else
-                {
-                    query += " order by TransDateTime asc" ;
-                }
+
                 MySqlCommand command = new MySqlCommand(query, connection);
             
 
