@@ -14,7 +14,7 @@ namespace SLA_Management.Controllers
      
         private readonly IConfiguration _myConfiguration;
        
-        private  List<GatewayModel> gatewaytransaction_dataList = new List<GatewayModel>();
+          
      
         private string tmp_term = "";
         private string tmp_fromdate = "";
@@ -183,8 +183,8 @@ namespace SLA_Management.Controllers
                         }
                     }
                 }
-                gatewaytransaction_dataList = jsonData;
-                if (gatewaytransaction_dataList == null || gatewaytransaction_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+               
+                if (jsonData == null || jsonData.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
                 ExcelUtilitiesgateway obj = new ExcelUtilitiesgateway();
@@ -202,7 +202,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GatewayOutput(gatewaytransaction_dataList, terminalno, fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
+                obj.GatewayOutput(jsonData, terminalno, fromdate,todate,tmp_term,tmp_fromdate,tmp_todate);
 
 
 
@@ -398,7 +398,7 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
-            gatewaytransaction_dataList = jsonData;
+             
             int pages = (int)Math.Ceiling((double)jsonData.Count / _row);
             List<GatewayModel> filteredData = RangeFilter(jsonData, _page, _row);
             var response = new DataResponse
