@@ -27,8 +27,6 @@
     <link rel="stylesheet" href="~/SLA_Management.styles.css" asp-append-version="true" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-
-
     <script src="~/lib/popper.js/popper.min.js"></script>
     <script src="~/js/bootstrap.min.js"></script>
     <script src="~/lib/bootstrap-select.1.13.18/js/bootstrap-select.js"></script>
@@ -165,6 +163,14 @@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="LastTransaction">Last Transaction Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CardRetain">Card Retain Monitor</a>
                                @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Report
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
                             </div>
                         </li>
                         @*<li class="nav-item dropdown nav-log">
