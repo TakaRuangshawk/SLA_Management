@@ -256,9 +256,9 @@
                         <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                             <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
                         </button>
-                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                        @*<a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                             <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                        </a>
+                        </a>*@
                     </div>
                 </div>
             </div>
@@ -396,7 +396,7 @@
                 console.log(data);
                 var jsondata = data.jsonData;
                 var pages = data.page;
-                var currentpage = data.currentPage;
+                var currentpage = data.currentPage ?? 1;
                 $('#recordCount').text(data.totalTerminal);
                 $("#table-id tbody").empty();
                 if (jsondata.length === 0) {
@@ -404,9 +404,11 @@
                     var noDataRow = $("<tr>").append($("<td colspan='18' style='text-align:center;'>").text("No data"));
                     $("#table-id tbody").append(noDataRow);
                 } else {
+                    var i = (currentpage - 1) * row + 1
+                    console.log('rows : ' + i + ' , ' + page + ', ' + row);
                     $.each(jsondata, function (index, item) {
                         var row = $("<tr>");
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.no));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(i));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_id));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_name));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_seq));
@@ -425,7 +427,7 @@
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_end));
 
                         $("#table-id tbody").append(row);
-                        
+                        i++;
                     });
                     window.scrollTo(0, 0);
                     $('.dashboard-table').doubleScroll({
