@@ -256,9 +256,9 @@
                         <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                             <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
                         </button>
-                        @*<a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                             <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                        </a>*@
+                        </a>
                     </div>
                 </div>
             </div>
@@ -414,16 +414,16 @@
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_seq));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.transationdate));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_dec));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_out));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_end));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_dec));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_out));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_end));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_inc));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_dec));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_dec));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_dec));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_out));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_out));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_out));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_end));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_end));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_end));
 
                         $("#table-id tbody").append(row);
@@ -516,20 +516,24 @@
     }
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-
-        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
-            + '|' + "xlsx";
+        var terminalno = $("#terminalno").val();
+        var todate = $("#todate").val();
+        var fromdate = $("#fromdate").val();
         var rptType = "xlsx";
         $.ajax({
-            type: "POST",
+            type: "GET",
             dataType: "json",
-            data: '{ "exparams" : "' + expParams + '" }',
+            data: {
+                terminalno: terminalno,
+                todate: todate,
+                fromdate: fromdate,
+            },
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("Transaction_ExportExc", "Operation")',
+            url: '@Url.Action("BalancingReport_ExportExc", "Report")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("Transaction_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("Transaction_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("BalancingReport_DownloadExportFile", "Report")'
+                    window.location = '@Url.Action("BalancingReport_DownloadExportFile", "Report")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },

@@ -5,6 +5,7 @@ using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
 using static SLA_Management.Controllers.OperationController;
+using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
@@ -792,5 +793,87 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_BalancingReport
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
 
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Contractor
+
+        #endregion
+        #region Function 
+        public void GatewayOutput(List<BalancingReportModel> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 7;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\BalancingReport.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    //excelWorksheet.Name = "Regulator";
+
+
+                    foreach (BalancingReportModel data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = nSeq;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.term_id;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.term_name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.term_seq;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.transationdate;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.c1_inc;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.c2_inc;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.c3_inc;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.c1_dec;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.c2_dec;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.c3_dec;
+                        excelWorksheet.Cells[nStartRowData, 12].Value = data.c1_out;
+                        excelWorksheet.Cells[nStartRowData, 13].Value = data.c2_out;
+                        excelWorksheet.Cells[nStartRowData, 14].Value = data.c3_out;
+                        excelWorksheet.Cells[nStartRowData, 15].Value = data.c1_end;
+                        excelWorksheet.Cells[nStartRowData, 16].Value = data.c2_end;
+                        excelWorksheet.Cells[nStartRowData, 17].Value = data.c3_end;
+
+
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "BalancingReport.xlsx"))));
+                    FileSaveAsXlsxFormat = "BalancingReport.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
+    }
 }
