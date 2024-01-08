@@ -89,7 +89,19 @@ namespace SLA_Management.Controllers
                 }
                 string query = @" SELECT t1.terminalid,adi.term_seq,adi.term_name,t1.min_datetime,FORMAT(CAST(SUBSTRING(t1.c1_inc, 3) AS UNSIGNED), 0) AS c1_inc ,FORMAT(CAST(SUBSTRING(t1.c1_dec, 3) AS UNSIGNED), 0) AS c1_dec ,FORMAT(CAST(SUBSTRING(t2.c1_out, 3) AS UNSIGNED), 0) AS c1_out ,FORMAT(CAST(SUBSTRING(t2.c1_end, 3) AS UNSIGNED), 0) AS c1_end ,
                 FORMAT(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED), 0) AS c2_inc ,FORMAT(CAST(SUBSTRING(t3.c2_dec, 3) AS UNSIGNED), 0) AS c2_dec ,FORMAT(CAST(SUBSTRING(t4.c2_out, 3) AS UNSIGNED), 0) AS c2_out ,FORMAT(CAST(SUBSTRING(t4.c2_end, 3) AS UNSIGNED), 0) AS c2_end ,
-                FORMAT(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED), 0) AS c3_inc ,FORMAT(CAST(SUBSTRING(t5.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec ,FORMAT(CAST(SUBSTRING(t6.c3_out, 3) AS UNSIGNED), 0) AS c3_out ,FORMAT(CAST(SUBSTRING(t6.c3_end, 3) AS UNSIGNED), 0) AS c3_end  
+                FORMAT(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED), 0) AS c3_inc ,FORMAT(CAST(SUBSTRING(t5.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec ,FORMAT(CAST(SUBSTRING(t6.c3_out, 3) AS UNSIGNED), 0) AS c3_out ,FORMAT(CAST(SUBSTRING(t6.c3_end, 3) AS UNSIGNED), 0) AS c3_end,
+                FORMAT(COALESCE(CAST(SUBSTRING(t1.c1_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C1 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_01')AND probcode ='BALRP_01' LIMIT 1
+	            ), 0 
+                ), 0
+                ) AS c1_dep,
+                FORMAT(COALESCE(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C2 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_03')AND probcode ='BALRP_03' LIMIT 1
+	            ), 0 
+                ), 0
+                ) AS c2_dep,
+                FORMAT(COALESCE(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C3 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_05')AND probcode ='BALRP_05' LIMIT 1
+	            ), 0 
+                ), 0
+                ) AS c3_dep
                 FROM (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 INC', -1), ' ', 1) END AS c1_inc,
                 CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 DEC', -1), ' ', 1) END AS c1_dec FROM ejlog_devicetermprob_ejreport ej  ";
 
@@ -141,6 +153,9 @@ namespace SLA_Management.Controllers
                                 c3_dec = reader["c3_dec"].ToString(),
                                 c3_out = reader["c3_out"].ToString(),
                                 c3_end = reader["c3_end"].ToString(),
+                                c1_dep = reader["c1_dep"].ToString(),
+                                c2_dep = reader["c2_dep"].ToString(),
+                                c3_dep = reader["c3_dep"].ToString()
                             });
                         }
                     }
@@ -198,6 +213,9 @@ namespace SLA_Management.Controllers
                             c3_dec = reader["c3_dec"].ToString(),
                             c3_out = reader["c3_out"].ToString(),
                             c3_end = reader["c3_end"].ToString(),
+                            c1_dep = "0",
+                            c2_dep = "0",
+                            c3_dep = "0"
                         });
                     }
                 }
@@ -260,6 +278,9 @@ namespace SLA_Management.Controllers
             public string c3_dec { get; set; }
             public string c3_out { get; set; }
             public string c3_end { get; set; }
+            public string c1_dep { get; set; }
+            public string c2_dep { get; set; }
+            public string c3_dep { get; set; }
 
         }
         public class DataResponse_BalancingReport
@@ -321,10 +342,25 @@ namespace SLA_Management.Controllers
                         filterquery += " and terminalid = '" + terminalno + "' ";
                     }
                     string query = @" SELECT t1.terminalid,adi.term_seq,adi.term_name,t1.min_datetime,FORMAT(CAST(SUBSTRING(t1.c1_inc, 3) AS UNSIGNED), 0) AS c1_inc ,FORMAT(CAST(SUBSTRING(t1.c1_dec, 3) AS UNSIGNED), 0) AS c1_dec ,FORMAT(CAST(SUBSTRING(t2.c1_out, 3) AS UNSIGNED), 0) AS c1_out ,FORMAT(CAST(SUBSTRING(t2.c1_end, 3) AS UNSIGNED), 0) AS c1_end ,
-                FORMAT(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED), 0) AS c2_inc ,FORMAT(CAST(SUBSTRING(t3.c2_dec, 3) AS UNSIGNED), 0) AS c2_dec ,FORMAT(CAST(SUBSTRING(t4.c2_out, 3) AS UNSIGNED), 0) AS c2_out ,FORMAT(CAST(SUBSTRING(t4.c2_end, 3) AS UNSIGNED), 0) AS c2_end ,
-                FORMAT(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED), 0) AS c3_inc ,FORMAT(CAST(SUBSTRING(t5.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec ,FORMAT(CAST(SUBSTRING(t6.c3_out, 3) AS UNSIGNED), 0) AS c3_out ,FORMAT(CAST(SUBSTRING(t6.c3_end, 3) AS UNSIGNED), 0) AS c3_end  
-                FROM (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 INC', -1), ' ', 1) END AS c1_inc,
-                CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 DEC', -1), ' ', 1) END AS c1_dec FROM ejlog_devicetermprob_ejreport ej  ";
+                    FORMAT(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED), 0) AS c2_inc ,FORMAT(CAST(SUBSTRING(t3.c2_dec, 3) AS UNSIGNED), 0) AS c2_dec ,FORMAT(CAST(SUBSTRING(t4.c2_out, 3) AS UNSIGNED), 0) AS c2_out ,FORMAT(CAST(SUBSTRING(t4.c2_end, 3) AS UNSIGNED), 0) AS c2_end ,
+                    FORMAT(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED), 0) AS c3_inc ,FORMAT(CAST(SUBSTRING(t5.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec ,FORMAT(CAST(SUBSTRING(t6.c3_out, 3) AS UNSIGNED), 0) AS c3_out ,FORMAT(CAST(SUBSTRING(t6.c3_end, 3) AS UNSIGNED), 0) AS c3_end  ,
+                     FORMAT(COALESCE(CAST(SUBSTRING(t1.c1_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C1 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_01')AND probcode ='BALRP_01' LIMIT 1
+	                 ), 0 
+                     ), 0
+                     ) AS c1_dep,
+                     FORMAT(COALESCE(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C2 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_03')AND probcode ='BALRP_03' LIMIT 1
+	                 ), 0 
+                     ), 0
+                     ) AS c2_dep,
+                     FORMAT(COALESCE(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED) - (SELECT SUBSTRING(SUBSTRING_INDEX(SUBSTRING_INDEX(subej.remark, 'C3 INC', -1), ' ', 1),3) FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = t1.terminalid AND subej.trxdatetime = (SELECT MAX(trxdatetime) FROM ejlog_devicetermprob_ejreport WHERE terminalid = t1.terminalid AND trxdatetime < t1.min_datetime AND probcode ='BALRP_05')AND probcode ='BALRP_05' LIMIT 1
+	                 ), 0 
+                     ), 0
+                     ) AS c3_dep
+
+                    FROM (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 INC', -1), ' ', 1) END AS c1_inc,
+                    CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 DEC', -1), ' ', 1) END AS c1_dec
+                                    
+                    FROM ejlog_devicetermprob_ejreport ej  ";
 
                     query += " WHERE probcode ='BALRP_01' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c1_inc IS NOT NULL OR c1_dec IS NOT NULL)) t1";
                     query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 OUT', -1), ' ', 1) END AS c1_out,CASE WHEN ej.remark LIKE '%C1 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 END', -1), ' ', 1) END AS c1_end FROM ejlog_devicetermprob_ejreport ej ";
@@ -374,6 +410,10 @@ namespace SLA_Management.Controllers
                                 c3_dec = reader["c3_dec"].ToString(),
                                 c3_out = reader["c3_out"].ToString(),
                                 c3_end = reader["c3_end"].ToString(),
+                                c1_dep = reader["c1_dep"].ToString(),
+                                c2_dep = reader["c2_dep"].ToString(),
+                                c3_dep = reader["c3_dep"].ToString()
+
                             });
                         }
                     }
@@ -430,6 +470,10 @@ namespace SLA_Management.Controllers
                                 c3_dec = reader["c3_dec"].ToString(),
                                 c3_out = reader["c3_out"].ToString(),
                                 c3_end = reader["c3_end"].ToString(),
+                                c1_dep = "0",
+                                c2_dep = "0",
+                                c3_dep = "0"
+
                             });
                         }
                     }

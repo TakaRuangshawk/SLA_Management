@@ -404,7 +404,7 @@
                     var noDataRow = $("<tr>").append($("<td colspan='18' style='text-align:center;'>").text("No data"));
                     $("#table-id tbody").append(noDataRow);
                 } else {
-                    var i = (currentpage - 1) * row + 1
+                    var i = (currentpage - 1) * row + 1;
                     console.log('rows : ' + i + ' , ' + page + ', ' + row);
                     $.each(jsondata, function (index, item) {
                         var row = $("<tr>");
@@ -416,9 +416,9 @@
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_inc));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_inc));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_dec));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_dec));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_dec));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_dep));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_dep));
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_dep));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_out));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_out));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_out));

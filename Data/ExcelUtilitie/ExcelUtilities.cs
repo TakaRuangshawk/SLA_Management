@@ -850,9 +850,9 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 6].Value = data.c1_inc;
                         excelWorksheet.Cells[nStartRowData, 7].Value = data.c2_inc;
                         excelWorksheet.Cells[nStartRowData, 8].Value = data.c3_inc;
-                        excelWorksheet.Cells[nStartRowData, 9].Value = data.c1_dec;
-                        excelWorksheet.Cells[nStartRowData, 10].Value = data.c2_dec;
-                        excelWorksheet.Cells[nStartRowData, 11].Value = data.c3_dec;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.c1_dep;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.c2_dep;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.c3_dep;
                         excelWorksheet.Cells[nStartRowData, 12].Value = data.c1_out;
                         excelWorksheet.Cells[nStartRowData, 13].Value = data.c2_out;
                         excelWorksheet.Cells[nStartRowData, 14].Value = data.c3_out;
