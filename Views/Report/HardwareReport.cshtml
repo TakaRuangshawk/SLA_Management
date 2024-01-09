@@ -1,0 +1,390 @@
+﻿
+@{
+    ViewData["Title"] = "Hardware Report ";
+  
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Table #6</title>
+</head>
+
+<style>
+    .bootstrap-select > .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+</style>
+
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1em;
+    }
+
+    h {
+        white-space: nowrap;
+    }
+
+    .table-container {
+        position: relative;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .dashboard-table .table th, .dashboard-table .table td {
+        min-width: 180px;
+        vertical-align: middle !important;
+    }
+
+        .dashboard-table .table th:first-child, .dashboard-table .table td:first-child {
+            min-width: 140px;
+            padding-left: 30px;
+        }
+
+    .dashboard-table {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    td {
+        padding: 0.5em !important;
+    }
+  
+</style>
+
+
+<div class="container w-auto containerHeader">
+
+    <div class="row">
+        <div class="col col-md-1">
+        </div>
+        <div class="col col-md-4">
+            <a class="text-white fs-4" id="header_search">Hardware Report</a>
+        </div>
+    </div>
+
+    <div id="main_search">
+
+        @using (Html.BeginForm("HardwareReport", "Report", FormMethod.Get, new { id = "", style = "padding: 0 4vw;" }))
+        {
+            <div class="row" style="margin-top: 35px;display: flex;align-items: baseline;justify-content: space-evenly;">
+
+                <div class="col-md-1" style="width: 112px;">
+                    <h>Terminal ID : </h>
+                </div>
+                <div class="col-md-2 " style="">
+                    <div class="">
+                        <select class="selectpicker form-control subsearch " id="terminalno" name="TermID" data-live-search="true">
+
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.term_id != @ViewBag.TermID)
+                                {
+                                    <option value=@item.term_id data-tokens=@item.term_id>@item.term_seq : @item.term_id : @item.term_name</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.term_id data-tokens=@item.term_id selected>@item.term_seq : @item.term_id : @item.term_name</option>
+
+                                }
+                            }
+
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-1" style="width: 112px;">
+                    <h>From Date : </h>
+                </div>
+                <div class="col-md-2 " style="">
+                    <div class="">
+                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                    </div>
+                </div>
+                <div class="col-md-1" style="width: 112px;">
+                    <h>To Date : </h>
+                </div>
+                <div class="col-md-2" style="">
+                    <div class="">
+                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("todate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col" id="before-submit">
+                    <div id="submit">
+
+                        <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                        <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                        </button>
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+<div class="container">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
+                <span id="recordCount">0</span>
+            </a>
+        </div>
+    </div>
+    <div class="table-container">
+      
+            <table id="table-id" class="table table-striped custom-table">
+                <thead id="t-header" style="">
+                 <tr>
+                    <th rowspan="1" style="text-align:center; vertical-align: middle;text-wrap: nowrap;"> No </th>
+                    <th rowspan="1" style ="text-align:center; vertical-align: middle;text-wrap: nowrap;"> Hardware Error Detail </th>
+                    <th rowspan="1" style="text-align:center; vertical-align: middle;text-wrap: nowrap;"> Total Error </th>
+                </tr>
+            </thead>
+
+                <tbody>
+                    <tr>
+                        <td colspan="3" style="text-align:center;">No data</td>
+                    </tr>
+                </tbody>
+            </table>
+   
+    </div>
+
+      @*  <div class="row">
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control",
+                    onchange = "updateTable('page')"
+                    })
+                </p>
+            </div>
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                            <li data-page="prev" id="prev" style="visibility:hidden;" onclick="updateTable('prev')">
+                                <a style="color: #7a7a7a;"> < </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
+
+                            <li data-page="next" id="next" style="visibility:hidden;" onclick=" updateTable('next')">
+                                <a style="color: #7a7a7a;"> > </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        </div>*@
+   
+
+
+
+<script>
+
+
+    function updateTable(search) {
+        var terminalno = $("#terminalno").val();
+        var trxtype = $("#trxtype").val();
+        var todate = $("#todate").val();
+        var fromdate = $("#fromdate").val();
+        var fromDateInput = document.getElementById("fromdate");
+        var toDateInput = document.getElementById("todate");
+        var fromDateValue = new Date(fromDateInput.value);
+        var toDateValue = new Date(toDateInput.value);
+        if (fromDateValue > toDateValue) {
+            alert("Invalid Date Range. Please Select a Valid Date Range.");
+            fromDateInput.value = new Date().toISOString().split('T')[0];
+            toDateInput.value = new Date().toISOString().split('T')[0];
+            return;
+        }
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("HardwareReportFetchData", "Report")',
+            data: {
+                terminalno: terminalno,
+                todate: todate,
+                fromdate: fromdate,
+                search: search,
+            },
+            dataType: "json",
+            success: function (data) {
+                console.log(data)
+                var jsondata = data.jsonData;
+                var i = 1;
+                $('#recordCount').text(data.totalTerminal);
+                $("#table-id tbody").empty();
+                if (jsondata.length === 0) {
+                    // Display a message when there is no data
+                    var noDataRow = $("<tr>").append($("<td colspan='3' style='text-align:center;'>").text("No data"));
+                    $("#table-id tbody").append(noDataRow);
+                } else {
+                    $.each(jsondata, function (index, item) {
+                        var row = $("<tr>");
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(i));
+                        row.append($("<td>").css("text-align", "left").css("white-space", "nowrap").text(item.problem_name));
+                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.problem_count));
+                        $("#table-id tbody").append(row);
+                        i++;
+                    });
+                    window.scrollTo(0, 0);
+               
+                }
+               
+            },
+            error: function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            }
+        });
+    }
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+        var terminalno = $("#terminalno").val();
+        var todate = $("#todate").val();
+        var fromdate = $("#fromdate").val();
+        var rptType = "xlsx";
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            data: {
+                terminalno: terminalno,
+                todate: todate,
+                fromdate: fromdate,
+            },
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("HardwareReport_ExportExc", "Report")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("HardwareReport_DownloadExportFile", "Report")'
+                        window.location = '@Url.Action("HardwareReport_DownloadExportFile", "Report")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+</script>

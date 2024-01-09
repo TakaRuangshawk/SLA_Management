@@ -876,4 +876,67 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_HardwareReport
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Contractor
+
+        #endregion
+        #region Function 
+        public void GatewayOutput(List<HardwareReportWebModel> objData,int total,string date,string terminal)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 8;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\HardwareReport.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    excelWorksheet.Cells[5, 3].Value = date;
+                    excelWorksheet.Cells[6, 3].Value = terminal;
+                    excelWorksheet.Cells[6, 4].Value = "จำนวนทั้งหมด : " + total;
+                    foreach (HardwareReportWebModel data in objData)
+                    {
+
+                        excelWorksheet.Cells[nStartRowData, 2].Value = nSeq;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.problem_name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.problem_count;
+
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "HardwareReport.xlsx"))));
+                    FileSaveAsXlsxFormat = "HardwareReport.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
+    }
 }

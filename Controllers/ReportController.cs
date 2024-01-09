@@ -9,6 +9,8 @@ using SLAManagement.Data;
 using System.Drawing;
 using static SLA_Management.Controllers.OperationController;
 using SLA_Management.Data.ExcelUtilitie;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using static Mysqlx.Datatypes.Scalar.Types;
 
 namespace SLA_Management.Controllers
 {
@@ -17,6 +19,7 @@ namespace SLA_Management.Controllers
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_all;
         private List<BalancingReportModel> balancingreport_dataList = new List<BalancingReportModel>();
+        private List<HardwareReportWebModel> hardwarereport_dataList = new List<HardwareReportWebModel>();
         public ReportController(IConfiguration myConfiguration)
         {
             _myConfiguration = myConfiguration;
@@ -28,22 +31,159 @@ namespace SLA_Management.Controllers
         {
             return View();
         }
+        public IActionResult HardwareReport()
+        {
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            return View();
+        }
+        public IActionResult HardwareReportFetchData(string terminalno, string row, string page, string search, string todate, string fromdate)
+        {
+            int _page;
+            int id_row = 0;
+            string filterquery = string.Empty;
+            string connectionstring = string.Empty;
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
+            todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
+            List<HardwareReportQueryModel> datas = new List<HardwareReportQueryModel>();
+            if (terminalno.Length > 0)
+            {
+                char firstLetter = terminalno[0];
+
+                switch (firstLetter)
+                {
+                    case 'A':
+                        connectionstring = _myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection");
+                        break;
+
+                    case 'R':
+                        connectionstring = _myConfiguration.GetValue<string>("ConnectString_MySQL_FV_CDM:FullNameConnection");
+                        break;
+                    case 'L':
+                        connectionstring = _myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection");
+                        break;
+
+                        
+                    default:
+                        connectionstring = _myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection");
+                        break;
+                }
+            }
+            
+            using (MySqlConnection connection = new MySqlConnection(connectionstring))
+            {
+                string transationdate_row = "";
+                connection.Open();
+
+                if (terminalno != "")
+                {
+                    filterquery += " and TERM_ID = '" + terminalno + "' ";
+                }
+                string query = @"SELECT TERM_ID,EVENT_ID,END_TIME FROM mt_caseflow_record_his ";
+
+                query += " WHERE END_TIME BETWEEN '"+ fromdate +" 00:00:00' AND '"+ todate +" 23:59:59' " + filterquery;
+  
+
+                MySqlCommand command = new MySqlCommand(query, connection);
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        datas.Add(new HardwareReportQueryModel
+                        {
+
+                           TERM_ID = reader["TERM_ID"].ToString(),
+                           EVENT_ID = reader["EVENT_ID"].ToString(),
+                           END_TIME = reader["END_TIME"].ToString(),
+
+                        });
+                    }
+                }
+            }
+            List<HardwareReportWebModel> problemList = new List<HardwareReportWebModel>
+            {
+                new HardwareReportWebModel { problem_name = "Terminal Maintenance Mode", problem_count = datas.Count(x => x.EVENT_ID == "E1002") },
+                new HardwareReportWebModel { problem_name = "Terminal OffLineMode", problem_count = datas.Count(x => x.EVENT_ID == "E1005") },
+                new HardwareReportWebModel { problem_name = "Terminal StopService", problem_count = datas.Count(x => x.EVENT_ID == "E1006") },
+                new HardwareReportWebModel { problem_name = "Cash Dispenser Error", problem_count = datas.Count(x => x.EVENT_ID == "E1010") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Error", problem_count = datas.Count(x => x.EVENT_ID == "E1012") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Note Jam", problem_count = datas.Count(x => x.EVENT_ID == "E1020") },
+                new HardwareReportWebModel { problem_name = "Card Reader Error", problem_count = datas.Count(x => x.EVENT_ID == "E1036") },
+                new HardwareReportWebModel { problem_name = "Thai ID Card Reader Error", problem_count = datas.Count(x => x.EVENT_ID == "E1038") },
+                new HardwareReportWebModel { problem_name = "EPP Keypad Error", problem_count = datas.Count(x => x.EVENT_ID == "E1046") },
+                new HardwareReportWebModel { problem_name = "Cassettes Error", problem_count = datas.Count(x => x.EVENT_ID == "E1127") },
+                new HardwareReportWebModel { problem_name = "CardRetractBin Full", problem_count = datas.Count(x => x.EVENT_ID == "E1136") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Hardware Fault", problem_count = datas.Count(x => x.EVENT_ID == "E1149") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Cassette Issue", problem_count = datas.Count(x => x.EVENT_ID == "E1150") },
+                new HardwareReportWebModel { problem_name = "Withdrawal No Cassette", problem_count = datas.Count(x => x.EVENT_ID == "E1151") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Retract Reject Full", problem_count = datas.Count(x => x.EVENT_ID == "E1152") },
+                new HardwareReportWebModel { problem_name = "Withdrawal No CashReplenishment", problem_count = datas.Count(x => x.EVENT_ID == "E1153") },
+                new HardwareReportWebModel { problem_name = "Communication Interrupt", problem_count = datas.Count(x => x.EVENT_ID == "E1156") },
+                new HardwareReportWebModel { problem_name = "Vibration Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1179") },
+                new HardwareReportWebModel { problem_name = "Box Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1182") },
+                new HardwareReportWebModel { problem_name = "AntiJump Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1183") },
+                new HardwareReportWebModel { problem_name = "Heat Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1185") },
+                new HardwareReportWebModel { problem_name = "FaceCamera Error", problem_count = datas.Count(x => x.EVENT_ID == "E1217") },
+                new HardwareReportWebModel { problem_name = "ShutterCamera Error", problem_count = datas.Count(x => x.EVENT_ID == "E1220") },
+                new HardwareReportWebModel { problem_name = "CardReader Error Card Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E1283") },
+                new HardwareReportWebModel { problem_name = "Receipt Printer Error", problem_count = datas.Count(x => x.EVENT_ID == "E1375") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Low", problem_count = datas.Count(x => x.EVENT_ID == "E2197") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Out", problem_count = datas.Count(x => x.EVENT_ID == "E2198") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper NotSupport", problem_count = datas.Count(x => x.EVENT_ID == "E2199") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2200") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2201") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2204") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2205") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Not Support", problem_count = datas.Count(x => x.EVENT_ID == "E2206") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2209") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2210") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Not Support", problem_count = datas.Count(x => x.EVENT_ID == "E2211") },
+                new HardwareReportWebModel { problem_name = "Other Error", problem_count = datas.Count(x => x.EVENT_ID == "E9999") }
+
+            };
+            int totalProblemCount = problemList.Sum(item => item.problem_count);
+            hardwarereport_dataList = problemList;
+            var response = new DataResponse_HardwareReport
+            {
+                JsonData = hardwarereport_dataList,
+                Page = 1,
+                currentPage = _page,
+                TotalTerminal = totalProblemCount,
+            };
+            return Json(response);
+        }
         public IActionResult BalancingReport()
         {
             ViewBag.CurrentTID = GetDeviceInfoALL();
             return View();
         }
-        private static List<Device_info> GetDeviceInfoALL()
-        {
-
-            MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT * FROM all_device_info order by TERM_SEQ;";
-            DataTable testss = db_all.GetDatatable(com);
-
-            List<Device_info> test = ConvertDataTableToModel.ConvertDataTable<Device_info>(testss);
-
-            return test;
-        }
+       
         public IActionResult BalancingReportFetchData(string terminalno, string row, string page, string search, string todate, string fromdate)
         {
             int _page;
@@ -290,28 +430,36 @@ namespace SLA_Management.Controllers
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
         }
-        #region anyfunction
-        private static string RemoveFirstTwoCharactersAndFormat(string input)
+        public class HardwareReportQueryModel
         {
-            if (input.Length >= 2)
-            {
-                // Remove the first two characters
-                string result = input.Substring(2);
+            public string ID { get; set; }
+            public string TERM_ID { get; set; }
+            public string EVENT_ID { get; set; }
+            public string END_TIME { get; set; }
+        }
+        public class HardwareReportWebModel
+        {
+            public string problem_name { get; set; }
+            public int problem_count { get; set; }
+        }
+        public class DataResponse_HardwareReport
+        {
+            public List<HardwareReportWebModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #region anyfunction
+        private static List<Device_info> GetDeviceInfoALL()
+        {
 
-                // Try to parse the remaining string as a number and format it with commas
-                if (decimal.TryParse(result, out decimal numericValue))
-                {
-                    return numericValue.ToString("N0");
-                }
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM all_device_info order by TERM_SEQ;";
+            DataTable testss = db_all.GetDatatable(com);
 
-                // Handle the case where the remaining string is not a valid number (optional)
-                return result;
-            }
-            else
-            {
-                // Handle the case where the string has less than two characters (optional)
-                return input;
-            }
+            List<Device_info> test = ConvertDataTableToModel.ConvertDataTable<Device_info>(testss);
+
+            return test;
         }
         #endregion
         #region Excel BalancingReport
@@ -561,6 +709,229 @@ namespace SLA_Management.Controllers
 
 
                 fname = "BalancingReport_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
+        #region Excel HardwareRport
+
+        [HttpGet]
+        public ActionResult HardwareReport_ExportExc(string terminalno, string todate, string fromdate)
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string connectionstring = string.Empty;
+            string filterquery = string.Empty;
+            try
+            {
+                terminalno = terminalno ?? "";
+                fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
+                todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
+                List<HardwareReportQueryModel> datas = new List<HardwareReportQueryModel>();
+                if (terminalno.Length > 0)
+                {
+                    char firstLetter = terminalno[0];
+
+                    switch (firstLetter)
+                    {
+                        case 'A':
+                            connectionstring = _myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection");
+                            break;
+
+                        case 'R':
+                            connectionstring = _myConfiguration.GetValue<string>("ConnectString_MySQL_FV_CDM:FullNameConnection");
+                            break;
+                        case 'L':
+                            connectionstring = _myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection");
+                            break;
+
+
+                        default:
+                            connectionstring = _myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection");
+                            break;
+                    }
+                }
+
+                using (MySqlConnection connection = new MySqlConnection(connectionstring))
+                {
+                    string transationdate_row = "";
+                    connection.Open();
+
+                    if (terminalno != "")
+                    {
+                        filterquery += " and TERM_ID = '" + terminalno + "' ";
+                    }
+                    string query = @"SELECT TERM_ID,EVENT_ID,END_TIME FROM mt_caseflow_record_his ";
+
+                    query += " WHERE END_TIME BETWEEN '" + fromdate + " 00:00:00' AND '" + todate + " 23:59:59' " + filterquery;
+
+
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            datas.Add(new HardwareReportQueryModel
+                            {
+
+                                TERM_ID = reader["TERM_ID"].ToString(),
+                                EVENT_ID = reader["EVENT_ID"].ToString(),
+                                END_TIME = reader["END_TIME"].ToString(),
+
+                            });
+                        }
+                    }
+                }
+                List<HardwareReportWebModel> problemList = new List<HardwareReportWebModel>
+                {
+                new HardwareReportWebModel { problem_name = "Terminal Maintenance Mode", problem_count = datas.Count(x => x.EVENT_ID == "E1002") },
+                new HardwareReportWebModel { problem_name = "Terminal OffLineMode", problem_count = datas.Count(x => x.EVENT_ID == "E1005") },
+                new HardwareReportWebModel { problem_name = "Terminal StopService", problem_count = datas.Count(x => x.EVENT_ID == "E1006") },
+                new HardwareReportWebModel { problem_name = "Cash Dispenser Error", problem_count = datas.Count(x => x.EVENT_ID == "E1010") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Error", problem_count = datas.Count(x => x.EVENT_ID == "E1012") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Note Jam", problem_count = datas.Count(x => x.EVENT_ID == "E1020") },
+                new HardwareReportWebModel { problem_name = "Card Reader Error", problem_count = datas.Count(x => x.EVENT_ID == "E1036") },
+                new HardwareReportWebModel { problem_name = "Thai ID Card Reader Error", problem_count = datas.Count(x => x.EVENT_ID == "E1038") },
+                new HardwareReportWebModel { problem_name = "EPP Keypad Error", problem_count = datas.Count(x => x.EVENT_ID == "E1046") },
+                new HardwareReportWebModel { problem_name = "Cassettes Error", problem_count = datas.Count(x => x.EVENT_ID == "E1127") },
+                new HardwareReportWebModel { problem_name = "CardRetractBin Full", problem_count = datas.Count(x => x.EVENT_ID == "E1136") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Hardware Fault", problem_count = datas.Count(x => x.EVENT_ID == "E1149") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Cassette Issue", problem_count = datas.Count(x => x.EVENT_ID == "E1150") },
+                new HardwareReportWebModel { problem_name = "Withdrawal No Cassette", problem_count = datas.Count(x => x.EVENT_ID == "E1151") },
+                new HardwareReportWebModel { problem_name = "Withdrawal Retract Reject Full", problem_count = datas.Count(x => x.EVENT_ID == "E1152") },
+                new HardwareReportWebModel { problem_name = "Withdrawal No CashReplenishment", problem_count = datas.Count(x => x.EVENT_ID == "E1153") },
+                new HardwareReportWebModel { problem_name = "Communication Interrupt", problem_count = datas.Count(x => x.EVENT_ID == "E1156") },
+                new HardwareReportWebModel { problem_name = "Vibration Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1179") },
+                new HardwareReportWebModel { problem_name = "Box Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1182") },
+                new HardwareReportWebModel { problem_name = "AntiJump Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1183") },
+                new HardwareReportWebModel { problem_name = "Heat Alarm", problem_count = datas.Count(x => x.EVENT_ID == "E1185") },
+                new HardwareReportWebModel { problem_name = "FaceCamera Error", problem_count = datas.Count(x => x.EVENT_ID == "E1217") },
+                new HardwareReportWebModel { problem_name = "ShutterCamera Error", problem_count = datas.Count(x => x.EVENT_ID == "E1220") },
+                new HardwareReportWebModel { problem_name = "CardReader Error Card Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E1283") },
+                new HardwareReportWebModel { problem_name = "Receipt Printer Error", problem_count = datas.Count(x => x.EVENT_ID == "E1375") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Low", problem_count = datas.Count(x => x.EVENT_ID == "E2197") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Out", problem_count = datas.Count(x => x.EVENT_ID == "E2198") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper NotSupport", problem_count = datas.Count(x => x.EVENT_ID == "E2199") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2200") },
+                new HardwareReportWebModel { problem_name = "RPRXPaper Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2201") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2204") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2205") },
+                new HardwareReportWebModel { problem_name = "Cash Dispensing Shutter Not Support", problem_count = datas.Count(x => x.EVENT_ID == "E2206") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Jammed", problem_count = datas.Count(x => x.EVENT_ID == "E2209") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Unknown", problem_count = datas.Count(x => x.EVENT_ID == "E2210") },
+                new HardwareReportWebModel { problem_name = "Cash Acceptor Shutter Not Support", problem_count = datas.Count(x => x.EVENT_ID == "E2211") },
+                new HardwareReportWebModel { problem_name = "Other Error", problem_count = datas.Count(x => x.EVENT_ID == "E9999") }
+                };
+                int totalProblemCount = problemList.Sum(item => item.problem_count);
+                hardwarereport_dataList = problemList;
+                if (hardwarereport_dataList == null || hardwarereport_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+                ExcelUtilities_HardwareReport obj = new ExcelUtilities_HardwareReport();
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(hardwarereport_dataList, totalProblemCount, fromdate+ " ถึง " + todate,terminalno);
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+                fname = "HardwareReport_" + DateTime.Now.ToString("yyyyMMdd");
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult HardwareReport_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "HardwareReport_" + DateTime.Now.ToString("yyyyMMdd");
 
                 switch (rpttype.ToLower())
                 {
