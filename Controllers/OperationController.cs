@@ -325,7 +325,7 @@ namespace SLA_Management.Controllers
             #endregion
             if (maxRows == null)
             {
-                maxRows = "20";
+                maxRows = "50";
             }
             ViewBag.maxRows = maxRows;
 

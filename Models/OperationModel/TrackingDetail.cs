@@ -39,7 +39,7 @@ namespace SLA_Management.Models.OperationModel
 
         private static string chng_trandate(DateTime dt)
         {
-            string trandate = dt.ToString("dd/MM/yyyy");
+            string trandate = dt.ToString("yyyy-MM-dd HH:mm:ss");
             return trandate;
         }
 
