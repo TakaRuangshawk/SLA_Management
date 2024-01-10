@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using K4os.Compression.LZ4.Internal;
+using MySql.Data.MySqlClient;
 using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
@@ -47,6 +48,30 @@ namespace SLA_Management.Data.TermProb
 
 
                 
+            }
+            catch (Exception ex)
+            { throw ex; }
+            return result;
+        }
+
+        public bool AddJobTaskDeviceTermProb(string startDate)
+        {
+            bool result = false;
+
+            string _sql = string.Empty;
+
+            try
+            {
+                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`)VALUE ( '" + startDate + "',0,'In Process','','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
+
+
+                result = _objDb.ExecuteQueryNoneParam(_sql);
+
+                if (result == false)
+                {
+                    if (_objDb.ErrorMessDB != null)
+                        ErrorMessage = _objDb.ErrorMessDB;
+                }
             }
             catch (Exception ex)
             { throw ex; }
