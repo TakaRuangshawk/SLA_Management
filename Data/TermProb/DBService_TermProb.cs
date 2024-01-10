@@ -54,7 +54,7 @@ namespace SLA_Management.Data.TermProb
             return result;
         }
 
-        public bool AddJobTaskDeviceTermProb(string startDate)
+        public bool AddJobTaskDeviceTermProb(string startDate,string probCode)
         {
             bool result = false;
 
@@ -62,7 +62,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`)VALUE ( '" + startDate + "',0,'In Process','','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
+                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`)VALUE ( '" + startDate + "',0,'In Process','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);

@@ -549,7 +549,7 @@ namespace SLA_Management.Controllers
                         else if (probTermStr == "All") probTermStr = "G165;G262";
 
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
-                        if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00");
+                        if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr);
                     }
                        
 
