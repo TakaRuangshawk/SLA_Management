@@ -62,7 +62,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`)VALUE ( '" + startDate + "',0,'In Process','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
+                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`,`createdate`)VALUE ( '" + startDate + "',0,'Queuing','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "');";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);
