@@ -53,6 +53,30 @@ namespace SLA_Management.Data.TermProb
 
         }
 
+        public bool AddJobTaskDeviceTermProb(string startDate, string probCode, string probType)
+        {
+            bool result = false;
+
+            string _sql = string.Empty;
+
+            try
+            {
+                _sql = "INSERT INTO `taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`,`createdate`,`atmtype`)VALUE ( '" + startDate + "',0,'Queuing','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + probType + "');";
+
+
+                result = _objDb.ExecuteQueryNoneParam(_sql);
+
+                if (result == false)
+                {
+                    if (_objDb.ErrorMessDB != null)
+                        ErrorMessage = _objDb.ErrorMessDB;
+                }
+            }
+            catch (Exception ex)
+            { throw ex; }
+            return result;
+        }
+
         public List<Device_info_record> GetDeviceInfoFeelview()
         {
 

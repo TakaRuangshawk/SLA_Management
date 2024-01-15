@@ -634,6 +634,19 @@
                         </div>
                     </div>
 
+                    <div class="row" style="margin-top: 15px;align-items:center;display: flex;justify-content: space-evenly;">
+                        <div class="col-2 col-lg-2 text-nowrap" style="">
+                            <h>Start Rerun : </h>
+                        </div>
+                        <div class="col-6 col-md-6" style="">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                @Html.TextBox("startDate", ViewBag.startDate as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                            </div>
+                        </div>
+                    </div>
+
+
 
 
                     <div style="margin-top:15px;">
@@ -988,7 +1001,7 @@
             type: "POST",
             dataType: "json",
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val(),
+            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val() + '&startDate=' + $("#startDate").val(),
             success: function (result) {
                 if (result.result == true) {
                     alert('Insert success! : ' + result.result);

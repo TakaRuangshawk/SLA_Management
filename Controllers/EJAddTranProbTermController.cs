@@ -55,7 +55,7 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-        , string currPageSize, int? page, string maxRows, string KeyWordList,string terminalType)
+        , string currPageSize, int? page, string maxRows, string KeyWordList,string terminalType, string startDate)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
@@ -72,7 +72,10 @@ namespace SLA_Management.Controllers
             else terminalType = "";
 
 
+            if (startDate == null || startDate == "")
+                startDate = DateTime.Now.ToString("yyyy-MM-dd");
 
+            ViewBag.startDate = startDate;
 
 
 
@@ -540,12 +543,24 @@ namespace SLA_Management.Controllers
             }
         }
         [HttpPost]
-        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string displayflagStr ,string memo)
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr,string displayflagStr ,string memo, string startDate)
         {
             bool result = false;
             string error = "incomplete information";
             string _checkuser = "";
             List<checkuserfeelview> checkruser = GetCheckUserFeelview(username, email);
+
+            DateTime dateTime1 = DateTime.Parse(startDate);
+
+            TimeSpan timeDifference = DateTime.Now - dateTime1;
+
+            // Check if the difference is less than or equal to 30 days
+            if (timeDifference.Days >= 60)
+                return Json(new { result = result, error = "Start date 'rerun' should not be more than 60 days." });
+            else if (timeDifference.Days <= 0 && dateTime1 > DateTime.Now)
+                return Json(new { result = result, error = "Start date 'rerun' must not be in the future." });
+
+
             foreach (var Data in checkruser)
             {
                 if (Data.check == "yes")
@@ -566,12 +581,14 @@ namespace SLA_Management.Controllers
 
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
                     {
+                        string probTemp = probTermStr;
                         if (probTermStr == "ALL") probTermStr = "A;L;R";
                         else if (probTermStr == "LRM") probTermStr = "L";
                         else if (probTermStr == "CDM") probTermStr = "R";
                         else if (probTermStr == "2IN1") probTermStr = "A";
 
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
+                        if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr, probTemp);
 
                     }
                         
