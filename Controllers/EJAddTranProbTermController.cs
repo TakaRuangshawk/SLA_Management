@@ -581,7 +581,7 @@ namespace SLA_Management.Controllers
 
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
                     {
-                        string probTemp = probTermStr;
+                        string probTemp = probTermStr.ToUpper();
                         if (probTermStr.ToUpper() == "ALL") probTermStr = "A;L;R";
                         else if (probTermStr.ToUpper() == "LRM") probTermStr = "L";
                         else if (probTermStr.ToUpper() == "CDM") probTermStr = "R";
