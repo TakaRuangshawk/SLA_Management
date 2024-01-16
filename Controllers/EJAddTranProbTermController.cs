@@ -582,11 +582,11 @@ namespace SLA_Management.Controllers
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
                     {
                         string probTemp = probTermStr;
-                        if (probTermStr == "ALL") probTermStr = "A;L;R";
-                        else if (probTermStr == "LRM") probTermStr = "L";
-                        else if (probTermStr == "CDM") probTermStr = "R";
-                        else if (probTermStr == "2IN1") probTermStr = "A";
-                        else if (probTermStr == "RDM") probTermStr = "R";
+                        if (probTermStr.ToUpper() == "ALL") probTermStr = "A;L;R";
+                        else if (probTermStr.ToUpper() == "LRM") probTermStr = "L";
+                        else if (probTermStr.ToUpper() == "CDM") probTermStr = "R";
+                        else if (probTermStr.ToUpper() == "2IN1") probTermStr = "A";
+                        else if (probTermStr.ToUpper() == "RDM") probTermStr = "R";
 
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
                         if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr, probTemp);
