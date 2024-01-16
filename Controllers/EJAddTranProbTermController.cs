@@ -544,12 +544,13 @@ namespace SLA_Management.Controllers
                 {
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
                     {
+                        string atmType = probTermStr;
                         if (probTermStr == "ADM") probTermStr = "G262";
                         else if (probTermStr == "ATM") probTermStr = "G165";
                         else if (probTermStr == "All") probTermStr = "G165;G262";
 
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
-                        if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr);
+                        if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr, atmType);
                     }
                        
 
