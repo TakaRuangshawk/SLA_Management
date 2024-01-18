@@ -454,13 +454,20 @@
 
                             </div>
                         </div>
-                        <div class="col-md-3 modelTopic">
-                        </div>
-                        <div class="col-md-2 modelTopic">
+                        <div class="col-md-4 modelTopic">
                         </div>
                         <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                            <div class="text-center align-middle" style="font-size:20px;">Status :</div>
                         </div>
                         <div class="col-md-2 modelTextbox" style="display: flex;align-items: center;margin: 0;">
+                            @Html.TextBox("STATUS", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+
+                        </div>
+                        <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                            <div class="text-center align-middle" style="font-size:20px;white-space:nowrap;">Connected :</div>
+                        </div>
+                        <div class="col-md-1 modelTextbox" style="display: flex;align-items: center;margin: 0;justify-content: flex-end;">
+                           <div id="connected_modal"></div>
                         </div>
 
                     </div>
@@ -518,23 +525,6 @@
                             </div>
                             <div class="col-md-8 modelTextbox">
                                 @Html.TextBox("TERM_LOCATION", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="CONNECTED">CONNECTED </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("CONNECTED", ViewBag.CONNECTED as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="STATUS">STATUS</label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("STATUS", ViewBag.STATUS as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
                         </div>
 
@@ -658,9 +648,6 @@
         var status = $("#Status").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
-        var sort = $("#sort").val();
-
-        var digits = $("#digits").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
         $.ajax({
@@ -725,6 +712,19 @@
                                     ")"
                             })
                         );
+                        var imgElement = document.createElement("img");
+                        if (item.connected.toLowerCase() === 'online') {
+                            imgElement.src = '/images/icgreen.png';
+                            imgElement.alt = 'Online';
+                        } else if (item.connected.toLowerCase() === 'offline') {
+                            imgElement.src = '/images/icred.png';
+                            imgElement.alt = 'Offline';
+                        } else if (item.connected.toLowerCase() === 'unknown') {
+                            imgElement.src = '/images/icblack.gif';
+                            imgElement.alt = 'Unknown';
+                        }
+                        imgElement.style.height = '30px';
+                        imgElement.style.width = 'auto';
                         var row = $("<tr>");
                         row.append($("<td>").css("text-align", "center").text(item.id));
                         row.append(editButton);
@@ -732,7 +732,8 @@
                         row.append($("<td>").css("text-align", "center").text(item.typE_ID));
                         row.append($("<td>").css("text-align", "center").text(item.terM_ID));
                         row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
-                        row.append($("<td>").css("text-align", "center").text(item.connected));
+                        @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
+                        row.append($("<td>").css("text-align", "center").append(imgElement));
                         row.append($("<td>").css("text-align", "center").text(item.status));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_ENDDATE));
@@ -824,20 +825,36 @@
     updateTable("search");
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-
-        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
-            + '|' + "xlsx";
+        var terminalno = $("#TermID").val();
+        var terminalseq = $("#terminalseq").val();
+        var terminaltype = $("#terminaltype").val();
+        var connencted = $("#connencted").val();
+        var servicetype = $("#servicetype").val();
+        var countertype = $("#countertype").val();
+        var fromdate = $("#fromdate").val();
+        var todate = $("#todate").val();
+        var status = $("#Status").val();
         var rptType = "xlsx";
         $.ajax({
             type: "POST",
             dataType: "json",
-            data: '{ "exparams" : "' + expParams + '" }',
+            data: {
+                terminalno: terminalno,
+                terminalseq: terminalseq,
+                terminaltype: terminaltype,
+                connencted: connencted,
+                servicetype: servicetype,
+                countertype: countertype,
+                status: status,
+                fromdate: fromdate,
+                todate: todate
+            },
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("AdminCard_ExportExc", "Operation")',
+            url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("AdminCardMonitor_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("AdminCardMonitor_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
+                    window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
@@ -851,12 +868,14 @@
     function EditButton(devicE_ID, terM_SEQ, typE_ID, terM_ID, terM_NAME, connected, status, counteR_CODE,
         serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
         servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT) {
+        var imgElement = document.createElement("img");
+        var container = document.getElementById('connected_modal');
+        container.innerHTML = '';
         document.getElementById('DEVICE_ID').value = devicE_ID;
         document.getElementById('TERM_SEQ').value = terM_SEQ;
         document.getElementById('TYPE_ID').value = typE_ID;
         document.getElementById('TERM_ID').value = terM_ID;
         document.getElementById('TERM_NAME').value = terM_NAME;
-        document.getElementById('CONNECTED').value = connected;
         document.getElementById('STATUS').value = status;
         document.getElementById('COUNTER_CODE').value = counteR_CODE;
         document.getElementById('SERVICETYPE').value = serviceType;
@@ -870,5 +889,20 @@
         document.getElementById('VERSION_MASTER').value = versioN_MASTER;
         document.getElementById('VERSION').value = version;
         document.getElementById('VERSION_AGENT').value = versioN_AGENT;
+
+        // Set the src and alt attributes based on the 'connected' value
+        if (connected.toLowerCase() === 'online') {
+            imgElement.src = '/images/icgreen.png'; 
+            imgElement.alt = 'Online';
+        } else if (connected.toLowerCase() === 'offline') {
+            imgElement.src = '/images/icred.png';  
+            imgElement.alt = 'Offline';
+        } else if (connected.toLowerCase() === 'unknown') {
+            imgElement.src = '/images/icblack.gif';  
+            imgElement.alt = 'Unknown';
+        }
+        imgElement.style.height = '50px';
+        imgElement.style.width = 'auto';
+        container.appendChild(imgElement);
     }
 </script>

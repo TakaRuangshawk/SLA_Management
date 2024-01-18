@@ -9,6 +9,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using System.Data;
+using SLA_Management.Data.ExcelUtilitie;
 
 namespace SLA_Management.Controllers
 {
@@ -16,7 +17,7 @@ namespace SLA_Management.Controllers
     {
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_fv;
-        private static List<InventoryMaintenanceModel> admincard_dataList = new List<InventoryMaintenanceModel>();
+        private static List<InventoryMaintenanceModel> Inventory_dataList = new List<InventoryMaintenanceModel>();
         public MaintenanceController(IConfiguration myConfiguration)
         {
 
@@ -211,7 +212,7 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
-            admincard_dataList = jsonData;
+            Inventory_dataList = jsonData;
             int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
             List<InventoryMaintenanceModel> filteredData = RangeFilter(jsonData, _page, _row);
             var response = new DataResponse_InventoryMaintenanceModel
@@ -334,5 +335,275 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        #region Excel Ticket
+
+        [HttpPost]
+        public ActionResult Inventory_ExportExc(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string fromdate, string todate)
+        {
+            string fname = "";
+            string tsDate = "";
+            string teDate = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string filterquery = string.Empty;
+            try
+            {
+                terminalno = terminalno ?? "";
+                terminalseq = terminalseq ?? "";
+                terminaltype = terminaltype ?? "";
+                connencted = connencted ?? "";
+                servicetype = servicetype ?? "";
+                countertype = countertype ?? "";
+                fromdate = fromdate ?? "";
+                todate = todate ?? "";
+                status = status ?? "";
+
+                if (terminalno != "")
+                {
+                    filterquery += " and pv.TERM_ID like '%" + terminalno + "%' ";
+                }
+                if (terminalseq != "")
+                {
+                    filterquery += " and di.TERM_SEQ = '" + terminalseq + "' ";
+
+                }
+                if (terminaltype != "")
+                {
+                    filterquery += " and di.TYPE_ID = '" + terminaltype + "' ";
+                }
+                if (status == "use")
+                {
+                    filterquery += " and di.STATUS = 'use' ";
+                }
+                else if (status == "notuse")
+                {
+                    filterquery += " and di.STATUS != 'use' ";
+                }
+                else
+                {
+                    filterquery += "";
+                }
+                if (connencted == "0")
+                {
+                    filterquery += " and die.CONN_STATUS_ID = '0' ";
+                }
+                else if (connencted == "2")
+                {
+                    filterquery += " and die.CONN_STATUS_ID != '0' ";
+                }
+                else if (connencted == "1")
+                {
+                    filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
+                }
+                else
+                {
+                    filterquery += "";
+                }
+                if (servicetype != "")
+                {
+                    filterquery += " and CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) = '" + servicetype + "' ";
+                }
+                if (countertype != "")
+                {
+                    filterquery += " and di.COUNTER_CODE = '" + countertype + "' ";
+                }
+                if (fromdate != "")
+                {
+                    filterquery += "and di.SERVICE_BEGINDATE >= '" + fromdate + "'";
+                }
+                else
+                {
+                    filterquery += " and di.SERVICE_BEGINDATE >= '2020-05-01' ";
+                }
+                if (todate != "")
+                {
+                    filterquery += " and (di.SERVICE_ENDDATE <= '" + todate + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                }
+                else
+                {
+                    filterquery += " and (di.SERVICE_ENDDATE <= '" + "2099-12-31" + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                }
+                List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
+
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    // Modify the SQL query to use the 'input' parameter for filtering
+                    string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,pv.TERM_ID,di.TERM_NAME,
+                CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
+                WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
+                ELSE 'Offline' END AS Connected,
+                CASE WHEN di.STATUS = 'use' THEN 'Active'
+                ELSE 'Inactive' END AS Status,
+                di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
+                di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
+                CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL OR dsi.CONN_STATUS_ID = 0)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
+                WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
+                END AS SERVICE_ENDDATE,
+                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
+                FROM gsb_adm_fv.project_version pv
+                left join device_info di on pv.TERM_ID = di.TERM_ID
+                left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
+                left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
+                where pv.TERM_ID is not null ";
+
+
+                    query += filterquery + " order by di.TERM_SEQ asc,di.STATUS asc";
+
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+                    int id_row = 0;
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            jsonData.Add(new InventoryMaintenanceModel
+                            {
+                                ID = (id_row).ToString(),
+                                DEVICE_ID = reader["device_id"].ToString(),
+                                TERM_SEQ = reader["term_seq"].ToString(),
+                                TYPE_ID = reader["type_id"].ToString(),
+                                TERM_ID = reader["TERM_ID"].ToString(),
+                                TERM_NAME = reader["TERM_NAME"].ToString(),
+                                Connected = reader["connected"].ToString(),
+                                Status = reader["status"].ToString(),
+                                COUNTER_CODE = reader["COUNTER_CODE"].ToString(),
+                                ServiceType = reader["servicetype"].ToString(),
+                                TERM_LOCATION = reader["term_location"].ToString(),
+                                LATITUDE = reader["latitude"].ToString(),
+                                LONGITUDE = reader["longitude"].ToString(),
+                                CONTROL_BY = reader["control_by"].ToString(),
+                                PROVINCE = reader["province"].ToString(),
+                                SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
+                                SERVICE_ENDDATE = reader["service_enddate"].ToString(),
+                                VERSION_MASTER = reader["version_master"].ToString(),
+                                VERSION = reader["version"].ToString(),
+                                VERSION_AGENT = reader["version_agent"].ToString(),
+                            });
+                        }
+                    }
+                }
+
+                if (Inventory_dataList == null || Inventory_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_Inventory obj = new ExcelUtilities_Inventory();
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(Inventory_dataList, fromdate,todate);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "Inventory_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult Inventory_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "Inventory_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+
+
+        #endregion
     }
 }

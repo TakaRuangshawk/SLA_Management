@@ -4,7 +4,7 @@ using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
-
+using static SLA_Management.Controllers.MaintenanceController;
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
@@ -482,6 +482,167 @@ namespace SLA_Management.Data.ExcelUtilitie
         #endregion
 
 
+    }
+
+    public class ExcelUtilities_Inventory
+    {
+        #region  Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+     
+
+        public ExcelUtilities_Inventory()
+        {
+     
+        }
+
+        #endregion
+
+        #region Function 
+        public void GatewayOutput(List<InventoryMaintenanceModel> objData,string fromdata,string todate)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 6;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\Inventory.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+
+                    foreach (InventoryMaintenanceModel data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.DEVICE_ID;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.TERM_SEQ;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.TYPE_ID;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.TERM_ID;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.TERM_NAME;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Connected;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.Status;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.COUNTER_CODE;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.ServiceType;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.TERM_LOCATION;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.LATITUDE;
+                        excelWorksheet.Cells[nStartRowData, 12].Value = data.LONGITUDE;
+                        excelWorksheet.Cells[nStartRowData, 13].Value = data.CONTROL_BY;
+                        excelWorksheet.Cells[nStartRowData, 14].Value = data.PROVINCE;
+                        excelWorksheet.Cells[nStartRowData, 15].Value = data.SERVICE_BEGINDATE;
+                        excelWorksheet.Cells[nStartRowData, 16].Value = data.SERVICE_ENDDATE;
+                        excelWorksheet.Cells[nStartRowData, 17].Value = data.VERSION_MASTER;
+                        excelWorksheet.Cells[nStartRowData, 18].Value = data.VERSION;
+                        excelWorksheet.Cells[nStartRowData, 19].Value = data.VERSION_AGENT;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "Inventory.xlsx"))));
+                    FileSaveAsXlsxFormat = "Inventory.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        public void GatewayOutput(List<TicketManagement> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 2;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\Ticket.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+                    foreach (TicketManagement data in objData)
+                    {
+
+
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.Open_Date;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.Appointment_Date;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.Closed_Repair_Date;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.Down_Time;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.Actual_Open_Date;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.Actual_Appointment_Date;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.Actual_Closed_Repair_Date;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.Actual_Down_Time;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.Status;
+                        excelWorksheet.Cells[nStartRowData, 10].Value = data.TERM_ID;
+                        excelWorksheet.Cells[nStartRowData, 11].Value = data.TERM_SEQ;
+                        excelWorksheet.Cells[nStartRowData, 12].Value = data.TERM_NAME;
+                        excelWorksheet.Cells[nStartRowData, 13].Value = data.Problem_Detail;
+                        excelWorksheet.Cells[nStartRowData, 14].Value = data.Solving_Program;
+                        excelWorksheet.Cells[nStartRowData, 15].Value = data.Service_Team;
+                        excelWorksheet.Cells[nStartRowData, 16].Value = data.Contact_Name_Branch_CIT;
+                        excelWorksheet.Cells[nStartRowData, 17].Value = data.Open_By;
+                        excelWorksheet.Cells[nStartRowData, 18].Value = data.Remark;
+                        excelWorksheet.Cells[nStartRowData, 19].Value = data.Job_No;
+                        excelWorksheet.Cells[nStartRowData, 20].Value = data.Aservice_Status;
+                        excelWorksheet.Cells[nStartRowData, 21].Value = data.Service_Type;
+                        excelWorksheet.Cells[nStartRowData, 22].Value = data.Open_Name;
+                        excelWorksheet.Cells[nStartRowData, 23].Value = data.Assign_By;
+                        excelWorksheet.Cells[nStartRowData, 24].Value = data.Zone_Area;
+                        excelWorksheet.Cells[nStartRowData, 25].Value = data.Main_Problem;
+                        excelWorksheet.Cells[nStartRowData, 26].Value = data.Sub_Problem;
+                        excelWorksheet.Cells[nStartRowData, 27].Value = data.Main_Solution;
+                        excelWorksheet.Cells[nStartRowData, 28].Value = data.Sub_Solution;
+                        excelWorksheet.Cells[nStartRowData, 29].Value = data.Part_of_use;
+                        excelWorksheet.Cells[nStartRowData, 30].Value = data.TechSupport;
+                        excelWorksheet.Cells[nStartRowData, 31].Value = data.CIT_Request;
+                        excelWorksheet.Cells[nStartRowData, 32].Value = data.Terminal_Status;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "Ticket.xlsx"))));
+                    FileSaveAsXlsxFormat = "Ticket.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+        #endregion
     }
 
 
