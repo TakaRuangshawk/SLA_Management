@@ -16,7 +16,7 @@ namespace SLA_Management.Controllers
     {
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_fv;
-        private static List<AdminCardModel> admincard_dataList = new List<AdminCardModel>();
+        private static List<InventoryMaintenanceModel> admincard_dataList = new List<InventoryMaintenanceModel>();
         public MaintenanceController(IConfiguration myConfiguration)
         {
 
@@ -34,7 +34,9 @@ namespace SLA_Management.Controllers
         {
             ViewBag.maxRows = null;
             ViewBag.CurrentTID = GetDeviceInfoFeelview();
-            ViewBag.CurrentTSeq = null;
+            ViewBag.CurrentTSeq = GetSerialNo();
+            ViewBag.CurrentCC = GetCounterCode();
+            ViewBag.CurrentST = GetServiceType();
             string FrDate = "2020-05-01";
             string ToDate = DateTime.Now.ToString("yyyy-MM-dd");
             ViewBag.CurrentFr = FrDate;
@@ -147,7 +149,7 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and (di.SERVICE_ENDDATE <= '" + "2099-12-31" + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
             }
-            List<AdminCardModel> jsonData = new List<AdminCardModel>();
+            List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 
             using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
             {
@@ -183,7 +185,7 @@ namespace SLA_Management.Controllers
                     while (reader.Read())
                     {
                         id_row += 1;
-                        jsonData.Add(new AdminCardModel
+                        jsonData.Add(new InventoryMaintenanceModel
                         {
                             ID = (id_row).ToString(),
                             DEVICE_ID = reader["device_id"].ToString(),
@@ -211,8 +213,8 @@ namespace SLA_Management.Controllers
             }
             admincard_dataList = jsonData;
             int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
-            List<AdminCardModel> filteredData = RangeFilter(jsonData, _page, _row);
-            var response = new DataResponse
+            List<InventoryMaintenanceModel> filteredData = RangeFilter(jsonData, _page, _row);
+            var response = new DataResponse_InventoryMaintenanceModel
             {
                 JsonData = filteredData,
                 Page = pages,
@@ -222,7 +224,7 @@ namespace SLA_Management.Controllers
             return Json(response);
         }
 
-        static List<AdminCardModel> RangeFilter<AdminCardModel>(List<AdminCardModel> inputList, int page, int row)
+        static List<InventoryMaintenanceModel> RangeFilter<InventoryMaintenanceModel>(List<InventoryMaintenanceModel> inputList, int page, int row)
         {
             int start_row;
             int end_row;
@@ -242,7 +244,7 @@ namespace SLA_Management.Controllers
             return inputList.Skip(start_row).Take(row).ToList();
         }
 
-        public class AdminCardModel
+        public class InventoryMaintenanceModel
         {
             public string ID { get; set; }
             public string DEVICE_ID { get; set; }
@@ -265,9 +267,9 @@ namespace SLA_Management.Controllers
             public string VERSION { get; set; }
             public string VERSION_AGENT { get; set; }
         }
-        public class DataResponse
+        public class DataResponse_InventoryMaintenanceModel
         {
-            public List<AdminCardModel> JsonData { get; set; }
+            public List<InventoryMaintenanceModel> JsonData { get; set; }
             public int Page { get; set; }
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
@@ -282,6 +284,53 @@ namespace SLA_Management.Controllers
             DataTable testss = db_fv.GetDatatable(com);
 
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+        public class SerialNo
+        {
+            public string TERM_SEQ { get; set; }
+        }
+        private static List<SerialNo> GetSerialNo()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT TERM_SEQ FROM device_info group by TERM_SEQ;";
+            DataTable testss = db_fv.GetDatatable(com);
+
+            List<SerialNo> test = ConvertDataTableToModel.ConvertDataTable<SerialNo>(testss);
+
+            return test;
+        }
+        public class COUNTERCODE
+        {
+            public string COUNTER_CODE { get; set; }
+        }
+        private static List<COUNTERCODE> GetCounterCode()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT COUNTER_CODE FROM device_info group by COUNTER_CODE;";
+            DataTable testss = db_fv.GetDatatable(com);
+
+            List<COUNTERCODE> test = ConvertDataTableToModel.ConvertDataTable<COUNTERCODE>(testss);
+
+            return test;
+        }
+        public class SERVICETYPE
+        {
+            public string ServiceType { get; set; }
+        }
+        private static List<SERVICETYPE> GetServiceType()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = @"SELECT CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType 
+                              FROM gsb_adm_fv.device_info di
+                              group by CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME)";
+            DataTable testss = db_fv.GetDatatable(com);
+
+            List<SERVICETYPE> test = ConvertDataTableToModel.ConvertDataTable<SERVICETYPE>(testss);
 
             return test;
         }
