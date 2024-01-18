@@ -98,11 +98,11 @@ namespace SLA_Management.Controllers
             }
             if (status == "use")
             {
-                filterquery += " di.STATUS = 'use' ";
+                filterquery += " and di.STATUS = 'use' ";
             }
             else if(status == "notuse")
             {
-                filterquery += " di.STATUS != 'use' ";
+                filterquery += " and di.STATUS != 'use' ";
             }
             else
             {
@@ -112,9 +112,13 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and die.CONN_STATUS_ID = '0' ";
             }
-            else if (connencted == "1")
+            else if (connencted == "2")
             {
                 filterquery += " and die.CONN_STATUS_ID != '0' ";
+            }
+            else if (connencted == "1")
+            {
+                filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
             }
             else
             {
@@ -150,7 +154,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,pv.TERM_ID,
+                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,pv.TERM_ID,di.TERM_NAME,
                 CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
                 WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
                 ELSE 'Offline' END AS Connected,
@@ -158,7 +162,7 @@ namespace SLA_Management.Controllers
                 ELSE 'Inactive' END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
                 di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
-                CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL OR dsi.CONN_STATUS_ID = 0) THEN 'เครื่องไม่เปิดให้บริการ' 
+                CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL OR dsi.CONN_STATUS_ID = 0)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
                 WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
                 END AS SERVICE_ENDDATE,
                 pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
@@ -181,14 +185,26 @@ namespace SLA_Management.Controllers
                         id_row += 1;
                         jsonData.Add(new AdminCardModel
                         {
-                            id = (id_row).ToString(),
-                            term_seq = reader["term_seq"].ToString(),
-                            term_id = reader["term_id"].ToString(),
-                            term_name = reader["term_name"].ToString(),
-                            admin_card_master = reader["admin_card_master"].ToString(),
-                            admin_password_digits = reader["admin_password_digits"].ToString(),
-                            status = reader["status"].ToString(),
-                            update_date = Convert.ToDateTime(reader["update_date"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                            ID = (id_row).ToString(),
+                            DEVICE_ID = reader["device_id"].ToString(),
+                            TERM_SEQ = reader["term_seq"].ToString(),
+                            TYPE_ID = reader["type_id"].ToString(),
+                            TERM_ID = reader["TERM_ID"].ToString(),
+                            TERM_NAME = reader["TERM_NAME"].ToString(),
+                            Connected = reader["connected"].ToString(),
+                            Status = reader["status"].ToString(),
+                            COUNTER_CODE = reader["COUNTER_CODE"].ToString(),
+                            ServiceType = reader["servicetype"].ToString(),
+                            TERM_LOCATION = reader["term_location"].ToString(),
+                            LATITUDE = reader["latitude"].ToString(),
+                            LONGITUDE = reader["longitude"].ToString(),
+                            CONTROL_BY = reader["control_by"].ToString(),
+                            PROVINCE = reader["province"].ToString(),
+                            SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
+                            SERVICE_ENDDATE = reader["service_enddate"].ToString(),
+                            VERSION_MASTER = reader["version_master"].ToString(),
+                            VERSION = reader["version"].ToString(),
+                            VERSION_AGENT = reader["version_agent"].ToString(),
                         });
                     }
                 }
@@ -228,14 +244,26 @@ namespace SLA_Management.Controllers
 
         public class AdminCardModel
         {
-            public string id { get; set; }
-            public string term_id { get; set; }
-            public string term_seq { get; set; }
-            public string term_name { get; set; }
-            public string admin_card_master { get; set; }
-            public string admin_password_digits { get; set; }
-            public string status { get; set; }
-            public string update_date { get; set; }
+            public string ID { get; set; }
+            public string DEVICE_ID { get; set; }
+            public string TERM_SEQ { get; set; }
+            public string TYPE_ID { get; set; }
+            public string TERM_ID { get; set; }
+            public string TERM_NAME { get; set; }
+            public string Connected { get; set; }
+            public string Status { get; set; }
+            public string COUNTER_CODE { get; set; }
+            public string ServiceType { get; set; }
+            public string TERM_LOCATION { get; set; }
+            public string LATITUDE { get; set; }
+            public string LONGITUDE { get; set; }
+            public string CONTROL_BY { get; set; }
+            public string PROVINCE { get; set; }
+            public string SERVICE_BEGINDATE { get; set; }
+            public string SERVICE_ENDDATE { get; set; }
+            public string VERSION_MASTER { get; set; }
+            public string VERSION { get; set; }
+            public string VERSION_AGENT { get; set; }
         }
         public class DataResponse
         {

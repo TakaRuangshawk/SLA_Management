@@ -9,13 +9,15 @@
     string[] tableHeaders = new string[]
     {
     "No.",
-    "Serial No. ",
-    "Terminal ID",
+    "Action ",
+    "Serial No",
+    "Terminal Type ",
+    "Terminal No ",
     "Terminal Name ",
-    "Admin Card Track2 No ",
-    "Admin Password Digits",
-    "Status ",
-    "Update Date "
+    "Connected ",
+    "Terminal Status ",
+    "Service From Date ",
+    "Service To Date "
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,8 +39,91 @@
         display: flex;
         justify-content: center;
     }
-</style>
 
+</style>
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    td{
+        padding: 0.5em!important;
+        vertical-align: middle;
+    }
+
+    .pagination li a {
+        color:black!important;
+    }
+</style>
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
@@ -46,18 +131,24 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-11">
-                <a class="text-white fs-4" id="header_search">Admin Card Monitor</a>
+                <a class="text-white fs-4" id="header_search">Inventory Maintenance</a>
             </div>
         </div>
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("AdminCardMonitor", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("InvenroryMonitor", "Maintenance", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col col-md-1" style="">
+                        <h>Serial No : </h>
+                    </div>
 
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="terminalseq" name="terminalseq" placeholder="Serial No" type="text" value="">
+                    </div>
                     <div class="col-md-1" style="">
-                        <h>Terminal : </h>
+                        <h>Terminal No : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -82,43 +173,19 @@
                         </div>
                     </div>
                     <div class="col col-md-1" style="">
-                        <h style="display:flex;justify-content:center;">Admin Password Digits : </h>
+                        <h>Terminal Type : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("digits", new SelectListItem[] {
-                        new SelectListItem(){ Text="All", Value = "" },
-                        new SelectListItem(){ Text="4", Value = "DDCPinEntryState" },
-                        new SelectListItem(){ Text="6", Value = "GHBeCatDDCPinEntryState" }
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
-                        </div>
-                    </div>
-                    <div class="col col-md-1" style="">
-                        <h>Status : </h>
-                    </div>
-
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("Status", new SelectListItem[] {
-                        new SelectListItem(){ Text="All", Value = "" },
-                        new SelectListItem(){ Text="Matched", Value = "Matched" },
-                        new SelectListItem(){ Text="Unmatched", Value = "Unmatched" }
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
+                            <div class="dropdown bootstrap-select form-control subsearch input-validation-error">
+                                <select class="form-control selectpicker subsearch input-validation-error" id="terminaltype" name="terminaltype">
+                                    <option value="">All</option>
+                                    <option value="ATM">ATM</option>
+                                    <option value="ADM">ADM</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -126,27 +193,76 @@
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col col-md-1" style="">
-                        <h>Sort : </h>
+                        <h>Connected : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("sort", new SelectListItem[] {
-                        new SelectListItem(){ Text="Terminal No", Value = "term_id" },
-                        new SelectListItem(){ Text="Branch No", Value = "branch_id" },
-                        new SelectListItem(){ Text="Serial No", Value = "term_seq" },
-                        new SelectListItem(){ Text="Status", Value = "status" }
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="connencted" name="connencted">
+                                    <option value="">ALL</option>
+                                    <option value="0">Online</option>
+                                    <option value="2">Offline</option>
+                                    <option value="1">Unknown</option>
+                                </select>
+                            </div>
 
                         </div>
                     </div>
+                    <div class="col col-md-1" style="">
+                        <h>Terminal Status : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="Status" name="Status">
+                                    <option value="">All</option>
+                                    <option value="use">Active</option>
+                                    <option value="notuse">Inactive</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Counter Code : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="countertype" name="countertype" placeholder="Counter Type" type="text" value="">
+
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col col-md-1" style="">
+                        <h>Service Type : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="servicetype" name="servicetype" placeholder="Service Type" type="text" value="">
+
+                    </div>
+                    <div class="col-md-1">
+                        <label>From Date : </label>
+
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="2020-05-01">
+                    </div>
+
+                    <div class="col-md-1">
+                        <label>To Date : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="todate" name="todate" placeholder="yyyy-mm-dd" type="Date" value="2030-12-31">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
                         <h>Rows : </h>
                     </div>
@@ -154,28 +270,26 @@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="50", Value = "50"  },
-                        new SelectListItem(){ Text="100", Value = "100"  },
-                        }, new
-                        {
-                        @class = "form-control selectpicker subsearch"
-                        ,
-                        @name = "state"
-
-                        })
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="maxRows" name="maxRows">
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
 
                         </div>
                     </div>
-                    <div class="col col-md-1" style="">
+                    <div class="col-md-1">
+
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
 
-                </div>
-                <div class="row" style="margin-top: 15px;align-items:center;">
-                    <div class="col col-lg-1">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
 
                 </div>
@@ -285,13 +399,13 @@
 
     function updateTable(search) {
         var terminalno = $("#TermID").val();
-        var terminalseq = '';
-        var terminaltype = '';
-        var connencted = '';
-        var servicetype = '';
-        var countertype = '';
-        var fromdate = '';
-        var todate = '';
+        var terminalseq = $("#terminalseq").val();
+        var terminaltype = $("#terminaltype").val();
+        var connencted = $("#connencted").val();
+        var servicetype = $("#servicetype").val();
+        var countertype = $("#countertype").val();
+        var fromdate = $("#fromdate").val();
+        var todate = $("#todate").val();
         var status = $("#Status").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
@@ -319,6 +433,7 @@
             },
             dataType: "json",
             success: function (data) {
+                console.log(data);
                 var jsondata = data.jsonData;
                 var pages = data.page;
                 var currentpage = data.currentPage;
@@ -331,15 +446,29 @@
                     $("#table-id tbody").append(noDataRow);
                 } else {
                     $.each(jsondata, function (index, item) {
+                        var editButton = $("<td>").css("text-align", "center").append(
+                            $("<img>").addClass("btn text-dark").attr({
+                                id: "btnEdit",
+                                "data-toggle": "modal",
+                                "data-target": "#myModal",
+                                src: "/images/button_view.png",
+                                style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
+                                onclick: "EditButton(" + JSON.stringify(item) + ")"
+                            })
+                        );
                         var row = $("<tr>");
                         row.append($("<td>").css("text-align", "center").text(item.id));
-                        row.append($("<td>").css("text-align", "center").text(item.term_seq));
-                        row.append($("<td>").css("text-align", "center").text(item.term_id));
-                        row.append($("<td>").css("text-align", "center").text(item.term_name));
-                        row.append($("<td>").css("text-align", "center").text(item.admin_card_master));
-                        row.append($("<td>").css("text-align", "center").text(item.admin_password_digits));
+                        row.append(editButton);
+                        row.append($("<td>").css("text-align", "center").text(item.terM_SEQ));
+                        row.append($("<td>").css("text-align", "center").text(item.typE_ID));
+                        row.append($("<td>").css("text-align", "center").text(item.terM_ID));
+                        row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
+                        row.append($("<td>").css("text-align", "center").text(item.connected));
                         row.append($("<td>").css("text-align", "center").text(item.status));
-                        row.append($("<td>").css("text-align", "center").text(item.update_date));
+                        row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
+                        row.append($("<td>").css("text-align", "center").text(item.servicE_ENDDATE));
+
+                        
                         $("#table-id tbody").append(row);
                         window.scrollTo(0, 0);
                     });
