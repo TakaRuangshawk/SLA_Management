@@ -687,7 +687,7 @@
                                 id: "btnEdit",
                                 "data-toggle": "modal",
                                 "data-target": "#myModal",
-                                src: "/images/button_view.png",
+                                src: "@Url.Content("/images/button_view.png")",
                                 style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
                                 onclick: "EditButton(" +
                                     "'" + item.devicE_ID + "'," +
@@ -714,13 +714,13 @@
                         );
                         var imgElement = document.createElement("img");
                         if (item.connected.toLowerCase() === 'online') {
-                            imgElement.src = '/images/icgreen.png';
+                            imgElement.src = "@Url.Content("/images/icgreen.png")";
                             imgElement.alt = 'Online';
                         } else if (item.connected.toLowerCase() === 'offline') {
-                            imgElement.src = '/images/icred.png';
+                            imgElement.src = "@Url.Content("/images/icred.png")";
                             imgElement.alt = 'Offline';
                         } else if (item.connected.toLowerCase() === 'unknown') {
-                            imgElement.src = '/images/icblack.gif';
+                            imgElement.src = "@Url.Content("/images/icblack.gif")";
                             imgElement.alt = 'Unknown';
                         }
                         imgElement.style.height = '30px';
@@ -892,13 +892,13 @@
 
         // Set the src and alt attributes based on the 'connected' value
         if (connected.toLowerCase() === 'online') {
-            imgElement.src = '/images/icgreen.png'; 
+            imgElement.src = "@Url.Content("/images/icgreen.png")";
             imgElement.alt = 'Online';
         } else if (connected.toLowerCase() === 'offline') {
-            imgElement.src = '/images/icred.png';  
+            imgElement.src = "@Url.Content("/images/icred.png")";
             imgElement.alt = 'Offline';
         } else if (connected.toLowerCase() === 'unknown') {
-            imgElement.src = '/images/icblack.gif';  
+            imgElement.src = "@Url.Content("/images/icblack.gif")";
             imgElement.alt = 'Unknown';
         }
         imgElement.style.height = '50px';
