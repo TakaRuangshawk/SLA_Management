@@ -157,7 +157,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,pv.TERM_ID,di.TERM_NAME,
+                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,
                 CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
                 WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
                 ELSE 'Offline' END AS Connected,
@@ -169,11 +169,11 @@ namespace SLA_Management.Controllers
                 WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
                 END AS SERVICE_ENDDATE,
                 pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
-                FROM gsb_adm_fv.project_version pv
-                left join device_info di on pv.TERM_ID = di.TERM_ID
+                FROM gsb_adm_fv.device_info di
+				LEFT JOIN gsb_adm_fv.project_version pv ON di.TERM_ID = pv.TERM_ID
                 left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
                 left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
-                where pv.TERM_ID is not null ";
+                where di.TERM_ID is not null ";
 
 
                 query += filterquery + " order by di.TERM_SEQ asc,di.STATUS asc";
