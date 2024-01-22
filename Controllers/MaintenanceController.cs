@@ -46,7 +46,7 @@ namespace SLA_Management.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult InventoryFetchData(string terminalseq,string terminalno,string terminaltype, string connencted,string servicetype,string countertype,string status, string row, string page, string search,string fromdate,string todate)
+        public IActionResult InventoryFetchData(string terminalseq,string terminalno,string terminaltype, string connencted,string servicetype,string countertype,string status, string row, string page, string search,string fromdate,string todate,string currentlyinuse)
         {
             int _page;
             string filterquery = string.Empty;
@@ -106,11 +106,7 @@ namespace SLA_Management.Controllers
             else if(status == "notuse")
             {
                 filterquery += " and di.STATUS != 'use' ";
-            }
-            else
-            {
-                filterquery += "";
-            }
+            }        
             if(connencted == "0")
             {
                 filterquery += " and die.CONN_STATUS_ID = '0' ";
@@ -123,10 +119,7 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
             }
-            else
-            {
-                filterquery += "";
-            }
+          
             if(servicetype != "")
             {
                 filterquery += " and CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) = '"+ servicetype +"' ";
@@ -134,21 +127,23 @@ namespace SLA_Management.Controllers
             if (countertype != ""){
                 filterquery += " and di.COUNTER_CODE = '"+ countertype +"' ";
             }
-            if(fromdate != "")
+            if(fromdate != "" && todate != "")
             {
-                filterquery += "and di.SERVICE_BEGINDATE >= '"+ fromdate +"'";
+                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
+                filterquery +=  "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
             }
             else
             {
-                filterquery += " and di.SERVICE_BEGINDATE >= '2020-05-01' ";
+                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '"+ DateTime.Now.ToString("yyyy-MM-dd") +"'";
+                filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
             }
-            if(todate != "")
+           if(currentlyinuse == "no")
             {
-                filterquery += " and (di.SERVICE_ENDDATE <= '"+ todate +"' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
             }
-            else
+           else if (currentlyinuse == "yes")
             {
-                filterquery += " and (di.SERVICE_ENDDATE <= '" + "2099-12-31" + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
             }
             List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 

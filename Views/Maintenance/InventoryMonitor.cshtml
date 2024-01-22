@@ -310,7 +310,20 @@
                 </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
-                        <h>Rows : </h>
+                        <h>Currently in Use : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="currentlyinuse" name="currentlyinuse">
+                                <option value="">--</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                          <h>Rows : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -325,12 +338,6 @@
                             </div>
 
                         </div>
-                    </div>
-                    <div class="col-md-1">
-
-                    </div>
-
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
 
                     <div class="col-md-1">
@@ -646,10 +653,12 @@
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
         var status = $("#Status").val();
+        var currentlyinuse = $("#currentlyinuse").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
+        console.log(currentlyinuse);
         $.ajax({
             type: "GET",
             url: '@Url.Action("InventoryFetchData", "Maintenance")',
@@ -665,7 +674,8 @@
                 page: page,
                 search: search,
                 fromdate: fromdate,
-                todate: todate
+                todate: todate,
+                currentlyinuse: currentlyinuse
             },
             dataType: "json",
             success: function (data) {

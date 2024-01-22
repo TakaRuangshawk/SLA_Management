@@ -304,8 +304,21 @@ namespace SLA_Management.Controllers
             messageRequestList = SLAReportDaily.mapToList(con.GetDatatable(com)).ToList();
         }
 
-        public IActionResult SlaTracking(string id, string appName, string remark, string userIP, string frDate, string toDate, string status, string maxRows)
+        public IActionResult ServiceTracking(string id, string appName, string remark, string userIP, string frDate, string toDate, string status, string maxRows,string cmdButton)
         {
+            if(cmdButton == "Clear")
+            {
+                ViewBag.id = id;
+                ViewBag.appName = appName;
+                ViewBag.userIP = userIP;
+                ViewBag.remark = remark;
+                ViewBag.status = status;
+                frDate = DateTime.Now.ToString("yyyy-MM-dd");
+                toDate = DateTime.Now.ToString("yyyy-MM-dd");
+                ViewBag.frDate = frDate;
+                ViewBag.toDate = toDate;
+                return View(trackingDetails.ToPagedList(1, 1));
+            }
             #region binding
             SqlConnection con_binding = new SqlConnection("Data Source = 10.98.14.13; Initial Catalog = SLADB; Persist Security Info = True; User ID = sa; Password = P@ssw0rd;");
             string sql_binding_status = "select * FROM base24_master_module  WHERE MODULE_ID like 'STATUS%'";

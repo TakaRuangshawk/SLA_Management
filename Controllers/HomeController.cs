@@ -255,7 +255,7 @@ namespace SLA_Management.Controllers
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_SECOne_ADM:FullNameConnection")))
                 {
 
-                    _sql = "SELECT SUM(CASE WHEN AGENT_STATUS = 1 THEN 1 ELSE 0 END) AS _online, SUM(CASE WHEN AGENT_STATUS != 1 or AGENT_STATUS is null THEN 1 ELSE 0 END) AS _offline   ";
+                    _sql = "SELECT SUM(CASE WHEN AGENT_STATUS = 1    THEN 1 ELSE 0 END) AS _online, SUM(CASE WHEN AGENT_STATUS != 1 or AGENT_STATUS is null THEN 1 ELSE 0 END) AS _offline   ";
                     _sql += " FROM device_info  ";
                     cn.Open();
 

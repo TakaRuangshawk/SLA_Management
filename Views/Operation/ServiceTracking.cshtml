@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "D1 Operation - SLA Tracking";
+    ViewData["Title"] = "D1 Operation - Service Tracking";
     string[] tableHeaders = new string[]
     {
         "No",
@@ -94,12 +94,12 @@
         <div class="col col-md-1">
         </div>
         <div class="col col-md-4">
-            <a class="text-white fs-4" id="header_search">SLA Tracking</a>
+            <a class="text-white fs-4" id="header_search">Service Tracking</a>
         </div>
     </div>
 
     <div id="main_search">
-    @using (Html.BeginForm("SlaTracking", "Operation", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
+        @using (Html.BeginForm("ServiceTracking", "Operation", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
     {
         <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
