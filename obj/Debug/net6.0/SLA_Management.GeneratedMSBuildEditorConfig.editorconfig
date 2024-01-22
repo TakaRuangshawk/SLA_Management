@@ -56,6 +56,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXENoZWNrRUpTaXplLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/ServiceTracking.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNlcnZpY2VUcmFja2luZy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaReportDaily.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydERhaWx5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -66,10 +70,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaReportMonthly.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydE1vbnRobHkuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/SlaTracking.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVRyYWNraW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/takar/OneDrive/Documents/GitHub/SLA_Management/Views/Operation/TicketManagement.cshtml]

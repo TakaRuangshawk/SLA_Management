@@ -156,7 +156,7 @@ namespace SLA_Management.Controllers
                 CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
                 WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
                 ELSE 'Offline' END AS Connected,
-                CASE WHEN di.STATUS = 'use' THEN 'Active'
+                CASE WHEN di.STATUS = 'use' or di.STATUS = 'roustop'  THEN 'Active'
                 ELSE 'Inactive' END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
                 di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
