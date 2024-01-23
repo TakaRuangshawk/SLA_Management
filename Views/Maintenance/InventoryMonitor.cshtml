@@ -5,7 +5,7 @@
 }
 
 @{
-    ViewData["Title"] = "Inventory Monitor";
+    ViewData["Title"] = "Inventory Maintenance";
     string[] tableHeaders = new string[]
     {
     "No.",
@@ -697,7 +697,7 @@
                                 id: "btnEdit",
                                 "data-toggle": "modal",
                                 "data-target": "#myModal",
-                                src: "/operation/images/button_view.png",
+                                src: "/images/button_view.png",
                                 style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
                                 onclick: "EditButton(" +
                                     "'" + item.devicE_ID + "'," +
@@ -901,18 +901,21 @@
         document.getElementById('VERSION_AGENT').value = versioN_AGENT;
 
         // Set the src and alt attributes based on the 'connected' value
-        if (item.connected.toLowerCase() === 'online') {
+        if (connected.toLowerCase() === 'online') {
             imgElement.src = "/operation/images/icgreen.png";
             imgElement.alt = 'Online';
-        } else if (item.connected.toLowerCase() === 'offline') {
+        } else if (connected.toLowerCase() === 'offline') {
             imgElement.src = "/operation/images/icred.png";
             imgElement.alt = 'Offline';
-        } else if (item.connected.toLowerCase() === 'unknown') {
+        } else if (connected.toLowerCase() === 'unknown') {
             imgElement.src = "/operation/images/icblack.gif";
             imgElement.alt = 'Unknown';
         }
         imgElement.style.height = '50px';
         imgElement.style.width = 'auto';
+        console.log(imgElement);
         container.appendChild(imgElement);
     }
 </script>
+
+            
