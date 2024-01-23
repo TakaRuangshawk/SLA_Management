@@ -376,10 +376,26 @@
         var toDateInput = document.getElementById("todate");
         var fromDateValue = new Date(fromDateInput.value);
         var toDateValue = new Date(toDateInput.value);
+        if (isNaN(fromDateValue) || isNaN(toDateValue)) {
+            alert("Invalid Date Format. Please enter valid dates.");
+            return;
+        }
         if (fromDateValue > toDateValue) {
             alert("Invalid Date Range. Please Select a Valid Date Range.");
             fromDateInput.value = new Date().toISOString().split('T')[0];
             toDateInput.value = new Date().toISOString().split('T')[0];
+            return;
+        }
+        if (fromDateValue && toDateValue) {
+            
+        } else {
+            alert("Please select both fromdate and todate.");
+            return;
+        }
+        if (terminalno) {
+           
+        } else {
+            alert("Please Select a Terminal.");
             return;
         }
         $.ajax({

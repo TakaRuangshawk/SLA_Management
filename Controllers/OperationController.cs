@@ -1750,8 +1750,9 @@ namespace SLA_Management.Controllers
                         query += " ORDER BY adi.term_seq asc;";
                         break;
                     case "last_transaction":
-                        query += " ORDER BY MAX(CASE WHEN ede.remark = ejm.probname AND ejm.status = 'success' THEN ede.trxdatetime else '' END) asc;";
-                        break;
+                        //query += " ORDER BY MAX(CASE WHEN ede.remark = ejm.probname AND ejm.status = 'success' THEN ede.trxdatetime else '' END) asc;";
+                        query += " ORDER BY lastest_trxdatetime_success desc;";
+                            break;
                     default:
                         query += " ORDER BY adi.term_id asc;";
                         break;
