@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\images\Pic_Home.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\images\1.jpg" />
     <None Include="wwwroot\images\2.png" />
+    <None Include="wwwroot\images\Pic_Home.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -32,9 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\images\Pic_Home.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Update="wwwroot\images\Pic_Page.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

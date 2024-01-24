@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
 using SLA_Management.Models;
+using SLA_Management.Models.HomeModel;
 using SLA_Management.Models.OperationModel;
 using SLAManagement.Data;
 using System.Data;
@@ -35,7 +36,7 @@ namespace SLA_Management.Controllers
         public IActionResult Index_bk()
         {
             recordset_homeshowstatus = GetHomeStatus();
-            if(recordset_homeshowstatus != null)
+            if (recordset_homeshowstatus != null)
             {
                 foreach (var Data in recordset_homeshowstatus)
                 {
@@ -57,11 +58,11 @@ namespace SLA_Management.Controllers
             }
             recordset_comlogrecord = GetComlogRecordFromSqlServer();
             recordset_slatracking = GetSlatrackingFromSqlServer();
-            if(recordset_comlogrecord != null)
+            if (recordset_comlogrecord != null)
             {
                 foreach (var Data in recordset_comlogrecord)
                 {
-                    if(Data.comlogADM != "" || Data.comlogATM != "")
+                    if (Data.comlogADM != "" || Data.comlogATM != "")
                     {
                         ViewBag.comlogADM = Data.comlogADM;
                         ViewBag.comlogATM = Data.comlogATM;
@@ -73,7 +74,7 @@ namespace SLA_Management.Controllers
                         ViewBag.comlogADM = "-";
                         ViewBag.comlogTotal = "-";
                     }
-                    
+
                 }
             }
             else
@@ -82,7 +83,7 @@ namespace SLA_Management.Controllers
                 ViewBag.comlogADM = "-";
             }
             recordset_secone = GetSECOneStatus();
-            if(recordset_secone != null)
+            if (recordset_secone != null)
             {
                 foreach (var data in recordset_secone)
                 {
@@ -96,7 +97,7 @@ namespace SLA_Management.Controllers
                 ViewBag.secone_offline = "-";
             }
             recordset_secone_adm = GetSECOneADMStatus();
-            if(recordset_secone_adm != null)
+            if (recordset_secone_adm != null)
             {
                 foreach (var data in recordset_secone_adm)
                 {
@@ -109,26 +110,97 @@ namespace SLA_Management.Controllers
                 ViewBag.secone_adm_online = "-";
                 ViewBag.secone_adm_offline = "-";
             }
-            if(recordset_secone != null && recordset_secone_adm != null)
+            if (recordset_secone != null && recordset_secone_adm != null)
             {
-                ViewBag.TotalSECONE_online = (Convert.ToInt32(ViewBag.secone_adm_online)+Convert.ToInt32(ViewBag.secone_online)).ToString();
+                ViewBag.TotalSECONE_online = (Convert.ToInt32(ViewBag.secone_adm_online) + Convert.ToInt32(ViewBag.secone_online)).ToString();
                 ViewBag.TotalSECONE_offine = (Convert.ToInt32(ViewBag.secone_adm_offline) + Convert.ToInt32(ViewBag.secone_offline)).ToString();
                 ViewBag.TotalSECONE = (Convert.ToInt32(ViewBag.TotalSECONE_online) + Convert.ToInt32(ViewBag.TotalSECONE_offine)).ToString();
             }
-            ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
+            ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy", usaCulture);
             return View(recordset_slatracking);
         }
         public IActionResult Index()
         {
+            ViewBag.FV2IN1Total = "-";
+            ViewBag.FVRDMTotal = "-";
+            ViewBag.FVLRMTotal = "-";
+            ViewBag.FVSECTotal = "-";
+
+            ViewBag.online2IN1 = "-";
+            ViewBag.onlineRDM = "-";
+            ViewBag.onlineLRM = "-";
+            ViewBag.onlineSEC = "-";
+
+            ViewBag.offline2IN1 = "-";
+            ViewBag.offlineRDM = "-";
+            ViewBag.offlineLRM = "-";
+            ViewBag.offlineSEC = "-";
+
+            List<TopErrorDevice> topErrorDevicesList = new List<TopErrorDevice>();
+
+            TopErrorDevice topErrorDevice = null;
+
+
+
+            topErrorDevice = new TopErrorDevice("1","CDM", "Cash Dispenser Error");
+            topErrorDevicesList.Insert(0, topErrorDevice);
+            topErrorDevice = new TopErrorDevice("2","CONN", "Communication Interrupt");
+            topErrorDevicesList.Insert(1, topErrorDevice);
+            topErrorDevice = new TopErrorDevice("3","TERM", "Terminal Stop Service");
+            topErrorDevicesList.Insert(2, topErrorDevice);
+            topErrorDevice = new TopErrorDevice("4", "TERM", "Terminal Maintenance Mode");
+            topErrorDevicesList.Insert(3, topErrorDevice);
+            topErrorDevice = new TopErrorDevice("5", "CARBINETDOOR", "Carbinet Door Open");
+            topErrorDevicesList.Insert(4, topErrorDevice);
+
+
+           
+
+
+            //LRM device
+            ViewBag.deviceLRMError = topErrorDevicesList;
+            
+
+            //RDM device
+            ViewBag.deviceRDMError = topErrorDevicesList;
+           
+
+            //2IN1 device
+            ViewBag.device2IN1Error = topErrorDevicesList;
+
+            ViewBag.deviceLRMError1 = 80;
+            ViewBag.deviceLRMError2 = 60;
+            ViewBag.deviceLRMError3 = 55;
+            ViewBag.deviceLRMError4 = 30;
+            ViewBag.deviceLRMError5 = 25;
+
+            ViewBag.deviceRDMError1 = 80;
+            ViewBag.deviceRDMError2= 60;
+            ViewBag.deviceRDMError3 = 55;
+            ViewBag.deviceRDMError4 = 30;
+            ViewBag.deviceRDMError5 = 25;
+
+            ViewBag.device2IN1Error1 = 80;
+            ViewBag.device2IN1Error2 = 60;
+            ViewBag.device2IN1Error3 = 55;
+            ViewBag.device2IN1Error4 = 30;
+            ViewBag.device2IN1Error5 = 25;
+
+
+            // ViewBag.FrMonthLRM
+            // FrMonthRDM
+            // FrMonth2IN1
+
+
             return View();
         }
         public List<comlogrecord> GetComlogRecordFromSqlServer()
         {
             List<comlogrecord> dataList = new List<comlogrecord>();
 
-            
+
             string sqlQuery = " SELECT COUNT(CASE WHEN ERROR IS NULL  AND TERM_ID LIKE '%G262%' THEN 1 END) AS ComlogADM,COUNT(CASE WHEN ERROR IS NULL  AND TERM_ID like '%G165%' THEN 1 END) AS ComlogATM ";
-            sqlQuery += " FROM comlog_record where COMLOGDATE between '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd",usaCulture) + " 00:00:00' AND '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd", usaCulture) + " 23:59:59'";
+            sqlQuery += " FROM comlog_record where COMLOGDATE between '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd", usaCulture) + " 00:00:00' AND '" + DateTime.Now.Date.AddDays(-1).ToString("yyyy-MM-dd", usaCulture) + " 23:59:59'";
             try
             {
                 using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))
@@ -148,15 +220,16 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
-            
+
 
             return dataList;
         }
-        public List<slatracking> GetSlatrackingFromSqlServer() {
+        public List<slatracking> GetSlatrackingFromSqlServer()
+        {
             List<slatracking> dataList = new List<slatracking>();
             string sqlQuery = " SELECT [APPNAME],[STATUS],[UPDATE_DATE]FROM (SELECT [APPNAME],[STATUS],[UPDATE_DATE],ROW_NUMBER() OVER (PARTITION BY [APPNAME] ORDER BY [UPDATE_DATE] DESC) AS rn ";
             sqlQuery += "  FROM sla_tracking where APPNAME in ('appChangeAndUnzip','InsertFileCOMLog','Translator','NDCT','Downtime','SLA Report')) ranked WHERE rn = 1 and YEAR(UPDATE_DATE) = YEAR(GETDATE()) ";
@@ -175,7 +248,7 @@ namespace SLA_Management.Controllers
                             int n = 1;
                             while (reader.Read())
                             {
-                                dataList.Add(GetSlatrackingFromReader(reader,n));
+                                dataList.Add(GetSlatrackingFromReader(reader, n));
                                 n++;
                             }
                         }
@@ -190,7 +263,7 @@ namespace SLA_Management.Controllers
 
             return dataList;
         }
-        protected virtual slatracking GetSlatrackingFromReader(IDataReader reader,int n)
+        protected virtual slatracking GetSlatrackingFromReader(IDataReader reader, int n)
         {
             slatracking record = new slatracking();
 
