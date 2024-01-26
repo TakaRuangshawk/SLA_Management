@@ -112,14 +112,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 
-<form id="test_form" name="test_form" enctype="multipart/form-data" action="EncryptionMoniter/PostTest" method="post" onsubmit="TestSubmit(this);return false;">
-    <input type="text" id="Test01" name="Test01" value="Cat" />
-    <input type="text" id="Test02" name="Test02" value="Doc" />
-    <input type="text" id="Test03" name="Test03" value="Rat" />
-    <input type="text" id="Output" name="Output" value="" />
-    <button type="submit">TestSubmit</button>
-    
-</form>
+
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
         <div class="row">
@@ -131,10 +124,11 @@
         </div>
 
 
-        <div id="main_search" >
-            <form id="from_search-search" action="EncryptionMoniter/GetDeviceEncryption" enctype="multipart/form-data" method="post" onsubmit="SubmitSearch(this); return false;">
 
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+        <div id="main_search" >
+           @*  <form method="post" action="EncryptionMoniter/GetDeviceEncryption" onsubmit="SubmitSearch(this);"> *@
+
+                <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col-md-1" style="">
                         <h>Terminal No : </h>
@@ -146,15 +140,9 @@
                                 <option data-tokens="" value="">--</option>
                                 @foreach (var item in ViewBag.CurrentTID)
                                 {
-                                    if (@item.TERM_ID != @ViewBag.TermID)
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
-                                    else
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-
-                                    }
+                                   
+                                    <option value=@item.TERM_SEQ data-tokens=@item.TERM_SEQ>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                   
                                 }
 
                             </select>
@@ -171,15 +159,10 @@
                                 <option data-tokens="" value="">--</option>
                                 @foreach (var item in ViewBag.EncryptionVersion)
                                 {
-                                    if (@item.ToString() != @ViewBag.EncryptionVersionItem)
-                                    {
+                                    
                                         <option value=@item.ToString() data-tokens=@item.ToString()>@item.ToString()</option>
-                                    }
-                                    else
-                                    {
-                                        <option value=@item.ToString() data-tokens=@item.ToString() selected>@item.ToString()</option>
-
-                                    }
+                                    
+                                   
                                 }
                             </select>
                         </div>
@@ -213,14 +196,14 @@
 
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="2020-05-01">
+                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date">
                     </div>
 
                     <div class="col-md-1">
                         <label>To Date : </label>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <input class="form-control subsearch" id="todate" name="todate" placeholder="yyyy-mm-dd" type="Date" value="2030-12-31">
+                        <input class="form-control subsearch" id="todate" name="todate" placeholder="yyyy-mm-dd" type="Date">
                     </div>
 
                     <div class="col col-md-1" style="">
@@ -263,8 +246,22 @@
 
 
                     <div class="col col-md-1" style="">
+                    <h>Sort : </h>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                         <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="sort" name="sort">
+                                <option value="">--</option>
+                                <option value="Terminal No">Terminal No</option>
+                                <option value="Branch No">Branch No</option>
+                                <option value="Serial No">Serial No</option>
+                                <option value="Status">Status</option>
+                                </select>
+                            </div>
+
+                        </div>
                     </div>
 
 
@@ -281,23 +278,23 @@
 
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" >
+                        <button type="button" onclick="SearchData();" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
 
-                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                        <button type="submit" onclick="ClearSearchData();" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
 
 
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                        <a id="btnSEExp" onclick="DownloadExcel();" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
                         </div>
                     </div>
 
                 </div>
-            </form>
+            @* </form> *@
           
 
         </div>
@@ -440,35 +437,47 @@
             $("#page").append(option);
 
         }
+        var pageNext = parseInt(currentpage) + 1;
+        var pagePrev = parseInt(currentpage) - 1;
+       
         prevDiv.onclick =
             function(){
-                SubmitPage(currentpage - 1, max_row);
+                SubmitPage(pagePrev, max_row);
                 
             };
         nextDiv.onclick =
             function () {
-                SubmitPage(currentpage + 1, max_row);
+                SubmitPage(pageNext, max_row);
                 
             };
 
 
         prevDiv.style.visibility = "hidden";
         nextDiv.style.visibility = "hidden";
+
+        if ((pages != 0) && pageNext <= pages) {
+            nextDiv.style.visibility = "visible";
+        }
+
+        if ((pages != 0) && pagePrev > 0) {
+            prevDiv.style.visibility = "visible";
+        }
+
         
-        if ((currentpage == 1 || page == null) && pages > 1) {
+        // if ((nextDiv < 1 || page == null) && pages > 1) {
             
-            nextDiv.style.visibility = "visible";
+        //     nextDiv.style.visibility = "visible";
 
-        }
-        else if ((currentpage == pages) && pages > 1) {
-            prevDiv.style.visibility = "visible";
+        // }
+        // else if ((currentpage == pages) && pages > 1) {
+        //     prevDiv.style.visibility = "visible";
            
-        }
-        else {
-            prevDiv.style.visibility = "visible";
-            nextDiv.style.visibility = "visible";
+        // }
+        // else {
+        //     prevDiv.style.visibility = "visible";
+        //     nextDiv.style.visibility = "visible";
 
-        }
+        // }
        
         
     }
@@ -491,7 +500,31 @@
 
                 row.append($("<td>").css("text-align", "center").text(item.encryption_status));
                 row.append($("<td>").css("text-align", "center").text(item.agent_status));
-                row.append($("<td>").css("text-align", "center").text(item.update_datetime));
+
+               
+                // Get the current date object
+                let date = new Date(item.update_datetime);
+
+                // Get the year, month, day, hour, minute, and second
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1; // Month is zero-based
+                let day = date.getDate();
+                let hour = date.getHours();
+                let minute = date.getMinutes();
+                let second = date.getSeconds();
+
+                // Pad each component with a leading zero if necessary
+                year = year.toString().padStart(2, "0");
+                month = month.toString().padStart(2, "0");
+                day = day.toString().padStart(2, "0");
+                hour = hour.toString().padStart(2, "0");
+                minute = minute.toString().padStart(2, "0");
+                second = second.toString().padStart(2, "0");
+
+                // Concatenate the components with slashes and spaces
+                let dateString = year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+
+                row.append($("<td>").css("text-align", "center").text(dateString));
 
                 $("#table-id tbody").append(row);
                 window.scrollTo(0, 0);
@@ -499,46 +532,46 @@
         }
     }
     // updateTable("search");
-    $("#btnSEExp").click(function (e) {
-        e.preventDefault();
-        var terminalno = $("#TermID").val();
-        var terminalseq = $("#terminalseq").val();
-        var terminaltype = $("#terminaltype").val();
-        var connencted = $("#connencted").val();
-        var servicetype = $("#servicetype").val();
-        var countertype = $("#countertype").val();
-        var fromdate = $("#fromdate").val();
-        var todate = $("#todate").val();
-        var status = $("#Status").val();
-        var rptType = "xlsx";
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            data: {
-                terminalno: terminalno,
-                terminalseq: terminalseq,
-                terminaltype: terminaltype,
-                connencted: connencted,
-                servicetype: servicetype,
-                countertype: countertype,
-                status: status,
-                fromdate: fromdate,
-                todate: todate
-            },
-            contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
-            success: function (result) {
-                if (result.success == 'S') {
-                    var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
-                    window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
-                }
-                else { alert(result.errstr); }
-            },
-            error: function (err) {
-                alert('@ViewBag.ErrorMsg');
-            }
-        });
-    });
+    // $("#btnSEExp").click(function (e) {
+    //     e.preventDefault();
+    //     var terminalno = $("#TermID").val();
+    //     var terminalseq = $("#terminalseq").val();
+    //     var terminaltype = $("#terminaltype").val();
+    //     var connencted = $("#connencted").val();
+    //     var servicetype = $("#servicetype").val();
+    //     var countertype = $("#countertype").val();
+    //     var fromdate = $("#fromdate").val();
+    //     var todate = $("#todate").val();
+    //     var status = $("#Status").val();
+    //     var rptType = "xlsx";
+    //     $.ajax({
+    //         type: "POST",
+    //         dataType: "json",
+    //         data: {
+    //             terminalno: terminalno,
+    //             terminalseq: terminalseq,
+    //             terminaltype: terminaltype,
+    //             connencted: connencted,
+    //             servicetype: servicetype,
+    //             countertype: countertype,
+    //             status: status,
+    //             fromdate: fromdate,
+    //             todate: todate
+    //         },
+    //         contentType: 'application/json; charset=utf-8',
+    //         url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
+    //         success: function (result) {
+    //             if (result.success == 'S') {
+    //                 var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
+    //                 window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
+    //             }
+    //             else { alert(result.errstr); }
+    //         },
+    //         error: function (err) {
+    //             alert('@ViewBag.ErrorMsg');
+    //         }
+    //     });
+    // });
 
 
    
@@ -551,21 +584,59 @@
     var max_row = 0;
     var page_index = 0;
     function ChangePage(val) {
-        SubmitPage(val, max_row);
        
-    }
-    async function SubmitSearch(oFormElement) {
-        
-        const formData = new FormData(oFormElement);
+        SubmitPage(val, max_row);
 
+    }
+    function SearchData() {
+        var paramater = {
+            serial_no: document.getElementById('serial_no').value,
+            encryption_version: document.getElementById('encryption_version').value,
+            encryption_status: document.getElementById('encryption_status').value,
+            fromdate: document.getElementById('fromdate').value,
+            todate: document.getElementById('todate').value,
+            agent_status: document.getElementById('agent_status').value,
+            maxRows: document.getElementById('maxRows').value,
+            sort: document.getElementById('sort').value
+        };
+        SubmitSearch(paramater);
+
+    }
+    function ClearSearchData() {
+        document.querySelector('serial_no').value = "--";
+        // document.querySelector('encryption_version').selectedIndex = 0;
+        // document.getElementById('encryption_status').selectedIndex = "";
+        // document.getElementById('fromdate').value = "";
+        // document.getElementById('todate').value = "";
+        // document.getElementById('agent_status').selectedIndex = "";
+        // document.getElementById('maxRows').selectedIndex = 500;
+        // document.getElementById('sort').selectedIndex = "";
+        alert(" Test ");
+
+    }
+    function DownloadExcel() {
+        ExportRecordtoExcel();
+
+    }
+    async function SubmitSearch(paramater) {
+        
+        //const formData = new FormData(oFormElement);
+        
+        const url = '@Url.Action("GetDeviceEncryption", "EncryptionMoniter")' + '?' +
+            new URLSearchParams(paramater);
+        
+        
+       
         try {
-            const response = await fetch(oFormElement.action, {
-                method: 'POST',
+            
+            const response = await fetch(url, {
+                method: 'GET',
                 headers: {
-                    "Content-Type": "application/json"
+                    'Accept': 'application / json',
+                    'Content-Type': 'application/json'
                     
                 },
-                body: formData
+                
             });
             
             if (response.ok) {
@@ -591,6 +662,7 @@
             
            
         } catch (error) {
+            
             console.log(error);
             return false;
         }
@@ -633,42 +705,71 @@
             return false;
         }
     }
-</script>
-
-<script>
-    async function TestSubmit(oFormElement) {
-
-        var resultElement = oFormElement.elements.namedItem("Output");
-        const formData = new FormData(oFormElement);
-        console.log(JSON.stringify(formData));
-        const data = {
-            Test01: "Cat",
-            Test02: "Doc",
-            Test03: "Rat"
-        }
-        alert(JSON.stringify(data));
+    async function ExportRecordtoExcel() {
         try {
-            const response = await fetch(oFormElement.action, {
+
+            const response = await fetch('@Url.Action("ExportRecordtoExcel", "EncryptionMoniter")', {
                 method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
+
+                //responseType: "blob"
             });
-
             if (response.ok) {
-                var res = response.json();
 
-                res.then((data) => {
-                    resultElement.value = data;
+                let res = response.blob();
 
+                res.then(blob => {
+
+
+                    const date = new Date();
+
+                    let currentDay = String(date.getDate()).padStart(2, '0');
+
+                    let currentMonth = String(date.getMonth() + 1).padStart(2, "0");
+
+                    let currentYear = date.getFullYear();
+                    let currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
+
+
+                    // let sert = "";
+                    // if (dataExport.term_id != "" && dataExport.term_id != null) {
+                    //     sert += "_" + dataExport.term_id;
+                    // } else {
+                    //     if (dataExport.row != 0) {
+                    //         sert += "_ALL"
+                    //     }
+
+                    // }
+
+                    // if (dataExport.toDateTime != "" && dataExport.toDateTime != null) {
+                    //     sert += "_" + dataExport.toDateTime;
+                    // }
+                    // if (dataExport.forDateTime != "" && dataExport.forDateTime != null) {
+                    //     sert += "_" + dataExport.forDateTime;
+                    // }
+
+
+                    var url = window.URL.createObjectURL(blob);
+
+                    anchor = document.createElement("a");
+                    anchor.href = url;
+                    anchor.download = 'EncryptionMoniter_' + currentDate;
+                    anchor.click();
+                    window.URL.revokeObjectURL(url);
+                    document.removeChild(anchor);
+
+                    //window.location.assign(url);
                 });
-
+            }
+            else {
+                // Handle the error if the export was unsuccessful
+                throw new Error("Export failed with status " + response.status);
             }
 
-
         } catch (error) {
-
+            console.log(error);
         }
+
+
     }
 </script>
+

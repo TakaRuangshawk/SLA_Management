@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using OfficeOpenXml;
 using Serilog;
 using SLA_Management.Commons;
 using SLA_Management.Data;
@@ -31,48 +32,117 @@ namespace SLA_Management.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(P_Search_EncryptionMoniter filter, int? maxRows)
+        public IActionResult Index()
         {
 
             ViewBag.EncryptionVersion = GetEncryptionVersion();
             ViewBag.CurrentTID = GetDevices();
-            ViewBag.pageSize = maxRows.HasValue ? maxRows.Value : 50;
-            ViewBag.ExportDataFile = filter;
-            ViewBag.TERM_ID = filter.term_id;
-            ViewBag.EncryptionVersionItem = filter.encryption_version_item;
-            ViewBag.CurrentFr = filter.forDateTime.HasValue ? filter.forDateTime : null;
-            ViewBag.CurrentTo = filter.toDateTime.HasValue ? filter.toDateTime : null;
+            //ViewBag.pageSize = maxRows.HasValue ? maxRows.Value : 50;
+            //ViewBag.ExportDataFile = filter;
+            //ViewBag.TERM_ID = filter.term_id;
+            //ViewBag.EncryptionVersionItem = filter.encryption_version_item;
+            /*ViewBag.CurrentFr = filter.forDateTime.HasValue ? filter.forDateTime : null;
+            ViewBag.CurrentTo = filter.toDateTime.HasValue ? filter.toDateTime : null;*/
             return View();
         }
 
-        [HttpPost]
-        public IActionResult GetDeviceEncryption(Teejama TestData)
+        [HttpGet]
+        public IActionResult GetDeviceEncryption(SearchData SearchData)
         {
+            
             try
             {
+                
                 MySqlCommand mySqlCommand = new MySqlCommand();
-                mySqlCommand.CommandText = "SELECT fv_device_info.TERM_ID as terminal_id,fv_device_info.TERM_NAME as terminal_name, device_encryption.* FROM device_encryption LEFT JOIN fv_device_info ON device_encryption.serial_no = fv_device_info.TERM_SEQ;";
+                string sql = @"SELECT fv_device_info.TERM_ID as terminal_id,fv_device_info.TERM_NAME as terminal_name, device_encryption.* 
+                                FROM device_encryption 
+                                LEFT JOIN fv_device_info 
+                                ON device_encryption.serial_no = fv_device_info.TERM_SEQ";
+
+                if (SearchData.serial_no != null ||
+                    SearchData.encryption_version != null ||
+                    SearchData.encryption_status != null ||
+                    SearchData.fromdate != new DateTime() ||
+                    SearchData.todate != new DateTime() ||
+                    SearchData.agent_status != null)
+                {
+                    sql += " where ";
+                    List<string> search = new List<string>();
+                    if (SearchData.serial_no != null)
+                    {
+                        search.Add("device_encryption.serial_no = @serial_no");
+                        mySqlCommand.Parameters.AddWithValue("@serial_no", SearchData.serial_no);
+                    }
+                    if (SearchData.encryption_version != null)
+                    {
+                        search.Add("device_encryption.encryption_version = @encryption_version");
+                        if (SearchData.encryption_version == "null")
+                        {
+                            mySqlCommand.Parameters.AddWithValue("@encryption_version", "");
+                        }
+                        else
+                        {
+                            mySqlCommand.Parameters.AddWithValue("@encryption_version", SearchData.encryption_version);
+                        }
+                        
+                    }
+                    if (SearchData.encryption_status != null)
+                    {
+                        search.Add("device_encryption.encryption_status = @encryption_status");
+                        mySqlCommand.Parameters.AddWithValue("@encryption_status", SearchData.encryption_status);
+                    }
+                    if (SearchData.agent_status != null)
+                    {
+                        search.Add("device_encryption.agent_status = @agent_status");
+                        mySqlCommand.Parameters.AddWithValue("@agent_status", SearchData.agent_status);
+                    }
+                    if ((SearchData.fromdate != new DateTime() && SearchData.todate != new DateTime())
+                        && (SearchData.todate >= SearchData.fromdate))
+                    {
+                        search.Add("device_encryption.update_datetime BETWEEN @fromdate and @todate");
+                        mySqlCommand.Parameters.AddWithValue("@fromdate", SearchData.fromdate);
+                        mySqlCommand.Parameters.AddWithValue("@todate", SearchData.todate);
+                    }
+                    
+
+                    sql += string.Join(" and ", search) + ";";
+                }
+                if (SearchData.sort != null)
+                {
+                    switch (SearchData.sort)
+                    {
+                        case "Terminal No":
+                            sql += " order by fv_device_info.TERM_ID";
+                            break;
+                        case "Branch No":
+                            sql += " order by fv_device_info.BRAND_ID";
+                            break;
+                        case "Serial No":
+                            sql += " order by fv_device_info.TERM_SEQ";
+                            break;
+                        case "Status":
+                            sql += " order by device_encryption.encryption_status";
+                            break;
+                    }
+
+
+                }
+                mySqlCommand.CommandText = sql;
 
                 deviceEncryptions = ConvertDataTableToModel.ConvertDataTable<DeviceEncryption>(connectMySQL.GetDatatable(mySqlCommand));
 
                 
-                return Json(new { devices = RangeFilter<DeviceEncryption>(deviceEncryptions, 1, 50), sumtotal = deviceEncryptions.Count() });
+                return Json(new { devices = RangeFilter<DeviceEncryption>(deviceEncryptions, 1, SearchData.maxRows), sumtotal = deviceEncryptions.Count() });
             }
             catch (Exception ex)
             {
                 Log.Error($"GetDeviceEncryption Error : {ex}");
-                return Json(new { devices = RangeFilter<DeviceEncryption>(deviceEncryptions, 1, 50), sumtotal = deviceEncryptions.Count() });
+                return Json(new { devices = RangeFilter<DeviceEncryption>(deviceEncryptions, 1, SearchData.maxRows), sumtotal = deviceEncryptions.Count() });
             }
 
 
         }
-        [HttpPost]
-        public string PostTest(TestYumYum testYumYum)
-        {
-            //TestYumYum testYumYum = new TestYumYum();
-            return "animal";
-        }
-
+        
         [HttpGet]
         public List<DeviceEncryption> GetPage(int page, int max_row)
         {
@@ -89,6 +159,78 @@ namespace SLA_Management.Controllers
 
         }
 
+
+        [HttpPost]
+        public IActionResult ExportRecordtoExcel()
+        {
+            //add test data
+            List<DeviceEncryption> obj = new List<DeviceEncryption>();
+
+            if (deviceEncryptions != null)
+            {
+                obj = deviceEncryptions;
+            }
+
+            //var str = ModelToBit(obj);
+
+            DateTime dateNow = DateTime.Now;
+            string fileName = "Encryption" + dateNow.Year.ToString("0000") + dateNow.Month.ToString("00") + dateNow.Day.ToString("00");
+
+
+
+
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Sheet1");
+
+                // Write header row
+                worksheet.Cells[1, 1].Value = "Row";
+                worksheet.Cells[1, 2].Value = "Serial No";
+                worksheet.Cells[1, 3].Value = "Terminal Id";
+                worksheet.Cells[1, 4].Value = "Terminal Name";
+                worksheet.Cells[1, 5].Value = "Encryption Version";
+
+                worksheet.Cells[1, 6].Value = "Encryption Status";
+                worksheet.Cells[1, 7].Value = "Agent Status";
+                worksheet.Cells[1, 8].Value = "Update Datetime";
+
+                // Write data rows
+                var rowIndex = 2;
+
+                foreach (var item in obj)
+                {
+                    worksheet.Cells[rowIndex, 1].Value = rowIndex - 1;
+                    worksheet.Cells[rowIndex, 2].Value = item.serial_no;
+                    worksheet.Cells[rowIndex, 3].Value = item.terminal_id;
+                    worksheet.Cells[rowIndex, 4].Value = item.terminal_name;
+
+                    worksheet.Cells[rowIndex, 5].Value = item.encryption_version;
+                    worksheet.Cells[rowIndex, 6].Value = item.encryption_status;
+                    worksheet.Cells[rowIndex, 7].Value = item.agent_status;
+                    worksheet.Cells[rowIndex, 8].Value = item.update_datetime.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    rowIndex++;
+                }
+
+                // Auto fit columns for better readability
+                worksheet.Cells.AutoFitColumns();
+
+                // Convert the Excel package to a byte array
+                var fileContents = package.GetAsByteArray();
+
+                // Set the content type and file name for the response
+                return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName + ".xlsx");
+            }
+
+
+
+
+
+        }
+        
         public List<T> RangeFilter<T>(List<T> inputList, int page, int row)
         {
             int start_row;
