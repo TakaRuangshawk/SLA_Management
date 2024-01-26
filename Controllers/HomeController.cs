@@ -133,12 +133,12 @@ namespace SLA_Management.Controllers
             List<secone> feelviewstatusSECONE = GetSECOneStatus();
 
             #region GetLRMTopDeviceError
-            List<string> strings = GetLRMTopDeviceError();
+            List<EventDetail> strings = GetLRMTopDeviceError();
             List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();
 
-            Dictionary<string, int> duplicateCounts = CountDuplicates(strings);
+            Dictionary<EventDetail, int> duplicateCounts = CountDuplicates(strings);
 
-            List<KeyValuePair<string, int>> myListLRM = duplicateCounts.ToList();
+            List<KeyValuePair<EventDetail, int>> myListLRM = duplicateCounts.ToList();
 
             // Sorting the list by values in descending order
             myListLRM.Sort((x, y) => y.Value.CompareTo(x.Value));
@@ -157,16 +157,22 @@ namespace SLA_Management.Controllers
 
 
 
-                topErrorDevice = new TopErrorDevice((count+1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevice = new TopErrorDevice((count+1).ToString(), kvp.Key.EventID, kvp.Key.EventName);
                 topErrorDevicesListLRM.Insert(count, topErrorDevice);
                 count++;
             }
 
-            if(myListLRM.Count <= 5)
+            EventDetail eventDetail = new EventDetail();
+
+            if (myListLRM.Count <= 5)
             {
-                for(int i = myListLRM.Count; i <= 5 - count; i++)
+                for(int i = myListLRM.Count; i <= 5; i++)
                 {
-                    myListLRM.Add(new KeyValuePair<string, int>("0", 0));
+                    eventDetail= new EventDetail{
+                        EventID = "0",
+                        EventName = "0",
+                    };
+                    myListLRM.Add(new KeyValuePair<EventDetail, int>(eventDetail, 0));
                 }
             }
 
@@ -179,7 +185,7 @@ namespace SLA_Management.Controllers
 
             duplicateCounts = CountDuplicates(strings);
 
-            List<KeyValuePair<string, int>>  myListRDM = duplicateCounts.ToList();
+            List<KeyValuePair<EventDetail, int>>  myListRDM = duplicateCounts.ToList();
 
             // Sorting the list by values in descending order
             myListRDM.Sort((x, y) => y.Value.CompareTo(x.Value));
@@ -188,16 +194,22 @@ namespace SLA_Management.Controllers
             foreach (var kvp in myListRDM)
             {
                 if (count == 5) break;
-                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key.EventID, kvp.Key.EventName);
                 topErrorDevicesListRDM.Insert(count, topErrorDevice);
                 count++;
             }
 
+
             if (myListRDM.Count <= 5)
             {
-                for (int i = myListRDM.Count; i <= 5 - count; i++)
+                for (int i = myListRDM.Count; i <= 5; i++)
                 {
-                    myListRDM.Add(new KeyValuePair<string, int>("0", 0));
+                    eventDetail = new EventDetail
+                    {
+                        EventID = "0",
+                        EventName = "0",
+                    };
+                    myListRDM.Add(new KeyValuePair<EventDetail, int>(eventDetail, 0));
                 }
             }
 
@@ -210,7 +222,7 @@ namespace SLA_Management.Controllers
 
             duplicateCounts = CountDuplicates(strings);
 
-            List<KeyValuePair<string, int>> myList2IN1 = duplicateCounts.ToList();
+            List<KeyValuePair<EventDetail, int>> myList2IN1 = duplicateCounts.ToList();
 
             // Sorting the list by values in descending order
             myList2IN1.Sort((x, y) => y.Value.CompareTo(x.Value));
@@ -219,16 +231,21 @@ namespace SLA_Management.Controllers
             foreach (var kvp in myList2IN1)
             {
                 if (count == 5) break;
-                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key.EventID, kvp.Key.EventName);
                 topErrorDevicesList2IN1.Insert(count, topErrorDevice);
                 count++;
             }
 
             if (myList2IN1.Count <= 5)
             {
-                for (int i = myList2IN1.Count; i <= 5 - count; i++)
+                for (int i = myList2IN1.Count; i <= 5; i++)
                 {
-                    myList2IN1.Add(new KeyValuePair<string, int>("0", 0));
+                    eventDetail = new EventDetail
+                    {
+                        EventID = "0",
+                        EventName = "0",
+                    };
+                    myList2IN1.Add(new KeyValuePair<EventDetail, int>(eventDetail, 0));
                 }
             }
 
@@ -350,21 +367,50 @@ namespace SLA_Management.Controllers
             return View();
         }
 
-        private static Dictionary<string, int> CountDuplicates(List<string> list)
+        private static Dictionary<EventDetail, int> CountDuplicates(List<EventDetail> list)
         {
-            Dictionary<string, int> counts = new Dictionary<string, int>();
+            Dictionary<EventDetail, int> counts = new Dictionary<EventDetail, int>();
 
-            foreach (string item in list)
+            List<EventDetail> list2 = new List<EventDetail> ();
+
+            bool flag = false;
+            foreach (EventDetail item in list)
             {
-                if (counts.ContainsKey(item))
+                flag = false;
+                foreach (EventDetail item2 in list2)
                 {
-                    counts[item]++;
+                    if(item.EventID == item2.EventID)
+                    {
+                        flag = true;
+                    }
+                   
                 }
-                else
+
+
+                if(flag == false || list2.Count == 0)
                 {
-                    counts[item] = 1;
+                    list2.Add(item);
+
                 }
+
             }
+
+
+            for (int i = 0; i < list2.Count; i++)
+            {
+                counts.Add(list2[i], 1);
+
+                foreach (EventDetail item in list)
+                {
+                    if (list2[i].EventID == item.EventID)
+                    {
+                        counts[list2[i]]++;
+                    }
+                }
+
+
+            }
+
 
             // Filter out items with count less than 2 (non-duplicates)
             counts = counts.Where(kvp => kvp.Value > 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -372,7 +418,8 @@ namespace SLA_Management.Controllers
             return counts;
         }
 
-        public List<string> GetLRMTopDeviceError()
+        #region LRM get Event
+        public List<EventDetail> GetLRMTopDeviceError()
         {
             string _sql = string.Empty;
 
@@ -381,15 +428,27 @@ namespace SLA_Management.Controllers
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection")))
                 {
 
-                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM ghbfeelview.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+//                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM ghbfeelview.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+//DEVICE_STATUS_EVENT_ID != 'E1003' and
+//DEVICE_STATUS_EVENT_ID != 'E1041' and
+//DEVICE_STATUS_EVENT_ID != 'E1130' and
+//DEVICE_STATUS_EVENT_ID != 'E1225' and
+//DEVICE_STATUS_EVENT_ID != 'E1129' and
+//DEVICE_STATUS_EVENT_ID != 'E1128' and
+//DEVICE_STATUS_EVENT_ID != 'E1047'
+//";
+
+                    _sql = @"SELECT a.DEVICE_STATUS_EVENT_ID ,b.NAME_EN_US
+FROM ghbfeelview.device_status_info a , ghbfeelview.device_inner_event b 
+where ( a.DEVICE_STATUS_EVENT_ID = b.EVENT_ID ) and
+DEVICE_STATUS_EVENT_ID != 'E1002' and
 DEVICE_STATUS_EVENT_ID != 'E1003' and
 DEVICE_STATUS_EVENT_ID != 'E1041' and
 DEVICE_STATUS_EVENT_ID != 'E1130' and
 DEVICE_STATUS_EVENT_ID != 'E1225' and
 DEVICE_STATUS_EVENT_ID != 'E1129' and
 DEVICE_STATUS_EVENT_ID != 'E1128' and
-DEVICE_STATUS_EVENT_ID != 'E1047'
-";
+DEVICE_STATUS_EVENT_ID != 'E1047' ";
                     //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
 
                     cn.Open();
@@ -409,9 +468,9 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
             }
         }
 
-        protected virtual List<string> GetLRMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
+        protected virtual List<EventDetail> GetLRMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
         {
-            List<string> recordlst = new List<string>();
+            List<EventDetail> recordlst = new List<EventDetail>();
             while (reader.Read())
             {
                 recordlst.Add(GetLRMTopDeviceErrorGHBFromReader(reader));
@@ -419,18 +478,22 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
             return recordlst;
         }
 
-        protected virtual string GetLRMTopDeviceErrorGHBFromReader(IDataReader reader)
+        protected virtual EventDetail GetLRMTopDeviceErrorGHBFromReader(IDataReader reader)
         {
-            // feelviewstatus record = new feelviewstatus();
-            string record = reader["DEVICE_STATUS_EVENT_ID"].ToString();
+            EventDetail record = new EventDetail();
 
-            // record.onlineATM = reader["_onlineATM"].ToString();
+           
+             record.EventID = reader["DEVICE_STATUS_EVENT_ID"].ToString();
 
-            // record.offlineATM = reader["_offlineATM"].ToString();
+             record.EventName = reader["NAME_EN_US"].ToString();
+
+
             return record;
         }
+        #endregion
 
-        public List<string> GetRDMTopDeviceError()
+        #region RDM get Event
+        public List<EventDetail> GetRDMTopDeviceError()
         {
             string _sql = string.Empty;
 
@@ -439,15 +502,27 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
                 using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_CDM:FullNameConnection")))
                 {
 
-                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM gsb_pilot2020.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+//                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM gsb_pilot2020.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+//DEVICE_STATUS_EVENT_ID != 'E1003' and
+//DEVICE_STATUS_EVENT_ID != 'E1041' and
+//DEVICE_STATUS_EVENT_ID != 'E1130' and
+//DEVICE_STATUS_EVENT_ID != 'E1225' and
+//DEVICE_STATUS_EVENT_ID != 'E1129' and
+//DEVICE_STATUS_EVENT_ID != 'E1128' and
+//DEVICE_STATUS_EVENT_ID != 'E1047'
+//";
+
+                    _sql = @"SELECT a.DEVICE_STATUS_EVENT_ID ,b.NAME_EN_US
+FROM gsb_pilot2020.device_status_info a , gsb_pilot2020.device_inner_event b 
+where ( a.DEVICE_STATUS_EVENT_ID = b.EVENT_ID ) and
+DEVICE_STATUS_EVENT_ID != 'E1002' and
 DEVICE_STATUS_EVENT_ID != 'E1003' and
 DEVICE_STATUS_EVENT_ID != 'E1041' and
 DEVICE_STATUS_EVENT_ID != 'E1130' and
 DEVICE_STATUS_EVENT_ID != 'E1225' and
 DEVICE_STATUS_EVENT_ID != 'E1129' and
 DEVICE_STATUS_EVENT_ID != 'E1128' and
-DEVICE_STATUS_EVENT_ID != 'E1047'
-";
+DEVICE_STATUS_EVENT_ID != 'E1047' ";
                     //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
 
                     cn.Open();
@@ -467,9 +542,9 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
             }
         }
 
-        protected virtual List<string> GetRDMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
+        protected virtual List<EventDetail> GetRDMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
         {
-            List<string> recordlst = new List<string>();
+            List<EventDetail> recordlst = new List<EventDetail>();
             while (reader.Read())
             {
                 recordlst.Add(GetRDMTopDeviceErrorGHBFromReader(reader));
@@ -477,18 +552,20 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
             return recordlst;
         }
 
-        protected virtual string GetRDMTopDeviceErrorGHBFromReader(IDataReader reader)
+        protected virtual EventDetail GetRDMTopDeviceErrorGHBFromReader(IDataReader reader)
         {
-            // feelviewstatus record = new feelviewstatus();
-            string record = reader["DEVICE_STATUS_EVENT_ID"].ToString();
+             EventDetail record = new EventDetail();
+           
 
-            // record.onlineATM = reader["_onlineATM"].ToString();
+             record.EventID = reader["DEVICE_STATUS_EVENT_ID"].ToString();
 
-            // record.offlineATM = reader["_offlineATM"].ToString();
+             record.EventName = reader["NAME_EN_US"].ToString();
+
             return record;
         }
+        #endregion
 
-
+        #region Get all status
         public List<feelviewstatus> GetLRMStatus()
         {
             string _sql = string.Empty;
@@ -603,7 +680,7 @@ DEVICE_STATUS_EVENT_ID != 'E1047'
             }
             return recordlst;
         }
-
+        #endregion
 
         #region Old code
         public List<comlogrecord> GetComlogRecordFromSqlServer()
