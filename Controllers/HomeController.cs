@@ -1,22 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
 using SLA_Management.Models;
 using SLA_Management.Models.HomeModel;
 using SLA_Management.Models.OperationModel;
 using SLAManagement.Data;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Xml;
 
 namespace SLA_Management.Controllers
 {
     public class HomeController : Controller
     {
         private IConfiguration _myConfiguration;
+        private CultureInfo _cultureEnInfo = new CultureInfo("en-US");
         private static List<feelviewstatus> recordset_homeshowstatus = new List<feelviewstatus>();
         private static List<comlogrecord> recordset_comlogrecord = new List<comlogrecord>();
         private static List<slatracking> recordset_slatracking = new List<slatracking>();
@@ -121,79 +126,486 @@ namespace SLA_Management.Controllers
         }
         public IActionResult Index()
         {
-            ViewBag.FV2IN1Total = "-";
-            ViewBag.FVRDMTotal = "-";
-            ViewBag.FVLRMTotal = "-";
-            ViewBag.FVSECTotal = "-";
 
-            ViewBag.online2IN1 = "-";
-            ViewBag.onlineRDM = "-";
-            ViewBag.onlineLRM = "-";
-            ViewBag.onlineSEC = "-";
+            List<feelviewstatus> feelviewstatusLRM = GetLRMStatus();
+            List<feelviewstatus> feelviewstatusRDM = GetRDMStatus();
+            List<feelviewstatus> feelviewstatus2IN1 = Get2IN1Status();
+            List<secone> feelviewstatusSECONE = GetSECOneStatus();
 
-            ViewBag.offline2IN1 = "-";
-            ViewBag.offlineRDM = "-";
-            ViewBag.offlineLRM = "-";
-            ViewBag.offlineSEC = "-";
+            #region GetLRMTopDeviceError
+            List<string> strings = GetLRMTopDeviceError();
+            List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();
 
-            List<TopErrorDevice> topErrorDevicesList = new List<TopErrorDevice>();
+            Dictionary<string, int> duplicateCounts = CountDuplicates(strings);
+
+            List<KeyValuePair<string, int>> myListLRM = duplicateCounts.ToList();
+
+            // Sorting the list by values in descending order
+            myListLRM.Sort((x, y) => y.Value.CompareTo(x.Value));
 
             TopErrorDevice topErrorDevice = null;
 
 
+            int count = 0;
+            string description = "";
+            foreach (var kvp in myListLRM)
+            {
+                if (count == 5) break;
 
-            topErrorDevice = new TopErrorDevice("1","CDM", "Cash Dispenser Error");
-            topErrorDevicesList.Insert(0, topErrorDevice);
-            topErrorDevice = new TopErrorDevice("2","CONN", "Communication Interrupt");
-            topErrorDevicesList.Insert(1, topErrorDevice);
-            topErrorDevice = new TopErrorDevice("3","TERM", "Terminal Stop Service");
-            topErrorDevicesList.Insert(2, topErrorDevice);
-            topErrorDevice = new TopErrorDevice("4", "TERM", "Terminal Maintenance Mode");
-            topErrorDevicesList.Insert(3, topErrorDevice);
-            topErrorDevice = new TopErrorDevice("5", "CARBINETDOOR", "Carbinet Door Open");
-            topErrorDevicesList.Insert(4, topErrorDevice);
 
+               // if (kvp.Key == "") description = "";
+
+
+
+                topErrorDevice = new TopErrorDevice((count+1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevicesListLRM.Insert(count, topErrorDevice);
+                count++;
+            }
+
+            if(myListLRM.Count <= 5)
+            {
+                for(int i = myListLRM.Count; i <= 5 - count; i++)
+                {
+                    myListLRM.Add(new KeyValuePair<string, int>("0", 0));
+                }
+            }
+
+
+            #endregion
+
+            #region GetRDMTopDeviceError
+            strings = GetRDMTopDeviceError();
+            List<TopErrorDevice> topErrorDevicesListRDM = new List<TopErrorDevice>();
+
+            duplicateCounts = CountDuplicates(strings);
+
+            List<KeyValuePair<string, int>>  myListRDM = duplicateCounts.ToList();
+
+            // Sorting the list by values in descending order
+            myListRDM.Sort((x, y) => y.Value.CompareTo(x.Value));
+
+            count = 0;
+            foreach (var kvp in myListRDM)
+            {
+                if (count == 5) break;
+                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevicesListRDM.Insert(count, topErrorDevice);
+                count++;
+            }
+
+            if (myListRDM.Count <= 5)
+            {
+                for (int i = myListRDM.Count; i <= 5 - count; i++)
+                {
+                    myListRDM.Add(new KeyValuePair<string, int>("0", 0));
+                }
+            }
+
+
+            #endregion
+
+            #region Get2IN1TopDeviceError
+            strings = GetLRMTopDeviceError();
+            List<TopErrorDevice> topErrorDevicesList2IN1 = new List<TopErrorDevice>();
+
+            duplicateCounts = CountDuplicates(strings);
+
+            List<KeyValuePair<string, int>> myList2IN1 = duplicateCounts.ToList();
+
+            // Sorting the list by values in descending order
+            myList2IN1.Sort((x, y) => y.Value.CompareTo(x.Value));
+
+            count = 0;
+            foreach (var kvp in myList2IN1)
+            {
+                if (count == 5) break;
+                topErrorDevice = new TopErrorDevice((count + 1).ToString(), kvp.Key, kvp.Key);
+                topErrorDevicesList2IN1.Insert(count, topErrorDevice);
+                count++;
+            }
+
+            if (myList2IN1.Count <= 5)
+            {
+                for (int i = myList2IN1.Count; i <= 5 - count; i++)
+                {
+                    myList2IN1.Add(new KeyValuePair<string, int>("0", 0));
+                }
+            }
+
+
+            #endregion
+
+
+
+
+            string total2IN1 = "0";
+            string totalLRM = "0";
+            string totalRDM = "0";
+            string totalSECONE = "0";
+
+            string online2IN1 = "0";
+            string onlineLRM = "0";
+            string onlineRDM = "0";
+            string onlineSECONE = "0";
+
+            string offline2IN1 = "0";
+            string offlineLRM = "0";
+            string offlineRDM = "0";
+            string offlineSECONE = "0";
+
+            if (feelviewstatusLRM != null)
+            {
+                totalLRM = (Int32.Parse(feelviewstatusLRM[0].onlineATM) + Int32.Parse(feelviewstatusLRM[0].offlineATM)).ToString();
+                onlineLRM = Int32.Parse(feelviewstatusLRM[0].onlineATM).ToString();
+                offlineLRM = Int32.Parse(feelviewstatusLRM[0].offlineATM).ToString();
+            }
+
+            if (feelviewstatusRDM != null)
+            {
+                totalRDM = (Int32.Parse(feelviewstatusRDM[0].onlineATM) + Int32.Parse(feelviewstatusRDM[0].offlineATM)).ToString();
+                onlineRDM = Int32.Parse(feelviewstatusRDM[0].onlineATM).ToString();
+                offlineRDM = Int32.Parse(feelviewstatusRDM[0].offlineATM).ToString();
+            }
+
+            if (feelviewstatus2IN1 != null)
+            {
+                total2IN1 = (Int32.Parse(feelviewstatus2IN1[0].onlineATM) + Int32.Parse(feelviewstatus2IN1[0].offlineATM)).ToString();
+                online2IN1 = Int32.Parse(feelviewstatus2IN1[0].onlineATM).ToString();
+                offline2IN1 = Int32.Parse(feelviewstatus2IN1[0].offlineATM).ToString();
+            }
+
+            if (feelviewstatusSECONE != null)
+            {
+                totalSECONE = (Int32.Parse(feelviewstatusSECONE[0]._online) + Int32.Parse(feelviewstatusSECONE[0]._offline)).ToString();
+                onlineSECONE = Int32.Parse(feelviewstatusSECONE[0]._online).ToString();
+                offlineSECONE = Int32.Parse(feelviewstatusSECONE[0]._offline).ToString();
+            }
+
+
+            ViewBag.FV2IN1Total = total2IN1;
+            ViewBag.FVRDMTotal = totalRDM;
+            ViewBag.FVLRMTotal = totalLRM;
+            ViewBag.FVSECTotal = totalSECONE;
+
+            ViewBag.online2IN1 = online2IN1;
+            ViewBag.onlineRDM = onlineRDM;
+            ViewBag.onlineLRM = onlineLRM;
+            ViewBag.onlineSEC = onlineSECONE;
+
+            ViewBag.offline2IN1 = offline2IN1;
+            ViewBag.offlineRDM = offlineRDM;
+            ViewBag.offlineLRM = offlineLRM;
+            ViewBag.offlineSEC = offlineSECONE;
 
            
+
+           
+            //topErrorDevicesList.Insert(0, topErrorDevice);
+            //topErrorDevice = new TopErrorDevice("2", "CONN", "Communication Interrupt");
+            //topErrorDevicesList.Insert(1, topErrorDevice);
+            //topErrorDevice = new TopErrorDevice("3", "TERM", "Terminal Stop Service");
+            //topErrorDevicesList.Insert(2, topErrorDevice);
+            //topErrorDevice = new TopErrorDevice("4", "TERM", "Terminal Maintenance Mode");
+            //topErrorDevicesList.Insert(3, topErrorDevice);
+            //topErrorDevice = new TopErrorDevice("5", "CARBINETDOOR", "Carbinet Door Open");
+            //topErrorDevicesList.Insert(4, topErrorDevice);
 
 
             //LRM device
-            ViewBag.deviceLRMError = topErrorDevicesList;
-            
+            ViewBag.deviceLRMError = topErrorDevicesListLRM;
+
 
             //RDM device
-            ViewBag.deviceRDMError = topErrorDevicesList;
-           
+            ViewBag.deviceRDMError = topErrorDevicesListRDM;
+
 
             //2IN1 device
-            ViewBag.device2IN1Error = topErrorDevicesList;
+            ViewBag.device2IN1Error = topErrorDevicesList2IN1;
 
-            ViewBag.deviceLRMError1 = 80;
-            ViewBag.deviceLRMError2 = 60;
-            ViewBag.deviceLRMError3 = 55;
-            ViewBag.deviceLRMError4 = 30;
-            ViewBag.deviceLRMError5 = 25;
+            ViewBag.deviceLRMError1 = myListLRM[0].Value;
+            ViewBag.deviceLRMError2 = myListLRM[1].Value;
+            ViewBag.deviceLRMError3 = myListLRM[2].Value;
+            ViewBag.deviceLRMError4 = myListLRM[3].Value;
+            ViewBag.deviceLRMError5 = myListLRM[4].Value;
 
-            ViewBag.deviceRDMError1 = 80;
-            ViewBag.deviceRDMError2= 60;
-            ViewBag.deviceRDMError3 = 55;
-            ViewBag.deviceRDMError4 = 30;
-            ViewBag.deviceRDMError5 = 25;
+            
+            ViewBag.deviceRDMError1 = myListRDM[0].Value;
+            ViewBag.deviceRDMError2 = myListRDM[1].Value;
+            ViewBag.deviceRDMError3 = myListRDM[2].Value;
+            ViewBag.deviceRDMError4 = myListRDM[3].Value;
+            ViewBag.deviceRDMError5 = myListRDM[4].Value;
 
-            ViewBag.device2IN1Error1 = 80;
-            ViewBag.device2IN1Error2 = 60;
-            ViewBag.device2IN1Error3 = 55;
-            ViewBag.device2IN1Error4 = 30;
-            ViewBag.device2IN1Error5 = 25;
+            ViewBag.device2IN1Error1 = myList2IN1[0].Value;
+            ViewBag.device2IN1Error2 = myList2IN1[1].Value;
+            ViewBag.device2IN1Error3 = myList2IN1[2].Value;
+            ViewBag.device2IN1Error4 = myList2IN1[3].Value;
+            ViewBag.device2IN1Error5 = myList2IN1[4].Value;
 
 
-            // ViewBag.FrMonthLRM
-            // FrMonthRDM
-            // FrMonth2IN1
+            ViewBag.FrMonthLRM = DateTime.Now.ToString("yyyy-MM", _cultureEnInfo);
+            ViewBag.FrMonthRDM = DateTime.Now.ToString("yyyy-MM", _cultureEnInfo);
+            ViewBag.FrMonth2IN1 = DateTime.Now.ToString("yyyy-MM", _cultureEnInfo);
 
 
             return View();
         }
+
+        private static Dictionary<string, int> CountDuplicates(List<string> list)
+        {
+            Dictionary<string, int> counts = new Dictionary<string, int>();
+
+            foreach (string item in list)
+            {
+                if (counts.ContainsKey(item))
+                {
+                    counts[item]++;
+                }
+                else
+                {
+                    counts[item] = 1;
+                }
+            }
+
+            // Filter out items with count less than 2 (non-duplicates)
+            counts = counts.Where(kvp => kvp.Value > 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            return counts;
+        }
+
+        public List<string> GetLRMTopDeviceError()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection")))
+                {
+
+                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM ghbfeelview.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+DEVICE_STATUS_EVENT_ID != 'E1003' and
+DEVICE_STATUS_EVENT_ID != 'E1041' and
+DEVICE_STATUS_EVENT_ID != 'E1130' and
+DEVICE_STATUS_EVENT_ID != 'E1225' and
+DEVICE_STATUS_EVENT_ID != 'E1129' and
+DEVICE_STATUS_EVENT_ID != 'E1128' and
+DEVICE_STATUS_EVENT_ID != 'E1047'
+";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+
+
+                    return GetLRMTopDeviceErrorGHBCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+
+        protected virtual List<string> GetLRMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
+        {
+            List<string> recordlst = new List<string>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetLRMTopDeviceErrorGHBFromReader(reader));
+            }
+            return recordlst;
+        }
+
+        protected virtual string GetLRMTopDeviceErrorGHBFromReader(IDataReader reader)
+        {
+            // feelviewstatus record = new feelviewstatus();
+            string record = reader["DEVICE_STATUS_EVENT_ID"].ToString();
+
+            // record.onlineATM = reader["_onlineATM"].ToString();
+
+            // record.offlineATM = reader["_offlineATM"].ToString();
+            return record;
+        }
+
+        public List<string> GetRDMTopDeviceError()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_CDM:FullNameConnection")))
+                {
+
+                    _sql = @"SELECT DEVICE_STATUS_EVENT_ID FROM gsb_pilot2020.device_status_info where DEVICE_STATUS_EVENT_ID != 'E1002' and
+DEVICE_STATUS_EVENT_ID != 'E1003' and
+DEVICE_STATUS_EVENT_ID != 'E1041' and
+DEVICE_STATUS_EVENT_ID != 'E1130' and
+DEVICE_STATUS_EVENT_ID != 'E1225' and
+DEVICE_STATUS_EVENT_ID != 'E1129' and
+DEVICE_STATUS_EVENT_ID != 'E1128' and
+DEVICE_STATUS_EVENT_ID != 'E1047'
+";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+
+
+                    return GetRDMTopDeviceErrorGHBCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+
+        protected virtual List<string> GetRDMTopDeviceErrorGHBCollectionFromReader(IDataReader reader)
+        {
+            List<string> recordlst = new List<string>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetRDMTopDeviceErrorGHBFromReader(reader));
+            }
+            return recordlst;
+        }
+
+        protected virtual string GetRDMTopDeviceErrorGHBFromReader(IDataReader reader)
+        {
+            // feelviewstatus record = new feelviewstatus();
+            string record = reader["DEVICE_STATUS_EVENT_ID"].ToString();
+
+            // record.onlineATM = reader["_onlineATM"].ToString();
+
+            // record.offlineATM = reader["_offlineATM"].ToString();
+            return record;
+        }
+
+
+        public List<feelviewstatus> GetLRMStatus()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection")))
+                {
+
+                    _sql = "SELECT COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
+                    _sql += " COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036') THEN 1 END) AS _offlineATM  ";
+                    _sql += " FROM ghbfeelview.device_status_info  ";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+
+
+                    return GetHomeStatusGHBCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+
+        public List<feelviewstatus> GetRDMStatus()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_CDM:FullNameConnection")))
+                {
+
+                    _sql = "SELECT COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
+                    _sql += " COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036') THEN 1 END) AS _offlineATM  ";
+                    _sql += " FROM gsb_pilot2020.device_status_info  ";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+                    return GetHomeStatusGHBCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+
+        public List<feelviewstatus> Get2IN1Status()
+        {
+            string _sql = string.Empty;
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_2IN1:FullNameConnection")))
+                {
+
+                    _sql = "SELECT COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
+                    _sql += " COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036') THEN 1 END) AS _offlineATM  ";
+                    _sql += " FROM feelvision.device_status_info  ";
+                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+
+                    cn.Open();
+
+                    MySqlCommand cmd = new MySqlCommand(_sql, cn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+
+
+
+
+
+
+                    return GetHomeStatusGHBCollectionFromReader(ExecuteReader(cmd));
+                }
+            }
+            catch (MySqlException ex)
+            {
+                return null;
+            }
+        }
+
+        protected virtual feelviewstatus GetHomeStatusGHBFromReader(IDataReader reader)
+        {
+            feelviewstatus record = new feelviewstatus();
+
+
+            record.onlineATM = reader["_onlineATM"].ToString();
+
+            record.offlineATM = reader["_offlineATM"].ToString();
+            return record;
+        }
+
+        protected virtual List<feelviewstatus> GetHomeStatusGHBCollectionFromReader(IDataReader reader)
+        {
+            List<feelviewstatus> recordlst = new List<feelviewstatus>();
+            while (reader.Read())
+            {
+                recordlst.Add(GetHomeStatusGHBFromReader(reader));
+            }
+            return recordlst;
+        }
+
+
+        #region Old code
         public List<comlogrecord> GetComlogRecordFromSqlServer()
         {
             List<comlogrecord> dataList = new List<comlogrecord>();
@@ -442,5 +854,7 @@ namespace SLA_Management.Controllers
                 return null;
             }
         }
+
+        #endregion
     }
 }
