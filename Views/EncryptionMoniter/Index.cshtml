@@ -227,6 +227,34 @@
 
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
+                <div class="col col-md-1" style="">
+                    <h>Terminal Type : </h>
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="form-group">
+                        <!--		Show Numbers Of Rows 		-->
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="terminal_type" name="terminal_type">
+
+
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.TerminalType)
+                                {
+
+                                    <option value=@item.deviceType data-tokens=@item.deviceType>@item.deviceTypeName</option>
+
+                                }
+                                
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+                   
+
+
+
+
                     <div class="col col-md-1" style="">
                         <h>Rows : </h>
                     </div>
@@ -265,10 +293,7 @@
                     </div>
 
 
-                    <div class="col col-md-1" style="">
-                    </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    </div>
+                    
 
 
                 </div>
@@ -597,6 +622,7 @@
             todate: document.getElementById('todate').value,
             agent_status: document.getElementById('agent_status').value,
             maxRows: document.getElementById('maxRows').value,
+            terminal_type: document.getElementById('terminal_type').value,
             sort: document.getElementById('sort').value
         };
         SubmitSearch(paramater);

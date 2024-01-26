@@ -9,6 +9,7 @@
         public DateTime todate { get; set; }
         public string agent_status { get; set; }
         public string sort { get; set; }
+        public string terminal_type { get; set; }
         public int maxRows { get; set; }
     }
 }

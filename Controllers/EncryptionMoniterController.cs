@@ -37,6 +37,7 @@ namespace SLA_Management.Controllers
 
             ViewBag.EncryptionVersion = GetEncryptionVersion();
             ViewBag.CurrentTID = GetDevices();
+            ViewBag.TerminalType = GetDeviceType();
             //ViewBag.pageSize = maxRows.HasValue ? maxRows.Value : 50;
             //ViewBag.ExportDataFile = filter;
             //ViewBag.TERM_ID = filter.term_id;
@@ -57,16 +58,18 @@ namespace SLA_Management.Controllers
                 string sql = @"SELECT fv_device_info.TERM_ID as terminal_id,fv_device_info.TERM_NAME as terminal_name, device_encryption.* 
                                 FROM device_encryption 
                                 LEFT JOIN fv_device_info 
-                                ON device_encryption.serial_no = fv_device_info.TERM_SEQ";
+                                ON device_encryption.serial_no = fv_device_info.TERM_SEQ
+                                where (fv_device_info.STATUS = 'use' or fv_device_info.STATUS = 'roustop')";
 
                 if (SearchData.serial_no != null ||
                     SearchData.encryption_version != null ||
                     SearchData.encryption_status != null ||
                     SearchData.fromdate != new DateTime() ||
                     SearchData.todate != new DateTime() ||
-                    SearchData.agent_status != null)
+                    SearchData.agent_status != null ||
+                     SearchData.terminal_type != null)
                 {
-                    sql += " where ";
+                    sql += " and ";
                     List<string> search = new List<string>();
                     if (SearchData.serial_no != null)
                     {
@@ -96,6 +99,18 @@ namespace SLA_Management.Controllers
                         search.Add("device_encryption.agent_status = @agent_status");
                         mySqlCommand.Parameters.AddWithValue("@agent_status", SearchData.agent_status);
                     }
+
+
+                    if (SearchData.terminal_type != null)
+                    {
+                        search.Add("fv_device_info.BRAND_ID = @terminal_type");
+                        mySqlCommand.Parameters.AddWithValue("@terminal_type", SearchData.terminal_type);
+                    }
+
+
+
+
+
                     if ((SearchData.fromdate != new DateTime() && SearchData.todate != new DateTime())
                         && (SearchData.todate >= SearchData.fromdate))
                     {
@@ -280,6 +295,27 @@ namespace SLA_Management.Controllers
             {
                 Log.Error($"GetEncryptionVersion Error : {ex}");
                 return new List<string>();
+            }
+
+        }
+
+
+        public List<DeviceType> GetDeviceType()
+        {
+            try
+            {
+                string removeText = "GRG_";
+                string replaceText = "";
+                MySqlCommand mySqlCommand = new MySqlCommand();
+                mySqlCommand.CommandText = "SELECT BRAND_ID as deviceType,REPLACE(BRAND_ID,@removeText,@replaceText) as deviceTypeName FROM gsb_logview.fv_device_info group by BRAND_ID;";
+                mySqlCommand.Parameters.AddWithValue("@removeText", removeText);
+                mySqlCommand.Parameters.AddWithValue("@replaceText", replaceText);
+                return ConvertDataTableToModel.ConvertDataTable<DeviceType>(connectMySQL.GetDatatable(mySqlCommand));
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GetDevices Error : {ex}");
+                return new List<DeviceType>();
             }
 
         }
