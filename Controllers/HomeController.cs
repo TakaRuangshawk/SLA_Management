@@ -512,7 +512,7 @@ namespace SLA_Management.Controllers
 
                     _sql = "SELECT COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
                     _sql += " COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036') THEN 1 END) AS _offlineATM  ";
-                    _sql += " FROM gsb_pilot2020.device_status_info  ";
+                    _sql += " FROM fv_ghb2in1.device_status_info  ";
                     //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
 
                     cn.Open();
