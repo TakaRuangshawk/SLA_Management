@@ -458,11 +458,11 @@ namespace SLA_Management.Controllers
 
             try
             {
-                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_LRM:FullNameConnection")))
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL_FV_2IN1:FullNameConnection")))
                 {
 
                     _sql = @"SELECT b.MODULE_NAME, a.EVENT_ID, b.NAME_EN_US, count(*) as total
-                            FROM ghbfeelview.`mt_caseflow_record_his` as a, ghbfeelview.device_inner_event as b
+                            FROM fv_ghb2in1.`mt_caseflow_record_his` as a, fv_ghb2in1.device_inner_event as b
                             where START_TIME between ";
                     _sql += "'" + dateStart + "' and '" + dateEnd + "'";
                     _sql += @" and a.EVENT_ID = b.EVENT_ID
