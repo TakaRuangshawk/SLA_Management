@@ -2,8 +2,12 @@
 {
     public class EventDetail
     {
-        public string EventID { get; set; }
+        public string MODULE_NAME { get; set; }
 
-        public string EventName { get; set; }
+        public string EVENT_ID { get; set; }
+
+        public string NAME_EN_US { get; set; }
+
+        public int total { get; set; }
     }
 }

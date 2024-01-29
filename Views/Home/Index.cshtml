@@ -8,6 +8,7 @@
         font-size: 20px;
         border-radius: 15px;
         margin-top: 15px;
+        margin-bottom: 25px;
     }
 
     #banner-so {
@@ -111,6 +112,8 @@
         border: outset;
     }
 
+   
+
     .row {
         margin: auto;
     }
@@ -182,20 +185,26 @@
 
 
     #myChartLRM {
-        width: 280px !important; /* Set the width of the canvas */
+        width: 243px !important; /* Set the width of the canvas */
         height: 200px !important; /* Set the height of the canvas */
     }
 
     #myChartRDM {
-        width: 280px !important; /* Set the width of the canvas */
+        width: 243px !important; /* Set the width of the canvas */
         height: 200px !important; /* Set the height of the canvas */
     }
 
     #myChart2IN1 {
-        width: 280px !important; /* Set the width of the canvas */
+        width: 243px !important; /* Set the width of the canvas */
         height: 200px !important; /* Set the height of the canvas */
     }
 
+    .bg_home {
+        background-image: url('/Operation/images/Pic_Home.png');
+        background-size: 100% 100%;
+        background-position: top;
+        background-repeat: no-repeat;
+    }
  
 </style>
 
@@ -210,10 +219,10 @@
             <div class="col-md-12 col-xl-6" id="main-left">
                 <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;margin-bottom: 10px;">
                     <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 0 1vh 1vw;border-radius: 15px 0px 0px 15px;margin-left: 4%">
-                        <div class="fs-5 text-nowrap" id="date" style="height: 100%; border-radius: 15px 0px 0px 15px;text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;"></div>
+                        <div class="fs-8 text-nowrap" id="date" style="height: 100%; border-radius: 15px 0px 0px 15px;text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;"></div>
                     </div>
                     <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 0;border-radius: 0px 15px 15px 0px;width: 15%;margin-right: 25px;">
-                        <div class="fs-5" id="time" style="height: 100%; border-radius: 0px 15px 15px 0px;text-align: left;display: flex!important;justify-content: flex-end;align-items: center;font-weight: 700;padding-right: 1vw;"></div>
+                        <div class="fs-8" id="time" style="height: 100%; border-radius: 0px 15px 15px 0px;text-align: left;display: flex!important;justify-content: flex-end;align-items: center;font-weight: 700;padding-right: 1vw;"></div>
                     </div>
                     <div class="col-3" style="background-color: rgba(255,255,255,0.65);padding: 1vh 0 1vh 1vw;border-radius: 15px 0px 0px 15px;">
                         <div class="fs-6 text-nowrap" id="" style="height:100%; border-radius: 15px 0px 0px 15px;text-align: left;display: flex!important;justify-content: space-around;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
@@ -389,7 +398,7 @@
 
                         </div>
                     </div>
-                    <div id="banner-fv">
+                    <div id="banner-fv" style="margin-bottom: 50px;">
                         <div class="row ">
                             <div class="col-12">
                                 <div class="row ds-flex-spacearound" style="padding-top:0.5vh;padding-bottom:0.5vh;">
@@ -465,26 +474,27 @@
                     </div>
                 </div>
 
-                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 258px;margin-bottom: 5px;">
+                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 269px;margin-bottom: 5px;">
 
                     <div class="col-6">
                         <div class="row" style="margin-bottom: 20px;" >
                             <div class="col-3" style="padding: revert;">
-                                <div class="fs-5 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 33px;z-index: inherit;position: sticky;">LRM</div>
+                                <div class="fs-5 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 21px;z-index: inherit;position: sticky;">LRM</div>
                             </div>
-                            <div class="col-3" >
-                                <div class="fs-5 text-nowrap" style="width: 304px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                            <div class="col-3" style="margin-left: -10px;">
+                                <div class="fs-8 text-nowrap" style="width: 251px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
                                   
-                                    <span style="margin-right: 10px;">ประจำเดือน : </span>
+                                    <span style="margin-right: 10px;">ประจำเดือน : @ViewBag.FrMonthLRM</span>
                                     
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                   @* <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                     @Html.TextBox("FrMonthLRM", ViewBag.FrMonthLRM as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "month", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
-
+*@
                                 </div>
                                                </div>
                                                 
                         </div>
-                        <table id="table-id" class="table table-striped table-sm" style="min-width: 100%;">
+                        <font size="1" face="Courier New">
+                            <table id="table-id" class="table table-striped table-sm table-responsive" style="min-width: 100%;margin-left: 12px;">
                             <thead>
                                 <tr>
                                     <th >No.</th>
@@ -499,7 +509,7 @@
                                 {
                                    <tr>
                                         <td style="text-align: center">@item.TopErrorDeviceNo</td>
-                                        <td style="text-align: left">
+                                        <td style="text-align: left;width: 150px;">
                                             <div class="row">
                                                 @if (item.TopErrorDeviceNo == "1")
                                                 {
@@ -540,11 +550,11 @@
 
 
                         </table>
-
+                        </font>
                     </div>
 
                     <div class="col-6" style="margin-top: -13px;">
-                        <div class="bar-container" style="width: 400px;height: 80%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                        <div class="bar-container" style="margin-left: 5px;width: 316px;height: 87%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
                             <div class="line"></div>
 
 
@@ -585,26 +595,27 @@
 
 
                 </div>
-                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 258px;margin-bottom: 5px;">
+                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 269px;margin-bottom: 5px;">
 
                     <div class="col-6">
                         <div class="row" style="margin-bottom: 20px;">
                             <div class="col-3" style="padding: revert;">
-                                <div class="fs-5 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 33px;z-index: inherit;position: sticky;">RDM</div>
+                                <div class="fs-8 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 21px;z-index: inherit;position: sticky;">RDM</div>
                             </div>
-                            <div class="col-3">
-                                <div class="fs-5 text-nowrap" style="width: 304px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                            <div class="col-3" style="margin-left: -10px;">
+                                <div class="fs-8 text-nowrap" style="width: 251px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
 
-                                    <span style="margin-right: 10px;">ประจำเดือน : </span>
+                                    <span style="margin-right: 10px;">ประจำเดือน : @ViewBag.FrMonthRDM</span>
 
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                  @*  <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                     @Html.TextBox("FrMonthRDM", ViewBag.FrMonthRDM as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "month", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
-
+*@
                                 </div>
                             </div>
 
                         </div>
-                        <table id="table-id" class="table table-striped table-sm" style="min-width: 100%;">
+                        <font size="1" face="Courier New">
+                            <table id="table-id" class="table table-striped table-sm" style="min-width: 100%;margin-left: 12px;">
                             <thead>
                                 <tr>
                                     <th>No.</th>
@@ -618,27 +629,27 @@
                                 {
                                     <tr>
                                         <td style="text-align: center">@item.TopErrorDeviceNo</td>
-                                        <td style="text-align: left">
+                                            <td style="text-align: left;width: 150px;">
                                             <div class="row">
                                                 @if (item.TopErrorDeviceNo == "1")
                                                 {
-                                                    <div class="color-square" style="background-color: red;height: 21px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
+                                                    <div class="color-square" style="background-color: red;height: 18px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
                                                 }
                                                 else if (item.TopErrorDeviceNo == "2")
                                                 {
-                                                    <div class="color-square" style="background-color: green;height: 21px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
+                                                        <div class="color-square" style="background-color: green;height: 18px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
                                                 }
                                                 else if (item.TopErrorDeviceNo == "3")
                                                 {
-                                                    <div class="color-square" style="background-color: grey;height: 21px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
+                                                        <div class="color-square" style="background-color: grey;height: 18px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
                                                 }
                                                 else if (item.TopErrorDeviceNo == "4")
                                                 {
-                                                    <div class="color-square" style="background-color: yellow;height: 21px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
+                                                        <div class="color-square" style="background-color: yellow;height: 18px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
                                                 }
                                                 else if (item.TopErrorDeviceNo == "5")
                                                 {
-                                                    <div class="color-square" style="background-color: blue;height: 21px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
+                                                        <div class="color-square" style="background-color: blue;height: 18px;margin-bottom: 0px;margin-top: 2px;margin-right: 20px;"></div>
                                                 }
 
 
@@ -654,11 +665,11 @@
 
 
                         </table>
-
+                        </font>
                     </div>
 
                     <div class="col-6" style="margin-top: -13px;">
-                        <div class="bar-container" style="width: 400px;height: 80%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                        <div class="bar-container" style="margin-left: 5px;width: 316px;height: 87%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
                             <div class="line"></div>
 
                             <canvas id="myChartRDM" style="width:320px !important;max-width:600px"></canvas>
@@ -691,26 +702,27 @@
 
                 </div>
 
-                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 258px;margin-bottom: 9px;">
+                <div class="row" style="padding:0;background-color: rgba(255,255,255,0.65);padding: 1vh 1vw 1vh 1vw;border-radius: 15px 15px 15px 15px;height: 269px;margin-bottom: 9px;">
 
                     <div class="col-6">
                         <div class="row" style="margin-bottom: 20px;">
                             <div class="col-3" style="padding: revert;">
-                                <div class="fs-5 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 33px;z-index: inherit;position: sticky;">2IN1</div>
+                                <div class="fs-8 text-nowrap" style="height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 21px;z-index: inherit;position: sticky;">2IN1</div>
                             </div>
-                            <div class="col-3">
-                                <div class="fs-5 text-nowrap" style="width: 304px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                            <div class="col-3" style="margin-left: -10px;">
+                                <div class="fs-8 text-nowrap" style="width: 251px;height: 100%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
 
-                                    <span style="margin-right: 10px;">ประจำเดือน : </span>
+                                    <span style="margin-right: 10px;">ประจำเดือน : @ViewBag.FrMonth2IN1</span>
 
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                  @*  <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                     @Html.TextBox("FrMonth2IN1", ViewBag.FrMonth2IN1 as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "month", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy"  })
-
+*@
                                 </div>
                             </div>
 
                         </div>
-                        <table id="table-id" class="table table-striped table-sm" style="min-width: 100%;">
+                        <font size="1" face="Courier New">
+                            <table id="table-id" class="table table-striped table-sm" style="min-width: 100%;margin-left: 12px;">
                             <thead>
                                 <tr>
                                     <th>No.</th>
@@ -724,7 +736,7 @@
                                 {
                                     <tr>
                                         <td style="text-align: center">@item.TopErrorDeviceNo</td>
-                                        <td style="text-align: left">
+                                            <td style="text-align: left;width: 150px;">
                                             <div class="row">
                                                 @if (item.TopErrorDeviceNo == "1")
                                                 {
@@ -760,11 +772,11 @@
 
 
                         </table>
-
+                        </font>
                     </div>
 
                     <div class="col-6" style="margin-top: -13px;">
-                        <div class="bar-container" style="width: 400px;height: 80%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
+                        <div class="bar-container" style="margin-left: 5px;width: 316px;height: 87%; border-radius: 15px 15px 15px 15px;background-color: rgba(255,255,255,1);text-align: left;display: flex!important;justify-content: flex-start;align-items: center;font-weight: 700;padding-left: 1vw;z-index: inherit;position: sticky;">
                             <div class="line"></div>
 
                             <canvas id="myChart2IN1" style="width:320px !important;max-width:600px"></canvas>
@@ -798,7 +810,7 @@
                 </div>
 
 
-                <div id=""></div>
+               
 
 
 
