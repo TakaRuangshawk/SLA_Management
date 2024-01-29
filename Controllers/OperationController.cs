@@ -2042,6 +2042,7 @@ namespace SLA_Management.Controllers
         public IActionResult TransactionsFetchData(string terminalno, string row, string page, string search, string sort, string order,string status,string trxtype,string rc,string todate,string fromdate)
         {
             int _page;
+            string transactiontable = _myConfiguration.GetValue<string>("ProjectSetting:transactiontable")??"ejlog_history";
 
             if (page == null || search == "search")
             {
@@ -2077,13 +2078,14 @@ namespace SLA_Management.Controllers
             fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
             todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
             List<TransactionModel> jsonData = new List<TransactionModel>();
+            
             if (search == "search")
             {
                 using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     connection.Open();
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc,case when billCounter is null then '' else billCounter end as billcounter FROM ejlog_history where trx_datetime is not null and trx_datetime between '" + fromdate +" 00:00:00' and '"+ todate +" 23:59:59' ";
+                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc,case when billCounter is null then '' else billCounter end as billcounter FROM "+ transactiontable + " where trx_datetime is not null and trx_datetime between '" + fromdate +" 00:00:00' and '"+ todate +" 23:59:59' ";
                     if (terminalno != "")
                     {
                         query += " and terminalid like '%" + terminalno + "%' ";
@@ -2152,7 +2154,7 @@ namespace SLA_Management.Controllers
                                 fee_amt1 = reader["fee_amt1"].ToString(),
                                 retract_amt1 = reader["retract_amt1"].ToString(),
                                 rc = reader["rc"].ToString(),
-                                billcounter = reader["billcounter"].ToString(),
+                                billcounter = FormatString(reader["billcounter"].ToString()),
                             });
                         }
                     }
@@ -2183,6 +2185,28 @@ namespace SLA_Management.Controllers
                 TotalTerminal = jsonData.Count(),
             };
             return Json(response);
+        }
+
+        private static string FormatString(string input)
+        {
+            input = input.Trim();
+            if (input.Length % 3 != 0)
+            {
+                throw new ArgumentException("Input string length must be divisible by 3.");
+            }
+
+            string formattedString = "";
+
+            for (int i = 0; i < input.Length; i += 3)
+            {
+                formattedString += input.Substring(i, 3);
+                if (i + 3 < input.Length)
+                {
+                    formattedString += "-";
+                }
+            }
+
+            return formattedString;
         }
         private string GetBranchName(string termid)
         {
