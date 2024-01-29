@@ -7,6 +7,7 @@
     string[] tableHeaders = new string[]
     {
     "No",
+    "Action",
     "Seq ",
     "Date Time",
     "Txn. Type",
@@ -17,8 +18,7 @@
     "To Account",
     "Status",
     "Amount",
-    "Fee Amount",
-    "Retract Amount",
+    "Bill Counter",
     "RC",
     };
 
@@ -137,6 +137,10 @@
         margin-bottom: 1em;
     }
     h{
+        white-space:nowrap;
+    }
+
+    label {
         white-space:nowrap;
     }
 </style>
@@ -428,6 +432,164 @@
     </div>
 
 </div>
+@using (Html.BeginForm("Transaction", "Operation", FormMethod.Get, new { id = "ModalTransactionID" }))
+{
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="container" style="padding: 0;">
+                    <div style="padding:0;"></div>
+                    <div id="terminal-info" style="display:block;border: 20px solid orange;">
+                        <div class="row" style="padding-top:15px;">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="no">No </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("no", ViewBag.no as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="seq">Seq No </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("seq", ViewBag.seq as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="trx_datetime">Transaction DateTime </label>:
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("trx_datetime", ViewBag.trx_datetime as string, new { @class = "w-100 form-control nowrap", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="trx_type">Transaction Type</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("trx_type", ViewBag.trx_type as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="bankcode">From Bank </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("bankcode", ViewBag.bankcode as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="s_other">To Bank </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("s_other", ViewBag.s_other as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                        
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="pan_no">Card No </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("pan_no", ViewBag.pan_no as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="fr_accno">From Account</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("fr_accno", ViewBag.fr_accno as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="to_accno">To Account </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("to_accno", ViewBag.to_accno as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="trx_status">Status</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("trx_status", ViewBag.trx_status as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="amt1">Amount </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("amt1", ViewBag.amt1 as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="fee_amt1">Fee</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("fee_amt1", ViewBag.fee_amt1 as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="retract_amt1">Retract </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("retract_amt1", ViewBag.retract_amt1 as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="billcounter">Bill Counter</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("billcounter", ViewBag.billcounter as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="ejrc">Response Code </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("ejrc", ViewBag.ejrc as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                            </div>
+                        </div>
+
+
+
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 
 <script>
     function updateTable(search) {
@@ -487,8 +649,36 @@
                     $("#table-id tbody").append(noDataRow);
                 } else {
                     $.each(jsondata, function (index, item) {
+                        var editButton = $("<td>").css("text-align", "center").append(
+                            $("<img>").addClass("btn text-dark").attr({
+                                id: "btnEdit",
+                                "data-toggle": "modal",
+                                "data-target": "#myModal",
+                                src: "/images/button_view.png",
+                                style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
+                                onclick: "EditButton(" +
+                                    "'" + item.no + "'," +
+                                    "'" + item.seq + "'," +
+                                    "'" + item.trx_datetime + "'," +
+                                    "'" + item.trx_type + "'," +
+                                    "'" + item.bankcode + "'," +
+                                    "'" + item.s_other + "'," +
+                                    "'" + item.pan_no + "'," +
+                                    "'" + item.fr_accno + "'," +
+                                    "'" + item.to_accno + "'," +
+                                    "'" + item.trx_status + "'," +
+                                    "'" + item.amt1 + "'," +
+                                    "'" + item.fee_amt1 + "'," +
+                                    "'" + item.retract_amt1 + "'," +
+                                    "'" + item.billcounter + "'," +
+                                    "'" + item.rc + "'," +
+
+                                    ")"
+                            })
+                        );
                         var row = $("<tr>");
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.no));
+                        row.append(editButton);
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.seq));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_datetime));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_type));
@@ -499,8 +689,7 @@
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.to_accno));
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.trx_status));
                         row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.amt1));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.fee_amt1))
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.retract_amt1))
+                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.billcounter))
                         row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.rc));
 
                         $("#table-id tbody").append(row);
@@ -613,7 +802,25 @@
         });
     });
 
-
+    function EditButton(no, seq, trx_datetime, trx_type, bankcode, s_other, pan_no, fr_accno,
+        to_accno, trx_status, amt1, fee_amt1, retract_amt1, billcounter, rc) {
+        document.getElementById('no').value = no;
+        document.getElementById('seq').value = seq;
+        document.getElementById('trx_datetime').value = trx_datetime;
+        document.getElementById('trx_type').value = trx_type;
+        document.getElementById('bankcode').value = bankcode;
+        document.getElementById('s_other').value = s_other;
+        document.getElementById('pan_no').value = pan_no;
+        document.getElementById('fr_accno').value = fr_accno;
+        document.getElementById('to_accno').value = to_accno;
+        document.getElementById('trx_status').value = trx_status;
+        document.getElementById('amt1').value = amt1;
+        document.getElementById('fee_amt1').value = fee_amt1;
+        document.getElementById('retract_amt1').value = retract_amt1;
+        document.getElementById('billcounter').value = billcounter;
+        document.getElementById('ejrc').value = rc;
+        console.log(document.getElementById('ejrc').value);
+    }
 
 
 </script>

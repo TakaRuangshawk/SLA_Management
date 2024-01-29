@@ -2083,7 +2083,7 @@ namespace SLA_Management.Controllers
                 {
                     connection.Open();
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc FROM logview.ejlog_history where trx_datetime is not null and trx_datetime between '"+ fromdate +" 00:00:00' and '"+ todate +" 23:59:59' ";
+                    string query = " SELECT seq,trx_datetime,trx_type,bankcode,s_other,pan_no,fr_accno,to_accno,trx_status,amt1,fee_amt1,retract_amt1,CASE WHEN S_RC = 'N' AND S_REMARK = '' THEN S_REMARK ELSE S_REMARK END AS rc,case when billCounter is null then '' else billCounter end as billcounter FROM ejlog_history where trx_datetime is not null and trx_datetime between '" + fromdate +" 00:00:00' and '"+ todate +" 23:59:59' ";
                     if (terminalno != "")
                     {
                         query += " and terminalid like '%" + terminalno + "%' ";
@@ -2152,6 +2152,7 @@ namespace SLA_Management.Controllers
                                 fee_amt1 = reader["fee_amt1"].ToString(),
                                 retract_amt1 = reader["retract_amt1"].ToString(),
                                 rc = reader["rc"].ToString(),
+                                billcounter = reader["billcounter"].ToString(),
                             });
                         }
                     }
@@ -2297,6 +2298,7 @@ namespace SLA_Management.Controllers
             public string fee_amt1 { get; set; }
             public string retract_amt1 { get; set; }
             public string rc { get; set; }
+            public string billcounter { get; set; }
 
         }
         public class DataResponse_Transaction

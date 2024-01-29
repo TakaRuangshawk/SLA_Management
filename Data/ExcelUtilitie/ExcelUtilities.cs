@@ -768,7 +768,8 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 11].Value = data.amt1;
                         excelWorksheet.Cells[nStartRowData, 12].Value = data.fee_amt1;
                         excelWorksheet.Cells[nStartRowData, 13].Value = data.retract_amt1;
-                        excelWorksheet.Cells[nStartRowData, 14].Value = data.rc;
+                        excelWorksheet.Cells[nStartRowData, 14].Value = data.billcounter;
+                        excelWorksheet.Cells[nStartRowData, 15].Value = data.rc;
                         nStartRowData++;
                         nSeq++;
 
