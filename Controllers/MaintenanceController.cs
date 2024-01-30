@@ -33,7 +33,7 @@ namespace SLA_Management.Controllers
         [HttpGet]
         public IActionResult InventoryMonitor(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
         {
-            ViewBag.maxRows = null;
+            ViewBag.maxRows = 50;
             ViewBag.CurrentTID = GetDeviceInfoFeelview();
             ViewBag.CurrentTSeq = GetSerialNo();
             ViewBag.CurrentCC = GetCounterCode();

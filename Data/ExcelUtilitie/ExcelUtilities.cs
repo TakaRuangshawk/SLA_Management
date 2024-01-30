@@ -5,6 +5,7 @@ using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
 using static SLA_Management.Controllers.MaintenanceController;
+using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
@@ -644,6 +645,79 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_WhitelistReport
+    {
+        #region  Local Variable
 
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+
+
+        public ExcelUtilities_WhitelistReport()
+        {
+            
+        }
+
+        #endregion
+
+        #region Function 
+        public void GatewayOutput(List<WhitelistReportModel> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nSeq = 1;
+
+
+            try
+            {
+                nStartRowData = 2;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\WhitelistReport.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Summary_rawdata"];
+                    //excelWorksheet.Name = "Regulator";
+
+                    foreach (WhitelistReportModel data in objData)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.eventdate;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.warn_type;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.severity_level;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.total;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "WhitelistReport.xlsx"))));
+                    FileSaveAsXlsxFormat = "WhitelistReport.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+        #endregion
+    }
 
 }
