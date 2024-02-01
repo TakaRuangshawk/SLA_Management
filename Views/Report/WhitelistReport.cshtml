@@ -202,17 +202,35 @@
 </div>
 <div class="container">
 
-    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+    @*<div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
         <div class="col" style="display: flex;justify-content: center;">
-            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
         </div>
         <div class="col" style="display: flex;justify-content: center;">
             <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
                 <span id="recordCount"></span>
             </a>
         </div>
+    </div>*@
+    <div class="row" style="display:flex;justify-content:center;">
+        <div class="table-responsive" style="overflow-x: hidden;width:max-content;">
+            <table class="table table-hover table-responsive table-sm custom-table" id="table-pivot">
+                <thead>
+                    <tr>
+                        <th style="width: 30%">Warning Type</th>
+                        <th style="width: 8%">Critical</th>
+                        <th style="width: 8%">High</th>
+                        <th style="width: 8%">Low</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  
+                </tbody>
+            </table>
+        </div>
     </div>
+    
     <div class="table-responsive" style="overflow-x: hidden;">
         <table id="table-id" class="table table-striped custom-table">
             <thead>
@@ -293,13 +311,29 @@
             success: function (data) {
                 console.log(data);
                 var jsondata = data.jsonData;
+                var pivotdata = data.pivotData
                 var pages = data.page;
                 var currentpage = data.currentPage;
                 var totalterminal = data.totalTerminal;
                 $('#recordCount').text(totalterminal);
                 $("#table-id tbody").empty();
+                $("#table-pivot tbody").empty();
+                if (pivotdata.length === 0) {
+                    var noDataRow_pivot = $("<tr>").append($("<td colspan='5' style='text-align:center;'>").text("No data"));
+                    $("#table-pivot tbody").append(noDataRow_pivot);
+                }
+                else{
+                    $.each(pivotdata, function (index, item) {
+
+                        var row = $("<tr>");
+                        row.append($("<td>").css("text-align", "left").text(item.warn_type));
+                        row.append($("<td>").css("text-align", "center").text(item.critical));
+                        row.append($("<td>").css("text-align", "center").text(item.high));
+                        row.append($("<td>").css("text-align", "center").text(item.low));
+                        $("#table-pivot tbody").append(row);
+                    });
+                }
                 if (jsondata.length === 0) {
-                    // Display a message when there is no data
                     var noDataRow = $("<tr>").append($("<td colspan='5' style='text-align:center;'>").text("No data"));
                     $("#table-id tbody").append(noDataRow);
                 } else {
@@ -312,8 +346,8 @@
                         row.append($("<td>").css("text-align", "center").text(item.severity_level));
                         row.append($("<td>").css("text-align", "center").text(item.total));
                         $("#table-id tbody").append(row);
-                        window.scrollTo(0, 0);
                     });
+                    window.scrollTo(0, 0);
                 }
                 generatePageButtons(pages, currentpage);
                 if (pages >= 1) {
@@ -397,29 +431,13 @@
     updateTable("search");
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-        var terminalno = $("#TermID").val();
-        var terminalseq = $("#terminalseq").val();
-        var terminaltype = $("#terminaltype").val();
-        var connencted = $("#connencted").val();
-        var servicetype = $("#servicetype").val();
-        var countertype = $("#countertype").val();
-        var fromdate = $("#fromdate").val();
-        var todate = $("#todate").val();
-        var status = $("#Status").val();
+        var month = $("#month").val();
         var rptType = "xlsx";
         $.ajax({
-            type: "POST",
+            type: "Get",
             dataType: "json",
             data: {
-                terminalno: terminalno,
-                terminalseq: terminalseq,
-                terminaltype: terminaltype,
-                connencted: connencted,
-                servicetype: servicetype,
-                countertype: countertype,
-                status: status,
-                fromdate: fromdate,
-                todate: todate
+                month:month
             },
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("WhitelistReport_ExportExc", "Report")',

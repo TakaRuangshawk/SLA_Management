@@ -671,20 +671,19 @@ namespace SLA_Management.Data.ExcelUtilitie
         #endregion
 
         #region Function 
-        public void GatewayOutput(List<WhitelistReportModel> objData)
+        public void GatewayOutput(List<WhitelistReportModel> objData,List<WhitelistPivotModel> pivotData)
         {
             int nStartRowData = 0;
             string strTermID = string.Empty;
             string strBranchName = string.Empty;
             string strLocation = string.Empty;
             string strProbName = string.Empty;
-            int nSeq = 1;
-
+            int nStartPivotData = 0;
 
             try
             {
                 nStartRowData = 2;
-
+                nStartPivotData = 4;
                 ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
                 FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\WhitelistReport.xlsx"));
@@ -695,7 +694,7 @@ namespace SLA_Management.Data.ExcelUtilitie
                     var oWorkbook = oPackage.Workbook;
                     //var excelWorksheet = oWorkbook.Worksheets[0];
                     var excelWorksheet = oWorkbook.Worksheets["Summary_rawdata"];
-                    //excelWorksheet.Name = "Regulator";
+                    var excelWorksheet_Pivot = oWorkbook.Worksheets["Pivot"];
 
                     foreach (WhitelistReportModel data in objData)
                     {
@@ -704,10 +703,17 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 3].Value = data.severity_level;
                         excelWorksheet.Cells[nStartRowData, 4].Value = data.total;
                         nStartRowData++;
-                        nSeq++;
 
                     }
+                    foreach (WhitelistPivotModel data in pivotData)
+                    {
+                        excelWorksheet_Pivot.Cells[nStartPivotData, 2].Value = data.warn_type;
+                        excelWorksheet_Pivot.Cells[nStartPivotData, 3].Value = data.critical;
+                        excelWorksheet_Pivot.Cells[nStartPivotData, 4].Value = data.high;
+                        excelWorksheet_Pivot.Cells[nStartPivotData, 5].Value = data.low;
+                        nStartPivotData++;
 
+                    }
                     oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "WhitelistReport.xlsx"))));
                     FileSaveAsXlsxFormat = "WhitelistReport.xlsx";
                 }
