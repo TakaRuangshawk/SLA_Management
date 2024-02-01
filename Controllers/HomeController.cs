@@ -132,26 +132,88 @@ namespace SLA_Management.Controllers
         public IActionResult Index()
         {
 
-            List<feelviewstatus> feelviewstatusLRM = GetLRMStatus();
-            List<feelviewstatus> feelviewstatusRDM = GetRDMStatus();
-            List<feelviewstatus> feelviewstatus2IN1 = Get2IN1Status();
-            List<secone> feelviewstatusSECONE = GetSECOneStatus();
+
+            // Create an array of tasks
+            Task[] tasks = new Task[4];
+
+            List<feelviewstatus> feelviewstatusLRM = new List<feelviewstatus>();
+            List<feelviewstatus> feelviewstatusRDM = new List<feelviewstatus>();
+            List<feelviewstatus> feelviewstatus2IN1 = new List<feelviewstatus>();
+            List<secone> feelviewstatusSECONE = new List<secone>();
+
+           
+
+            tasks[0] = Task.Run(() =>
+            {
+                feelviewstatusLRM = GetLRMStatus();
+            });
+            tasks[1] = Task.Run(() =>
+            {
+                feelviewstatusRDM = GetRDMStatus();
+            });
+            tasks[2] = Task.Run(() =>
+            {
+                feelviewstatus2IN1 = Get2IN1Status();
+            });
+            tasks[3] = Task.Run(() =>
+            {
+                feelviewstatusSECONE = GetSECOneStatus();
+            });
+
+            
+
+            
+
+           
 
             DateTime dateTime = DateTime.Now;
 
+            List<EventDetail> myListLRM = new List<EventDetail>();
+            List<EventDetail> myListRDM = new List<EventDetail>();
+            List<EventDetail> myList2IN1 = new List<EventDetail>();
+
+            int[] myListLRM_array = { 0, 0, 0 ,0,0};
+            int[] myListRDM_array = { 0, 0, 0,0,0};
+            int[] myList2IN1_array = { 0, 0, 0 ,0,0};
+           
+
+
+            Task[] tasksDeviceError = new Task[3];
+            tasksDeviceError[0] = Task.Run(() =>
+            {
+                myListLRM = GetLRMTopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            });
+            tasksDeviceError[1] = Task.Run(() =>
+            {
+                myListRDM = GetRDMTopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            });
+            tasksDeviceError[2] = Task.Run(() =>
+            {
+                myList2IN1 = Get2N1TopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            });
+
+
+            Task.WaitAll(tasksDeviceError);
+
+           
+
+
             #region GetLRMTopDeviceError
             // '2024-01-01 00:00:00' and '2024-01-27 00:00:00'
-            List<EventDetail> myListLRM = GetLRMTopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+
             List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();
 
+            if(myListLRM != null)
             myListLRM = myListLRM.OrderByDescending(detail => detail.total).ToList();
 
             TopErrorDevice topErrorDevice;
             int count = 1;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < myListLRM.Count; i++)
             {
+                if (count == 6) break;
                 topErrorDevice = new TopErrorDevice(count.ToString(), myListLRM[i].MODULE_NAME, myListLRM[i].NAME_EN_US);
                 topErrorDevicesListLRM.Add(topErrorDevice);
+                myListLRM_array[i] = myListLRM[i].total;
                 count++;
             }
 
@@ -159,16 +221,19 @@ namespace SLA_Management.Controllers
 
             #region GetRDMTopDeviceError
 
-            List<EventDetail> myListRDM = GetRDMTopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            
             List<TopErrorDevice> topErrorDevicesListRDM = new List<TopErrorDevice>();
 
+            if(myListLRM != null)
             myListRDM = myListRDM.OrderByDescending(detail => detail.total).ToList();
 
             count = 1;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < myListRDM.Count; i++)
             {
-                topErrorDevice = new TopErrorDevice(count.ToString(), myListLRM[i].MODULE_NAME, myListLRM[i].NAME_EN_US);
+                if(count == 6) break;
+                topErrorDevice = new TopErrorDevice(count.ToString(), myListRDM[i].MODULE_NAME, myListRDM[i].NAME_EN_US);
                 topErrorDevicesListRDM.Add(topErrorDevice);
+                myListRDM_array[i] = myListRDM[i].total;
                 count++;
             }
 
@@ -176,16 +241,19 @@ namespace SLA_Management.Controllers
             #endregion
 
             #region Get2IN1TopDeviceError
-            List<EventDetail> myList2IN1 = Get2N1TopDeviceError(dateTime.ToString("yyyy-MM") + "-01 00:00:00", dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+            
             List<TopErrorDevice> topErrorDevicesList2IN1 = new List<TopErrorDevice>();
 
+            if(myList2IN1 != null)
             myList2IN1 = myList2IN1.OrderByDescending(detail => detail.total).ToList();
 
             count = 1;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < myList2IN1.Count; i++)
             {
-                topErrorDevice = new TopErrorDevice(count.ToString(), myListLRM[i].MODULE_NAME, myListLRM[i].NAME_EN_US);
+                if (count == 6) break;
+                topErrorDevice = new TopErrorDevice(count.ToString(), myList2IN1[i].MODULE_NAME, myList2IN1[i].NAME_EN_US);
                 topErrorDevicesList2IN1.Add(topErrorDevice);
+                myList2IN1_array[i] = myList2IN1[i].total;
                 count++;
             }
 
@@ -207,6 +275,10 @@ namespace SLA_Management.Controllers
             string offlineLRM = "0";
             string offlineRDM = "0";
             string offlineSECONE = "0";
+
+
+
+            Task.WaitAll(tasks);
 
             if (feelviewstatusLRM != null)
             {
@@ -267,24 +339,25 @@ namespace SLA_Management.Controllers
             //2IN1 device
             ViewBag.device2IN1Error = topErrorDevicesList2IN1;
 
-            ViewBag.deviceLRMError1 = myListLRM[0].total;
-            ViewBag.deviceLRMError2 = myListLRM[1].total;
-            ViewBag.deviceLRMError3 = myListLRM[2].total;
-            ViewBag.deviceLRMError4 = myListLRM[3].total;
-            ViewBag.deviceLRMError5 = myListLRM[4].total;
+            
+            ViewBag.deviceLRMError1 = myListLRM_array[0];
+            ViewBag.deviceLRMError2 = myListLRM_array[1];
+            ViewBag.deviceLRMError3 = myListLRM_array[2];
+            ViewBag.deviceLRMError4 = myListLRM_array[3];
+            ViewBag.deviceLRMError5 = myListLRM_array[4];
 
 
-            ViewBag.deviceRDMError1 = myListRDM[0].total;
-            ViewBag.deviceRDMError2 = myListRDM[1].total;
-            ViewBag.deviceRDMError3 = myListRDM[2].total;
-            ViewBag.deviceRDMError4 = myListRDM[3].total;
-            ViewBag.deviceRDMError5 = myListRDM[4].total;
+            ViewBag.deviceRDMError1 = myListRDM_array[0];
+            ViewBag.deviceRDMError2 = myListLRM_array[1];
+            ViewBag.deviceRDMError3 = myListRDM_array[2];
+            ViewBag.deviceRDMError4 = myListRDM_array[3];
+            ViewBag.deviceRDMError5 = myListRDM_array[4];
 
-            ViewBag.device2IN1Error1 = myList2IN1[0].total;
-            ViewBag.device2IN1Error2 = myList2IN1[1].total;
-            ViewBag.device2IN1Error3 = myList2IN1[2].total;
-            ViewBag.device2IN1Error4 = myList2IN1[3].total;
-            ViewBag.device2IN1Error5 = myList2IN1[4].total;
+            ViewBag.device2IN1Error1 = myList2IN1_array[0];
+            ViewBag.device2IN1Error2 = myList2IN1_array[1];
+            ViewBag.device2IN1Error3 = myList2IN1_array[2];
+            ViewBag.device2IN1Error4 = myList2IN1_array[3];
+            ViewBag.device2IN1Error5 = myList2IN1_array[4];
 
 
             ViewBag.FrMonthLRM = DateTime.Now.ToString("MMMM yyyy", _cultureEnInfo);
@@ -723,7 +796,7 @@ namespace SLA_Management.Controllers
             record.comlogADM = reader["comlogADM"].ToString();
             record.comlogATM = reader["comlogATM"].ToString();
             return record;
-        }           
+        }
         public List<secone> GetSECOneADMStatus()
         {
             string _sql = string.Empty;
