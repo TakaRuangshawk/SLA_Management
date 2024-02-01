@@ -126,23 +126,17 @@ namespace SLA_Management.Controllers
             return View(recordset_slatracking);
         }
 
-
-
-
         public IActionResult Index()
         {
 
-
-            // Create an array of tasks
+            #region Set all feelview status
             Task[] tasks = new Task[4];
 
             List<feelviewstatus> feelviewstatusLRM = new List<feelviewstatus>();
             List<feelviewstatus> feelviewstatusRDM = new List<feelviewstatus>();
             List<feelviewstatus> feelviewstatus2IN1 = new List<feelviewstatus>();
             List<secone> feelviewstatusSECONE = new List<secone>();
-
-           
-
+        
             tasks[0] = Task.Run(() =>
             {
                 feelviewstatusLRM = GetLRMStatus();
@@ -159,12 +153,7 @@ namespace SLA_Management.Controllers
             {
                 feelviewstatusSECONE = GetSECOneStatus();
             });
-
-            
-
-            
-
-           
+         
 
             DateTime dateTime = DateTime.Now;
 
@@ -172,10 +161,10 @@ namespace SLA_Management.Controllers
             List<EventDetail> myListRDM = new List<EventDetail>();
             List<EventDetail> myList2IN1 = new List<EventDetail>();
 
-            int[] myListLRM_array = { 0, 0, 0 ,0,0};
-            int[] myListRDM_array = { 0, 0, 0,0,0};
-            int[] myList2IN1_array = { 0, 0, 0 ,0,0};
-           
+            int[] myListLRM_array = { 0, 0, 0, 0, 0 };
+            int[] myListRDM_array = { 0, 0, 0, 0, 0 };
+            int[] myList2IN1_array = { 0, 0, 0, 0, 0 };
+
 
 
             Task[] tasksDeviceError = new Task[3];
@@ -195,8 +184,7 @@ namespace SLA_Management.Controllers
 
             Task.WaitAll(tasksDeviceError);
 
-           
-
+            #endregion
 
             #region GetLRMTopDeviceError
             // '2024-01-01 00:00:00' and '2024-01-27 00:00:00'
@@ -275,8 +263,6 @@ namespace SLA_Management.Controllers
             string offlineLRM = "0";
             string offlineRDM = "0";
             string offlineSECONE = "0";
-
-
 
             Task.WaitAll(tasks);
 
@@ -389,19 +375,6 @@ namespace SLA_Management.Controllers
                             GROUP BY EVENT_ID 
                             ORDER BY total desc;";
 
-                    //                    _sql = @"SELECT a.DEVICE_STATUS_EVENT_ID ,b.NAME_EN_US
-                    //FROM ghbfeelview.device_status_info a , ghbfeelview.device_inner_event b 
-                    //where ( a.DEVICE_STATUS_EVENT_ID = b.EVENT_ID ) and
-                    //DEVICE_STATUS_EVENT_ID != 'E1002' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1003' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1041' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1130' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1225' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1129' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1128' and
-                    //DEVICE_STATUS_EVENT_ID != 'E1047' ";
-                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
-
                     cn.Open();
 
                     MySqlCommand cmd = new MySqlCommand(_sql, cn);
@@ -430,8 +403,7 @@ namespace SLA_Management.Controllers
 
                     _sql = "SELECT COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID != 'E1005' and DEVICE_STATUS_EVENT_ID != 'E1156' and DEVICE_STATUS_EVENT_ID != 'E1006' and DEVICE_STATUS_EVENT_ID != 'E1036') THEN 1 END) AS _onlineATM,  ";
                     _sql += " COUNT(CASE WHEN(DEVICE_STATUS_EVENT_ID = 'E1005' or DEVICE_STATUS_EVENT_ID = 'E1156' or DEVICE_STATUS_EVENT_ID = 'E1006' or DEVICE_STATUS_EVENT_ID = 'E1036') THEN 1 END) AS _offlineATM  ";
-                    _sql += " FROM ghbfeelview.device_status_info  ";
-                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+                    _sql += " FROM ghbfeelview.device_status_info  ";                   
 
                     cn.Open();
 
@@ -448,7 +420,6 @@ namespace SLA_Management.Controllers
                 return null;
             }
         }
-
 
         #endregion
 
@@ -471,9 +442,7 @@ namespace SLA_Management.Controllers
                             and (b.TERM_STATUS_ID != '4' and b.MODULE_NAME != 'SAFEDOOR')
                             GROUP BY EVENT_ID 
                             ORDER BY total desc;";
-
-
-                    //_sql += " left join device_info as b on a.TERM_ID = b.TERM_ID";
+            
 
                     cn.Open();
 
@@ -706,6 +675,10 @@ namespace SLA_Management.Controllers
             }
             return recordlst;
         }
+
+
+
+
 
         #endregion
 
