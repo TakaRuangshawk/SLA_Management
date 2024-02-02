@@ -372,6 +372,7 @@ namespace SLA_Management.Controllers
                     _sql += @" and a.EVENT_ID = b.EVENT_ID
                             and b.EVENT_TYPE = 'error'
                             and (b.TERM_STATUS_ID != '4' and b.MODULE_NAME != 'SAFEDOOR')
+                            and b.EVENT_ID != 'E1104' and b.EVENT_ID != 'E1044'
                             GROUP BY EVENT_ID 
                             ORDER BY total desc;";
 
@@ -440,6 +441,7 @@ namespace SLA_Management.Controllers
                     _sql += @" and a.EVENT_ID = b.EVENT_ID
                             and b.EVENT_TYPE = 'error'
                             and (b.TERM_STATUS_ID != '4' and b.MODULE_NAME != 'SAFEDOOR')
+                            and b.EVENT_ID != 'E1104' and b.EVENT_ID != 'E1044'
                             GROUP BY EVENT_ID 
                             ORDER BY total desc;";
             
@@ -510,6 +512,7 @@ namespace SLA_Management.Controllers
                     _sql += @" and a.EVENT_ID = b.EVENT_ID
                             and b.EVENT_TYPE = 'error'
                             and (b.TERM_STATUS_ID != '4' and b.MODULE_NAME != 'SAFEDOOR')
+                            and b.EVENT_ID != 'E1104' and b.EVENT_ID != 'E1044'
                             GROUP BY EVENT_ID 
                             ORDER BY total desc;";
 
