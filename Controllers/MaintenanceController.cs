@@ -10,6 +10,7 @@ using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using System.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Models;
 
 namespace SLA_Management.Controllers
 {
@@ -18,6 +19,7 @@ namespace SLA_Management.Controllers
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_fv;
         private static List<InventoryMaintenanceModel> Inventory_dataList = new List<InventoryMaintenanceModel>();
+        private static List<WhitelistFilterTemplateModel> WhitelistFilterTemplates_datalist = new List<WhitelistFilterTemplateModel>();
         public MaintenanceController(IConfiguration myConfiguration)
         {
 
@@ -271,7 +273,147 @@ namespace SLA_Management.Controllers
             public int TotalTerminal { get; set; }
         }
         #endregion
+        #region WhitelistFilterTemplate
 
+
+        [HttpGet]
+        public IActionResult WhitelistFilterTemplate(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
+        {
+            ViewBag.maxRows = 50;
+            return View();
+        }
+        [HttpGet]
+        public IActionResult WhitelistFilterTemplateFetchData(string keyword, string status, string row, string page, string search)
+        {
+            int _page;
+            string filterquery = string.Empty;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            keyword = keyword ?? "";
+            status = status ?? "";
+
+            if (keyword != "")
+            {
+                filterquery += " and POLICY_DESC like '%" + keyword + "%' ";
+            }
+
+            switch (status)
+            {
+                case "USE":
+                    filterquery += "and (UPDATE_STATUS = 'X') ";
+                    break;
+                case "NOTUSE":
+                    filterquery += "and (UPDATE_STATUS is null or UPDATE_STATUS = '') ";
+                    break;
+                default:
+                    break;
+            }
+            List<WhitelistFilterTemplateModel> jsonData = new List<WhitelistFilterTemplateModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Modify the SQL query to use the 'input' parameter for filtering
+                string query = @" SELECT ID,POLICY_DESC,UPDATE_STATUS,UPDATE_DATE FROM operation_whitelist_template where ID is not null ";
+
+
+                query += filterquery + " order by UPDATE_DATE desc";
+
+                MySqlCommand command = new MySqlCommand(query, connection);
+
+                int id_row = 0;
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        id_row += 1;
+                        jsonData.Add(new WhitelistFilterTemplateModel
+                        {
+                            NO = (id_row).ToString(),
+                            ID = reader["ID"].ToString(),
+                            POLICY_DESC = reader["POLICY_DESC"].ToString(),
+                            UPDATE_STATUS = reader["UPDATE_STATUS"].ToString(),
+                            UPDATE_DATE = reader["UPDATE_DATE"].ToString(),
+
+                        });
+                    }
+                }
+            }
+            WhitelistFilterTemplates_datalist = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<WhitelistFilterTemplateModel> filteredData = RangeFilter_wlft(jsonData, _page, _row);
+            var response = new DataResponse_WhitelistFilterTemplateModel
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+
+        static List<WhitelistFilterTemplateModel> RangeFilter_wlft<WhitelistFilterTemplateModel>(List<WhitelistFilterTemplateModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class WhitelistFilterTemplateModel
+        {
+            public string NO { get; set; }
+            public string ID { get; set; }
+            public string POLICY_DESC { get; set; }
+            public string UPDATE_STATUS { get; set; }
+            public string UPDATE_DATE { get; set; }
+        }
+        public class DataResponse_WhitelistFilterTemplateModel
+        {
+            public List<WhitelistFilterTemplateModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+
+        #endregion
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
 
