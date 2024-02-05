@@ -48,6 +48,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcSW52ZW50b3J5TW9uaXRvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Maintenance/WhitelistFilterTemplate.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcV2hpdGVsaXN0RmlsdGVyVGVtcGxhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Management/Holiday.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxIb2xpZGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

@@ -279,7 +279,7 @@ namespace SLA_Management.Controllers
         [HttpGet]
         public IActionResult WhitelistFilterTemplate(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
         {
-            ViewBag.maxRows = 50;
+            ViewBag.maxRows = 500;
             return View();
         }
         [HttpGet]
@@ -307,7 +307,7 @@ namespace SLA_Management.Controllers
             int _row;
             if (row == null)
             {
-                _row = 20;
+                _row = 50;
             }
             else
             {
@@ -334,7 +334,7 @@ namespace SLA_Management.Controllers
             }
             List<WhitelistFilterTemplateModel> jsonData = new List<WhitelistFilterTemplateModel>();
 
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
             {
                 connection.Open();
 
@@ -358,7 +358,7 @@ namespace SLA_Management.Controllers
                             ID = reader["ID"].ToString(),
                             POLICY_DESC = reader["POLICY_DESC"].ToString(),
                             UPDATE_STATUS = reader["UPDATE_STATUS"].ToString(),
-                            UPDATE_DATE = reader["UPDATE_DATE"].ToString(),
+                            UPDATE_DATE = ((DateTime)reader["UPDATE_DATE"]).ToString("yyyy-MM-dd HH:mm:ss"),
 
                         });
                     }
@@ -396,7 +396,48 @@ namespace SLA_Management.Controllers
             }
             return inputList.Skip(start_row).Take(row).ToList();
         }
+        [HttpPost]
+        public ActionResult UpdateDatabase(bool isChecked, string id)
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
 
+                    // Create the command
+                    using (MySqlCommand command = connection.CreateCommand())
+                    {
+                        // Construct the SQL query based on isChecked and id
+                        string sql = isChecked ? "UPDATE operation_whitelist_template SET UPDATE_STATUS = 'X' WHERE Id = @id"
+                                               : "UPDATE operation_whitelist_template SET UPDATE_STATUS = '' WHERE Id = @id";
+
+                        command.CommandText = sql;
+                        command.Parameters.AddWithValue("@id", id);
+
+                        // Execute the command
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            // Return success response
+                            return Json(new { success = true });
+                        }
+                        else
+                        {
+                            // No rows affected (entity with the provided id not found)
+                            return Json(new { success = false, message = "Entity not found." });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as required
+                // For now, returning an error response
+                return Json(new { success = false, message = "An error occurred while updating the database." });
+            }
+        }
         public class WhitelistFilterTemplateModel
         {
             public string NO { get; set; }
@@ -414,6 +455,7 @@ namespace SLA_Management.Controllers
         }
 
         #endregion
+        #region Get Device Info
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
 
@@ -472,6 +514,7 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        #endregion
         #region Excel Ticket
 
         [HttpPost]
