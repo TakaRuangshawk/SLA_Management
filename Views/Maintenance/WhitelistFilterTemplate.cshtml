@@ -1,19 +1,10 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿
 @{
+
 }
 
 @{
     ViewData["Title"] = "Whitelist Filter Template";
-    string[] tableHeaders = new string[]
-    {
-    "No.",
-    "Warning Detail ",
-    "Status",
-    "Update Date"
-    };
-
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -192,12 +183,7 @@
 
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
-                            </button>
-
-
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                            </a>
+                            </button>                           
                         </div>
                     </div>
 
@@ -228,12 +214,10 @@
         <table id="table-id" class="table table-striped custom-table">
             <thead>
                 <tr>
-                    @{
-                        foreach (var head in tableHeaders)
-                        {
-                            <th scope="col" style="text-align:center"> @head </th>
-                        }
-                    }
+                    <th scope="col" style="text-align:center"> No. </th>
+                    <th scope="col" style="text-align:center"> Warning Detail  </th>
+                    <th scope="col" style="text-align:center"> Status </th>
+                    <th scope="col" style="text-align:center"> Update Date </th>
 
                 </tr>
             </thead>
