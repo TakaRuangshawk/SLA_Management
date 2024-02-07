@@ -103,7 +103,7 @@ namespace SLA_Management.Controllers
             }
             if (status == "use")
             {
-                filterquery += " and di.STATUS = 'use' ";
+                filterquery += " and (di.STATUS = 'use' or di.STATUS ='roustop') ";
             }
             else if(status == "notuse")
             {
