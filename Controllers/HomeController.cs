@@ -189,12 +189,18 @@ namespace SLA_Management.Controllers
             #region GetLRMTopDeviceError
             // '2024-01-01 00:00:00' and '2024-01-27 00:00:00'
 
+            myListLRM = null;
+
             List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();
+            EventDetail eventDetail = new EventDetail{ EVENT_ID = "1", MODULE_NAME = "", NAME_EN_US = "", total = 0 };
 
-            if(myListLRM != null)
-            myListLRM = myListLRM.OrderByDescending(detail => detail.total).ToList();
+            if (myListLRM != null)
+                myListLRM = myListLRM.OrderByDescending(detail => detail.total).ToList();
+            else
+                myListLRM = new List<EventDetail>(); 
 
-            TopErrorDevice topErrorDevice;
+
+             TopErrorDevice topErrorDevice;
             int count = 1;
             for (int i = 0; i < myListLRM.Count; i++)
             {
@@ -212,8 +218,10 @@ namespace SLA_Management.Controllers
             
             List<TopErrorDevice> topErrorDevicesListRDM = new List<TopErrorDevice>();
 
-            if(myListLRM != null)
+            if(myListRDM != null)
             myListRDM = myListRDM.OrderByDescending(detail => detail.total).ToList();
+            else
+                myListRDM = new List<EventDetail>();
 
             count = 1;
             for (int i = 0; i < myListRDM.Count; i++)
@@ -234,6 +242,8 @@ namespace SLA_Management.Controllers
 
             if(myList2IN1 != null)
             myList2IN1 = myList2IN1.OrderByDescending(detail => detail.total).ToList();
+            else
+                myList2IN1 = new List<EventDetail>();
 
             count = 1;
             for (int i = 0; i < myList2IN1.Count; i++)
