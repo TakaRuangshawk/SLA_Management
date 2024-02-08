@@ -485,6 +485,155 @@ namespace SLA_Management.Data.ExcelUtilitie
 
     }
 
+    public class ExcelUtilities_AuditReport
+    {
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        public void GenExcelFileUserDetailReport(IList<fv_system_users> objData)
+        {
+            int nStartRowData = 0;
+
+            try
+            {
+              
+
+                nStartRowData = 3;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "ReportUserFV_SecOne.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+
+                    //If error , check the path of excel carefully !
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+                    //excelWorksheet.Name = "sheet1";
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets[0];
+
+                    excelWorksheet.Name = "ReportUser";
+                    excelWorksheet.Cells[1, 1].Value = objData[0].System;
+
+                    foreach (fv_system_users data in objData)
+                    {
+
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.AccountName;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.UserName;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.LastLoginDateTime.ToString("dd-MM-yyyy HH:mm:ss");
+
+
+
+                        nStartRowData++;
+
+
+                    }
+
+                    //if (String.IsNullOrEmpty(date.ToString()))
+                    //{
+                    //    date = DateTime.Now.AddMonths(-1);
+                    //}
+
+
+                    //string excelName = "ReportUserFV_" + date.ToString("yyyy_MM") + ".xlsx";
+
+
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "ReportUserFV_SecOne.xlsx"))));
+                    FileSaveAsXlsxFormat = "ReportUserFV_SecOne.xlsx";
+
+                    
+
+                }
+
+               
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+
+
+            }
+
+        }
+
+        //public void GenExcelFileSecOneUserDetailReport(IList<fv_system_users> objData, DateTime date)
+        //{
+        //    int nStartRowData = 0;
+
+        //    try
+        //    {
+
+        //        nStartRowData = 3;
+
+        //        ExcelPackage.LicenseContext = LicenseContext.Commercial;
+        //        FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "ReportUserFV_SecOne.xlsx"));
+        //        using (var oPackage = new ExcelPackage(oTemplate))
+        //        {
+
+        //            //If error , check the path of excel carefully !
+        //            //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+        //            //excelWorksheet.Name = "sheet1";
+
+        //            var oWorkbook = oPackage.Workbook;
+        //            var excelWorksheet = oWorkbook.Worksheets[0];
+
+        //            excelWorksheet.Name = "DeviceTermProb";
+        //            //ExcelWorksheet worksheet = oPackage.Workbook.Worksheets[0];
+
+        //            //string str = "ID, ACCOUNT, NAME, PASSWORD, DEPT_ID, TEL, MOBILE, EMAIL, QQNO, FLAG, UPDATE_DATE, LOGIN_FAIL_COUNT, LOGIN_LOCKED_DATE, LAST_LOGINIP, LAST_LOGINTIME, LOGIN_TOTAL, PASSWORD_EXPIRED_DATE";
+        //            //string[] strSpilt = str.Split(',');
+
+        //            //for (int i = 0; i < strSpilt.Length; i++)
+        //            //{
+        //            //    excelWorksheet.Cells[nStartRowData - 1, i +1].Value = strSpilt[i];
+        //            //}
+
+        //            foreach (fv_system_users data in objData)
+        //            {
+
+
+        //                excelWorksheet.Cells[nStartRowData, 1].Value = data.AccountName;
+        //                excelWorksheet.Cells[nStartRowData, 2].Value = data.UserName;
+        //                excelWorksheet.Cells[nStartRowData, 3].Value = data.LastLoginDateTime.ToString("dd-MM-yyyy HH:mm:ss");
+
+
+
+        //                nStartRowData++;
+
+
+        //            }
+
+        //            //if (String.IsNullOrEmpty(date.ToString()))
+        //            //{
+        //            //    date = DateTime.Now.AddMonths(-1);
+        //            //}
+
+
+        //            //string excelName = "ReportUserSecOne_" + date.ToString("yyyy_MM") + ".xlsx";
+
+        //            //path_Excel = PathDefaultTemplate + excelName;
+
+        //            oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "ReportUserFV_SecOne.xlsx"))));
+        //            FileSaveAsXlsxFormat = "ReportUserFV_SecOne.xlsx";
+
+        //        }
+
+              
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+
+        //}
+
+
+    }
+
     public class ExcelUtilities_Inventory
     {
         #region  Local Variable

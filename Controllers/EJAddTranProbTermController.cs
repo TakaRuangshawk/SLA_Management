@@ -77,8 +77,8 @@ namespace SLA_Management.Controllers
             {
 
 
-                if (cmdButton == "Clear")
-                    return RedirectToAction("EJAddTranProbTermAction");
+                    if (cmdButton == "Clear")
+                        return RedirectToAction("EJAddTranProbTermAction");
 
 
                 #region Set viewBag and default data
