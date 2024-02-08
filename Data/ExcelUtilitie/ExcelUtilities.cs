@@ -514,7 +514,7 @@ namespace SLA_Management.Data.ExcelUtilitie
                     var excelWorksheet = oWorkbook.Worksheets[0];
 
                     excelWorksheet.Name = "ReportUser";
-                    excelWorksheet.Cells[1, 1].Value = objData[0].System;
+                    //excelWorksheet.Cells[1, 1].Value = objData[0].System;
 
                     foreach (fv_system_users data in objData)
                     {

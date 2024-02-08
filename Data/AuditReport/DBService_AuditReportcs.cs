@@ -39,7 +39,7 @@ namespace SLA_Management.Data.AuditReport
                                                                System = "Feelview",
                                                                AccountName = dr["ACCOUNT"].ToString(),
                                                                UserName = dr["NAME"].ToString(),
-                                                               LastLoginDateTime = DateTime.Parse(dr["UPDATE_DATE"].ToString()),
+                                                               LastLoginDateTime = DateTime.TryParse(dr["LAST_LOGINTIME"].ToString(), out DateTime lastLoginTime) ? lastLoginTime : DateTime.MinValue,
                                                                Status = dr["FLAG"].ToString(),
                                                            }).ToList();
 
@@ -61,7 +61,7 @@ namespace SLA_Management.Data.AuditReport
                                                                   System = "SECOne",
                                                                   AccountName = dr["ACCOUNT"].ToString(),
                                                                   UserName = dr["NAME"].ToString(),
-                                                                  LastLoginDateTime = DateTime.Parse(dr["UPDATE_DATE"].ToString()),
+                                                                  LastLoginDateTime = DateTime.TryParse(dr["LAST_LOGINTIME"].ToString(), out DateTime lastLoginTime) ? lastLoginTime : DateTime.MinValue,
                                                                   Status = dr["FLAG"].ToString(),
                                                               }).ToList();
 

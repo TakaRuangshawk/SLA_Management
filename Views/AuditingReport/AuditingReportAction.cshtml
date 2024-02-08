@@ -234,8 +234,8 @@
                             {
                                 <tr>
 
-                                    <td> @Data.System</td>
-                                    <td> @Data.AccountName</td>
+                                    <td style="text-align:center;"> @Data.System</td>
+                                    <td style="text-align:center;"> @Data.AccountName</td>
                                     <td style="text-align:center;"> @Data.UserName </td>
                                     <td style="text-align:center;"> @Data.LastLoginDateTime.ToString("dd-MM-yyyy HH:mm:ss")</td>
                                     <td style="text-align:center;"> @Data.Status </td>
@@ -520,7 +520,7 @@
         $('table tr:gt(0)').each(function () {
             id++;
             if (count != 0) {
-                $(this).prepend('<td>' + id + '</td>');
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
             }
 
         });

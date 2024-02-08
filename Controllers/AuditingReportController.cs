@@ -62,6 +62,24 @@ namespace SLA_Management.Controllers
                         break;
                 }
 
+                
+                int countDay = 0;
+                foreach (var record in audit_Info_Records)
+                {
+                    TimeSpan difference = DateTime.Now - record.LastLoginDateTime;
+
+                    countDay = difference.Days;
+
+                    if (countDay > 90)
+                    {
+                        record.Status = "Warning";
+                    }
+                    else if (countDay <= 90)
+                    {
+                        record.Status = "-";
+                    }
+                }
+
                 recordset = audit_Info_Records;
 
                 fv_system_users_dataList = recordset;
