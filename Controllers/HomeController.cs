@@ -189,10 +189,8 @@ namespace SLA_Management.Controllers
             #region GetLRMTopDeviceError
             // '2024-01-01 00:00:00' and '2024-01-27 00:00:00'
 
-            myListLRM = null;
-
-            List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();
-            EventDetail eventDetail = new EventDetail{ EVENT_ID = "1", MODULE_NAME = "", NAME_EN_US = "", total = 0 };
+            
+            List<TopErrorDevice> topErrorDevicesListLRM = new List<TopErrorDevice>();          
 
             if (myListLRM != null)
                 myListLRM = myListLRM.OrderByDescending(detail => detail.total).ToList();
