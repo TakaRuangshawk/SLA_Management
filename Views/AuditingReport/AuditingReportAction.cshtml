@@ -150,6 +150,51 @@
                     </div>
 
                     <div class="col-1" style="">
+                        <h>Status : </h>
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            @Html.DropDownList("status", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = "All"  },
+                        new SelectListItem(){ Text="-", Value = "-"  },
+                        new SelectListItem(){ Text="Warning", Value = "Warning"  }
+
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+
+                                        })
+
+                        </div>
+                    </div>
+
+                    <div class="col-1" style="">
+                        <h>Sort by : </h>
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            @Html.DropDownList("sortBy", new SelectListItem[] {
+                        new SelectListItem(){ Text="Last Login", Value = "LAST_LOGINTIME"  },
+                        new SelectListItem(){ Text="Account Name", Value = "ACCOUNT"  }
+
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+
+                                        })
+
+                        </div>
+                    </div>
+
+                    <div class="col-1" style="">
                         <h>Rows : </h>
                     </div>
 

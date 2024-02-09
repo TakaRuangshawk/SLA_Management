@@ -37,7 +37,7 @@ namespace SLA_Management.Controllers
         #endregion
 
 
-        public IActionResult AuditingReportAction(string cmdButton,string systemType, string lstPageSize, string currPageSize, int? page, string maxRows)
+        public IActionResult AuditingReportAction(string cmdButton,string status,string sortBy,string systemType, string lstPageSize, string currPageSize, int? page, string maxRows)
         {
 
 
@@ -49,13 +49,15 @@ namespace SLA_Management.Controllers
                 if (cmdButton == "Clear")
                     return RedirectToAction("AuditingReportAction");
 
+                if (sortBy == null) sortBy = "-";
+
                 switch (systemType)
                 {
                     case "SECOne":
-                        audit_Info_Records = dBService.GetAuditReportcsSECOne();
+                        audit_Info_Records = dBService.GetAuditReportcsSECOne(sortBy);
                         break;
                     case "Feelview":
-                        audit_Info_Records = dBService.GetAuditReportcsFeelview();
+                        audit_Info_Records = dBService.GetAuditReportcsFeelview(sortBy);
                         break;
                     default: 
                         audit_Info_Records = new List<fv_system_users>();
@@ -78,6 +80,11 @@ namespace SLA_Management.Controllers
                     {
                         record.Status = "-";
                     }
+                }
+
+                if(status != null && status != "All")
+                {
+                    audit_Info_Records = audit_Info_Records.Where(obj => obj.Status == status).ToList();
                 }
 
                 recordset = audit_Info_Records;

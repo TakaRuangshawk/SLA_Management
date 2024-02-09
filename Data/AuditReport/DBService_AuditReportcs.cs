@@ -25,12 +25,15 @@ namespace SLA_Management.Data.AuditReport
         }
 
         //"SELECT * FROM system_users order by UPDATE_DATE DESC;"
-        public List<fv_system_users> GetAuditReportcsFeelview()
+        public List<fv_system_users> GetAuditReportcsFeelview(string sortBy)
         {
+            string sortByTemp = "UPDATE_DATE";
+
+            if (sortBy != "-") sortByTemp = sortBy;
 
             MySqlCommand com = new MySqlCommand();
 
-            com.CommandText = "SELECT * FROM fv_system_users order by UPDATE_DATE;";
+            com.CommandText = "SELECT * FROM fv_system_users order by " + sortByTemp;
             DataTable tableTemp = _objDb.GetDatatable(com);
 
             List<fv_system_users> auditReportcsRecordsList = (from DataRow dr in tableTemp.Rows
@@ -40,19 +43,22 @@ namespace SLA_Management.Data.AuditReport
                                                                AccountName = dr["ACCOUNT"].ToString(),
                                                                UserName = dr["NAME"].ToString(),
                                                                LastLoginDateTime = DateTime.TryParse(dr["LAST_LOGINTIME"].ToString(), out DateTime lastLoginTime) ? lastLoginTime : DateTime.MinValue,
-                                                               Status = dr["FLAG"].ToString(),
+                                                               Status = dr["FLAG"].ToString(), //may be not use
                                                            }).ToList();
 
 
             return auditReportcsRecordsList;
         }
 
-        public List<fv_system_users> GetAuditReportcsSECOne()
+        public List<fv_system_users> GetAuditReportcsSECOne(string sortBy)
         {
+            string sortByTemp = "UPDATE_DATE";
+
+            if (sortBy != "-") sortByTemp = sortBy;
 
             MySqlCommand com = new MySqlCommand();
 
-            com.CommandText = "SELECT * FROM system_users order by UPDATE_DATE;";
+            com.CommandText = "SELECT * FROM system_users order by " + sortByTemp;
             DataTable tableTemp = _objDb_SECOne.GetDatatable(com);
 
             List<fv_system_users> auditReportcsRecordsList = (from DataRow dr in tableTemp.Rows
@@ -62,7 +68,7 @@ namespace SLA_Management.Data.AuditReport
                                                                   AccountName = dr["ACCOUNT"].ToString(),
                                                                   UserName = dr["NAME"].ToString(),
                                                                   LastLoginDateTime = DateTime.TryParse(dr["LAST_LOGINTIME"].ToString(), out DateTime lastLoginTime) ? lastLoginTime : DateTime.MinValue,
-                                                                  Status = dr["FLAG"].ToString(),
+                                                                  Status = dr["FLAG"].ToString(), //may be not use
                                                               }).ToList();
 
 
