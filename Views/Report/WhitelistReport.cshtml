@@ -133,7 +133,7 @@
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("InventoryMonitor", "Maintenance", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("WhitelistReport", "Report", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
@@ -179,7 +179,7 @@
                             </button>
 
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
 
 
