@@ -5,7 +5,9 @@ using Serilog;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Models.EncryptionMoniterModel;
+using SLA_Management.Models.OperationModel;
 using System.Data;
+
 
 namespace SLA_Management.Controllers
 {
@@ -36,7 +38,7 @@ namespace SLA_Management.Controllers
         {
 
             ViewBag.EncryptionVersion = GetEncryptionVersion();
-            ViewBag.CurrentTID = GetDevices();
+            ViewBag.CurrentTID = GetFVDeviceInfo();
             ViewBag.TerminalType = GetDeviceType();
             //ViewBag.pageSize = maxRows.HasValue ? maxRows.Value : 50;
             //ViewBag.ExportDataFile = filter;
@@ -175,6 +177,35 @@ namespace SLA_Management.Controllers
         }
 
 
+
+        [HttpGet]
+        public IActionResult GetLogSa(string terminal_id, DateTime date)
+        {
+            try
+            {
+
+                ServiceSaLog serviceFTP = new ServiceSaLog("10.98.10.31",22,"root","P@ssw0rd");
+                var pathFileServer = $"/opt/fileserverGSB/SaLog/{date.Year.ToString("0000") + date.Month.ToString("00")}/{terminal_id}/sa_{date.Year.ToString("0000") + date.Month.ToString("00") + date.Day.ToString("00")}.log";
+                
+                var checkFile = serviceFTP.CheckDirectory(pathFileServer);
+                if (checkFile)
+                {
+                    var data = serviceFTP.ReadLog(pathFileServer);
+                    return Json(new { status = true, logdata = data, error = "" });
+
+                }
+
+                return Json(new { status = false, logdata = new List<LogEntry>(), error = "File not found" });
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"EncryptionMoniterController GetLogSa Error : {ex}");
+                return Json(new { status = false, logdata = new List<LogEntry>(),error = ex.Message });
+            }
+
+        }
+
+
         [HttpPost]
         public IActionResult ExportRecordtoExcel()
         {
@@ -266,20 +297,20 @@ namespace SLA_Management.Controllers
             return inputList.Skip(start_row).Take(row).ToList();
         }
 
-        public List<DeviceNo> GetDevices()
+        public List<Device_info_record> GetFVDeviceInfo()
         {
+
             try
             {
                 MySqlCommand mySqlCommand = new MySqlCommand();
-                mySqlCommand.CommandText = "SELECT TERM_ID,TERM_SEQ,TERM_NAME FROM fv_device_info  where STATUS = 'use' or STATUS = 'roustop';";
-                return ConvertDataTableToModel.ConvertDataTable<DeviceNo>(connectMySQL.GetDatatable(mySqlCommand));
+                mySqlCommand.CommandText = "SELECT TERM_ID,TERM_SEQ,TERM_NAME,TYPE_ID FROM fv_device_info  where STATUS = 'use' or STATUS = 'roustop';";
+                return ConvertDataTableToModel.ConvertDataTable<Device_info_record>(connectMySQL.GetDatatable(mySqlCommand));
             }
             catch (Exception ex)
             {
-                Log.Error($"GetDevices Error : {ex}");
-                return new List<DeviceNo>();
+                Log.Error($"GetFVDeviceInfo Error : {ex}");
+                return new List<Device_info_record>();
             }
-
         }
 
         public List<string> GetEncryptionVersion()
@@ -298,7 +329,6 @@ namespace SLA_Management.Controllers
             }
 
         }
-
 
         public List<DeviceType> GetDeviceType()
         {

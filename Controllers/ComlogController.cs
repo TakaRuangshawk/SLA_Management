@@ -16,6 +16,8 @@ namespace SLA_Management.Controllers
         private static string passwordFileserver { get; set; }
         private static string partLinuxUploadFileserver { get; set; }
         private static string SlaSqlServer { get; set; }
+
+        private static string ReportMySql { get; set; }
         private static CheckFileInFileServerNew dataErrorLog  { get; set; }
         public static List<InsertListFileComLog> insertFileCOMLog_temp { get; set; }
 
@@ -29,12 +31,13 @@ namespace SLA_Management.Controllers
             this.hostEnvironment = hostEnvironment;
             _myConfiguration = configuration;
             SlaSqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
+            ReportMySql = _myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection");
             ipFileserver = _myConfiguration.GetValue<string>("FileServer:IP");
             portFileserver = _myConfiguration.GetValue<int>("FileServer:Port");
             usernameFileserver = _myConfiguration.GetValue<string>("FileServer:Username");
             passwordFileserver = _myConfiguration.GetValue<string>("FileServer:Password");
             partLinuxUploadFileserver = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileComlog");
-            dataErrorLog = new CheckFileInFileServerNew(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, partLinuxUploadFileserver, SlaSqlServer);
+            dataErrorLog = new CheckFileInFileServerNew(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, partLinuxUploadFileserver, SlaSqlServer, ReportMySql);
         }
 
         [HttpGet]

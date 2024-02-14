@@ -1,50 +1,59 @@
-﻿using Renci.SshNet;
+﻿using MySql.Data.MySqlClient;
+using Renci.SshNet;
+using Serilog;
+using SLA_Management.Data;
 using SLA_Management.Models.COMLogModel;
 using SLA_Management.Models.OperationModel;
 using SLAManagement.Data;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 
 namespace SLA_Management.Commons
 {
     public class CheckFileInFileServerNew
     {
-        private static ConnectSQL_Server db;
+        private  ConnectSQL_Server slaDB;
+
+        private  ConnectMySQL reportDB;
+
+
         public List<Device_info_record> termIds;
 
 
-        private static string ip;
-        private static int port;
-        private static string username;
-        private static string password;
+        private string ip;
+        private int port;
+        private string username;
+        private string password;
 
-        private static string partLinuxUploadFile;
-        private static string sqlConnection;
-
-
-        public static string Ip { get => ip; set => ip = value; }
-        public static int Port { get => port; set => port = value; }
-        public static string Username { get => username; set => username = value; }
-        public static string Password { get => password; set => password = value; }
-        public static string PartLinuxUploadFile { get => partLinuxUploadFile; set => partLinuxUploadFile = value; }
-        public static string SqlConnection { get => sqlConnection; set => sqlConnection = value; }
+        private string partLinuxUploadFile;
 
 
+        private string sqlConnectionSlaDB;
+        private string mySqlConnectionReportDB;
 
 
-        public CheckFileInFileServerNew(string ip, int port, string username, string password, string partLinuxUploadFile, string sqlConnection)
+        public string Ip { get => ip; set => ip = value; }
+        public int Port { get => port; set => port = value; }
+        public string Username { get => username; set => username = value; }
+        public string Password { get => password; set => password = value; }
+        public string PartLinuxUploadFile { get => partLinuxUploadFile; set => partLinuxUploadFile = value; }
+        public string SqlConnectionSlaDB { get => sqlConnectionSlaDB; set => sqlConnectionSlaDB = value; }
+        public string MySqlConnectionReportDB { get => mySqlConnectionReportDB; set => mySqlConnectionReportDB = value; }
+
+        public CheckFileInFileServerNew(string ip, int port, string username, string password, string partLinuxUploadFile, string sqlConnectionSlaDB , string mySqlConnectionReportDB)
         {
             Ip = ip;
             Port = port;
             Username = username;
             Password = password;
             PartLinuxUploadFile = partLinuxUploadFile;
-            SqlConnection = sqlConnection;
+            SqlConnectionSlaDB = sqlConnectionSlaDB;
+            MySqlConnectionReportDB = mySqlConnectionReportDB;
 
-            db = new ConnectSQL_Server(SqlConnection);
-            termIds = GetDeviceInfoRecord();
+            slaDB = new ConnectSQL_Server(sqlConnectionSlaDB);
+            reportDB = new ConnectMySQL(mySqlConnectionReportDB);
+            //termIds = GetDeviceInfoRecord();
+            termIds = GetFVDeviceInfo();
         }
 
 
@@ -272,27 +281,37 @@ namespace SLA_Management.Commons
                 com.Parameters.AddWithValue("@start", start);
                 com.Parameters.AddWithValue("@end", end);
             }
-            var data = ConvertDataTableToModel.ConvertDataTable<Comlog_recordNew>(db.GetDatatable(com));
+            var data = ConvertDataTableToModel.ConvertDataTable<Comlog_recordNew>(slaDB.GetDatatable(com));
             //var dataConvetModel = from item in data select new ListDataComlogError(item.TERM_ID, item.MSG_SOURCE,item.TOTAL_RECORD);
             return data;
         }
 
 
 
-        private static List<Device_info_record> GetDeviceInfoRecord()
+        private List<Device_info_record> GetDeviceInfoRecord()
         {
 
             SqlCommand com = new SqlCommand();
             com.CommandText = "SELECT * FROM [device_info_record] where STATUS = 1  order by TERM_SEQ;";
-            DataTable testss = db.GetDatatable(com);
+            DataTable testss = slaDB.GetDatatable(com);
 
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
-
-            /*foreach (DataRow item in testss.Rows)
-            {
-                test.AddFirst((string)item["TERM_ID"]);
-            }*/
             return test;
+        }
+        private List<Device_info_record> GetFVDeviceInfo()
+        {
+
+            try
+            {
+                MySqlCommand mySqlCommand = new MySqlCommand();
+                mySqlCommand.CommandText = "SELECT TERM_ID,TERM_SEQ,TERM_NAME,TYPE_ID FROM fv_device_info  where STATUS = 'use' or STATUS = 'roustop';";
+                return ConvertDataTableToModel.ConvertDataTable<Device_info_record>(reportDB.GetDatatable(mySqlCommand));
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GetFVDeviceInfo Error : {ex}");
+                return new List<Device_info_record>();
+            }
         }
 
 

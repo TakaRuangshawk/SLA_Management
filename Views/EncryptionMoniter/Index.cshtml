@@ -2,10 +2,9 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
-    ViewData["Title"] = "Encryption Moniter";
+    ViewData["Title"] = "Encryption Monitor";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 
 
 <style>
@@ -104,7 +103,27 @@
         color: black !important;
     }
 </style>
+<style>
+    .search-log{
+        display:flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        width:100%;
+        white-space: nowrap;
 
+    }
+
+    .item-from{
+        display: flex;
+        flex-direction:row;
+        align-items: baseline;
+        justify-content:space-evenly;
+        
+    }
+</style>
+<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css">
+<link rel="stylesheet" href="~/lib/bootstrap-icons-1.11.3/font/bootstrap-icons.css">
 
 <head>
     <!-- Required meta tags -->
@@ -119,7 +138,7 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-11">
-                <a class="text-white fs-4" id="header_search">Encryption Moniter</a>
+                <a class="text-white fs-4" id="header_search">Encryption Monitor</a>
             </div>
         </div>
 
@@ -351,6 +370,7 @@
                     <th scope="col" style="text-align:center">Row</th>
                     <th scope="col" style="text-align:center">Serial No</th>
                     <th scope="col" style="text-align:center">Terminal Id</th>
+                    <th scope="col" style="text-align:center">Log</th>
                     <th scope="col" style="text-align:center">Terminal Name</th>
                     <th scope="col" style="text-align:center">Encryption Version</th>
                     <th scope="col" style="text-align:center">Encryption Status</th>
@@ -404,6 +424,78 @@
 
     </div>
 </div>
+
+
+
+
+
+
+@* <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Launch demo modal
+</button> *@
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Log View</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="search-log">
+                    <div class="item-from">
+                        <label class="form-label me-3">Terminal ID : </label>
+                        <input class="form-control" readonly id="terminal_id-log" value="" />
+                    </div>
+                    <div class="item-from">
+                        <label class="form-label me-3">Date : </label>
+                        <input class="form-control" id="date-log" name="date-log" placeholder="yyyy-mm-dd" type="Date">
+                    </div>
+                    <div class="item-from">
+                        <button class="btn btn-primary" onclick="SearchLog()">Search</button>
+                    </div>
+                </div>
+
+
+                <table id="log-table" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>DateTime</th>
+                            <th>Version</th>
+                            <th>Event</th>
+                            <th style="width:70%">Message</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Row</th>
+                            <th>DateTime</th>
+                            <th>Version</th>
+                            <th>Event</th>
+                            <th style="width:70%">Message</th>
+
+                        </tr>
+                    </tfoot>
+                </table>
+
+
+
+
+            </div>
+            <div class="modal-footer">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/lib/DataTables/datatables.min.js"></script>
 
 <script>
 
@@ -488,21 +580,6 @@
             prevDiv.style.visibility = "visible";
         }
 
-        
-        // if ((nextDiv < 1 || page == null) && pages > 1) {
-            
-        //     nextDiv.style.visibility = "visible";
-
-        // }
-        // else if ((currentpage == pages) && pages > 1) {
-        //     prevDiv.style.visibility = "visible";
-           
-        // }
-        // else {
-        //     prevDiv.style.visibility = "visible";
-        //     nextDiv.style.visibility = "visible";
-
-        // }
        
         
     }
@@ -515,11 +592,23 @@
         } else {
             $.each(jsondata, function (index, item) {
                
+                
+                var btn = document.createElement('button');
+                btn.type = "button";
+                btn.className = "btn btn-primary";
+                btn.innerHTML = "View";
+                btn.onclick = function () { GetLog(item.terminal_id, item.update_datetime) };
+                
+                var td_btn = $("<td>").css("text-align", "center").append(btn);
+                
+
                 var row = $("<tr>");
                 row.append($("<td>").css("text-align", "center").text((index + 1) + ((pageIndex - 1) * maxRow)));
                 
                 row.append($("<td>").css("text-align", "center").text(item.serial_no));
                 row.append($("<td>").css("text-align", "center").text(item.terminal_id));
+
+                row.append(td_btn);
                 row.append($("<td>").css("text-align", "center").text(item.terminal_name));
                 row.append($("<td>").css("text-align", "center").text(item.encryption_version));
 
@@ -556,50 +645,52 @@
             });
         }
     }
-    // updateTable("search");
-    // $("#btnSEExp").click(function (e) {
-    //     e.preventDefault();
-    //     var terminalno = $("#TermID").val();
-    //     var terminalseq = $("#terminalseq").val();
-    //     var terminaltype = $("#terminaltype").val();
-    //     var connencted = $("#connencted").val();
-    //     var servicetype = $("#servicetype").val();
-    //     var countertype = $("#countertype").val();
-    //     var fromdate = $("#fromdate").val();
-    //     var todate = $("#todate").val();
-    //     var status = $("#Status").val();
-    //     var rptType = "xlsx";
-    //     $.ajax({
-    //         type: "POST",
-    //         dataType: "json",
-    //         data: {
-    //             terminalno: terminalno,
-    //             terminalseq: terminalseq,
-    //             terminaltype: terminaltype,
-    //             connencted: connencted,
-    //             servicetype: servicetype,
-    //             countertype: countertype,
-    //             status: status,
-    //             fromdate: fromdate,
-    //             todate: todate
-    //         },
-    //         contentType: 'application/json; charset=utf-8',
-    //         url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
-    //         success: function (result) {
-    //             if (result.success == 'S') {
-    //                 var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
-    //                 window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
-    //             }
-    //             else { alert(result.errstr); }
-    //         },
-    //         error: function (err) {
-    //             alert('@ViewBag.ErrorMsg');
-    //         }
-    //     });
-    // });
+    function generateTableLogView(data) {
+        var jsondata = data.logdata;
+        let table = $('#log-table').DataTable();
+        table.clear();
+        let test = [];
+        $.each(jsondata, function (index, item) {
+            
+           
+            
+            // row.append($("<td>").text((index + 1)));
+
+            // Get the current date object
+            let date = new Date(item.timestamp);
+
+            // Get the year, month, day, hour, minute, and second
+            let year = date.getFullYear();
+            let month = date.getMonth() + 1; // Month is zero-based
+            let day = date.getDate();
+            let hour = date.getHours();
+            let minute = date.getMinutes();
+            let second = date.getSeconds();
+
+            // Pad each component with a leading zero if necessary
+            year = year.toString().padStart(2, "0");
+            month = month.toString().padStart(2, "0");
+            day = day.toString().padStart(2, "0");
+            hour = hour.toString().padStart(2, "0");
+            minute = minute.toString().padStart(2, "0");
+            second = second.toString().padStart(2, "0");
+
+            // Concatenate the components with slashes and spaces
+            let dateString = year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+
+            let rowData = [(index + 1) + '', dateString, item.version, item.event, item.message];
+            
+            test.push(rowData);
+            // table.row.add(rowData);
+            
+
+        });
+        table.rows.add(test);
 
 
-   
+        table.draw();
+        
+    }
 </script>
 
 
@@ -628,6 +719,16 @@
         SubmitSearch(paramater);
 
     }
+    function SearchLog() {
+        var terminal_id = document.getElementById("terminal_id-log").value;
+        var date = document.getElementById("date-log").value;
+        var paramater = {
+            terminal_id: terminal_id,
+            date: date
+
+        };
+        SubmitSearchLog(paramater);
+    }
     function ClearSearchData() {
         document.querySelector('serial_no').value = "--";
         // document.querySelector('encryption_version').selectedIndex = 0;
@@ -637,16 +738,75 @@
         // document.getElementById('agent_status').selectedIndex = "";
         // document.getElementById('maxRows').selectedIndex = 500;
         // document.getElementById('sort').selectedIndex = "";
-        alert(" Test ");
+        
 
     }
     function DownloadExcel() {
         ExportRecordtoExcel();
 
     }
+    function GetLog(terminal_id, date) {
+
+        var paramater = {
+            terminal_id: terminal_id,
+            date: date
+            
+        };
+        SubmitSearchLog(paramater);
+        document.getElementById("terminal_id-log").value = terminal_id;
+
+
+        
+        let dateTime = new Date(date);
+        let year = dateTime.getFullYear().toString().padStart(2, "0");
+        let month = (dateTime.getMonth() + 1).toString().padStart(2, "0");
+        let day = dateTime.getDate().toString().padStart(2, "0");
+
+        document.getElementById("date-log").value = year + "-" + month + "-" + day;
+
+        $("#exampleModal").modal("show");
+        
+    }
+
+    async function SubmitSearchLog(paramater) {
+        try {
+            const url = '@Url.Action("GetLogSa", "EncryptionMoniter")' + '?' +
+                new URLSearchParams(paramater);
+                
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application / json',
+                    'Content-Type': 'application/json'
+
+                }
+
+                //responseType: "blob"
+            });
+            if (response.ok) {
+
+                var res = response.json();
+
+                res.then((data) => {
+                    generateTableLogView(data);
+                    
+                });
+            }
+            else {
+                
+                throw new Error("GetLog failed with status " + response.status);
+                return null;
+            }
+        } catch (error) {
+            
+            console.log(error);
+            return null;
+        }
+
+
+    }
     async function SubmitSearch(paramater) {
         
-        //const formData = new FormData(oFormElement);
         
         const url = '@Url.Action("GetDeviceEncryption", "EncryptionMoniter")' + '?' +
             new URLSearchParams(paramater);
@@ -756,23 +916,6 @@
                     let currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
 
 
-                    // let sert = "";
-                    // if (dataExport.term_id != "" && dataExport.term_id != null) {
-                    //     sert += "_" + dataExport.term_id;
-                    // } else {
-                    //     if (dataExport.row != 0) {
-                    //         sert += "_ALL"
-                    //     }
-
-                    // }
-
-                    // if (dataExport.toDateTime != "" && dataExport.toDateTime != null) {
-                    //     sert += "_" + dataExport.toDateTime;
-                    // }
-                    // if (dataExport.forDateTime != "" && dataExport.forDateTime != null) {
-                    //     sert += "_" + dataExport.forDateTime;
-                    // }
-
 
                     var url = window.URL.createObjectURL(blob);
 
@@ -783,11 +926,10 @@
                     window.URL.revokeObjectURL(url);
                     document.removeChild(anchor);
 
-                    //window.location.assign(url);
                 });
             }
             else {
-                // Handle the error if the export was unsuccessful
+                
                 throw new Error("Export failed with status " + response.status);
             }
 
@@ -797,5 +939,40 @@
 
 
     }
+</script>
+
+
+
+
+<script>
+    $(document).ready(function () {
+        $('#log-table').DataTable({
+            //disable sorting on last column
+            // // "columnDefs": [
+            // //     { "width": "70%", "targets": 4 }
+            // // ],
+            "createdRow": function (row, data, dataIndex) {
+                if (data[3] == `ERROR`) {
+                    $(row).addClass('text-danger');
+                }
+            },
+            language: {
+                //customize pagination prev and next buttons: use arrows instead of words
+                'paginate': {
+                    'previous': '<span class="bi bi-chevron-left"></span>',
+                    'next': '<span class="bi bi-chevron-right"></span>'
+                },
+                //customize number of elements to be displayed
+                "lengthMenu": 'Display <select class="form-control input-sm">' +
+                    '<option value="10">10</option>' +
+                    '<option value="20">20</option>' +
+                    '<option value="30">30</option>' +
+                    '<option value="40">40</option>' +
+                    '<option value="50">50</option>' +
+                    '<option value="-1">All</option>' +
+                    '</select> results'
+            }
+        })
+    });
 </script>
 
