@@ -61,7 +61,7 @@ namespace SLA_Management.Controllers
             switch (trxtpyeStr)
             {
                 case "Deposit":
-                    terminalQuery += " AND trx_type IN ('DEP_DCA', 'DEP_DCC') ";
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA') ";
                     break;
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
@@ -203,7 +203,7 @@ namespace SLA_Management.Controllers
             switch (trxtpyeStr)
             {
                 case "Deposit":
-                    terminalQuery += " AND trx_type IN ('DEP_DCA', 'DEP_DCC') ";
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA') ";
                     break;
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
@@ -324,9 +324,12 @@ namespace SLA_Management.Controllers
 
                 strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
 
+                if(trxtpyeStr != "")
+                {
+                    trxtpyeStr = "_" + trxtpyeStr;
+                }
 
-
-                fname = "TransactionSummary_"+ DateTime.Now.ToString("yyyyMMdd");
+                fname = "TransactionSummary_"+ DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
 
                 strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
 
@@ -365,19 +368,20 @@ namespace SLA_Management.Controllers
 
 
         [HttpGet]
-        public ActionResult DownloadExportFile_TransactionSummary(string rpttype)
+        public ActionResult DownloadExportFile_TransactionSummary(string rpttype,string transactionType)
         {
             string fname = "";
             string tempPath = "";
             string tsDate = "";
             string teDate = "";
+            string trxtpyeStr = transactionType ?? "";
             try
             {
-
-
-
-
-                fname = "TransactionSummary_" + DateTime.Now.ToString("yyyyMMdd");
+                if (trxtpyeStr != "")
+                {
+                    trxtpyeStr = "_" + trxtpyeStr;
+                }
+                fname = "TransactionSummary_" + DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
 
                 switch (rpttype.ToLower())
                 {

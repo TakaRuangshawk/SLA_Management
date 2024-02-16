@@ -452,7 +452,7 @@
             success: function (result) {
                 if (result.success == 'S') {
                     var url = '@Url.Action("DownloadExportFile_TransactionSummary", "Monitor")'
-                    window.location = '@Url.Action("DownloadExportFile_TransactionSummary", "Monitor")/?rpttype=' + rptType;
+                    window.location = '@Url.Action("DownloadExportFile_TransactionSummary", "Monitor")/?rpttype=' + rptType + '&transactionType=' + transactionType;
                     $('#boxDownload').hide();
                     $('body').css('pointer-events', 'auto');
                 }
