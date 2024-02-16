@@ -874,5 +874,99 @@ namespace SLA_Management.Data.ExcelUtilitie
 
         #endregion
     }
+    public class ExcelUtilities_TransactionSummary
+    {
+        #region  Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+
+
+        public ExcelUtilities_TransactionSummary()
+        {
+
+        }
+
+        #endregion
+
+        #region Function 
+        public void GatewayOutput(List<Dictionary<string, object>> objData)
+        {
+            int nStartRowData = 0;
+            string strTermID = string.Empty;
+            string strBranchName = string.Empty;
+            string strLocation = string.Empty;
+            string strProbName = string.Empty;
+            int nStartPivotData = 0;
+
+            try
+            {
+                nStartRowData = 2;
+                nStartPivotData = 4;
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\TransactionSummary.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    //var excelWorksheet = oWorkbook.Worksheets[0];
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+
+                    // Add headers
+                    int column = 1;
+                    foreach (var header in objData[0].Keys)
+                    {
+                        ExcelRange headerCell = excelWorksheet.Cells[1, column];
+                        headerCell.Value = header.Replace("_", "");
+
+                        // Apply styling to header cells
+                        headerCell.Style.Font.Bold = true; // Make text bold
+                        headerCell.Style.Font.Size = 13;
+                        headerCell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid; // Set fill pattern
+                        headerCell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Orange); // Set background color
+                        headerCell.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin); // Add border around cell
+                        column++;
+                    }
+
+                    // Add data
+                    int row = 2;
+                    foreach (var data in objData)
+                    {
+                        column = 1;
+                        foreach (var value in data.Values)
+                        {
+                            excelWorksheet.Cells[row, column].Value = value;
+                            column++;
+                        }
+                        row++;
+                    }
+                    for (int i = 1; i <= objData[0].Count; i++)
+                    {
+                        excelWorksheet.Column(i).AutoFit();
+
+                    }
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "TransactionSummary.xlsx"))));
+                    FileSaveAsXlsxFormat = "TransactionSummary.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
+        #endregion
+    }
 
 }

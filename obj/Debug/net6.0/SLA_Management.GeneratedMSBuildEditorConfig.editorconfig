@@ -16,6 +16,10 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\Workspace\Git\SLA_Management\SLA_Management
 build_property._RazorSourceGeneratorDebug = 
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/AuditingReport/AuditingReportAction.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXVkaXRpbmdSZXBvcnRcQXVkaXRpbmdSZXBvcnRBY3Rpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Comlog/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbG9nXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -54,6 +58,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Management/Holiday.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxIb2xpZGF5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/TransactionSummary.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxUcmFuc2FjdGlvblN1bW1hcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/CheckEJLastUpdate.cshtml]
