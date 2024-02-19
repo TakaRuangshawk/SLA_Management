@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using OfficeOpenXml;
 using SLA_Management.Commons;
 using SLA_Management.Models;
 using SLA_Management.Models.COMLogModel;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SLA_Management.Controllers
 {
@@ -26,6 +28,8 @@ namespace SLA_Management.Controllers
         private Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment { get; set; }
         private IConfiguration _myConfiguration { get; set; }
 
+        private static Task jobRPT { get; set; }
+
         public ComlogController(Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment, IConfiguration configuration)
         {
             this.hostEnvironment = hostEnvironment;
@@ -38,6 +42,7 @@ namespace SLA_Management.Controllers
             passwordFileserver = _myConfiguration.GetValue<string>("FileServer:Password");
             partLinuxUploadFileserver = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileComlog");
             dataErrorLog = new CheckFileInFileServerNew(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, partLinuxUploadFileserver, SlaSqlServer, ReportMySql);
+            
         }
 
         [HttpGet]
@@ -122,6 +127,44 @@ namespace SLA_Management.Controllers
             return Json(new { count = files.Count, size = size });
         }
 
+
+
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        public IActionResult UploadFileRPT(string tableName, List<IFormFile> files)
+        {
+            long size = files.Sum(f => f.Length);
+
+            string pathApp = hostEnvironment.WebRootPath;
+            List<string> filesUpload = new List<string>();
+            if (files != null && tableName != "" && (jobRPT == null || jobRPT.IsCompleted) )
+            {
+                foreach (var item in files)
+                {
+                    string _FileName = Path.GetFileName(item.FileName);
+                    var filePath = Path.GetTempFileName();
+                    Guid myuuid = Guid.NewGuid();
+                    string myuuidAsString = myuuid.ToString();
+                    string pathDowload = Path.Combine(pathApp, "UploadFile");
+                    string targetFileSave = Path.Combine(pathDowload, myuuidAsString + "_" + _FileName);
+                    if (!Directory.Exists(pathDowload))
+                    {
+                        Directory.CreateDirectory(pathDowload);
+                    }
+                    using (var stream = System.IO.File.Create(targetFileSave))
+                    {
+                        item.CopyTo(stream);
+                        filesUpload.Add(targetFileSave);
+                    }
+                }
+                ServiceRPT serviceRPT = new ServiceRPT(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, SlaSqlServer, ReportMySql);
+                jobRPT = Task.Factory.StartNew(() => serviceRPT.ReadFileToSlaDB(filesUpload.ToArray(), tableName), TaskCreationOptions.LongRunning);
+                
+            }
+
+            return Json(new { count = files.Count, size = size });
+        }
+
         [HttpPost]
         public IActionResult ExportRecordtoExcel()
         {
@@ -192,6 +235,31 @@ namespace SLA_Management.Controllers
 
 
         }
+
+
+        
+        private string SizeConverter(long bytes)
+        {
+            var fileSize = new decimal(bytes);
+            var kilobyte = new decimal(1024);
+            var megabyte = new decimal(1024 * 1024);
+            var gigabyte = new decimal(1024 * 1024 * 1024);
+
+            switch (fileSize)
+            {
+                case var _ when fileSize < kilobyte:
+                    return $"Less then 1KB";
+                case var _ when fileSize < megabyte:
+                    return $"{Math.Round(fileSize / kilobyte, 0, MidpointRounding.AwayFromZero):##,###.##}KB";
+                case var _ when fileSize < gigabyte:
+                    return $"{Math.Round(fileSize / megabyte, 2, MidpointRounding.AwayFromZero):##,###.##}MB";
+                case var _ when fileSize >= gigabyte:
+                    return $"{Math.Round(fileSize / gigabyte, 2, MidpointRounding.AwayFromZero):##,###.##}GB";
+                default:
+                    return "n/a";
+            }
+        }
+
 
         private static StringBuilder ModelToBit(List<InsertListFileComLog> obj)
         {

@@ -201,6 +201,9 @@
                             <button type="button" id="btnComlogButton" class="btn" name="UploadComlogButton" title="Upload Comlog" data-toggle="modal" data-target="#UploadModal" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
                             </button>
+                            <button type="button" id="btnRPTButton" class="btn" name="UploadRPTButton" title="Upload CSV RPT" data-toggle="modal" data-target="#UploadRPTModal" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload CSV RPT" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -389,6 +392,64 @@
     </div>
 </div>
 
+<div class="modal fade" id="UploadRPTModal" tabindex="-1" role="dialog" aria-labelledby="UploadRPTModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#FFA500;">
+                <h5 class="modal-title" id="exampleModalLabel" style="color:white;">Upload Files RPT</h5>
+
+            </div>
+
+            <form action="Comlog/UploadFileRPT" enctype="multipart/form-data" method="post" onsubmit="RptSubmit(this);return false;">
+                <div class="modal-body">
+
+                    <div class="form-group p-2">
+
+                        <lable class="col-form-label">Table Name : </lable>
+                        <input type="text" id="tableName" name="tableName" class="form-control" />
+                    </div>
+                    <div class="form-group p-2">
+                        <input class="form-control" type="file" id="files" name="files" multiple>
+                    </div>
+
+                    <div id="fileListContainer" style="overflow-y: auto;max-height:150px; border-style: groove;border-radius: 10px; display:none;">
+                        <ul class="list-group" id="fileList"></ul>
+                    </div>
+
+                    <div style="margin-top:15px;">
+                        <output name="result"></output>
+                    </div>
+
+                </div>
+                <div class="modal-footer" style="background-color:#FFA500;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="UploadFiles" class="btn btn-primary">Send files</button>
+                </div>
+
+
+            </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -450,6 +511,33 @@
             const response = await fetch(oFormElement.action, {
                 method: 'POST',
                 body: formData
+            });
+
+            if (response.ok) {
+                var res = response.json();
+
+                res.then((data) => {
+
+                    resultElement.value = 'Result succeed : count ' + data.count + ', size ' + data.size;
+                    resultElement.style.color = 'LightGreen';
+                });
+
+            }
+
+        } catch (error) {
+            resultElement.value = 'Result error : ' + error;
+            resultElement.style.color = 'red';
+        }
+    }
+    async function RptSubmit(oFormElement) {
+
+        var resultElement = oFormElement.elements.namedItem("result");
+        const formData = new FormData(oFormElement);
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData,
+             
             });
 
             if (response.ok) {

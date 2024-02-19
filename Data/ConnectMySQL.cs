@@ -1,8 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 using System.Data;
-using System.Data.Common;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SLA_Management.Data
 {

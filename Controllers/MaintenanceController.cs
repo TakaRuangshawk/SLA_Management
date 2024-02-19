@@ -1,16 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using SLA_Management.Data;
-using SLAManagement.Data;
-using System.Drawing;
-using System;
-using static SLA_Management.Controllers.OperationController;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using System.Data;
 using SLA_Management.Data.ExcelUtilitie;
-using SLA_Management.Models;
 
 namespace SLA_Management.Controllers
 {

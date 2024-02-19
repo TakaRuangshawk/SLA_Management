@@ -3,14 +3,17 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Reflection;
 
-namespace SLAManagement.Data
+namespace SLA_Management.Data
 {
     public class ConnectSQL_Server
     {
         private SqlConnection conn;
 
         
-
+        public SqlConnection GetSqlConnection()
+        {
+            return conn;
+        }
         public ConnectSQL_Server(string sqlConnection)
         {
             //string stringConect = ConfigurationManager.AppSettings["oracleserver"].ToString();

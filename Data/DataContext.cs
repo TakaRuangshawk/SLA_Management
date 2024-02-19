@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SLA_Management.Models;
 
-namespace SLAManagement.Data
+namespace SLA_Management.Data
 {
     public class DataContext : DbContext
     {
