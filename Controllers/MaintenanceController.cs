@@ -101,7 +101,7 @@ namespace SLA_Management.Controllers
             }
             else if(status == "notuse")
             {
-                filterquery += " and di.STATUS != 'use' ";
+                filterquery += " and di.STATUS = 'no' ";
             }        
             if(connencted == "0")
             {
