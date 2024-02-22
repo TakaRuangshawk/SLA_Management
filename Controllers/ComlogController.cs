@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using OfficeOpenXml;
 using SLA_Management.Commons;
+using SLA_Management.Commons.SignalR;
 using SLA_Management.Models;
 using SLA_Management.Models.COMLogModel;
 using System.Text;
@@ -28,9 +30,10 @@ namespace SLA_Management.Controllers
         private Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment { get; set; }
         private IConfiguration _myConfiguration { get; set; }
 
-        private static Task jobRPT { get; set; }
+        private IHubContext<RPTHub> jobRPTHub { get; set; }
 
-        public ComlogController(Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment, IConfiguration configuration)
+
+        public ComlogController(Microsoft.AspNetCore.Hosting.IHostingEnvironment hostEnvironment, IConfiguration configuration, IHubContext<RPTHub> hub)
         {
             this.hostEnvironment = hostEnvironment;
             _myConfiguration = configuration;
@@ -42,7 +45,7 @@ namespace SLA_Management.Controllers
             passwordFileserver = _myConfiguration.GetValue<string>("FileServer:Password");
             partLinuxUploadFileserver = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileComlog");
             dataErrorLog = new CheckFileInFileServerNew(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, partLinuxUploadFileserver, SlaSqlServer, ReportMySql);
-            
+            jobRPTHub = hub;
         }
 
         [HttpGet]
@@ -66,7 +69,7 @@ namespace SLA_Management.Controllers
                     insertFileCOMLog_temp = dataErrorLog.GetListFileComLog(filter.term_id, (DateTime)filter.forDateTime, (DateTime)filter.toDateTime);
                 }
             }
-
+            ViewBag.processJob = ServiceRPT.GetStatusJobRPT();
             ViewBag.CurrentTermID = dataErrorLog.termIds;
             ViewBag.pageSize = pageSize;
             ViewBag.ExportDataFile = filter;
@@ -84,6 +87,7 @@ namespace SLA_Management.Controllers
         }
 
         [HttpPost]
+        [RequestSizeLimit(2028 * 1024 * 1024)]
         public IActionResult UploadFile(string uplodeTerminal_ID, List<IFormFile> files)
         {
             long size = files.Sum(f => f.Length);
@@ -130,39 +134,31 @@ namespace SLA_Management.Controllers
 
 
         [HttpPost]
-        [DisableFormValueModelBinding]
-        public IActionResult UploadFileRPT(string tableName, List<IFormFile> files)
+        [RequestSizeLimit(2028 * 1024 * 1024)]
+        public async Task<IActionResult> UploadFileRPT(UploadFilesRPT uploadFilesRPT)
         {
-            long size = files.Sum(f => f.Length);
-
-            string pathApp = hostEnvironment.WebRootPath;
+            string tableName = $"sla_emslog_RPT_{uploadFilesRPT.dateRPT.Year.ToString("0000")+ uploadFilesRPT.dateRPT.Month.ToString("00")}_Test";
+            long size = uploadFilesRPT.files.Sum(f => f.Length);
+            //string pathApp = hostEnvironment.WebRootPath;
             List<string> filesUpload = new List<string>();
-            if (files != null && tableName != "" && (jobRPT == null || jobRPT.IsCompleted) )
+            ServiceRPT serviceRPT = new ServiceRPT(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, SlaSqlServer, ReportMySql, jobRPTHub);
+            try
             {
-                foreach (var item in files)
+                if (uploadFilesRPT.files != null && tableName != "" && ServiceRPT.GetStatusJobRPT())
                 {
-                    string _FileName = Path.GetFileName(item.FileName);
-                    var filePath = Path.GetTempFileName();
-                    Guid myuuid = Guid.NewGuid();
-                    string myuuidAsString = myuuid.ToString();
-                    string pathDowload = Path.Combine(pathApp, "UploadFile");
-                    string targetFileSave = Path.Combine(pathDowload, myuuidAsString + "_" + _FileName);
-                    if (!Directory.Exists(pathDowload))
+                    foreach (var item in uploadFilesRPT.files)
                     {
-                        Directory.CreateDirectory(pathDowload);
+                        filesUpload.Add(await serviceRPT.SaveFileAsync(item));
                     }
-                    using (var stream = System.IO.File.Create(targetFileSave))
-                    {
-                        item.CopyTo(stream);
-                        filesUpload.Add(targetFileSave);
-                    }
+                    serviceRPT.StartJob(filesUpload.ToArray(), tableName);
                 }
-                ServiceRPT serviceRPT = new ServiceRPT(ipFileserver, portFileserver, usernameFileserver, passwordFileserver, SlaSqlServer, ReportMySql);
-                jobRPT = Task.Factory.StartNew(() => serviceRPT.ReadFileToSlaDB(filesUpload.ToArray(), tableName), TaskCreationOptions.LongRunning);
-                
+            }catch (Exception ex)
+            {
+                return Json(new { count = uploadFilesRPT.files.Count, size = size, table_name = tableName , error = ex.Message});
             }
+            
 
-            return Json(new { count = files.Count, size = size });
+            return Json(new { count = uploadFilesRPT.files.Count, size = size, table_name = tableName });
         }
 
         [HttpPost]
@@ -304,4 +300,6 @@ namespace SLA_Management.Controllers
             return str;
         }
     }
+   
+
 }

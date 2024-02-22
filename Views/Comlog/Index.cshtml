@@ -92,6 +92,11 @@
 
 
 <div class="content contentHeader">
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+        <div id="toast-container" class="toast-container position-absolute top-0 end-0 p-3">
+            <!-- Toasts will be inserted here dynamically -->
+        </div>
+    </div>
     <div class="container w-auto containerHeader">
         <div class="row">
             <div class="col col-md-1">
@@ -202,7 +207,7 @@
                                 <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
                             </button>
                             <button type="button" id="btnRPTButton" class="btn" name="UploadRPTButton" title="Upload CSV RPT" data-toggle="modal" data-target="#UploadRPTModal" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/button_uploan.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload CSV RPT" />
+                                <img src="~/images/button-Upload-CSV-RPT.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload CSV RPT" />
                             </button>
                         </div>
                     </div>
@@ -405,8 +410,10 @@
 
                     <div class="form-group p-2">
 
-                        <lable class="col-form-label">Table Name : </lable>
-                        <input type="text" id="tableName" name="tableName" class="form-control" />
+                        <lable class="col-form-label">Table Date : </lable>
+                        <input class="form-control" id="dateRPT" name="dateRPT" placeholder="yyyy-mm-dd" type="Date">
+                        @* @Html.TextBox("dateRPT", "" , new { @class = "form-control subsearch", @type = "Date", @placeholder = "yyyy-mm-dd" }) *@
+                       
                     </div>
                     <div class="form-group p-2">
                         <input class="form-control" type="file" id="files" name="files" multiple>
@@ -419,32 +426,18 @@
                     <div style="margin-top:15px;">
                         <output name="result"></output>
                     </div>
+                    <div style="margin-top:15px;">
+                        <output id="resultJob" name="resultJob"></output>
+                    </div>
 
                 </div>
                 <div class="modal-footer" style="background-color:#FFA500;">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" id="UploadFiles" class="btn btn-primary">Send files</button>
+                    <button type="submit" id="UploadFilesRPT" class="btn btn-primary">Send files</button>
                 </div>
 
 
             </form>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         </div>
     </div>
@@ -475,6 +468,49 @@
         </div>
     </div>
 </div>
+
+<div aria-live="polite" aria-atomic="true" class="position-relative">
+    <!-- Position it: -->
+    <!-- - `.toast-container` for spacing between toasts -->
+    <!-- - `.position-absolute`, `top-0` & `end-0` to position the toasts in the upper right corner -->
+    <!-- - `.p-3` to prevent the toasts from sticking to the edge of the container  -->
+    <div class="toast-container position-absolute top-0 end-0 p-3">
+
+        <!-- Then put toasts within -->
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <img src="..." class="rounded me-2" alt="...">
+                <strong class="me-auto">Bootstrap</strong>
+                <small class="text-muted">just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                See? Just like this.
+            </div>
+        </div>
+
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <img src="..." class="rounded me-2" alt="...">
+                <strong class="me-auto">Bootstrap</strong>
+                <small class="text-muted">2 seconds ago</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Heads up, toasts will stack automatically
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+
+
 
 <script>
 
@@ -530,9 +566,13 @@
         }
     }
     async function RptSubmit(oFormElement) {
-
+        
+        var btnRPT = document.getElementById("UploadFilesRPT");
+        btnRPT.disabled = true;
+  
         var resultElement = oFormElement.elements.namedItem("result");
         const formData = new FormData(oFormElement);
+        
         try {
             const response = await fetch(oFormElement.action, {
                 method: 'POST',
@@ -963,4 +1003,84 @@
 
 
 
+</script>
+
+
+
+
+<script>
+    
+    var processJob = '@ViewBag.processJob';
+    document.getElementById("UploadFilesRPT").disabled = !processJob;
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/JobRPTHub").build();
+
+    //Disable the send button until connection is established.
+    // document.getElementById("sendButton").disabled = true;
+
+    connection.on("RPT_Job_Process", function (jobStatus,jobTable) {
+        
+        // var li = document.createElement("li");
+        // document.getElementById("messagesList").appendChild(li);
+        // We can assign user-supplied strings to an element's textContent because it
+        // is not interpreted as markup. If you're assigning in any other way, you
+        // should be aware of possible script injection concerns.
+        // li.textContent = `${user} says ${message}`;
+        var btnRPT = document.getElementById("UploadFilesRPT");
+        if (jobStatus) {
+            var msg = "Process Starting : " + jobTable;
+            showToast(msg);
+            document.getElementById("resultJob").innerHTML = msg;
+           
+            btnRPT.disabled = true;
+        }else{
+            var msg = "Process Success : " + jobTable;
+            showToast(msg)
+            document.getElementById("resultJob").innerHTML = msg;
+            
+            btnRPT.disabled = false;
+        }
+        
+    });
+
+    connection.start().then(function () {
+        // document.getElementById("sendButton").disabled = false;
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    // document.getElementById("sendButton").addEventListener("click", function (event) {
+    //     var user = document.getElementById("userInput").value;
+    //     var message = document.getElementById("messageInput").value;
+    //     connection.invoke("SendMessage", user, message).catch(function (err) {
+    //         return console.error(err.toString());
+    //     });
+    //     event.preventDefault();
+    // });
+</script>
+
+<script>
+    function showToast(ToastMsg) {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-primary border-0';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        const toastBody = document.createElement('div');
+        toastBody.className = 'd-flex';
+
+        const toastText = document.createElement('div');
+        toastText.className = 'toast-body';
+        toastText.textContent = ToastMsg;
+
+        toastBody.appendChild(toastText);
+        toast.appendChild(toastBody);
+
+        toastContainer.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 5000 });
+        bsToast.show();
+    }
 </script>
