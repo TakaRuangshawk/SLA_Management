@@ -136,6 +136,7 @@ namespace SLA_Management.Controllers
                     {
                         command.CommandText = finalQuery;
                         command.CommandType = CommandType.Text;
+                        command.CommandTimeout = 120;
                         using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -278,6 +279,7 @@ namespace SLA_Management.Controllers
                     {
                         command.CommandText = finalQuery;
                         command.CommandType = CommandType.Text;
+                        command.CommandTimeout = 120;
                         using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
