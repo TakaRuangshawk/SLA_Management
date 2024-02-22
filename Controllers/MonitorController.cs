@@ -66,6 +66,12 @@ namespace SLA_Management.Controllers
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     break;
+                case "": 
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    break;
+                default:
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    break;
             }
             StringBuilder queryBuilder = new StringBuilder();
             if (fromDate.ToString("yyyy-MM-dd") == toDate.ToString("yyyy-MM-dd"))
@@ -208,6 +214,12 @@ namespace SLA_Management.Controllers
                     break;
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    break;
+                case "":
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    break;
+                default:
+                    terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     break;
             }
             StringBuilder queryBuilder = new StringBuilder();
