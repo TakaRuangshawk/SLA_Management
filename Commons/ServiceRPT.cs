@@ -15,6 +15,7 @@ namespace SLA_Management.Commons
         public string pathUploadFileDirectory = "UploadFile";
         public IHubContext<RPTHub> jobRPTHub {  get; set; }
         private static Task? jobRPT { get; set; }
+        private static string? jobRPT_NameTable { get; set; }
 
         public ServiceRPT(string IP, int port, string username, string password, string slaSQL, string reportMySQL , IHubContext<RPTHub> jobRPTHub) : base(IP, port, username, password)
         {
@@ -40,6 +41,18 @@ namespace SLA_Management.Commons
                 return false;
             }
         }
+        public static string GetJobRPT_NameTable()
+        {
+            if (jobRPT_NameTable == null || jobRPT_NameTable == "")
+            {
+
+                return "NULL";
+            }
+            else
+            {
+                return jobRPT_NameTable;
+            }
+        }
 
 
         public void StartJob(string[] filesUpload,string tableName)
@@ -53,7 +66,8 @@ namespace SLA_Management.Commons
 
         public async Task ReadFileToSlaDB(string[] pathFileCSVs,string tableName)
         {
-            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", true, tableName);
+            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", false, tableName);
+            jobRPT_NameTable = tableName;
             DeleteTableAndCreateSlaRPT(tableName);
             Parallel.ForEach(pathFileCSVs,CSV =>{
                 if (File.Exists(CSV))
@@ -94,7 +108,8 @@ namespace SLA_Management.Commons
                     File.Delete(CSV);
                 }
             });
-            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", false , tableName);
+            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", true, tableName);
+            jobRPT_NameTable = "";
         }
 
         public async Task<string> SaveFileAsync(IFormFile file)

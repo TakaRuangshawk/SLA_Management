@@ -6,6 +6,7 @@ using SLA_Management.Commons;
 using SLA_Management.Commons.SignalR;
 using SLA_Management.Models;
 using SLA_Management.Models.COMLogModel;
+using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,7 +70,10 @@ namespace SLA_Management.Controllers
                     insertFileCOMLog_temp = dataErrorLog.GetListFileComLog(filter.term_id, (DateTime)filter.forDateTime, (DateTime)filter.toDateTime);
                 }
             }
+            
             ViewBag.processJob = ServiceRPT.GetStatusJobRPT();
+
+            ViewBag.processJob_TableName = ServiceRPT.GetJobRPT_NameTable() ;
             ViewBag.CurrentTermID = dataErrorLog.termIds;
             ViewBag.pageSize = pageSize;
             ViewBag.ExportDataFile = filter;
