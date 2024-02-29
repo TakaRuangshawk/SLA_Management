@@ -342,7 +342,7 @@ namespace SLA_Management.Controllers
 
 
             ViewBag.deviceRDMError1 = myListRDM_array[0];
-            ViewBag.deviceRDMError2 = myListLRM_array[1];
+            ViewBag.deviceRDMError2 = myListRDM_array[1];
             ViewBag.deviceRDMError3 = myListRDM_array[2];
             ViewBag.deviceRDMError4 = myListRDM_array[3];
             ViewBag.deviceRDMError5 = myListRDM_array[4];
