@@ -479,7 +479,7 @@
 
                     </div>
 
-                    <div id="terminal-info" style="display:block;border: 20px solid orange;">
+                    <div id="terminal-info" style="display:block;border: 10px solid orange;">
                         <div class="row" style="padding-top:15px;">
                             <div class="col-md-1">
                             </div>
@@ -490,10 +490,10 @@
                                 @Html.TextBox("DEVICE_ID", ViewBag.devicE_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
-                                <label for="TERM_SEQ">Serial No</label>&nbsp;:&nbsp;
+
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
+                              
                             </div>
                         </div>
                         <div class="row">
@@ -512,7 +512,22 @@
                                 @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
                         </div>
-
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_SEQ">Serial No</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_IP">Terminal IP</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TERM_IP", ViewBag.TERM_IP as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-1">
                             </div>
@@ -520,7 +535,7 @@
                                 <label for="TERM_NAME">Terminal Name </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-8 modelTextbox">
-                                @Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                         </div>
 
@@ -531,7 +546,7 @@
                                 <label for="TERM_LOCATION">Location </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-8 modelTextbox">
-                                @Html.TextBox("TERM_LOCATION", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("TERM_LOCATION", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                         </div>
 
@@ -542,7 +557,7 @@
                                 <label for="COUNTER_CODE">COUNTER CODE </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("COUNTER_CODE", ViewBag.COUNTER_CODE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("COUNTER_CODE", ViewBag.COUNTER_CODE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="SERVICETYPE">SERVICE TYPE</label>&nbsp;:&nbsp;
@@ -559,13 +574,13 @@
                                 <label for="LATITUDE">LATITUDE </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("LATITUDE", ViewBag.LATITUDE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("LATITUDE", ViewBag.LATITUDE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="LONGITUDE">LONGITUDE</label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("LONGITUDE", ViewBag.LONGITUDE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("LONGITUDE", ViewBag.LONGITUDE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                         </div>
 
@@ -576,13 +591,13 @@
                                 <label for="CONTROL_BY">CONTROL BY </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("CONTROL_BY", ViewBag.CONTROL_BY as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("CONTROL_BY", ViewBag.CONTROL_BY as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="PROVINCE">PROVINCE</label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                         </div>
 
@@ -593,13 +608,13 @@
                                 <label for="SERVICE_BEGINDATE">SERVICE BEGINDATE </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("SERVICE_BEGINDATE", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("SERVICE_BEGINDATE", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="SERVICE_ENDDATE">SERVICE ENDDATE</label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("SERVICE_ENDDATE", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("SERVICE_ENDDATE", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
                             </div>
                         </div>
 
@@ -631,7 +646,14 @@
                             </div>
 
                         </div>
-
+                        <div class="row" style="margin: 15px;">
+                            <div class="col-6" style="display: flex;justify-content: flex-end;">
+                                <img src="/images/edit.png" style="width: 100px;height: auto;">
+                            </div>
+                            <div class="col-6" style="display: flex;justify-content: flex-start;">
+                                <img id="saveButton" src="/images/save.png" style="width: 100px;height: auto;">
+                            </div>
+                        </div>
                     </div>
 
 
@@ -642,8 +664,64 @@
 
 }
 <script>
+    $(document).ready(function () {
+        $('#saveButton').click(function () {
+            var deviceID = $('#DEVICE_ID').val();
+            var terminalNo = $('#TERM_ID').val();
+            var serialNo = $('#TERM_SEQ').val();
+            var terminalIP = $('#TERM_IP').val();
+            var terminalName = $('#TERM_NAME').val();
+            var location = $('#TERM_LOCATION').val();
+            var counterCode = $('#COUNTER_CODE').val();
+            var latitude = $('#LATITUDE').val();
+            var longitude = $('#LONGITUDE').val();
+            var controlBy = $('#CONTROL_BY').val();
+            var province = $('#PROVINCE').val();
+            var serviceBeginDate = $('#SERVICE_BEGINDATE').val();
+            var serviceEndDate = $('#SERVICE_ENDDATE').val();
 
+            var data = {
+                DeviceID: deviceID,
+                TerminalNo: terminalNo,
+                SerialNo: serialNo,
+                TerminalIP: terminalIP,
+                TerminalName: terminalName,
+                Location: location,
+                CounterCode: counterCode,
+                Latitude: latitude,
+                Longitude: longitude,
+                ControlBy: controlBy,
+                Province: province,
+                ServiceBeginDate: serviceBeginDate,
+                ServiceEndDate: serviceEndDate
+                // Add other fields here
+            };
+
+            $.ajax({
+                url: '@Url.Action("UpdateTerminal", "Maintenance")',
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    // Handle success response
+                    alert('Update Status : ' + response);
+                    updateTable("search");
+                   
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response
+                    alert('Error updating data:', error);
+                }
+                
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('img[src$="/images/edit.png"]').on('click', function () {
+            $('#myModal').find('.editable').removeAttr('readonly');
+        });
+    });
     function updateTable(search) {
+       
         var terminalno = $("#TermID").val();
         var terminalseq = $("#terminalseq").val();
         var terminaltype = $("#terminaltype").val();
@@ -718,7 +796,8 @@
                                     "'" + item.servicE_ENDDATE + "'," +
                                     "'" + item.versioN_MASTER + "'," +
                                     "'" + item.version + "'," +
-                                    "'" + item.versioN_AGENT + "'" +
+                                    "'" + item.versioN_AGENT + "'," +
+                                    "'" + item.terM_IP + "'" +
                                     ")"
                             })
                         );
@@ -877,7 +956,8 @@
 
     function EditButton(devicE_ID, terM_SEQ, typE_ID, terM_ID, terM_NAME, connected, status, counteR_CODE,
         serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
-        servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT) {
+        servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT,terM_IP) {
+        $('#myModal').find('.editable').attr('readonly', true);
         var imgElement = document.createElement("img");
         var container = document.getElementById('connected_modal');
         container.innerHTML = '';
@@ -885,6 +965,9 @@
         document.getElementById('TERM_SEQ').value = terM_SEQ;
         document.getElementById('TYPE_ID').value = typE_ID;
         document.getElementById('TERM_ID').value = terM_ID;
+        document.getElementById('TERM_ID').setAttribute('data-id', terM_ID);
+        console.log(document.getElementById('TERM_ID').getAttribute('data-id'));
+        console.log(document.getElementById('TERM_ID').value);
         document.getElementById('TERM_NAME').value = terM_NAME;
         document.getElementById('STATUS').value = status;
         document.getElementById('COUNTER_CODE').value = counteR_CODE;
@@ -895,10 +978,14 @@
         document.getElementById('CONTROL_BY').value = controL_BY;
         document.getElementById('PROVINCE').value = PROVINCE;
         document.getElementById('SERVICE_BEGINDATE').value = servicE_BEGINDATE;
+        if (servicE_ENDDATE === "เครื่องยังเปิดให้บริการ" || servicE_ENDDATE === "เครื่องไม่เปิดให้บริการ") {
+            servicE_ENDDATE = '';
+        }
         document.getElementById('SERVICE_ENDDATE').value = servicE_ENDDATE;
         document.getElementById('VERSION_MASTER').value = versioN_MASTER;
         document.getElementById('VERSION').value = version;
         document.getElementById('VERSION_AGENT').value = versioN_AGENT;
+        document.getElementById('TERM_IP').value = terM_IP;
 
         // Set the src and alt attributes based on the 'connected' value
         if (connected.toLowerCase() === 'online') {

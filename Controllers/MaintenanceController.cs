@@ -131,7 +131,7 @@ namespace SLA_Management.Controllers
             else
             {
                 filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '"+ DateTime.Now.ToString("yyyy-MM-dd") +"'";
-                filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
+                filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
             }
            if(currentlyinuse == "no")
             {
@@ -148,7 +148,7 @@ namespace SLA_Management.Controllers
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
-                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,
+                string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,
                 CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
                 WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
                 ELSE 'Offline' END AS Connected,
@@ -199,6 +199,7 @@ namespace SLA_Management.Controllers
                             VERSION_MASTER = reader["version_master"].ToString(),
                             VERSION = reader["version"].ToString(),
                             VERSION_AGENT = reader["version_agent"].ToString(),
+                            TERM_IP = reader["TERM_IP"].ToString(),
                         });
                     }
                 }
@@ -258,6 +259,7 @@ namespace SLA_Management.Controllers
             public string VERSION_MASTER { get; set; }
             public string VERSION { get; set; }
             public string VERSION_AGENT { get; set; }
+            public string TERM_IP { get; set; }
         }
         public class DataResponse_InventoryMaintenanceModel
         {
@@ -779,5 +781,79 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+        public class TerminalUpdateModel
+        {
+            public string DeviceID { get; set; }
+            public string TerminalNo { get; set; }
+            public string SerialNo { get; set; }
+            public string TerminalIP { get; set; }
+            public string TerminalName { get; set; }
+            public string Location { get; set; }
+            public string CounterCode { get; set; }
+            public string Latitude { get; set; }
+            public string Longitude { get; set; }
+            public string ControlBy { get; set; }
+            public string Province { get; set; }
+            public string ServiceBeginDate { get; set; }
+            public string ServiceEndDate { get; set; }
+            // Add other properties as needed
+        }
+        [HttpPost]
+        public IActionResult UpdateTerminal(TerminalUpdateModel model)
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    string query = @"UPDATE device_info 
+                        SET TERM_SEQ = @SerialNo, 
+                        TERM_IP = @TerminalIP, 
+                        TERM_NAME = @TerminalName, 
+                        TERM_LOCATION = @Location, 
+                        COUNTER_CODE = @CounterCode, 
+                        LATITUDE = @Latitude, 
+                        LONGITUDE = @Longitude, 
+                        CONTROL_BY = @ControlBy, 
+                        PROVINCE = @Province, 
+                        SERVICE_BEGINDATE = @ServiceBeginDate, 
+                        SERVICE_ENDDATE = @ServiceEndDate 
+                        WHERE DEVICE_ID = @DeviceID AND TERM_ID = @TerminalNo";
+
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@SerialNo", model.SerialNo ?? "");
+                        command.Parameters.AddWithValue("@TerminalIP", model.TerminalIP ?? "");
+                        command.Parameters.AddWithValue("@TerminalName", model.TerminalName ?? "");
+                        command.Parameters.AddWithValue("@Location", model.Location ?? "");
+                        command.Parameters.AddWithValue("@CounterCode", model.CounterCode ?? "");
+                        command.Parameters.AddWithValue("@Latitude", model.Latitude ?? "");
+                        command.Parameters.AddWithValue("@Longitude", model.Longitude ?? "");
+                        command.Parameters.AddWithValue("@ControlBy", model.ControlBy ?? "");
+                        command.Parameters.AddWithValue("@Province", model.Province ?? "");
+                        command.Parameters.AddWithValue("@ServiceBeginDate", model.ServiceBeginDate ?? "");
+                        command.Parameters.AddWithValue("@ServiceEndDate", model.ServiceEndDate ?? "");
+                        command.Parameters.AddWithValue("@TerminalNo", model.TerminalNo ?? "");
+                        command.Parameters.AddWithValue("@DeviceID", model.DeviceID ?? "");
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok("Data updated successfully.");
+                        }
+                        else
+                        {
+                            return NotFound("No record found for the given id.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
