@@ -1,7 +1,15 @@
+using Microsoft.AspNetCore.Http.Features;
+using SLA_Management.Commons.SignalR;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.Configure<FormOptions>(option =>
+{
+    option.MultipartBodyLengthLimit = 2028 * 1024 * 1024;
+});
 
 var app = builder.Build();
 
@@ -19,6 +27,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+app.MapHub<RPTHub>("/JobRPTHub");
 
 app.MapControllerRoute(
     name: "default",

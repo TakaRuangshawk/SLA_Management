@@ -1,8 +1,10 @@
-﻿using Serilog;
+﻿using Microsoft.AspNetCore.SignalR;
+using MySqlX.XDevAPI;
+using Serilog;
+using SLA_Management.Commons.SignalR;
 using SLA_Management.Data;
 using SLA_Management.Models.COMLogModel;
 using System.Data.SqlClient;
-using System.IO;
 
 namespace SLA_Management.Commons
 {
@@ -10,19 +12,63 @@ namespace SLA_Management.Commons
     {
         public ConnectSQL_Server connectSQL_Server;
         public ConnectMySQL connectMySQL;
-        
-        //private static Task jobRPT;
-        public ServiceRPT(string IP, int port, string username, string password,string slaSQL,string reportMySQL) : base(IP, port, username, password)
+        public string pathUploadFileDirectory = "UploadFile";
+        public IHubContext<RPTHub> jobRPTHub {  get; set; }
+        private static Task? jobRPT { get; set; }
+        private static string? jobRPT_NameTable { get; set; }
+
+        public ServiceRPT(string IP, int port, string username, string password, string slaSQL, string reportMySQL , IHubContext<RPTHub> jobRPTHub) : base(IP, port, username, password)
         {
             connectSQL_Server = new ConnectSQL_Server(slaSQL);
             connectMySQL = new ConnectMySQL(reportMySQL);
-            
+            this.jobRPTHub = jobRPTHub;
+            if (!Directory.Exists(pathUploadFileDirectory))
+            {
+                Directory.CreateDirectory(pathUploadFileDirectory);
+            }
+
         }
 
-        public void ReadFileToSlaDB(string[] pathFileCSVs,string tableName)
+        public static bool GetStatusJobRPT()
         {
+            if (jobRPT == null || jobRPT.IsCompleted)
+            {
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public static string GetJobRPT_NameTable()
+        {
+            if (jobRPT_NameTable == null || jobRPT_NameTable == "")
+            {
+
+                return "NULL";
+            }
+            else
+            {
+                return jobRPT_NameTable;
+            }
+        }
+
+
+        public void StartJob(string[] filesUpload,string tableName)
+        {
+            jobRPT = Task.Factory.StartNew(() => ReadFileToSlaDB(filesUpload, tableName), TaskCreationOptions.LongRunning);
+        }
+
+
+
+
+
+        public async Task ReadFileToSlaDB(string[] pathFileCSVs,string tableName)
+        {
+            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", false, tableName);
+            jobRPT_NameTable = tableName;
             DeleteTableAndCreateSlaRPT(tableName);
-            Thread.Sleep(1000*60*5);
             Parallel.ForEach(pathFileCSVs,CSV =>{
                 if (File.Exists(CSV))
                 {
@@ -62,41 +108,24 @@ namespace SLA_Management.Commons
                     File.Delete(CSV);
                 }
             });
-            //foreach (string path in pathFileCSVs)
-            //{
-                
-            //    if (File.Exists(path))
-            //    {
-            //        using (StreamReader file = new StreamReader(path))
-            //        {
-            //            int counter = 0;
-            //            string ln;
+            await jobRPTHub.Clients.All.SendAsync("RPT_Job_Process", true, tableName);
+            jobRPT_NameTable = "";
+        }
 
-            //            List<SlaRPTLog> itemFile = new List<SlaRPTLog>();
-            //            while ((ln = file.ReadLine()) != null)
-            //            {
-            //                var data = ln.Split(',');
-            //                try
-            //                {
-            //                    itemFile.Add(new SlaRPTLog(data[0], data[1], data[2], data[3]));
-            //                }
-            //                catch (Exception ex)
-            //                {
-                                
-            //                }
-            //                counter++;
-            //                if (counter>=1000)
-            //                {
-            //                    SqlBulkCopyInsert(itemFile, tableName);
-            //                    counter = 0;
-            //                    itemFile.Clear();
-            //                }
-            //            }
-            //            file.Close();
-            //        }
-            //        File.Delete(path);
-            //    }
-            //}
+        public async Task<string> SaveFileAsync(IFormFile file)
+        {
+           
+            Guid myuuid = Guid.NewGuid();
+            string myuuidAsString = myuuid.ToString();
+           
+
+            string targetFileSave = Path.Combine(pathUploadFileDirectory, myuuidAsString + "_" + file.FileName);
+            
+            using (var stream = File.Create(targetFileSave))
+            {
+                await file.CopyToAsync(stream);
+            }
+            return targetFileSave;
         }
 
         private bool CheckTableSlaRPT(string tableName)
