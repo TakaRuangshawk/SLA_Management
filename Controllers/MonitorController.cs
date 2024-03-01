@@ -83,7 +83,7 @@ namespace SLA_Management.Controllers
                 queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,_" + fromDate.ToString("yyyyMMdd") + ".terminalid as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + ",");
             }
 
-            for (DateTime date = fromDate.AddDays(1); date <= toDate; date = date.AddDays(1))
+            for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
             {
                 string dateStr = date.ToString("yyyyMMdd");
                 if (date.ToString("yyyy-MM-dd") != toDate.ToString("yyyy-MM-dd"))
@@ -109,7 +109,7 @@ namespace SLA_Management.Controllers
             GROUP BY 
                 terminalid) AS _" + fromDate.ToString("yyyyMMdd"));
 
-            for (DateTime date = fromDate.AddDays(1); date <= toDate; date = date.AddDays(1))
+            for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
             {
                 string dateStr = date.ToString("yyyyMMdd");
                 queryBuilder.AppendLine(@"    LEFT JOIN
