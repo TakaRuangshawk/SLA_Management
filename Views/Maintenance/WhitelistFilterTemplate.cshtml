@@ -216,7 +216,7 @@
                 <tr>
                     <th scope="col" style="text-align:center"> No. </th>
                     <th scope="col" style="text-align:center"> Warning Detail  </th>
-                    <th scope="col" style="text-align:center"> Status </th>
+                    <th scope="col" style="text-align:center"> <input type="checkbox" id="selectAllCheckbox">Status </th>
                     <th scope="col" style="text-align:center"> Update Date </th>
 
                 </tr>
@@ -406,29 +406,47 @@
     }
     updateTable("search");
 
-    $(document).on('change', '.updatedata', function () {
-        var checkbox = $(this);
-        var isChecked = checkbox.prop('checked');
-        var id = checkbox.closest('tr').find('td:first').data('id');
+    $(document).ready(function () {
+        // Handle the change event of the "Select All" checkbox
+        $("#selectAllCheckbox").change(function () {
+            // Get the checked state of the "Select All" checkbox
+            var isChecked = $(this).prop("checked");
 
-        $.ajax({
-            type: "POST",
-            url: '@Url.Action("UpdateDatabase", "Maintenance")',
-            data: { isChecked: isChecked, id: id },
-            success: function (response) {
-                if (response.success) {
-                    // Optionally, you can handle success UI updates here
-                    console.log("Database updated successfully!");
-                } else {
-                    console.error("Failed to update database: " + response.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error updating database:", error);
+            // Set the checked state of all checkboxes with class 'updatedata'
+            $(".updatedata").prop("checked", isChecked);
+
+            // Iterate through each checkbox and trigger the change event
+            $(".updatedata").each(function () {
+                $(this).trigger("change");
+            });
+        });
+
+        // Handle the change event of individual checkboxes
+        $(document).on('change', '.updatedata', function () {
+            var checkbox = $(this);
+            var isChecked = checkbox.prop('checked');
+            var id = checkbox.closest('tr').find('td:first').data('id');
+            if (!isChecked) {
+                $("#selectAllCheckbox").prop("checked", false);
             }
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UpdateDatabase", "Maintenance")',
+                data: { isChecked: isChecked, id: id },
+                success: function (response) {
+                    if (response.success) {
+                        // Optionally, you can handle success UI updates here
+                        console.log("Database updated successfully!");
+                    } else {
+                        console.error("Failed to update database: " + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error updating database:", error);
+                }
+            });
         });
     });
-
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
         var terminalno = $("#TermID").val();
