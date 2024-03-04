@@ -509,7 +509,7 @@
                                 <label for="TERM_ID">Terminal No</label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control editable", @readonly = "true" })
                             </div>
                         </div>
                         <div class="row">
@@ -679,7 +679,7 @@
             var province = $('#PROVINCE').val();
             var serviceBeginDate = $('#SERVICE_BEGINDATE').val();
             var serviceEndDate = $('#SERVICE_ENDDATE').val();
-
+            var currTerminalNo = document.getElementById('TERM_ID').getAttribute('data-id');
             var data = {
                 DeviceID: deviceID,
                 TerminalNo: terminalNo,
@@ -693,7 +693,8 @@
                 ControlBy: controlBy,
                 Province: province,
                 ServiceBeginDate: serviceBeginDate,
-                ServiceEndDate: serviceEndDate
+                ServiceEndDate: serviceEndDate,
+                CurrTerminalNo: currTerminalNo
                 // Add other fields here
             };
 
@@ -966,8 +967,6 @@
         document.getElementById('TYPE_ID').value = typE_ID;
         document.getElementById('TERM_ID').value = terM_ID;
         document.getElementById('TERM_ID').setAttribute('data-id', terM_ID);
-        console.log(document.getElementById('TERM_ID').getAttribute('data-id'));
-        console.log(document.getElementById('TERM_ID').value);
         document.getElementById('TERM_NAME').value = terM_NAME;
         document.getElementById('STATUS').value = status;
         document.getElementById('COUNTER_CODE').value = counteR_CODE;

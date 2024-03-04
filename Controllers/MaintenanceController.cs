@@ -796,6 +796,7 @@ namespace SLA_Management.Controllers
             public string Province { get; set; }
             public string ServiceBeginDate { get; set; }
             public string ServiceEndDate { get; set; }
+            public string CurrTerminalNo { get; set; }
             // Add other properties as needed
         }
         [HttpPost]
@@ -808,7 +809,9 @@ namespace SLA_Management.Controllers
                     connection.Open();
 
                     string query = @"UPDATE device_info 
-                        SET TERM_SEQ = @SerialNo, 
+                        SET 
+                        TERM_ID = @TerminalNo,
+                        TERM_SEQ = @SerialNo, 
                         TERM_IP = @TerminalIP, 
                         TERM_NAME = @TerminalName, 
                         TERM_LOCATION = @Location, 
@@ -819,10 +822,11 @@ namespace SLA_Management.Controllers
                         PROVINCE = @Province, 
                         SERVICE_BEGINDATE = @ServiceBeginDate, 
                         SERVICE_ENDDATE = @ServiceEndDate 
-                        WHERE DEVICE_ID = @DeviceID AND TERM_ID = @TerminalNo";
+                        WHERE DEVICE_ID = @DeviceID AND TERM_ID = @CurrTerminalNo";
 
                     using (var command = new MySqlCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("@TerminalNo", model.TerminalNo ?? "");
                         command.Parameters.AddWithValue("@SerialNo", model.SerialNo ?? "");
                         command.Parameters.AddWithValue("@TerminalIP", model.TerminalIP ?? "");
                         command.Parameters.AddWithValue("@TerminalName", model.TerminalName ?? "");
@@ -834,9 +838,8 @@ namespace SLA_Management.Controllers
                         command.Parameters.AddWithValue("@Province", model.Province ?? "");
                         command.Parameters.AddWithValue("@ServiceBeginDate", model.ServiceBeginDate ?? "");
                         command.Parameters.AddWithValue("@ServiceEndDate", model.ServiceEndDate ?? "");
-                        command.Parameters.AddWithValue("@TerminalNo", model.TerminalNo ?? "");
+                        command.Parameters.AddWithValue("@CurrTerminalNo", model.CurrTerminalNo ?? "");
                         command.Parameters.AddWithValue("@DeviceID", model.DeviceID ?? "");
-
                         int rowsAffected = command.ExecuteNonQuery();
 
                         if (rowsAffected > 0)
