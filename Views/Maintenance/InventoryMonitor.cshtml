@@ -697,7 +697,8 @@
                 CurrTerminalNo: currTerminalNo
                 // Add other fields here
             };
-
+            var confirmationMessage = "Are you sure you want to update the data?";
+            if (confirm(confirmationMessage)) {
             $.ajax({
                 url: '@Url.Action("UpdateTerminal", "Maintenance")',
                 type: 'POST',
@@ -714,6 +715,7 @@
                 }
                 
             });
+            }
         });
     });
     $(document).ready(function () {
