@@ -83,7 +83,7 @@ namespace SLA_Management.Controllers
 
             if (terminalno != "")
             {
-                filterquery += " and pv.TERM_ID like '%" + terminalno + "%' ";
+                filterquery += " and di.TERM_ID like '%" + terminalno + "%' ";
             }
             if (terminalseq != "")
             {
@@ -128,7 +128,7 @@ namespace SLA_Management.Controllers
                 where di.TERM_ID is not null ";
 
 
-                query += filterquery + " order by di.TERM_SEQ asc,di.STATUS asc";
+                query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
 
@@ -316,7 +316,7 @@ namespace SLA_Management.Controllers
                 where di.TERM_ID is not null ";
 
 
-                query += filterquery + " order by di.TERM_SEQ asc,di.STATUS asc";
+                query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
 
@@ -776,7 +776,7 @@ namespace SLA_Management.Controllers
                 where pv.TERM_ID is not null ";
 
 
-                    query += filterquery + " order by di.TERM_SEQ asc,di.STATUS asc";
+                    query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
 
                     MySqlCommand command = new MySqlCommand(query, connection);
 
