@@ -19,6 +19,7 @@ namespace SLA_Management.Controllers
 
             _myConfiguration = myConfiguration;
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
+           
         }
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
@@ -51,6 +52,8 @@ namespace SLA_Management.Controllers
             DateTime fromDate = DateTime.Parse(fromDateStr);
             DateTime toDate = DateTime.Parse(toDateStr);
             string tablequery = string.Empty;
+            var allowedValues = _myConfiguration.GetSection("Receipt").Get<string[]>();
+            string probcodes = string.Join("','", allowedValues);
             if (terminalStr != "")
             {
                 terminalQuery += " and terminalid = '" + terminalStr + "' ";
@@ -74,7 +77,7 @@ namespace SLA_Management.Controllers
                     tablequery = "ejhistory";
                     break;
                 case "Receipt":
-                    terminalQuery += "AND a.probcode IN ('SLA_N_1707') ";
+                    terminalQuery += $"AND a.probcode IN ('{probcodes}') ";
                     tablequery = "termprobsla";
                     break;
                 default:
