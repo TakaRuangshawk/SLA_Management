@@ -64,6 +64,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxIb2xpZGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/Transactions.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxUcmFuc2FjdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/TransactionSummary.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxUcmFuc2FjdGlvblN1bW1hcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -96,6 +100,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFRpY2tldE1hbmFnZW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Report/BalancingReport.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0XEJhbGFuY2luZ1JlcG9ydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Report/HardwareReport.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0XEhhcmR3YXJlUmVwb3J0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Report/WhitelistReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0XFdoaXRlbGlzdFJlcG9ydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -115,6 +127,14 @@ build_metadata.AdditionalFiles.CssScope =
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/CardRetain.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxDYXJkUmV0YWluLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = b-bzhh0ruu14
+
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/LastTransaction.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxMYXN0VHJhbnNhY3Rpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-j9khgaa9sg
 
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/Regulator.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFJlZ3VsYXRvci5jc2h0bWw=
