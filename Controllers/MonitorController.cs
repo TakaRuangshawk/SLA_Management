@@ -68,7 +68,8 @@ namespace SLA_Management.Controllers
             string terminalStr = model.terminalId??"";
             string terminaltypeStr = model.terminalType ?? "";
             string trxtpyeStr = model.transactionType ?? "";
-            string terminalQuery = "";
+            string terminalQuery = string.Empty;
+            string terminalFinalQuery = string.Empty;
             DateTime fromDate = DateTime.Parse(fromDateStr);
             DateTime toDate = DateTime.Parse(toDateStr);
             string tablequery = string.Empty;
@@ -77,10 +78,13 @@ namespace SLA_Management.Controllers
             if (terminalStr != "")
             {
                 terminalQuery += " and terminalid = '" + terminalStr + "' ";
+                terminalFinalQuery += " and fdi.TERM_ID = '" + terminalStr + "' ";
+
             }
             if(terminaltypeStr != "")
             {
                 terminalQuery += " and terminalid like '%" + terminaltypeStr + "' ";
+                terminalFinalQuery += " and fdi.TERM_ID like '%" + terminaltypeStr + "' ";
             }
             switch (trxtpyeStr)
             {
@@ -165,7 +169,7 @@ namespace SLA_Management.Controllers
                             }
 
                             finalQuery = queryBuilder.ToString();
-                            finalQuery += @" join (SELECT @row_number:=0) AS t  order by fdi.TERM_SEQ asc ";
+                            finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
 
                 case "termprobsla":
@@ -224,7 +228,8 @@ namespace SLA_Management.Controllers
                     }
 
                     finalQuery = queryBuilder.ToString();
-                    finalQuery += @"  join (SELECT @row_number:=0) AS t  order by fdi.TERM_SEQ asc ";
+                    finalQuery += @"  join (SELECT @row_number:=0) AS t 
+                                       where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
                 default:
                     

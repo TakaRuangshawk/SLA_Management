@@ -160,11 +160,11 @@
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Moniter</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LastTransaction">Last Transaction</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">Card Retain</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions Monitor</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary Monitor</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LastTransaction">Last Transaction Monitor</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">Card Retain Monitor</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Monitor</a>
                                @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
                             </div>
                         </li>
@@ -183,14 +183,15 @@
                                 Report
                             </a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report(รายงานข้อมูลฝาก-ถอน)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Management</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Maintenance History</a> 
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="WhitelistReport">Whitelist Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="AuditingReport" asp-action="AuditingReportAction">Auditing Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="HardwareReport">Hardware Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report Daily(POC)</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report Monthly(POC)</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Management</a>
                                 
                             </div>
                         </li>      
@@ -201,18 +202,18 @@
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="Holiday">Holiday</a>       
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="ServiceTracking">Service Tracking</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a> 
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="WhitelistFilterTemplate">Whitelist Filter Template</a> 
                             </div>
                         </li>   
-                        <li class="nav-item dropdown nav-report">
+                 @*       <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Maintenance
                             </a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Maintenance</a> 
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Maintenance History</a> 
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="WhitelistFilterTemplate">Whitelist Filter Template</a> 
+
                             </div>
-                        </li>   
+                        </li>   *@
                         @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">DeviceTermProb</a>
                         </li>
