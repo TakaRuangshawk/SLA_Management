@@ -1025,27 +1025,7 @@ namespace SLA_Management.Controllers
                 }
                 return monthList;
             }
-            List<string> monthList = GenerateMonthList(fordb_fromdate, fordb_todate);
-            //string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
-            //sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
-            //sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
-            //sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-            //sqlQuery += " FROM t_tsd_JobDetail_" + fordb_fromdate + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
-            //if(fordb_fromdate != fordb_todate)
-            //{
-            //    if (fromdate != "")
-            //    {
-            //        sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-            //    }
-            //    else
-            //    {
-            //        sqlQuery += " a.Open_Date between '" + firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-            //    }
-            //}
-            //else
-            //{
-            //    sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
-            //}
+
             string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
             sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
@@ -1070,57 +1050,6 @@ namespace SLA_Management.Controllers
                 sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
             }
             sqlQuery += " order by a.Open_Date asc";
-            //if (fordb_fromdate != fordb_todate)
-            //{
-
-            //    foreach (string month in monthList)
-            //    {
-            //        if (diff > 0)
-            //        {
-            //            sqlQuery += " UNION ALL SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
-            //            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
-            //            sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
-            //            sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-            //            sqlQuery += " FROM t_tsd_JobDetail_" + month + " a left join device_info_record b on a.TERM_ID = b.TERM_ID WHERE ";
-            //            if (month != fordb_todate)
-            //            {
-            //                int checkyear = int.Parse(month.Substring(0, 4));
-            //                int checkmonth = int.Parse(month.Substring(4, 2));
-            //                DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
-            //                DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
-            //                sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + _lastDayOfMonth.ToString("yyyy-MM-dd") + " 23:59:59' ";
-            //            }
-            //            else
-            //            {
-            //                int checkyear = int.Parse(month.Substring(0, 4));
-            //                int  checkmonth = int.Parse(month.Substring(4, 2));
-            //                DateTime _firstDayOfMonth = new DateTime(checkyear, checkmonth, 1);
-            //                DateTime _lastDayOfMonth = _firstDayOfMonth.AddMonths(1).AddDays(-1);
-            //                sqlQuery += " a.Open_Date between '" + _firstDayOfMonth.ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
-            //            }
-            //            if (termid != "")
-            //            {
-            //                sqlQuery += " and a.TERM_ID = '" + termid + "' ";
-            //            }
-            //            if (jobno != "")
-            //            {
-            //                sqlQuery += " and a.Job_No ='" + jobno + "' ";
-            //            }
-            //            if (mainproblem != "")
-            //            {
-            //                sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
-            //            }
-            //            if (terminaltype != "")
-            //            {
-            //                sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
-            //            }
-
-            //        }
-
-            //        diff++;
-            //    }
-
-            //}
             try
             {
                 using (SqlConnection connection = new SqlConnection(_myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection")))

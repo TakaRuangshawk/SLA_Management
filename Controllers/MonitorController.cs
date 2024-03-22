@@ -301,91 +301,174 @@ namespace SLA_Management.Controllers
             string terminaltypeStr = terminalType ?? "";
             string trxtpyeStr = transactionType ?? "";
             string terminalQuery = "";
+            string terminalFinalQuery = "";
+            string tablequery = "";
             string finalQuery = string.Empty;
             List<Dictionary<string, object>> resultList = new List<Dictionary<string, object>>();
             fromDate = DateTime.Parse(fromDateStr);
             toDate = DateTime.Parse(toDateStr);
+            var allowedValues = _myConfiguration.GetSection("Receipt").Get<string[]>();
+            string probcodes = string.Join("','", allowedValues);
             if (terminalStr != "")
             {
                 terminalQuery += " and terminalid = '" + terminalStr + "' ";
+                terminalFinalQuery += " and fdi.TERM_ID = '" + terminalStr + "' ";
+
             }
-            if(terminaltypeStr != "")
+            if (terminaltypeStr != "")
             {
                 terminalQuery += " and terminalid like '%" + terminaltypeStr + "' ";
+                terminalFinalQuery += " and fdi.TERM_ID like '%" + terminaltypeStr + "' ";
             }
             switch (trxtpyeStr)
             {
                 case "Deposit":
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA') ";
+                    tablequery = "ejhistory";
                     break;
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    tablequery = "ejhistory";
                     break;
                 case "":
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    tablequery = "ejhistory";
+                    break;
+                case "Receipt":
+                    terminalQuery += $"AND a.probcode IN ('{probcodes}') ";
+                    tablequery = "termprobsla";
                     break;
                 default:
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
+                    tablequery = "ejhistory";
                     break;
             }
             StringBuilder queryBuilder = new StringBuilder();
-            if (fromDate.ToString("yyyy-MM-dd") == toDate.ToString("yyyy-MM-dd"))
+            switch (tablequery)
             {
-                queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,_" + fromDate.ToString("yyyyMMdd") + ".terminalid as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + "");
-            }
-            else
-            {
-                queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,_" + fromDate.ToString("yyyyMMdd") + ".terminalid as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + ",");
-            }
+                case "ejhistory":
+                    if (fromDate.ToString("yyyy-MM-dd") == toDate.ToString("yyyy-MM-dd"))
+                    {
+                        queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,fdi.TERM_ID as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + "");
+                    }
+                    else
+                    {
+                        queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,fdi.TERM_ID as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + ",");
+                    }
 
-            for (DateTime date = fromDate.AddDays(1); date <= toDate; date = date.AddDays(1))
-            {
-                string dateStr = date.ToString("yyyyMMdd");
-                if (date.ToString("yyyy-MM-dd") != toDate.ToString("yyyy-MM-dd"))
-                {
-                    queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr + ",");
-                }
-                else
-                {
-                    queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr);
-                }
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        if (date.ToString("yyyy-MM-dd") != toDate.ToString("yyyy-MM-dd"))
+                        {
+                            queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr + ",");
+                        }
+                        else
+                        {
+                            queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr);
+                        }
+                    }
+
+                    queryBuilder.AppendLine(@"FROM fv_device_info fdi
+                    LEFT JOIN
+                    (SELECT 
+                        terminalid,
+                        SUM(CASE WHEN DATE(trx_datetime) = '" + fromDate.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + fromDate.ToString("yyyyMMdd") + @"
+                        FROM 
+                            ejlog_history as a 
+                        WHERE 
+                            trxid IS NOT NULL " + terminalQuery + @"
+                            AND trx_datetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
+                            AND trx_status = 'OK'
+                        GROUP BY 
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
+
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        queryBuilder.AppendLine(@"    LEFT JOIN
+                                (SELECT 
+                                    terminalid,
+                                    SUM(CASE WHEN DATE(trx_datetime) = '" + date.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + dateStr + @"
+                                FROM 
+                                    ejlog_history as a 
+                                WHERE 
+                                    trxid IS NOT NULL " + terminalQuery + @"
+                                    AND trx_datetime BETWEEN '" + date.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + date.ToString("yyyy-MM-dd") + @" 23:59:59'
+                                    AND trx_status = 'OK'
+                                GROUP BY 
+                                    terminalid) AS _" + dateStr + @"
+                                ON 
+                                    fdi.TERM_ID = _" + dateStr + @".terminalid");
+                    }
+
+                    finalQuery = queryBuilder.ToString();
+                    finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                    break;
+
+                case "termprobsla":
+                    if (fromDate.ToString("yyyy-MM-dd") == toDate.ToString("yyyy-MM-dd"))
+                    {
+                        queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,fdi.TERM_ID as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + "");
+                    }
+                    else
+                    {
+                        queryBuilder.AppendLine(@"  SELECT  (@row_number:=@row_number + 1) AS No,fdi.TERM_ID as TerminalNo,fdi.TERM_NAME as TerminalName,fdi.TYPE_ID as TerminalType,fdi.TERM_SEQ as DeviceSerialNo, COALESCE(_" + fromDate.ToString("yyyyMMdd") + "._" + fromDate.ToString("yyyyMMdd") + ",0) as _" + fromDate.ToString("yyyyMMdd") + ",");
+                    }
+
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        if (date.ToString("yyyy-MM-dd") != toDate.ToString("yyyy-MM-dd"))
+                        {
+                            queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr + ",");
+                        }
+                        else
+                        {
+                            queryBuilder.AppendLine("\tCOALESCE(_" + dateStr + "._" + dateStr + ", 0) AS _" + dateStr);
+                        }
+                    }
+
+                    queryBuilder.AppendLine(@" FROM fv_device_info fdi
+                    LEFT JOIN
+                    (SELECT 
+                        terminalid,
+                        SUM(CASE WHEN DATE(trxdatetime) = '" + fromDate.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + fromDate.ToString("yyyyMMdd") + @"
+                        FROM 
+                            ejlog_devicetermprob_sla as a 
+                        WHERE 
+                            a.seqno IS NOT NULL " + terminalQuery + @"
+                            AND trxdatetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
+                        GROUP BY 
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
+
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        queryBuilder.AppendLine(@"    LEFT JOIN
+                                (SELECT 
+                                    terminalid,
+                                    SUM(CASE WHEN DATE(trxdatetime) = '" + date.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + dateStr + @"
+                                FROM 
+                                    ejlog_devicetermprob_sla as a  
+                                WHERE 
+                                    a.seqno IS NOT NULL " + terminalQuery + @"
+                                    AND trxdatetime BETWEEN '" + date.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + date.ToString("yyyy-MM-dd") + @" 23:59:59'
+
+                                GROUP BY 
+                                    terminalid) AS _" + dateStr + @"
+                                ON 
+                                    fdi.TERM_ID = _" + dateStr + @".terminalid");
+                    }
+
+                    finalQuery = queryBuilder.ToString();
+                    finalQuery += @"  join (SELECT @row_number:=0) AS t 
+                                       where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                    break;
+                default:
+
+                    break;
             }
-
-            queryBuilder.AppendLine(@"FROM
-            (SELECT 
-                terminalid,
-                SUM(CASE WHEN DATE(trx_datetime) = '" + fromDate.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + fromDate.ToString("yyyyMMdd") + @"
-            FROM 
-                ejlog_history as a 
-            WHERE 
-                trxid IS NOT NULL " + terminalQuery + @"
-                AND trx_datetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
-                AND trx_status = 'OK'
-            GROUP BY 
-                terminalid) AS _" + fromDate.ToString("yyyyMMdd"));
-
-            for (DateTime date = fromDate.AddDays(1); date <= toDate; date = date.AddDays(1))
-            {
-                string dateStr = date.ToString("yyyyMMdd");
-                queryBuilder.AppendLine(@"    LEFT JOIN
-            (SELECT 
-                terminalid,
-                SUM(CASE WHEN DATE(trx_datetime) = '" + date.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + dateStr + @"
-            FROM 
-                ejlog_history as a 
-            WHERE 
-                trxid IS NOT NULL " + terminalQuery + @"
-                AND trx_datetime BETWEEN '" + date.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + date.ToString("yyyy-MM-dd") + @" 23:59:59'
-                AND trx_status = 'OK'
-            GROUP BY 
-                terminalid) AS _" + dateStr + @"
-            ON 
-                _" + fromDate.ToString("yyyyMMdd") + ".terminalid = _" + dateStr + @".terminalid");
-            }
-
-            finalQuery = queryBuilder.ToString();
-            finalQuery += @" left JOIN fv_device_info fdi on _"+ fromDate.ToString("yyyyMMdd") +".terminalid = fdi.TERM_ID " +
-                " join (SELECT @row_number:=0) AS t";
 
             try
             {
@@ -794,7 +877,7 @@ namespace SLA_Management.Controllers
                 {
                     connection.Open();
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = " SELECT adi.term_seq as term_seq, t1.terminalid AS term_id, adi.term_name as term_name, SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS card_number, t2.trxdatetime AS trxdatetime_ejreport FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'LASTTRANS_14' AND (t2.probcode = 'DEVICE05' OR t2.probcode = 'DEVICE14') AND (t2.remark LIKE '%RETAIN CARD%' or t2.remark like '%CARD RETAINED FAILED%') and t1.trxdatetime between '" + DateTime.Now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss") + "' and '" + DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' ";
+                    string query = " SELECT adi.term_seq as term_seq, t1.terminalid AS term_id, adi.term_name as term_name, SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS card_number, t2.trxdatetime AS trxdatetime_ejreport FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'EJREP_07' AND (t2.probcode = 'DEVICE05' OR t2.probcode = 'DEVICE14') AND (t2.remark LIKE '%RETAIN CARD%' or t2.remark like '%CARD RETAINED FAILED%') and t1.trxdatetime between '" + DateTime.Now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss") + "' and '" + DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' ";
                     if (terminalno != "")
                     {
                         query += " and adi.TERM_ID like '%" + terminalno + "%' ";
