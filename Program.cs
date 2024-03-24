@@ -31,6 +31,6 @@ app.MapHub<RPTHub>("/JobRPTHub");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Operation}/{action=TicketManangement}/{id?}");
 
 app.Run();
