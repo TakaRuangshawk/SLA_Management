@@ -70,6 +70,7 @@ namespace SLA_Management.Controllers
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
             db = new ConnectSQL_Server(sqlServer);
+            
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
             sladailydowntime_table = "sla_reportdaily";
             slatracking_table = "sla_tracking";
@@ -927,12 +928,35 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        private static List<Device_info_record> GetDeviceInfoMysql(string _bank, IConfiguration _myConfiguration)
+        {
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
         private static List<TicketJob> GetJobNumber(string frommonth, string tomonth)
         {
 
             SqlCommand com = new SqlCommand();
             com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail where Open_Date between '" + frommonth + " 00:00:00' and '" + tomonth + " 23:59:59'"; ;
             DataTable testss = db.GetDatatable(com);
+
+            List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
+
+            return test;
+        }
+        private static List<TicketJob> GetJobNumberMysql(string frommonth, string tomonth, string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail where Open_Date between '" + frommonth + " 00:00:00' and '" + tomonth + " 23:59:59'"; ;
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
 
@@ -1131,6 +1155,60 @@ namespace SLA_Management.Controllers
                         connection.Open();
 
                         using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                dataList.Add(GetTicketManagementFromReader(reader));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return dataList;
+        }
+
+        public List<TicketManagement> GetTicketManagementFromMySql(string fromdate, string todate, string termid, string mainproblem, string jobno, string terminaltype, string _bank)
+
+        {
+            List<TicketManagement> dataList = new List<TicketManagement>();
+            string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
+            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
+            sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
+            sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on a.TERM_ID = b.TERM_ID WHERE ";
+            sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
+
+            if (termid != "")
+            {
+                sqlQuery += " and a.TERM_ID = '" + termid + "' ";
+            }
+            if (jobno != "")
+            {
+                sqlQuery += " and a.Job_No ='" + jobno + "' ";
+            }
+            if (mainproblem != "")
+            {
+                sqlQuery += " and a.Main_Problem like '%" + mainproblem + "%' ";
+            }
+            if (terminaltype != "")
+            {
+                sqlQuery += " and b.TERM_ID like '%" + terminaltype + "%' ";
+            }
+            sqlQuery += " order by a.Open_Date asc";
+ 
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection" + _bank)))
+                {
+                    connection.Open();
+
+                    using (MySqlCommand command = new MySqlCommand(sqlQuery, connection))
+                    {
+                        using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {

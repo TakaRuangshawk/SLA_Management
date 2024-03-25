@@ -64,6 +64,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxIb2xpZGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Management/TicketManagement.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlbWVudFxUaWNrZXRNYW5hZ2VtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/Transactions.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxUcmFuc2FjdGlvbnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -94,10 +98,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/SlaReportMonthly.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFNsYVJlcG9ydE1vbnRobHkuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Operation/TicketManagement.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3BlcmF0aW9uXFRpY2tldE1hbmFnZW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Report/BalancingReport.cshtml]

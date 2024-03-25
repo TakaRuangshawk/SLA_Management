@@ -100,30 +100,43 @@
     </div>
 
     <div id="main_search">
-        @using (Html.BeginForm("TicketManagement", "Operation", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
+        @using (Html.BeginForm("TicketManagement", "Management", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
         {
             <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-
                 <div class="col-md-1">
-                    <label>Ticket No : </label>
+                    <label>Bank : </label>
                 </div>
-                 <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <select class="selectpicker form-control subsearch" id="jobno" name="jobno" data-live-search="true">
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <select class="selectpicker form-control subsearch" id="bank" name="bank" data-live-search="true">
                         <option data-tokens="" value="">--</option>
-                        @foreach (var item in ViewBag.CurrentJobNo)
-                        {
-                            if (@item.Job_No != @ViewBag.JobNo)
+                        @{
+                            if (ViewBag.bankcode == "icbc")
                             {
-                                <option value=@item.Job_No data-tokens=@item.Job_No>@item.Job_No</option>
+                                <option data-tokens="icbc" selected value="icbc">ICBC</option>
+                                <option data-tokens="baac" value="baac">BAAC</option>
+                                <option data-tokens="boct" value="boct">BOC</option>
                             }
-                            else
+                            else if (ViewBag.terminaltype == "baac")
                             {
-                                <option value=@item.Job_No data-tokens=@item.Job_No selected>@item.Job_No</option>
-
+                                <option data-tokens="icbc" value="icbc">ICBC</option>
+                                <option data-tokens="baac" selected value="baac">BAAC</option>
+                                <option data-tokens="boct" value="boct">BOC</option>
+                            }
+                            else if (ViewBag.terminaltype == "boct")
+                            {
+                                <option data-tokens="icbc" value="icbc">ICBC</option>
+                                <option data-tokens="baac" value="baac">BAAC</option>
+                                <option data-tokens="boct" selected value="boct">BOC</option>
+                            }
+                            else{
+                                <option data-tokens="icbc" value="icbc">ICBC</option>
+                                <option data-tokens="baac" value="baac">BAAC</option>
+                                <option data-tokens="boct" value="boct">BOC</option>
                             }
                         }
                     </select>
                 </div>
+               
 
 
                 <div class="col-md-1">
@@ -145,9 +158,29 @@
 
             <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                 <div class="col-md-1">
+                    <label>Ticket No : </label>
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <select class="selectpicker form-control subsearch" id="jobno" name="jobno" data-live-search="true">
+                        <option data-tokens="" value="">--</option>
+                        @foreach (var item in ViewBag.CurrentJobNo)
+                        {
+                            if (@item.Job_No != @ViewBag.JobNo)
+                            {
+                                <option value=@item.Job_No data-tokens=@item.Job_No>@item.Job_No</option>
+                            }
+                            else
+                            {
+                                <option value=@item.Job_No data-tokens=@item.Job_No selected>@item.Job_No</option>
+
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <label>Terminal ID : </label>
                 </div>
-                <div class="item col-md-10" style="border-color:#ced4da; background-color: transparent;">
+                <div class="item col-md-6" style="border-color:#ced4da; background-color: transparent;">
                     <select class="selectpicker form-control subsearch" id="termid" name="termid" data-live-search="true">
                         <option data-tokens="" value="">--</option>
                         @foreach (var item in ViewBag.CurrentTermID)
@@ -212,11 +245,25 @@
                         }
                     </select>
                 </div>
+             
                 <div class="col-md-1">
-                    <label>Terminal Type : </label>
+                    <label>Rows : </label>
                 </div>
                 <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <select class="selectpicker form-control subsearch" id="terminaltype" name="terminaltype" data-live-search="true">
+                    <div class="form-group">
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                    new SelectListItem(){ Text="50", Value = "50"  },
+                    new SelectListItem(){ Text="100", Value = "100" },
+                    new SelectListItem(){ Text="200", Value = "200"  },
+                    new SelectListItem(){ Text="1000", Value = "1000"  }
+                    }, new {@class = "form-control selectpicker subsearch" , @name = "state"})
+                    </div>
+                </div>
+                <div class="col-md-1">
+                   @* <label>Terminal Type : </label>*@
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    @*<select class="selectpicker form-control subsearch" id="terminaltype" name="terminaltype" data-live-search="true">
                         <option data-tokens="" value="">--</option>
                         @{
                             if (ViewBag.terminaltype == "G262")
@@ -235,22 +282,8 @@
                                 <option data-tokens="ATM" value="G165">ATM</option>
                             }
                         }
-                    </select>
+                    </select>*@
                 </div>
-                <div class="col-md-1">
-                    <label>Rows : </label>
-                </div>
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <div class="form-group">
-                        @Html.DropDownList("maxRows", new SelectListItem[] {
-                    new SelectListItem(){ Text="50", Value = "50"  },
-                    new SelectListItem(){ Text="100", Value = "100" },
-                    new SelectListItem(){ Text="200", Value = "200"  },
-                    new SelectListItem(){ Text="1000", Value = "1000"  }
-                    }, new {@class = "form-control selectpicker subsearch" , @name = "state"})
-                    </div>
-                </div>
-               
             </div>
 
 
