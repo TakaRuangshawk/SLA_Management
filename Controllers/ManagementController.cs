@@ -241,7 +241,7 @@ namespace SLA_Management.Controllers
         {
             List<TicketManagement> dataList = new List<TicketManagement>();
             string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
-            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_NAME,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_ID,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
             sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
             sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on a.TERM_ID = b.TERM_ID WHERE ";
@@ -267,7 +267,7 @@ namespace SLA_Management.Controllers
 
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource_:FullNameConnection" + _bank)))
+                using (MySqlConnection connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank)))
                 {
                     connection.Open();
 
@@ -351,7 +351,7 @@ namespace SLA_Management.Controllers
             record.Status = reader["Status"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Status"].ToString()) ? "-" : reader["Status"].ToString();
             record.TERM_ID = reader["TERM_ID"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_ID"].ToString()) ? "-" : reader["TERM_ID"].ToString();
             record.TERM_SEQ = reader["TERM_SEQ"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_SEQ"].ToString()) ? "-" : reader["TERM_SEQ"].ToString();
-            record.MODEL_NAME = reader["MODEL_NAME"] is DBNull ? "-" : string.IsNullOrEmpty(reader["MODEL_NAME"].ToString()) ? "-" : reader["MODEL_NAME"].ToString();
+            record.MODEL_NAME = reader["MODEL_ID"] is DBNull ? "-" : string.IsNullOrEmpty(reader["MODEL_ID"].ToString()) ? "-" : reader["MODEL_ID"].ToString();
             record.PROVINCE = reader["PROVINCE"] is DBNull ? "-" : string.IsNullOrEmpty(reader["PROVINCE"].ToString()) ? "-" : reader["PROVINCE"].ToString();
             record.TERM_NAME = reader["TERM_NAME"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_NAME"].ToString()) ? "-" : reader["TERM_NAME"].ToString();
             record.Problem_Detail = reader["Problem_Detail"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Problem_Detail"].ToString()) ? "-" : reader["Problem_Detail"].ToString().Replace("\n", "").Replace("\r", "").Replace(",", "|").Replace("/", "|");
