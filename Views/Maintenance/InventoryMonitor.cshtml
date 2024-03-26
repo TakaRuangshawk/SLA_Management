@@ -14,7 +14,6 @@
     "Terminal Type ",
     "Terminal No ",
     "Terminal Name ",
-    "Connected ",
     "Terminal Status ",
     "Service From Date ",
     "Service To Date "
@@ -140,6 +139,53 @@
             @using (Html.BeginForm("InventoryMonitor", "Maintenance", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-md-1">
+                        <label>Bank : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="bankcode" name="bankcode" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @{
+                                if (ViewBag.bankcode == "icbc")
+                                {
+                                    <option data-tokens="icbc" selected value="icbc">ICBC</option>
+                                    <option data-tokens="baac" value="baac">BAAC</option>
+                                    <option data-tokens="boct" value="boct">BOC</option>
+                                }
+                                else if (ViewBag.bankcode == "baac")
+                                {
+                                    <option data-tokens="icbc" value="icbc">ICBC</option>
+                                    <option data-tokens="baac" selected value="baac">BAAC</option>
+                                    <option data-tokens="boct" value="boct">BOC</option>
+                                }
+                                else if (ViewBag.bankcode == "boct")
+                                {
+                                    <option data-tokens="icbc" value="icbc">ICBC</option>
+                                    <option data-tokens="baac" value="baac">BAAC</option>
+                                    <option data-tokens="boct" selected value="boct">BOC</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens="icbc" value="icbc">ICBC</option>
+                                    <option data-tokens="baac" value="baac">BAAC</option>
+                                    <option data-tokens="boct" value="boct">BOC</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                    <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                    </button>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+                    <div class="col-md-1"> 
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+                    </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
                         <h>Serial No : </h>
                     </div>
@@ -196,10 +242,22 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                             <div class="dropdown bootstrap-select form-control subsearch input-validation-error">
-                                <select class="form-control selectpicker subsearch input-validation-error" id="terminaltype" name="terminaltype">
-                                    <option value="">All</option>
-                                    <option value="ATM">ATM</option>
-                                    <option value="ADM">ADM</option>
+                                <select class="selectpicker form-control subsearch" id="TYPE_ID" name="TermID" data-live-search="true">
+
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in ViewBag.CurrentType)
+                                    {
+                                        if (@item.TYPE_ID != @ViewBag.TYPE_ID)
+                                        {
+                                            <option value=@item.TYPE_ID data-tokens=@item.TYPE_ID>@item.TYPE_ID </option>
+                                        }
+                                        else
+                                        {
+                                            <option value=@item.TYPE_ID data-tokens=@item.TYPE_ID selected>@item.TYPE_ID </option>
+
+                                        }
+                                    }
+
                                 </select>
                             </div>
                         </div>
@@ -209,21 +267,16 @@
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col col-md-1" style="">
-                        <h>Connected : </h>
+                        <h>Currently in Use : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                            <div class="dropdown bootstrap-select form-control subsearch">
-                                <select class="form-control selectpicker subsearch" id="connencted" name="connencted">
-                                    <option value="">ALL</option>
-                                    <option value="0">Online</option>
-                                    <option value="2">Offline</option>
-                                    <option value="1">Unknown</option>
-                                </select>
-                            </div>
-
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="currentlyinuse" name="currentlyinuse">
+                                <option value="">--</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col col-md-1" style="">
@@ -461,7 +514,7 @@
 
                             </div>
                         </div>
-                        <div class="col-md-4 modelTopic">
+                        <div class="col-md-6 modelTopic">
                         </div>
                         <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
                             <div class="text-center align-middle" style="font-size:20px;">Status :</div>
@@ -470,12 +523,12 @@
                             @Html.TextBox("STATUS", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
 
                         </div>
-                        <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                     @*   <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
                             <div class="text-center align-middle" style="font-size:20px;white-space:nowrap;">Connected :</div>
                         </div>
                         <div class="col-md-1 modelTextbox" style="display: flex;align-items: center;margin: 0;justify-content: flex-end;">
                            <div id="connected_modal"></div>
-                        </div>
+                        </div>*@
 
                     </div>
 
@@ -618,34 +671,7 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="VERSION_MASTER">VERSION MASTER </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("VERSION_MASTER", ViewBag.VERSION_MASTER as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="VERSION">VERSION</label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("VERSION", ViewBag.VERSION as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="VERSION_AGENT">VERSION AGENT </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("VERSION_AGENT", ViewBag.VERSION_AGENT as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-
-                        </div>
                         <div class="row" style="margin: 15px;">
                             <div class="col-6" style="display: flex;justify-content: flex-end;">
                                 <img src="~/images/edit.png" style="width: 100px;height: auto;">
@@ -666,6 +692,7 @@
 <script>
     $(document).ready(function () {
         $('#saveButton').click(function () {
+            var bankcode = $("#bankcode").val();
             var deviceID = $('#DEVICE_ID').val();
             var terminalNo = $('#TERM_ID').val();
             var serialNo = $('#TERM_SEQ').val();
@@ -694,7 +721,8 @@
                 Province: province,
                 ServiceBeginDate: serviceBeginDate,
                 ServiceEndDate: serviceEndDate,
-                CurrTerminalNo: currTerminalNo
+                CurrTerminalNo: currTerminalNo,
+                BankCode: bankcode
                 // Add other fields here
             };
             var confirmationMessage = "Are you sure you want to update the data?";
@@ -728,7 +756,7 @@
         var terminalno = $("#TermID").val();
         var terminalseq = $("#terminalseq").val();
         var terminaltype = $("#terminaltype").val();
-        var connencted = $("#connencted").val();
+        var bankcode = $("#bankcode").val();
         var servicetype = $("#servicetype").val();
         var countertype = $("#countertype").val();
         var fromdate = $("#fromdate").val();
@@ -747,7 +775,7 @@
                 terminalno: terminalno,
                 terminalseq: terminalseq,
                 terminaltype: terminaltype,
-                connencted: connencted,
+                bankcode: bankcode,
                 servicetype: servicetype,
                 countertype: countertype,
                 status: status,
@@ -804,19 +832,7 @@
                                     ")"
                             })
                         );
-                        var imgElement = document.createElement("img");
-                        if (item.connected.toLowerCase() === 'online') {
-                            imgElement.src = "/operation/images/icgreen.png";
-                            imgElement.alt = 'Online';
-                        } else if (item.connected.toLowerCase() === 'offline') {
-                            imgElement.src = "/operation/images/icred.png";
-                            imgElement.alt = 'Offline';
-                        } else if (item.connected.toLowerCase() === 'unknown') {
-                            imgElement.src = "/operation/images/icblack.gif";
-                            imgElement.alt = 'Unknown';
-                        }
-                        imgElement.style.height = '30px';
-                        imgElement.style.width = 'auto';
+
                         var row = $("<tr>");
                         row.append($("<td>").css("text-align", "center").text(item.id));
                         row.append(editButton);
@@ -825,7 +841,6 @@
                         row.append($("<td>").css("text-align", "center").text(item.terM_ID));
                         row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
                         @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
-                        row.append($("<td>").css("text-align", "center").append(imgElement));
                         row.append($("<td>").css("text-align", "center").text(item.status));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_ENDDATE));
@@ -961,9 +976,6 @@
         serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
         servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT,terM_IP) {
         $('#myModal').find('.editable').attr('readonly', true);
-        var imgElement = document.createElement("img");
-        var container = document.getElementById('connected_modal');
-        container.innerHTML = '';
         document.getElementById('DEVICE_ID').value = devicE_ID;
         document.getElementById('TERM_SEQ').value = terM_SEQ;
         document.getElementById('TYPE_ID').value = typE_ID;
@@ -988,20 +1000,7 @@
         document.getElementById('VERSION_AGENT').value = versioN_AGENT;
         document.getElementById('TERM_IP').value = terM_IP;
 
-        // Set the src and alt attributes based on the 'connected' value
-        if (connected.toLowerCase() === 'online') {
-            imgElement.src = "/operation/images/icgreen.png";
-            imgElement.alt = 'Online';
-        } else if (connected.toLowerCase() === 'offline') {
-            imgElement.src = "/operation/images/icred.png";
-            imgElement.alt = 'Offline';
-        } else if (connected.toLowerCase() === 'unknown') {
-            imgElement.src = "/operation/images/icblack.gif";
-            imgElement.alt = 'Unknown';
-        }
-        imgElement.style.height = '50px';
-        imgElement.style.width = 'auto';
-        console.log(imgElement);
+
         container.appendChild(imgElement);
     }
 </script>

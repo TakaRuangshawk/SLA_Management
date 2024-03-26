@@ -24,178 +24,43 @@ namespace SLA_Management.Controllers
         {
             return View();
         }
-        #region Inventory History
-        [HttpGet]
-        public IActionResult InventoryMonitorHistory(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
-        {
-            ViewBag.maxRows = 50;
-            ViewBag.CurrentTID = GetDeviceInfoFeelview();
-            ViewBag.CurrentTSeq = GetSerialNo();
-            ViewBag.CurrentCC = GetCounterCode();
-            ViewBag.CurrentST = GetServiceType();
-            string FrDate = "2020-05-01";
-            string ToDate = DateTime.Now.ToString("yyyy-MM-dd");
-            ViewBag.CurrentFr = FrDate;
-            ViewBag.CurrentTo = ToDate;
-
-            return View();
-        }
-        [HttpGet]
-        public IActionResult InventoryHistoryFetchData(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string row, string page, string search, string fromdate, string todate, string currentlyinuse)
-        {
-            int _page;
-            string filterquery = string.Empty;
-
-            if (page == null || search == "search")
-            {
-                _page = 1;
-            }
-            else
-            {
-                _page = int.Parse(page);
-            }
-            if (search == "next")
-            {
-                _page++;
-            }
-            else if (search == "prev")
-            {
-                _page--;
-            }
-            int _row;
-            if (row == null)
-            {
-                _row = 20;
-            }
-            else
-            {
-                _row = int.Parse(row);
-            }
-            terminalno = terminalno ?? "";
-            terminalseq = terminalseq ?? "";
-            terminaltype = terminaltype ?? "";
-            connencted = connencted ?? "";
-            servicetype = servicetype ?? "";
-            countertype = countertype ?? "";
-            fromdate = fromdate ?? "";
-            todate = todate ?? "";
-            status = status ?? "";
-
-            if (terminalno != "")
-            {
-                filterquery += " and di.TERM_ID like '%" + terminalno + "%' ";
-            }
-            if (terminalseq != "")
-            {
-                filterquery += " and di.TERM_SEQ = '" + terminalseq + "' ";
-
-            }
-            if (terminaltype != "")
-            {
-                filterquery += " and di.TYPE_ID = '" + terminaltype + "' ";
-            }
-
-
-
-
-            if (fromdate != "" && todate != "")
-            {
-                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
-                filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
-            }
-            else
-            {
-                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '" + DateTime.Now.ToString("yyyy-MM-dd") + "'";
-                filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
-            }
-            if (currentlyinuse == "no")
-            {
-                filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info_history GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
-            }
-            else if (currentlyinuse == "yes")
-            {
-                filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info_history GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
-            }
-            List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
-
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-            {
-                connection.Open();
-
-                // Modify the SQL query to use the 'input' parameter for filtering
-                string query = @"  SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE
-                FROM device_info_history di
-                where di.TERM_ID is not null ";
-
-
-                query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
-
-                MySqlCommand command = new MySqlCommand(query, connection);
-
-                int id_row = 0;
-                using (MySqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        id_row += 1;
-                        jsonData.Add(new InventoryMaintenanceModel
-                        {
-                            ID = (id_row).ToString(),
-                            DEVICE_ID = reader["device_id"].ToString(),
-                            TERM_SEQ = reader["term_seq"].ToString(),
-                            TYPE_ID = reader["type_id"].ToString(),
-                            TERM_ID = reader["TERM_ID"].ToString(),
-                            TERM_NAME = reader["TERM_NAME"].ToString(),
-                            TERM_LOCATION = reader["term_location"].ToString(),
-                            LATITUDE = reader["latitude"].ToString(),
-                            LONGITUDE = reader["longitude"].ToString(),
-                            CONTROL_BY = reader["control_by"].ToString(),
-                            PROVINCE = reader["province"].ToString(),
-                            SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
-                            SERVICE_ENDDATE = reader["service_enddate"].ToString(),
-                            VERSION_AGENT = reader["version_agent"].ToString(),
-                            TERM_IP = reader["TERM_IP"].ToString(),
-                        });
-                    }
-                }
-            }
-            Inventory_dataList = jsonData;
-            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
-            List<InventoryMaintenanceModel> filteredData = RangeFilter(jsonData, _page, _row);
-            var response = new DataResponse_InventoryMaintenanceModel
-            {
-                JsonData = filteredData,
-                Page = pages,
-                currentPage = _page,
-                TotalTerminal = jsonData.Count(),
-            };
-            return Json(response);
-        }
-
-        #endregion
         #region Inventory
 
         [HttpGet]
-        public IActionResult InventoryMonitor(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
+        public IActionResult InventoryMonitor(string bankcode, string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
         {
             ViewBag.maxRows = 50;
-            ViewBag.CurrentTID = GetDeviceInfoFeelview();
-            ViewBag.CurrentTSeq = GetSerialNo();
-            ViewBag.CurrentCC = GetCounterCode();
-            ViewBag.CurrentST = GetServiceType();
-            string FrDate = "2020-05-01";
+            bankcode = bankcode ?? "";
+            if (bankcode != "")
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankcode, _myConfiguration);
+                ViewBag.CurrentTSeq = GetSerialNo(bankcode, _myConfiguration);
+                ViewBag.CurrentCC = GetCounterCode(bankcode, _myConfiguration);
+                ViewBag.CurrentST = GetServiceType(bankcode, _myConfiguration);
+                ViewBag.CurrentType = GetTerminalType(bankcode, _myConfiguration);
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+                ViewBag.CurrentTSeq = new List<SerialNo>();
+                ViewBag.CurrentCC = new List<COUNTERCODE>();
+                ViewBag.CurrentST = new List<SERVICETYPE>();
+                ViewBag.CurrentType = new List<TERMINALTYPE>();
+            }
+            ViewBag.bankcode = bankcode;
+            string FrDate = DateTime.Now.ToString("yyyy-MM-dd");
             string ToDate = DateTime.Now.ToString("yyyy-MM-dd");
             ViewBag.CurrentFr = FrDate;
             ViewBag.CurrentTo = ToDate;
+            ViewBag.TERM_TYPE = terminaltype;
 
             return View();
         }
         [HttpGet]
-        public IActionResult InventoryFetchData(string terminalseq,string terminalno,string terminaltype, string connencted,string servicetype,string countertype,string status, string row, string page, string search,string fromdate,string todate,string currentlyinuse)
+        public IActionResult InventoryFetchData(string bankcode, string terminalseq,string terminalno,string terminaltype, string connencted,string servicetype,string countertype,string status, string row, string page, string search,string fromdate,string todate,string currentlyinuse)
         {
             int _page;
             string filterquery = string.Empty;
-
             if (page == null || search == "search")
             {
                 _page = 1;
@@ -230,10 +95,10 @@ namespace SLA_Management.Controllers
             fromdate = fromdate ?? "";
             todate = todate ?? "";
             status = status ?? "";
-
+            bankcode = bankcode ?? string.Empty;
             if (terminalno != "")
             {
-                filterquery += " and pv.TERM_ID like '%" + terminalno + "%' ";
+                filterquery += " and di.TERM_ID like '%" + terminalno + "%' ";
             }
             if (terminalseq != "")
             {
@@ -252,18 +117,6 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and di.STATUS = 'no' ";
             }        
-            if(connencted == "0")
-            {
-                filterquery += " and die.CONN_STATUS_ID = '0' ";
-            }
-            else if (connencted == "2")
-            {
-                filterquery += " and die.CONN_STATUS_ID != '0' ";
-            }
-            else if (connencted == "1")
-            {
-                filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
-            }
           
             if(servicetype != "")
             {
@@ -292,27 +145,17 @@ namespace SLA_Management.Controllers
             }
             List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankcode)))
             {
                 connection.Open();
 
                 // Modify the SQL query to use the 'input' parameter for filtering
                 string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,
-                CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
-                WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
-                ELSE 'Offline' END AS Connected,
-                CASE WHEN di.STATUS = 'use' or di.STATUS = 'roustop'  THEN 'Active'
-                ELSE 'Inactive' END AS Status,
+                CASE WHEN SERVICE_ENDDATE IS NULL OR SERVICE_ENDDATE = '' THEN 'Active' ELSE 'Inactive' END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
                 di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
-                CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
-                WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
-                END AS SERVICE_ENDDATE,
-                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
-                FROM gsb_adm_fv.device_info di
-				LEFT JOIN gsb_adm_fv.project_version pv ON di.TERM_ID = pv.TERM_ID
-                left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
-                left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
+				di.SERVICE_ENDDATE,di.VERSION_AGENT
+				FROM device_info di
                 where di.TERM_ID is not null ";
 
 
@@ -334,7 +177,6 @@ namespace SLA_Management.Controllers
                             TYPE_ID = reader["type_id"].ToString(),
                             TERM_ID = reader["TERM_ID"].ToString(),
                             TERM_NAME = reader["TERM_NAME"].ToString(),
-                            Connected = reader["connected"].ToString(),
                             Status = reader["status"].ToString(),
                             COUNTER_CODE = reader["COUNTER_CODE"].ToString(),
                             ServiceType = reader["servicetype"].ToString(),
@@ -345,8 +187,6 @@ namespace SLA_Management.Controllers
                             PROVINCE = reader["province"].ToString(),
                             SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
                             SERVICE_ENDDATE = reader["service_enddate"].ToString(),
-                            VERSION_MASTER = reader["version_master"].ToString(),
-                            VERSION = reader["version"].ToString(),
                             VERSION_AGENT = reader["version_agent"].ToString(),
                             TERM_IP = reader["TERM_IP"].ToString(),
                         });
@@ -601,12 +441,13 @@ namespace SLA_Management.Controllers
 
         #endregion
         #region Get Device Info
-        private static List<Device_info_record> GetDeviceInfoFeelview()
+        private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
         {
 
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
-            DataTable testss = db_fv.GetDatatable(com);
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
 
@@ -616,12 +457,13 @@ namespace SLA_Management.Controllers
         {
             public string TERM_SEQ { get; set; }
         }
-        private static List<SerialNo> GetSerialNo()
+        private static List<SerialNo> GetSerialNo(string _bank, IConfiguration _myConfiguration)
         {
 
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT TERM_SEQ FROM device_info group by TERM_SEQ;";
-            DataTable testss = db_fv.GetDatatable(com);
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<SerialNo> test = ConvertDataTableToModel.ConvertDataTable<SerialNo>(testss);
 
@@ -631,12 +473,12 @@ namespace SLA_Management.Controllers
         {
             public string COUNTER_CODE { get; set; }
         }
-        private static List<COUNTERCODE> GetCounterCode()
+        private static List<COUNTERCODE> GetCounterCode(string _bank, IConfiguration _myConfiguration)
         {
-
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT COUNTER_CODE FROM device_info group by COUNTER_CODE;";
-            DataTable testss = db_fv.GetDatatable(com);
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<COUNTERCODE> test = ConvertDataTableToModel.ConvertDataTable<COUNTERCODE>(testss);
 
@@ -646,16 +488,31 @@ namespace SLA_Management.Controllers
         {
             public string ServiceType { get; set; }
         }
-        private static List<SERVICETYPE> GetServiceType()
+        private static List<SERVICETYPE> GetServiceType(string _bank, IConfiguration _myConfiguration)
         {
-
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = @"SELECT CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType 
                               FROM gsb_adm_fv.device_info di
                               group by CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME)";
-            DataTable testss = db_fv.GetDatatable(com);
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<SERVICETYPE> test = ConvertDataTableToModel.ConvertDataTable<SERVICETYPE>(testss);
+
+            return test;
+        }
+        public class TERMINALTYPE
+        {
+            public string TYPE_ID { get; set; }
+        }
+        private static List<TERMINALTYPE> GetTerminalType(string _bank, IConfiguration _myConfiguration)
+        {
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT TYPE_ID FROM device_info group by TYPE_ID;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<TERMINALTYPE> test = ConvertDataTableToModel.ConvertDataTable<TERMINALTYPE>(testss);
 
             return test;
         }
@@ -946,6 +803,7 @@ namespace SLA_Management.Controllers
             public string ServiceBeginDate { get; set; }
             public string ServiceEndDate { get; set; }
             public string CurrTerminalNo { get; set; }
+            public string BankCode { get; set; }
             // Add other properties as needed
         }
         [HttpPost]
@@ -953,7 +811,7 @@ namespace SLA_Management.Controllers
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + model.BankCode)))
                 {
                     connection.Open();
 
