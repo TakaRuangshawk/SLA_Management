@@ -116,13 +116,13 @@
                                 <option data-tokens="baac" value="baac">BAAC</option>
                                 <option data-tokens="boct" value="boct">BOC</option>
                             }
-                            else if (ViewBag.terminaltype == "baac")
+                            else if (ViewBag.bankcode == "baac")
                             {
                                 <option data-tokens="icbc" value="icbc">ICBC</option>
                                 <option data-tokens="baac" selected value="baac">BAAC</option>
                                 <option data-tokens="boct" value="boct">BOC</option>
                             }
-                            else if (ViewBag.terminaltype == "boct")
+                            else if (ViewBag.bankcode == "boct")
                             {
                                 <option data-tokens="icbc" value="icbc">ICBC</option>
                                 <option data-tokens="baac" value="baac">BAAC</option>
@@ -354,10 +354,12 @@
                     }
 
                 }
-                    if (ViewBag.countrow == 0)
+                else
                 {
-
-                <td colspan="12" style="text-align: center;"> NO DATA </td>
+                <tr>
+                    <td colspan="12" style="text-align: center;"> NO DATA </td>
+                </tr>
+                
                 }
             }
         </tbody>

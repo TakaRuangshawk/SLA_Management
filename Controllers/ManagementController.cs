@@ -244,7 +244,7 @@ namespace SLA_Management.Controllers
             sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,b.TERM_ID,a.Serial_No,b.TERM_NAME,b.MODEL_ID,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
             sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-            sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on on a.Serial_No  = b.TERM_SEQ  WHERE ";
+            sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on a.Serial_No  = b.TERM_SEQ  WHERE ";
             sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
 
             if (termid != "")
@@ -350,7 +350,7 @@ namespace SLA_Management.Controllers
             record.Actual_Down_Time = reader["Actual_Down_Time"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Actual_Down_Time"].ToString()) ? "-" : reader["Actual_Down_Time"].ToString();
             record.Status = reader["Status"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Status"].ToString()) ? "-" : reader["Status"].ToString();
             record.TERM_ID = reader["TERM_ID"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_ID"].ToString()) ? "-" : reader["TERM_ID"].ToString();
-            record.TERM_SEQ = reader["TERM_SEQ"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_SEQ"].ToString()) ? "-" : reader["TERM_SEQ"].ToString();
+            record.TERM_SEQ = reader["Serial_No"] is DBNull ? "-" : string.IsNullOrEmpty(reader["Serial_No"].ToString()) ? "-" : reader["Serial_No"].ToString();
             record.MODEL_NAME = reader["MODEL_ID"] is DBNull ? "-" : string.IsNullOrEmpty(reader["MODEL_ID"].ToString()) ? "-" : reader["MODEL_ID"].ToString();
             record.PROVINCE = reader["PROVINCE"] is DBNull ? "-" : string.IsNullOrEmpty(reader["PROVINCE"].ToString()) ? "-" : reader["PROVINCE"].ToString();
             record.TERM_NAME = reader["TERM_NAME"] is DBNull ? "-" : string.IsNullOrEmpty(reader["TERM_NAME"].ToString()) ? "-" : reader["TERM_NAME"].ToString();
