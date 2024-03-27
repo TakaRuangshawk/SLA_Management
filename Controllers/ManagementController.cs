@@ -241,10 +241,10 @@ namespace SLA_Management.Controllers
         {
             List<TicketManagement> dataList = new List<TicketManagement>();
             string sqlQuery = " SELECT a.Open_Date,a.Appointment_Date,a.Closed_Repair_Date,a.Down_Time,a.Actual_Open_Date,a.Actual_Appointment_Date, ";
-            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,a.TERM_ID,b.TERM_SEQ,b.TERM_NAME,b.MODEL_ID,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
+            sqlQuery += " a.Actual_Closed_Repair_Date,a.Actual_Down_Time,a.Status,b.TERM_ID,a.Serial_No,b.TERM_NAME,b.MODEL_ID,b.PROVINCE,a.Problem_Detail,a.Solving_Program, ";
             sqlQuery += " a.Service_Team,a.Contact_Name_Branch_CIT,a.Open_By,a.Remark,a.Job_No,a.Aservice_Status,a.Service_Type,a.Open_Name,a.Assign_By, ";
             sqlQuery += " a.Zone_Area,a.Main_Problem,a.Sub_Problem,a.Main_Solution,a.Sub_Solution,a.Part_of_use,a.TechSupport,a.CIT_Request,a.Terminal_Status ";
-            sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on a.TERM_ID = b.TERM_ID WHERE ";
+            sqlQuery += " FROM t_tsd_JobDetail a left join device_info b on on a.Serial_No  = b.TERM_SEQ  WHERE ";
             sqlQuery += " a.Open_Date between '" + DateTime.Parse(fromdate).ToString("yyyy-MM-dd") + " 00:00:00' and '" + DateTime.Parse(todate).ToString("yyyy-MM-dd") + " 23:59:59' ";
 
             if (termid != "")
