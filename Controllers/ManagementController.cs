@@ -249,7 +249,7 @@ namespace SLA_Management.Controllers
 
             if (termid != "")
             {
-                sqlQuery += " and a.TERM_ID = '" + termid + "' ";
+                sqlQuery += " and b.TERM_ID = '" + termid + "' ";
             }
             if (jobno != "")
             {
