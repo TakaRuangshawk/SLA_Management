@@ -1,0 +1,408 @@
+﻿
+@{
+    ViewData["Title"] = "Card Retain Monitor";
+    string[] tableHeaders = new string[]
+    {
+    "No.",
+    "Serial No. ",
+    "Terminal ID",
+    "Terminal Name ",
+    "Card No.",
+    "Transaction DateTime"
+    };
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<style>
+    .btn-light {
+        border:1px solid darkgrey;
+        border-radius :10px;
+    }
+    h{
+        display:flex;
+        justify-content:center;
+    }
+
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+</style>
+
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Card Retain Monitor</a>
+            </div>
+        </div>
+
+
+        <div id="main_search" style="">
+            @using (Html.BeginForm("CardRetain2", "Monitor", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            {
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-md-1" style="">
+                        <h>Terminal : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <select class="selectpicker form-control subsearch" id="terminalId" name="TermID" data-live-search="true">
+
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h style ="display:flex;justify-content:center;">Terminal Type : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("terminalType", new SelectListItem[] {
+                        new SelectListItem(){ Text="All", Value = "" },
+                        new SelectListItem(){ Text="ADM", Value = "ADM" },
+                        new SelectListItem(){ Text="ATM", Value = "ATM" }
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Sort : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("sort", new SelectListItem[] {
+                        new SelectListItem(){ Text="Total", Value = "total" },
+                        new SelectListItem(){ Text="Terminal No", Value = "term_id" },
+                        new SelectListItem(){ Text="Branch No", Value = "branch" },
+                        new SelectListItem(){ Text="Serial No", Value = "term_seq" },
+
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-md-1">
+                        <label>From Date : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="fromDate" name="fromDate" placeholder="yyyy-mm-dd" type="Date" value="2020-05-01">
+                    </div>
+                    <div class="col-md-1">
+                        <label>To Date : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="toDate" name="toDate" placeholder="yyyy-mm-dd" type="Date" value="2030-12-31">
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50"  },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        }, new
+                        {
+                        @class = "form-control selectpicker subsearch"
+                        ,
+                        @name = "state"
+
+                        })
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 15px;align-items:center;">
+                    <div class="col col-lg-1">
+                    </div>
+                 
+                </div>
+               
+                <div class="row justify-content-md-center" style="">
+
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="sendDates()">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            }
+
+        </div>
+
+     
+
+    </div>
+
+</div>
+<div class="container">
+@*    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
+                <span id="recordCount"></span>
+            </a>
+        </div>
+    </div>*@
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="resultTable" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    <th colspan="6" style="text-align:center">Waiting For Search </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td colspan="6" style="text-align:center"> No Data </td>
+                </tr>
+            </tbody>
+
+
+        </table>
+
+
+
+    </div>
+</div>
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+<script>
+
+    var today = new Date();
+    var yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    var formattedDate = yesterday.toISOString().slice(0, 10);
+    document.getElementById("fromDate").value = formattedDate;
+    var formattedDate2 = today.toISOString().slice(0, 10);
+    document.getElementById("toDate").value = formattedDate2;
+
+
+    function sendDates() {
+        var fromDateInput = document.getElementById("fromDate");
+        var toDateInput = document.getElementById("toDate");
+        var fromDateValue = new Date(fromDateInput.value);
+        var toDateValue = new Date(toDateInput.value);
+        if (isNaN(fromDateValue) || isNaN(toDateValue)) {
+            alert("Invalid Date Format. Please enter valid dates.");
+            return;
+        }
+        if (fromDateValue > toDateValue) {
+            alert("Invalid Date Range. Please Select a Valid Date Range.");
+            fromDateInput.value = new Date().toISOString().split('T')[0];
+            toDateInput.value = new Date().toISOString().split('T')[0];
+            return;
+        }
+        if (fromDateValue && toDateValue) {
+
+        } else {
+            alert("Please select both fromdate and todate.");
+            return;
+        }
+        document.getElementById("boxDownload").style.display = "block";
+        $('body').css('pointer-events', 'none');
+        var terminalId = document.getElementById("terminalId").value;
+        var fromDate = document.getElementById("fromDate").value;
+        var toDate = document.getElementById("toDate").value;
+        var terminalType = document.getElementById("terminalType").value;
+        var sort = document.getElementById("sort").value;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '@Url.Action("GetCardRetainData", "Monitor")', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                updateTable(response);
+            }
+        };
+        var data = JSON.stringify({ terminalId: terminalId, fromDate: fromDate, toDate: toDate, terminalType: terminalType, sort: sort });
+        xhr.send(data);
+    }
+
+    function updateTable(data) {
+        console.log(data);
+
+        var table = document.getElementById("resultTable");
+        table.innerHTML = ""; // Clear existing table
+
+        if (data.length === 0) {
+            // If data count is zero, create thead and tbody elements with "No Data" message
+            var thead = document.createElement("thead");
+            var tbody = document.createElement("tbody");
+            var headerRow = thead.insertRow();
+            var headerCell = document.createElement("th");
+            headerCell.colSpan = 1; // Span the cell across all columns
+            headerCell.textContent = "Please select another terminal. There are no records available for the selected terminal.";
+            headerRow.appendChild(headerCell);
+            var newRow = tbody.insertRow();
+            var cell = newRow.insertCell();
+            cell.colSpan = 1; // Span the cell across all columns
+            cell.textContent = "No Data";
+            cell.style.textAlign = "center"; // Align text to the center
+            table.appendChild(thead);
+            table.appendChild(tbody);
+        } else {
+            // Create thead element and append it to the table
+            var thead = document.createElement("thead");
+            table.appendChild(thead);
+
+            // Create table header
+            var headerRow = thead.insertRow();
+            for (var key in data[0]) {
+                if (data[0].hasOwnProperty(key)) {
+                    var headerCell = document.createElement("th");
+                    key = key.replace(/_/g, '');
+                    headerCell.textContent = key;
+                    headerRow.appendChild(headerCell);
+                }
+            }
+
+            // Create tbody element and append it to the table
+            var tbody = document.createElement("tbody");
+            table.appendChild(tbody);
+
+            // Populate table with data
+            data.forEach(function (row) {
+                var newRow = tbody.insertRow();
+                var columnIndex = 0;
+                for (var key in row) {
+                    if (row.hasOwnProperty(key)) {
+                        var cell = newRow.insertCell();
+                        cell.textContent = row[key];
+                        cell.style.textAlign = "center"; // Align text to the center
+                        columnIndex++;
+                        if (columnIndex === 1) {
+                            cell.style.width = "min-content";
+                        } else if (columnIndex === 2) {
+                            cell.style.width = "max-content";
+                        } else if (columnIndex === 3) {
+                            cell.style.width = "max-content";
+                        } else if (columnIndex === 4) {
+                            cell.style.width = "max-content";
+                        } else if (columnIndex === 5) {
+                            cell.style.width = "max-content";
+                        } else {
+                            cell.style.width = "min-content";
+                        }
+                    }
+                }
+            });
+        }
+        window.scrollTo(0, 0);
+        $('#boxDownload').hide();
+        $('body').css('pointer-events', 'auto');
+    }
+
+
+
+
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+            + '|' + "xlsx";
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: '{ "exparams" : "' + expParams + '" }',
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("CardRetain_ExportExc", "Operation")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("CardRetain_DownloadExportFile", "Operation")'
+                    window.location = '@Url.Action("CardRetain_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+
+
+</script>

@@ -990,6 +990,135 @@ namespace SLA_Management.Controllers
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
         }
+        public IActionResult CardRetain2()
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            return View();
+        }
+        [HttpPost]
+        public IActionResult GetCardRetainData([FromBody] CardRetainQueryModel model)
+        {
+            List<Dictionary<string, object>> resultList = new List<Dictionary<string, object>>();
+            string finalQuery = string.Empty;
+            string fromDateStr = model.fromDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string toDateStr = model.toDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string terminalStr = model.terminalId ?? "";
+            string terminaltypeStr = model.terminalType ?? "";
+            string terminalQuery = string.Empty;
+            string sortStr = model.sort ?? "";
+            string modeQuery = string.Empty;
+            string terminalFinalQuery = string.Empty;
+            DateTime fromDate = DateTime.Parse(fromDateStr);
+            DateTime toDate = DateTime.Parse(toDateStr);
+            string tablequery = string.Empty;
+            string sortQuery = string.Empty;
+            string groupCheck = string.Empty;
+            var allowedValues = _myConfiguration.GetSection("Receipt").Get<string[]>();
+            string probcodes = string.Join("','", allowedValues);
+            if (terminalStr != "")
+            {
+                terminalQuery += " and t1.terminalid = '" + terminalStr + "' ";
+                modeQuery = "term";
+            }
+            else
+            {
+                modeQuery = "sum";
+            }
+            if (terminaltypeStr != "")
+            {
+                terminalQuery += " and t1.terminalid like '%" + terminaltypeStr + "' ";
+
+            }
+            switch(sortStr){
+                case "term_id":
+                    sortQuery += " ORDER BY adi.term_id asc,t1.trxdatetime desc ";
+                    break;
+                case "term_seq":
+                    sortQuery += " ORDER BY adi.term_seq asc,t1.trxdatetime desc ";
+                    break;
+                case "branch":
+                    sortQuery += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.terminalid asc,t1.trxdatetime desc ";
+                    break;
+                case "total":
+                    sortQuery += " ORDER BY count(t1.remark) desc ";
+                    break;
+
+                default:
+                    sortQuery += " ORDER BY terminalid asc, t1.trxdatetime desc";
+                    break;
+                }
+                StringBuilder queryBuilder = new StringBuilder();
+            switch(modeQuery){
+                case "sum":
+                    queryBuilder.AppendLine(@"  SELECT adi.term_seq as SerialNo, t1.terminalid AS TerminalID, adi.term_name as TerminalName, count(t1.remark) as Total FROM ejlog_devicetermprob t1 join fv_device_info adi on t1.terminalid = adi.term_id WHERE adi.term_seq is not null and   remark not like '%[NOCARDTXNRETAINCARD]%' and (t1.probcode = 'DEVICE29') ");
+                    groupCheck = " group by t1.terminalid ";
+                    break;
+                case "term":
+                    queryBuilder.AppendLine(@" SELECT DISTINCT adi.term_seq as SerialNo, t1.terminalid AS TerminalID, adi.term_name as TerminalName,SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS CardNumber,DATE_FORMAT(t2.trxdatetime, '%Y-%m-%d %H:%i:%s') AS TransactionDatetime FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'EJREP_07' AND (t2.probcode = 'DEVICE29')");
+                    sortQuery = " ORDER BY t1.terminalid asc, t1.trxdatetime desc";
+                    break;
+                default:
+                    break;
+                }
+            queryBuilder.AppendLine(terminalQuery);
+            queryBuilder.AppendLine(@"  and t1.trxdatetime between '" + fromDate.ToString("yyyy-MM-dd") + " 00:00:00' and '" + toDate.ToString("yyyy-MM-dd") + " 23:59:59' " + groupCheck + sortQuery);
+
+
+
+            finalQuery = queryBuilder.ToString();
+                try
+                {
+                    using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                    {
+                        connection.Open();
+
+                        using (MySqlCommand command = new MySqlCommand(finalQuery, connection))
+                        {
+                            command.CommandText = finalQuery;
+                            command.CommandType = CommandType.Text;
+                            command.CommandTimeout = 120;
+                            using (MySqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    Dictionary<string, object> row = new Dictionary<string, object>();
+
+                                    for (int i = 0; i < reader.FieldCount; i++)
+                                    {
+                                        row[reader.GetName(i)] = reader.GetValue(i);
+                                    }
+
+                                    resultList.Add(row);
+                                }
+                            }
+                        }
+
+
+
+                    }
+                    return Json(resultList);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString);
+                    return Json(resultList);
+                }
+
+            }
+        public class CardRetainQueryModel
+        {
+            public string terminalId { get; set; }
+            public DateTime fromDate { get; set; }
+            public DateTime toDate { get; set; }
+            public string terminalType { get; set; }
+            public string sort { get; set; }
+        }
         #endregion
 
         #region Transactions
