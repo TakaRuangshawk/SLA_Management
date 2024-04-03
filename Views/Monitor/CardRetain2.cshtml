@@ -380,20 +380,31 @@
 
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-
+        var terminalId2 = document.getElementById("terminalId").value;
+        var fromDate2 = document.getElementById("fromDate").value;
+        var toDate2 = document.getElementById("toDate").value;
+        var terminalType2 = document.getElementById("terminalType").value;
+        var sort2 = document.getElementById("sort").value;
+        console.log(fromDate2 + " : " + toDate2 + " : "+ sort2);
         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
             + '|' + "xlsx";
         var rptType = "xlsx";
         $.ajax({
             type: "POST",
             dataType: "json",
-            data: '{ "exparams" : "' + expParams + '" }',
+            data: JSON.stringify({
+                terminalId: terminalId2,
+                fromDateStr: fromDate2,
+                toDateStr: toDate2,
+                terminalType: terminalType2,
+                sort: sort2
+            }),
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("CardRetain_ExportExc", "Operation")',
+            url: '@Url.Action("CardRetain2_ExportExc", "Monitor")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("CardRetain_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("CardRetain_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("DownloadExportFile_CardRetain2", "Monitor")'
+                    window.location = '@Url.Action("DownloadExportFile_CardRetain2", "Monitor")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },

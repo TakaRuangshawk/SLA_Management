@@ -7,6 +7,7 @@ using SLA_Management.Models.OperationModel;
 using System;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using static SLA_Management.Controllers.ReportController;
 
@@ -1118,6 +1119,239 @@ namespace SLA_Management.Controllers
             public DateTime toDate { get; set; }
             public string terminalType { get; set; }
             public string sort { get; set; }
+        }
+        public class CardRetainExportExcData
+        {
+            public string TerminalId { get; set; }
+            public string FromDateStr { get; set; }
+            public string ToDateStr { get; set; }
+            public string TerminalType { get; set; }
+            public string Sort { get; set; }
+        }
+        [HttpPost]
+        public ActionResult CardRetain2_ExportExc([FromBody] CardRetainExportExcData data)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            List<Dictionary<string, object>> resultList = new List<Dictionary<string, object>>();
+            string finalQuery = string.Empty;
+            data.FromDateStr = data.FromDateStr + " 00:00:00";
+            data.ToDateStr = data.ToDateStr + " 23:59:59";
+            DateTime fromDate = DateTime.Parse(data.FromDateStr);
+            DateTime toDate = DateTime.Parse(data.ToDateStr);
+            string terminalStr = data.TerminalId ?? "";
+            string terminaltypeStr = data.TerminalType ?? "";
+            string terminalQuery = string.Empty;
+            string sortStr = data.Sort ?? "";
+            string modeQuery = string.Empty;
+            string terminalFinalQuery = string.Empty;
+            string tablequery = string.Empty;
+            string sortQuery = string.Empty;
+            string groupCheck = string.Empty;
+            var allowedValues = _myConfiguration.GetSection("Receipt").Get<string[]>();
+            string probcodes = string.Join("','", allowedValues);
+            if (terminalStr != "")
+            {
+                terminalQuery += " and t1.terminalid = '" + terminalStr + "' ";
+                modeQuery = "term";
+            }
+            else
+            {
+                modeQuery = "sum";
+            }
+            if (terminaltypeStr != "")
+            {
+                terminalQuery += " and t1.terminalid like '%" + terminaltypeStr + "' ";
+
+            }
+            switch (sortStr)
+            {
+                case "term_id":
+                    sortQuery += " ORDER BY adi.term_id asc,t1.trxdatetime desc ";
+                    break;
+                case "term_seq":
+                    sortQuery += " ORDER BY adi.term_seq asc,t1.trxdatetime desc ";
+                    break;
+                case "branch":
+                    sortQuery += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t1.terminalid asc,t1.trxdatetime desc ";
+                    break;
+                case "total":
+                    sortQuery += " ORDER BY count(t1.remark) desc ";
+                    break;
+
+                default:
+                    sortQuery += " ORDER BY terminalid asc, t1.trxdatetime desc";
+                    break;
+            }
+            StringBuilder queryBuilder = new StringBuilder();
+            switch (modeQuery)
+            {
+                case "sum":
+                    queryBuilder.AppendLine(@"  SELECT adi.term_seq as SerialNo, t1.terminalid AS TerminalID, adi.term_name as TerminalName, count(t1.remark) as Total FROM ejlog_devicetermprob t1 join fv_device_info adi on t1.terminalid = adi.term_id WHERE adi.term_seq is not null and   remark not like '%[NOCARDTXNRETAINCARD]%' and (t1.probcode = 'DEVICE29') ");
+                    groupCheck = " group by t1.terminalid ";
+                    break;
+                case "term":
+                    queryBuilder.AppendLine(@" SELECT DISTINCT adi.term_seq as SerialNo, t1.terminalid AS TerminalID, adi.term_name as TerminalName,SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS CardNumber,DATE_FORMAT(t2.trxdatetime, '%Y-%m-%d %H:%i:%s') AS TransactionDatetime FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'EJREP_07' AND (t2.probcode = 'DEVICE29')");
+                    sortQuery = " ORDER BY t1.terminalid asc, t1.trxdatetime desc";
+                    break;
+                default:
+                    break;
+            }
+            queryBuilder.AppendLine(terminalQuery);
+            queryBuilder.AppendLine(@"  and t1.trxdatetime between '" + fromDate.ToString("yyyy-MM-dd") + " 00:00:00' and '" + toDate.ToString("yyyy-MM-dd") + " 23:59:59' " + groupCheck + sortQuery);
+
+
+
+            finalQuery = queryBuilder.ToString();
+
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+
+                    using (MySqlCommand command = new MySqlCommand(finalQuery, connection))
+                    {
+                        command.CommandText = finalQuery;
+                        command.CommandType = CommandType.Text;
+                        command.CommandTimeout = 120;
+                        using (MySqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Dictionary<string, object> row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[reader.GetName(i)] = reader.GetValue(i);
+                                }
+
+                                resultList.Add(row);
+                            }
+                        }
+                    }
+
+
+
+                }
+
+
+
+
+
+                if (resultList == null || resultList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_TransactionSummary obj = new ExcelUtilities_TransactionSummary();
+
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(resultList);
+
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.resultListag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult DownloadExportFile_CardRetain2(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
         }
         #endregion
 
