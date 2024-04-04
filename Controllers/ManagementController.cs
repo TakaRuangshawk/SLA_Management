@@ -165,7 +165,6 @@ namespace SLA_Management.Controllers
         [HttpGet]
         public IActionResult TicketManagement(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, int? maxRows, string cmdButton,string bank)
         {
-
             int pageSize = 20;
             recordset_ticketManagement = new List<TicketManagement>();
             pageSize = maxRows.HasValue ? maxRows.Value : 100;
@@ -174,11 +173,15 @@ namespace SLA_Management.Controllers
             terminaltype = terminaltype ?? "";
             jobno = jobno ?? "";
             bank = bank ?? "";
-
-         
-
             DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
             DateTime job_todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+            if (cmdButton == "Clear")
+            {
+                ViewBag.CurrentJobNo = new List<TicketJob>();
+                ViewBag.CurrentTermID = new List<Device_info_record>();
+                return View();
+            }
+           
             
             ViewBag.JobNo = jobno;
             ViewBag.countrow = recordset_ticketManagement.Count;
@@ -228,11 +231,7 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
             }
-            if (cmdButton == "Clear")
-            {
-                ViewBag.countrow = 0;
-                return View();
-            }
+            
             return View(recordset_ticketManagement);
         }
 

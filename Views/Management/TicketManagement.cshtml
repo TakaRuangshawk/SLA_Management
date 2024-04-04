@@ -217,7 +217,7 @@
                             else if (ViewBag.mainproblem == "Hardware")
                             {
                                 <option data-tokens="Software" value="Software">Software</option>
-                                <option data-tokens="Hardware" selected value="Hardware"></option>
+                                <option data-tokens="Hardware" selected value="Hardware">Hardware</option>
                                 <option data-tokens="Other" value="Other">Other</option>
                                 <option data-tokens="Network" value="Network">Network</option>
                             }
@@ -334,7 +334,7 @@
 
         <tbody>
             @{
-                if (Model != null)
+                if (Model != null && Model.Count() != 0)
                 {
                     foreach (var Data in Model)
                     {
@@ -346,7 +346,7 @@
                             </td>
                             <td style="text-align:center;"> @Data.TERM_SEQ</td>
                                 <td style="text-align:center;"> @Data.TERM_ID </td>
-                                <td> @Data.Open_Date</td>
+                                <td style="text-align:center;"> @Data.Open_Date</td>
                                 <td style="display:table-cell;max-width: 200px;overflow: hidden; white-space:nowrap;text-overflow:ellipsis;"> @Data.Problem_Detail </td>
                                 <td style="text-align:center;"> @Data.Main_Problem </td>
                                 <td style="text-align:center;"> @Data.Status </td>
