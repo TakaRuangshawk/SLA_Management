@@ -100,7 +100,7 @@
     </div>
 
     <div id="main_search">
-        @using (Html.BeginForm("TicketManagement", "Management", FormMethod.Get, new { id = "InsertFileCOMLogRecheckID" }))
+        @using (Html.BeginForm("TicketManagement", "Management", FormMethod.Get, new { id = "myForm" }))
         {
             <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                 <div class="col-md-1">
@@ -1058,11 +1058,11 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("Ticket_ExportExc", "Operation")',
+            url: '@Url.Action("Ticket_ExportExc", "Management")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("Ticket_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("Ticket_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("Ticket_DownloadExportFile", "Management")'
+                    window.location = '@Url.Action("Ticket_DownloadExportFile", "Management")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
@@ -1070,5 +1070,14 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
+    });
+    document.getElementById('myForm').addEventListener('submit', function (event) {
+        console.log('Form submitted');
+        var bankCodeSelect = document.getElementById('bank');
+        console.log('Selected value:', bankCodeSelect.value);
+        if (!bankCodeSelect.value) {
+            alert('Please select a bank.');
+            event.preventDefault(); // Prevent form submission
+        }
     });
 </script>

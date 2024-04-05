@@ -493,7 +493,7 @@ namespace SLA_Management.Controllers
             ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = @"SELECT CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType 
-                              FROM gsb_adm_fv.device_info di
+                              FROM device_info di
                               group by CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME)";
             DataTable testss = db_mysql.GetDatatable(com);
 
@@ -518,9 +518,21 @@ namespace SLA_Management.Controllers
         }
         #endregion
         #region Excel Ticket
-
+        public class InventoryExportModel
+        {
+            public string TerminalSeq { get; set; }
+            public string TerminalNo { get; set; }
+            public string TerminalType { get; set; }
+            public string ServiceType { get; set; }
+            public string CounterType { get; set; }
+            public string Status { get; set; }
+            public string FromDate { get; set; }
+            public string ToDate { get; set; }
+            public string BankCode { get; set; }
+            public string CurrentlyInUse { get; set; }
+        }
         [HttpPost]
-        public ActionResult Inventory_ExportExc(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string fromdate, string todate)
+        public ActionResult Inventory_ExportExc(InventoryExportModel model)
         {
             string fname = "";
             string tsDate = "";
@@ -530,21 +542,26 @@ namespace SLA_Management.Controllers
             string strSuccess = string.Empty;
             string strErr = string.Empty;
             string filterquery = string.Empty;
+
             try
             {
-                terminalno = terminalno ?? "";
-                terminalseq = terminalseq ?? "";
-                terminaltype = terminaltype ?? "";
-                connencted = connencted ?? "";
-                servicetype = servicetype ?? "";
-                countertype = countertype ?? "";
-                fromdate = fromdate ?? "";
-                todate = todate ?? "";
-                status = status ?? "";
-
+                string terminalseq = model.TerminalSeq ?? "";
+                string terminalno = model.TerminalNo ?? "";
+                string terminaltype = model.TerminalType ?? "";
+                string servicetype = model.ServiceType ?? "";
+                string countertype = model.CounterType ?? "";
+                string status = model.Status ?? "";
+                string fromdate = model.FromDate ?? "";
+                string todate = model.ToDate ?? "";
+                string bankcode = model.BankCode ?? "";
+                string currentlyinuse = model.CurrentlyInUse ?? "";
+                if (bankcode == "")
+                {
+                    return Json(new { success = "F", filename = "", errstr = "Bank not found!" });
+                }
                 if (terminalno != "")
                 {
-                    filterquery += " and pv.TERM_ID like '%" + terminalno + "%' ";
+                    filterquery += " and di.TERM_ID like '%" + terminalno + "%' ";
                 }
                 if (terminalseq != "")
                 {
@@ -557,32 +574,13 @@ namespace SLA_Management.Controllers
                 }
                 if (status == "use")
                 {
-                    filterquery += " and di.STATUS = 'use' ";
+                    filterquery += " and (di.STATUS = 'use' or di.STATUS ='roustop') ";
                 }
                 else if (status == "notuse")
                 {
-                    filterquery += " and di.STATUS != 'use' ";
+                    filterquery += " and di.STATUS = 'no' ";
                 }
-                else
-                {
-                    filterquery += "";
-                }
-                if (connencted == "0")
-                {
-                    filterquery += " and die.CONN_STATUS_ID = '0' ";
-                }
-                else if (connencted == "2")
-                {
-                    filterquery += " and die.CONN_STATUS_ID != '0' ";
-                }
-                else if (connencted == "1")
-                {
-                    filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
-                }
-                else
-                {
-                    filterquery += "";
-                }
+
                 if (servicetype != "")
                 {
                     filterquery += " and CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) = '" + servicetype + "' ";
@@ -591,46 +589,38 @@ namespace SLA_Management.Controllers
                 {
                     filterquery += " and di.COUNTER_CODE = '" + countertype + "' ";
                 }
-                if (fromdate != "")
+                if (fromdate != "" && todate != "")
                 {
-                    filterquery += "and di.SERVICE_BEGINDATE >= '" + fromdate + "'";
+                    filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
+                    filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
                 }
                 else
                 {
-                    filterquery += " and di.SERVICE_BEGINDATE >= '2020-05-01' ";
+                    filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '" + DateTime.Now.ToString("yyyy-MM-dd") + "'";
+                    filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
                 }
-                if (todate != "")
+                if (currentlyinuse == "no")
                 {
-                    filterquery += " and (di.SERVICE_ENDDATE <= '" + todate + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                    filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
                 }
-                else
+                else if (currentlyinuse == "yes")
                 {
-                    filterquery += " and (di.SERVICE_ENDDATE <= '" + "2099-12-31" + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
+                    filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
                 }
                 List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 
-                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankcode)))
                 {
                     connection.Open();
 
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,pv.TERM_ID,di.TERM_NAME,
-                CASE WHEN die.CONN_STATUS_ID = 0 THEN 'Online' 
-                WHEN die.CONN_STATUS_ID is null and di.STATUS = 'no' THEN 'Unknown' 
-                ELSE 'Offline' END AS Connected,
-                CASE WHEN di.STATUS = 'use' THEN 'Active'
-                ELSE 'Inactive' END AS Status,
+                    string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,
+                CASE WHEN SERVICE_ENDDATE IS NULL OR SERVICE_ENDDATE = '' THEN 'Active' ELSE 'Inactive' END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
                 di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
-                CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL OR dsi.CONN_STATUS_ID = 0)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
-                WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
-                END AS SERVICE_ENDDATE,
-                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
-                FROM gsb_adm_fv.project_version pv
-                left join device_info di on pv.TERM_ID = di.TERM_ID
-                left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
-                left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
-                where pv.TERM_ID is not null ";
+				di.SERVICE_ENDDATE,di.VERSION_AGENT
+				FROM device_info di
+                where di.TERM_ID is not null ";
 
 
                     query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
@@ -651,7 +641,6 @@ namespace SLA_Management.Controllers
                                 TYPE_ID = reader["type_id"].ToString(),
                                 TERM_ID = reader["TERM_ID"].ToString(),
                                 TERM_NAME = reader["TERM_NAME"].ToString(),
-                                Connected = reader["connected"].ToString(),
                                 Status = reader["status"].ToString(),
                                 COUNTER_CODE = reader["COUNTER_CODE"].ToString(),
                                 ServiceType = reader["servicetype"].ToString(),
@@ -662,15 +651,17 @@ namespace SLA_Management.Controllers
                                 PROVINCE = reader["province"].ToString(),
                                 SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
                                 SERVICE_ENDDATE = reader["service_enddate"].ToString(),
-                                VERSION_MASTER = reader["version_master"].ToString(),
-                                VERSION = reader["version"].ToString(),
                                 VERSION_AGENT = reader["version_agent"].ToString(),
+                                TERM_IP = reader["TERM_IP"].ToString(),
                             });
                         }
                     }
                 }
-
-                if (Inventory_dataList == null || Inventory_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                Inventory_dataList = jsonData;
+                if (Inventory_dataList == null || Inventory_dataList.Count == 0)
+                {
+                    return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                }
 
                 string strPath = Environment.CurrentDirectory;
                 ExcelUtilities_Inventory obj = new ExcelUtilities_Inventory();

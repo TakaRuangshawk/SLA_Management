@@ -136,7 +136,7 @@
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("InventoryMonitor", "Maintenance", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("InventoryMonitor", "Maintenance", FormMethod.Get, new { id = "myForm" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-md-1">
@@ -144,7 +144,7 @@
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="bankcode" name="bankcode" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
+                            <option data-tokens="" value="">-- Please Select --</option>
                             @{
                                 if (ViewBag.bankcode == "icbc")
                                 {
@@ -439,7 +439,7 @@
         </div>
         <div class="col" style="display: flex;justify-content: center;">
             <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
-                <span id="recordCount"></span>
+                <span id="recordCount">-</span>
             </a>
         </div>
     </div>
@@ -458,6 +458,9 @@
             </thead>
 
             <tbody>
+                <tr>
+                    <td colspan="12" style="text-align: center;"> NO DATA </td>
+                </tr>
             </tbody>
 
 
@@ -553,10 +556,10 @@
                             <div class="col-md-1">
                             </div>
                             <div class="col-md-2 modelTopic">
-                                <label for="TYPE_ID">Terminal Type </label>&nbsp;:&nbsp;
+                                <label for="TYPE_ID2">Terminal Type </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("TYPE_ID", ViewBag.TYPE_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                @Html.TextBox("TYPE_ID2", ViewBag.TYPE_ID2 as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="TERM_ID">Terminal No</label>&nbsp;:&nbsp;
@@ -755,19 +758,22 @@
        
         var terminalno = $("#TermID").val();
         var terminalseq = $("#terminalseq").val();
-        var terminaltype = $("#terminaltype").val();
-        var bankcode = $("#bankcode").val();
+        var terminaltype = $("#TYPE_ID").val();
         var servicetype = $("#servicetype").val();
         var countertype = $("#countertype").val();
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
         var status = $("#Status").val();
+        var bankcode = $("#bankcode").val();
         var currentlyinuse = $("#currentlyinuse").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
-        console.log(currentlyinuse);
+        if (bankcode === "") {
+            alert('Please select a bank.');
+            return;
+        }
         $.ajax({
             type: "GET",
             url: '@Url.Action("InventoryFetchData", "Maintenance")',
@@ -929,37 +935,41 @@
             pageButtonsContainer.append(button);
         }
     }
-    updateTable("search");
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
-        var terminalno = $("#TermID").val();
-        var terminalseq = $("#terminalseq").val();
-        var terminaltype = $("#terminaltype").val();
-        var connencted = $("#connencted").val();
-        var servicetype = $("#servicetype").val();
-        var countertype = $("#countertype").val();
-        var fromdate = $("#fromdate").val();
-        var todate = $("#todate").val();
-        var status = $("#Status").val();
+        var terminalno_ex = $("#TermID").val();
+        var terminalseq_ex = $("#terminalseq").val();
+        var terminaltype_ex = $("#TYPE_ID").val();
+        var servicetype_ex = $("#servicetype").val();
+        var countertype_ex = $("#countertype").val();
+        var fromdate_ex = $("#fromdate").val();
+        var todate_ex = $("#todate").val();
+        var status_ex = $("#Status").val();
+        var bankcode_ex = $("#bankcode").val();
+        var currentlyinuse_ex = $("#currentlyinuse").val();
+        console.log(terminalno_ex + " : " + terminalseq_ex + " : " + terminaltype_ex + " : " + servicetype_ex);
+        console.log(countertype_ex + " : " + fromdate_ex + " : " + todate_ex + " : " + status_ex);
+        console.log(bankcode_ex + " : " + currentlyinuse_ex);
         var rptType = "xlsx";
         $.ajax({
             type: "POST",
             dataType: "json",
             data: {
-                terminalno: terminalno,
-                terminalseq: terminalseq,
-                terminaltype: terminaltype,
-                connencted: connencted,
-                servicetype: servicetype,
-                countertype: countertype,
-                status: status,
-                fromdate: fromdate,
-                todate: todate
-            },
-            contentType: 'application/json; charset=utf-8',
+                TerminalSeq: terminalseq_ex,
+                TerminalNo: terminalno_ex,
+                TerminalType: terminaltype_ex,
+                ServiceType: servicetype_ex,
+                CounterType: countertype_ex,
+                Status: status_ex,
+                FromDate: fromdate_ex,
+                ToDate: todate_ex,
+                BankCode: bankcode_ex,
+                CurrentlyInUse: currentlyinuse_ex
+            },  
             url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
             success: function (result) {
                 if (result.success == 'S') {
+
                     var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
                     window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
                 }
@@ -969,8 +979,17 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
+        
     });
-
+    document.getElementById('myForm').addEventListener('submit', function (event) {
+        console.log('Form submitted');
+        var bankCodeSelect = document.getElementById('bankcode');
+        console.log('Selected value:', bankCodeSelect.value);
+        if (!bankCodeSelect.value) {
+            alert('Please select a bank.');
+            event.preventDefault(); // Prevent form submission
+        }
+    });
 
     function EditButton(devicE_ID, terM_SEQ, typE_ID, terM_ID, terM_NAME, connected, status, counteR_CODE,
         serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
@@ -978,7 +997,7 @@
         $('#myModal').find('.editable').attr('readonly', true);
         document.getElementById('DEVICE_ID').value = devicE_ID;
         document.getElementById('TERM_SEQ').value = terM_SEQ;
-        document.getElementById('TYPE_ID').value = typE_ID;
+        document.getElementById('TYPE_ID2').value = typE_ID;
         document.getElementById('TERM_ID').value = terM_ID;
         document.getElementById('TERM_ID').setAttribute('data-id', terM_ID);
         document.getElementById('TERM_NAME').value = terM_NAME;
@@ -997,9 +1016,9 @@
         document.getElementById('SERVICE_ENDDATE').value = servicE_ENDDATE;
         document.getElementById('TERM_IP').value = terM_IP;
 
-
-        container.appendChild(imgElement);
     }
+
+   
 </script>
 
             
