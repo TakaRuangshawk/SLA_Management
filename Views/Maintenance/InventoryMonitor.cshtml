@@ -351,7 +351,7 @@
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="2020-05-01">
+                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="2022-05-01">
                     </div>
 
                     <div class="col-md-1">
@@ -417,6 +417,9 @@
                             <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+                                Create a Terminal
+                            </button>
                         </div>
                     </div>
 
@@ -526,12 +529,7 @@
                             @Html.TextBox("STATUS", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
 
                         </div>
-                     @*   <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
-                            <div class="text-center align-middle" style="font-size:20px;white-space:nowrap;">Connected :</div>
-                        </div>
-                        <div class="col-md-1 modelTextbox" style="display: flex;align-items: center;margin: 0;justify-content: flex-end;">
-                           <div id="connected_modal"></div>
-                        </div>*@
+
 
                     </div>
 
@@ -692,6 +690,209 @@
     </div>
 
 }
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="container" style="padding: 0;">
+                <div style="padding:0;"></div>
+                <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                    <div class="col-md-3 modelTopic" id="topic_term" style="    background: orange;">
+                        <div class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">
+                            <img src="~/images/button_term.png" style="width: 100%; height: 100%" class="rounded-lg p-0" alt="Terminal Info" />
+
+                        </div>
+                    </div>
+                    <div class="col-md-6 modelTopic">
+                    </div>
+                    <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                    </div>
+                    <div class="col-md-2 modelTextbox" style="display: flex;align-items: center;margin: 0;">
+                    </div>
+
+
+                </div>
+
+                <div id="terminal-info" style="display:block;border: 10px solid orange;">
+                    <div class="row" style="padding-top:15px;">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="devicE_ID">Device ID </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("DEVICE_ID_ADD", ViewBag.devicE_ID as string, new { @class = "w-100 form-control",@readonly = "true"  })
+                        </div>
+                        <div class="col-md-2">
+                            <label>Bank : </label>
+                        </div>
+                        <div class="item col-md-3" style="border-color:#ced4da; background-color: transparent;">
+                            <select class="selectpicker form-control subsearch" id="BANK_ADD" name="bankcode" data-live-search="true">
+                                <option data-tokens="" value="">-- Please Select --</option>
+                                @{
+                                    if (ViewBag.bankcode == "icbc")
+                                    {
+                                        <option data-tokens="icbc" selected value="icbc">ICBC</option>
+                                        <option data-tokens="baac" value="baac">BAAC</option>
+                                        <option data-tokens="boct" value="boct">BOC</option>
+                                    }
+                                    else if (ViewBag.bankcode == "baac")
+                                    {
+                                        <option data-tokens="icbc" value="icbc">ICBC</option>
+                                        <option data-tokens="baac" selected value="baac">BAAC</option>
+                                        <option data-tokens="boct" value="boct">BOC</option>
+                                    }
+                                    else if (ViewBag.bankcode == "boct")
+                                    {
+                                        <option data-tokens="icbc" value="icbc">ICBC</option>
+                                        <option data-tokens="baac" value="baac">BAAC</option>
+                                        <option data-tokens="boct" selected value="boct">BOC</option>
+                                    }
+                                    else
+                                    {
+                                        <option data-tokens="icbc" value="icbc">ICBC</option>
+                                        <option data-tokens="baac" value="baac">BAAC</option>
+                                        <option data-tokens="boct" value="boct">BOC</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TYPE_ID2">Terminal Type </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TYPE_ID_ADD", ViewBag.TYPE_ID2 as string, new { @class = "w-100 form-control",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_ID">Terminal No</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_ID_ADD", ViewBag.TERM_ID as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_SEQ">Serial No</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_SEQ_ADD", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_IP">Terminal IP</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_IP_ADD", ViewBag.TERM_IP as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_NAME">Terminal Name </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("TERM_NAME_ADD", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_LOCATION">Location </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("TERM_LOCATION_ADD", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="COUNTER_CODE">COUNTER CODE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("COUNTER_CODE_ADD", ViewBag.COUNTER_CODE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICETYPE">SERVICE TYPE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICETYPE_ADD", ViewBag.SERVICETYPE as string, new { @class = "w-100 form-control",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="LATITUDE">LATITUDE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("LATITUDE_ADD", ViewBag.LATITUDE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="LONGITUDE">LONGITUDE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("LONGITUDE_ADD", ViewBag.LONGITUDE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="CONTROL_BY">CONTROL BY </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("CONTROL_BY_ADD", ViewBag.CONTROL_BY as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="PROVINCE">PROVINCE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("PROVINCE_ADD", ViewBag.PROVINCE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_BEGINDATE">SERVICE BEGINDATE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_BEGINDATE_ADD", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control " ,@type = "date" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_ENDDATE">SERVICE ENDDATE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_ENDDATE_ADD", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control " ,@type = "date" })
+                        </div>
+                    </div>
+
+
+                    <div class="row" style="margin: 15px;">
+                        <div class="col-12" style="display: flex;justify-content: center;">
+                            <img id="saveButton_ADD" src="~/images/save.png" style="width: 100px;height: auto;">
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+</div>
 <script>
     $(document).ready(function () {
         $('#saveButton').click(function () {
@@ -1017,7 +1218,51 @@
         document.getElementById('TERM_IP').value = terM_IP;
 
     }
-
+    $(document).ready(function () {
+        $('#saveButton_ADD').click(function () {
+            // Extract data from the form fields
+            var data = {
+                DEVICE_ID: $('#DEVICE_ID_ADD').val(),
+                TYPE_ID: $('#TYPE_ID_ADD').val(),
+                TERM_ID: $('#TERM_ID_ADD').val(),
+                TERM_SEQ: $('#TERM_SEQ_ADD').val(),
+                TERM_IP: $('#TERM_IP_ADD').val(),
+                TERM_NAME: $('#TERM_NAME_ADD').val(),
+                TERM_LOCATION: $('#TERM_LOCATION_ADD').val(),
+                COUNTER_CODE: $('#COUNTER_CODE_ADD').val(),
+                SERVICETYPE: $('#SERVICETYPE_ADD').val(),
+                LATITUDE: $('#LATITUDE_ADD').val(),
+                LONGITUDE: $('#LONGITUDE_ADD').val(),
+                CONTROL_BY: $('#CONTROL_BY_ADD').val(),
+                PROVINCE: $('#PROVINCE_ADD').val(),
+                SERVICE_BEGINDATE: $('#SERVICE_BEGINDATE_ADD').val(),
+                SERVICE_ENDDATE: $('#SERVICE_ENDDATE_ADD').val(),
+                BANK: $('#BANK_ADD').val(),
+            };
+            console.log('Data to be sent:', data);
+            if ($('#BANK_ADD').val() === "") {
+                alert('Please select a bank.');
+                return;
+            }
+            
+            
+            // Send AJAX request to ASP.NET Core controller
+            $.ajax({
+                url: '@Url.Action("InsertData", "Maintenance")', // Adjust the URL to match your controller endpoint
+                method: 'POST',
+                data: data,
+                success: function (response) {
+                    // Handle success response
+                    alert('Add Status : ' + response.message);
+                    console.log('Data inserted successfully' + response);
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response
+                    alert('Error updating data:', error);
+                }
+            });
+        });
+    });
    
 </script>
 

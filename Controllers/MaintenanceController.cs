@@ -5,6 +5,9 @@ using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using System.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace SLA_Management.Controllers
 {
@@ -856,5 +859,97 @@ namespace SLA_Management.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        static string generateID()
+        {
+            string ID;
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                var time = DateTime.Now.ToString();
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(time));
+                // Convert byte array to a string   
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                ID = string.Format("{0}4{1:N}", "", Guid.NewGuid()).Substring(0, 32);
+            }
+            return ID;
+        }
+        public class AddTerminal
+        {
+            public string? DEVICE_ID { get; set; }
+            public string? TYPE_ID { get; set; }
+            public string? TERM_ID { get; set; }
+            public string? TERM_SEQ { get; set; }
+            public string? TERM_IP { get; set; }
+            public string? TERM_NAME { get; set; }
+            public string? TERM_LOCATION { get; set; }
+            public string? COUNTER_CODE { get; set; }
+            public string? SERVICETYPE { get; set; }
+            public string? LATITUDE { get; set; }
+            public string? LONGITUDE { get; set; }
+            public string? CONTROL_BY { get; set; }
+            public string? PROVINCE { get; set; }
+            public DateTime? SERVICE_BEGINDATE { get; set; }
+            public DateTime? SERVICE_ENDDATE { get; set; }
+            public string? BANK { get; set; }
+        }
+
+        [HttpPost]
+        public IActionResult InsertData(AddTerminal data)
+        {
+            try
+            {
+                data.DEVICE_ID = generateID();
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + data.BANK)))
+                {
+                    connection.Open();
+
+                    // Prepare your MySQL insert statement
+                    string query = @"INSERT INTO device_info 
+                            (DEVICE_ID, TYPE_ID, TERM_ID, TERM_SEQ, TERM_IP, TERM_NAME, 
+                             TERM_LOCATION, COUNTER_CODE, SERVICE_TYPE, LATITUDE, LONGITUDE, 
+                             CONTROL_BY, PROVINCE, SERVICE_BEGINDATE, SERVICE_ENDDATE,STATUS) 
+                             VALUES 
+                             (@DeviceId, @TypeId, @TermId, @TermSeq, @TermIp, @TermName, 
+                             @TermLocation, @CounterCode, @ServiceType, @Latitude, @Longitude, 
+                             @ControlBy, @Province, @ServiceBeginDate, @ServiceEndDate,'use')"
+                    ;
+
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        // Add parameters to the command
+                        command.Parameters.AddWithValue("@DeviceId", data.DEVICE_ID);
+                        command.Parameters.AddWithValue("@TypeId", data.TYPE_ID);
+                        command.Parameters.AddWithValue("@TermId", data.TERM_ID);
+                        command.Parameters.AddWithValue("@TermSeq", data.TERM_SEQ);
+                        command.Parameters.AddWithValue("@TermIp", data.TERM_IP);
+                        command.Parameters.AddWithValue("@TermName", data.TERM_NAME);
+                        command.Parameters.AddWithValue("@TermLocation", data.TERM_LOCATION);
+                        command.Parameters.AddWithValue("@CounterCode", data.COUNTER_CODE);
+                        command.Parameters.AddWithValue("@ServiceType", data.SERVICETYPE);
+                        command.Parameters.AddWithValue("@Latitude", data.LATITUDE);
+                        command.Parameters.AddWithValue("@Longitude", data.LONGITUDE);
+                        command.Parameters.AddWithValue("@ControlBy", data.CONTROL_BY);
+                        command.Parameters.AddWithValue("@Province", data.PROVINCE);
+                        command.Parameters.AddWithValue("@ServiceBeginDate", data.SERVICE_BEGINDATE);
+                        command.Parameters.AddWithValue("@ServiceEndDate", data.SERVICE_ENDDATE);
+
+                        // Execute the command
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                return Json(new { success = true, message = "Data inserted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+
+
     }
 }
