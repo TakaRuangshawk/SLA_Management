@@ -1397,9 +1397,9 @@ namespace SLA_Management.Controllers
                     _sql = "SELECT a.TERM_ID,b.TERM_NAME,b.TERM_SEQ,a.UPDATE_DATE,c.LASTTRAN_TIME, ";
                     _sql += " CASE WHEN(c.DEVICE_STATUS_EVENT_ID != 'E1005' and c.DEVICE_STATUS_EVENT_ID != 'E1156' and c.DEVICE_STATUS_EVENT_ID != 'E1006' and c.DEVICE_STATUS_EVENT_ID != 'E1036') THEN 'online' ELSE 'offline' END as terminalstatus,   ";
                     _sql += " CASE WHEN c.LASTTRAN_TIME > DATE_ADD(a.UPDATE_DATE, INTERVAL 1 HOUR) THEN 'warning'ELSE ''END AS status";
-                    _sql += " FROM gsb_adm_fv.ejournal_upload_log as a";
-                    _sql += " left join gsb_adm_fv.device_info as b on a.TERM_ID = b.TERM_ID ";
-                    _sql += " left join gsb_adm_fv.device_status_info as c on a.TERM_ID = c.TERM_ID ";
+                    _sql += " FROM ejournal_upload_log as a";
+                    _sql += " left join device_info as b on a.TERM_ID = b.TERM_ID ";
+                    _sql += " left join device_status_info as c on a.TERM_ID = c.TERM_ID ";
                     _sql += " WHERE c.LASTTRAN_TIME is not null and a.UPDATE_DATE >= DATE(NOW()) AND TIMESTAMPDIFF(HOUR, a.UPDATE_DATE, NOW()) > " + hours+" AND a.FILE_NAME = 'EJ"+ formattedDate + ".txt'";
 
                     if (model.TerminalNo.ToString() != "")
@@ -1419,7 +1419,7 @@ namespace SLA_Management.Controllers
                         _sqlWhere += " and a.TERM_ID like '%" + model.TerminalType +"'";
                     }   
                     _sql +=  _sqlWhere;
-                    _sql += " group by a.TERM_ID order by c.LASTTRAN_TIME > DATE_ADD(a.UPDATE_DATE, INTERVAL 1 HOUR) desc ,b.TERM_SEQ asc";
+                    _sql += " group by a.TERM_ID order by a.UPDATE_DATE ASC ,b.TERM_SEQ asc";
 
                     cn.Open();
 

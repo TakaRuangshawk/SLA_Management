@@ -7,8 +7,6 @@
     "Terminal ID ",
     "Terminal Name ",
     "Last EJ Update Date ",
-    "Last Transaction Date",
-    "Status",
     "Terminal Status"
     };
 
@@ -322,12 +320,12 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                    <td> @Data.term_seq</td>
-                                    <td> @Data.term_id</td>
+                                    <td style="text-align:center;"> @Data.term_seq</td>
+                                    <td style="text-align:center;"> @Data.term_id</td>
                                     <td> @Data.term_name</td>
-                                    <td> @Data.update_date</td>
-                                    <td> @Data.lastran_date</td>
-                                    <td class="text-center"> @Data.status</td>
+                                    <td style="text-align:center;"> @Data.update_date</td>
+                                    @*<td style="text-align:center;"> @Data.lastran_date</td>
+                                    <td class="text-center"> @Data.status</td>*@
                                     @{
                                         if (@Data.terminalstatus == "online")
                                         {

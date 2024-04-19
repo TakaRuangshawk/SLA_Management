@@ -11,6 +11,7 @@ using static SLA_Management.Controllers.OperationController;
 using SLA_Management.Data.ExcelUtilitie;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using static Mysqlx.Datatypes.Scalar.Types;
+using static SLA_Management.Controllers.ManagementController;
 
 namespace SLA_Management.Controllers
 {
@@ -20,6 +21,7 @@ namespace SLA_Management.Controllers
         private static ConnectMySQL db_all;
         private List<BalancingReportModel> balancingreport_dataList = new List<BalancingReportModel>();
         private List<HardwareReportWebModel> hardwarereport_dataList = new List<HardwareReportWebModel>();
+        private static List<InventoryMaintenanceModel> Inventory_dataList = new List<InventoryMaintenanceModel>();
         public ReportController(IConfiguration myConfiguration)
         {
             _myConfiguration = myConfiguration;
@@ -1014,6 +1016,207 @@ namespace SLA_Management.Controllers
                 });
             }
         }
+        #endregion
+
+        #region Inventory History
+        [HttpGet]
+        public IActionResult InventoryMonitorHistory(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, string cmdButton)
+        {
+            ViewBag.maxRows = 50;
+            ViewBag.CurrentTID = GetDeviceInfo();
+            ViewBag.CurrentTSeq = GetSerialNo();
+            string FrDate = "2020-09-09";
+            string ToDate = DateTime.Now.ToString("yyyy-MM-dd");
+            ViewBag.CurrentFr = FrDate;
+            ViewBag.CurrentTo = ToDate;
+
+            return View();
+        }
+        [HttpGet]
+        public IActionResult InventoryHistoryFetchData(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string row, string page, string search, string fromdate, string todate, string currentlyinuse)
+        {
+            int _page;
+            string filterquery = string.Empty;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            terminalseq = terminalseq ?? "";
+            terminaltype = terminaltype ?? "";
+            connencted = connencted ?? "";
+            fromdate = fromdate ?? "";
+            todate = todate ?? "";
+
+            if (terminalno != "")
+            {
+                filterquery += " and di.TERM_ID like '%" + terminalno + "%' ";
+            }
+            if (terminalseq != "")
+            {
+                filterquery += " and di.TERM_SEQ = '" + terminalseq + "' ";
+
+            }
+            if (terminaltype != "")
+            {
+                filterquery += " and di.TYPE_ID = '" + terminaltype + "' ";
+            }
+
+
+
+
+            if (fromdate != "" && todate != "")
+            {
+                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
+                filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
+            }
+            else
+            {
+                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '" + DateTime.Now.ToString("yyyy-MM-dd") + "'";
+                filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
+            }
+            if (currentlyinuse == "no")
+            {
+                filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info_history GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
+            }
+            else if (currentlyinuse == "yes")
+            {
+                filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info_history GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
+            }
+            List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
+
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            {
+                connection.Open();
+
+                // Modify the SQL query to use the 'input' parameter for filtering
+                string query = @"  SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,null as PROVINCE,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE
+                FROM fv_device_info_history di where di.TERM_ID is not null " + filterquery;
+                query += @"union SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,null as PROVINCE,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE
+                FROM cdm_device_info_history di where di.TERM_ID is not null " + filterquery;
+                query += @"union SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,null as PROVINCE,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE
+                FROM lrm_device_info_history di where di.TERM_ID is not null " + filterquery;
+                query += " order by TERM_SEQ asc,STR_TO_DATE(SERVICE_BEGINDATE, '%Y-%m-%d') asc";
+
+                MySqlCommand command = new MySqlCommand(query, connection);
+
+                int id_row = 0;
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        id_row += 1;
+                        jsonData.Add(new InventoryMaintenanceModel
+                        {
+                            ID = (id_row).ToString(),
+                            DEVICE_ID = reader["device_id"].ToString(),
+                            TERM_SEQ = reader["term_seq"].ToString(),
+                            TYPE_ID = reader["type_id"].ToString(),
+                            TERM_ID = reader["TERM_ID"].ToString(),
+                            TERM_NAME = reader["TERM_NAME"].ToString(),
+                            TERM_LOCATION = reader["term_location"].ToString(),
+                            LATITUDE = reader["latitude"].ToString(),
+                            LONGITUDE = reader["longitude"].ToString(),
+                            CONTROL_BY = reader["control_by"].ToString(),
+                            PROVINCE = reader["province"].ToString(),
+                            SERVICE_BEGINDATE = reader["service_begindate"].ToString(),
+                            SERVICE_ENDDATE = reader["service_enddate"].ToString(),
+                            VERSION_AGENT = reader["version_agent"].ToString(),
+                            TERM_IP = reader["TERM_IP"].ToString(),
+                        });
+                    }
+                }
+            }
+            Inventory_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<InventoryMaintenanceModel> filteredData = RangeFilter(jsonData, _page, _row);
+            var response = new DataResponse_InventoryMaintenanceModel
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+        static List<InventoryMaintenanceModel> RangeFilter<InventoryMaintenanceModel>(List<InventoryMaintenanceModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+        #endregion
+
+        #region Get Device Info
+        private static List<Device_info_record> GetDeviceInfo()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = @"SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE FROM fv_device_info_history di 
+            union select di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE from cdm_device_info_history di 
+            union select di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.VERSION_AGENT,di.SERVICE_BEGINDATE,di.SERVICE_ENDDATE from lrm_device_info_history di 
+            order by TERM_ID;";
+            DataTable testss = db_all.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+        public class SerialNo
+        {
+            public string TERM_SEQ { get; set; }
+        }
+        private static List<SerialNo> GetSerialNo()
+        {
+
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = @"SELECT TERM_SEQ FROM fv_device_info_history
+                            union select TERM_SEQ FROM cdm_device_info_history 
+                            union select TERM_SEQ FROM lrm_device_info_history 
+                            group by TERM_SEQ order by TERM_SEQ";
+            DataTable testss = db_all.GetDatatable(com);
+
+            List<SerialNo> test = ConvertDataTableToModel.ConvertDataTable<SerialNo>(testss);
+
+            return test;
+        }
+
+
         #endregion
     }
 }

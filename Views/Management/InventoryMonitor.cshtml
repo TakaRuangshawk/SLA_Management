@@ -1,0 +1,1287 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@{
+    ViewData["Title"] = "Inventory Management";
+    string[] tableHeaders = new string[]
+    {
+    "No.",
+    "Action ",
+    "Serial No",
+    "Terminal Type ",
+    "Terminal No ",
+    "Terminal Name ",
+    "Connected ",
+    "Terminal Status ",
+    "Service From Date ",
+    "Service To Date "
+    };
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<style>
+    .btn-light {
+        border: 1px solid darkgrey;
+        border-radius: 10px;
+    }
+
+    h {
+        display: flex;
+        justify-content: center;
+    }
+
+</style>
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    td{
+        padding: 0.5em!important;
+        vertical-align: middle;
+    }
+
+    .pagination li a {
+        color:black!important;
+    }
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Inventory Management</a>
+            </div>
+        </div>
+
+
+        <div id="main_search" style="">
+            @using (Html.BeginForm("InventoryMonitor", "Management", FormMethod.Get, new { id = "myForm" }))
+            {
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-md-1">
+                        <label>Project : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="bankcode" name="bankcode" data-live-search="true">
+                            <option data-tokens="" value="">-- Please Select --</option>
+                            @{
+                                if (ViewBag.bankcode == "CDM")
+                                {
+                                    <option data-tokens="cdm" selected value="CDM">CDM</option>
+                                    <option data-tokens="lrm" value="LRM">LRM</option>
+                                    <option data-tokens="2in1" value="2IN1">2IN1</option>
+                                }
+                                else if (ViewBag.bankcode == "LRM")
+                                {
+                                    <option data-tokens="cdm" value="CDM">CDM</option>
+                                    <option data-tokens="lrm" selected value="LRM">LRM</option>
+                                    <option data-tokens="2in1" value="2IN1">2IN1</option>
+                                }
+                                else if (ViewBag.bankcode == "2IN1")
+                                {
+                                    <option data-tokens="cdm" value="CDM">CDM</option>
+                                    <option data-tokens="lrm" value="LRM">LRM</option>
+                                    <option data-tokens="2in1" selected value="2IN1">2IN1</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens="cdm" value="CDM">CDM</option>
+                                    <option data-tokens="lrm" value="LRM">LRM</option>
+                                    <option data-tokens="2in1" value="2IN1">2IN1</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                    <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                    </button>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+                    <div class="col-md-1"> 
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+                    </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col col-md-1" style="">
+                        <h>Serial No : </h>
+                    </div>
+                    
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="terminalseq" name="TermID" data-live-search="true">
+
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTSeq)
+                            {
+                                if (@item.TERM_SEQ != @ViewBag.TERM_SEQ)
+                                {
+                                    <option value=@item.TERM_SEQ data-tokens=@item.TERM_SEQ>@item.TERM_SEQ </option>
+                                }
+                                else
+                                {
+                                    <option value=@item.TERM_SEQ data-tokens=@item.TERM_SEQ selected>@item.TERM_SEQ </option>
+
+                                }
+                            }
+
+                        </select>
+                    </div>
+                    <div class="col-md-1" style="">
+                        <h>Terminal No : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Terminal Type : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            <div class="dropdown bootstrap-select form-control subsearch input-validation-error">
+                                <select class="selectpicker form-control subsearch" id="TYPE_ID" name="TermID" data-live-search="true">
+
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in ViewBag.CurrentType)
+                                    {
+                                        if (@item.TYPE_ID != @ViewBag.TYPE_ID)
+                                        {
+                                            <option value=@item.TYPE_ID data-tokens=@item.TYPE_ID>@item.TYPE_ID </option>
+                                        }
+                                        else
+                                        {
+                                            <option value=@item.TYPE_ID data-tokens=@item.TYPE_ID selected>@item.TYPE_ID </option>
+
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col col-md-1" style="">
+                        <h>Currently in Use : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="currentlyinuse" name="currentlyinuse">
+                                <option value="">--</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Terminal Status : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="Status" name="Status">
+                                    <option value="">All</option>
+                                    <option value="use">Active</option>
+                                    <option value="notuse">Inactive</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
+                        <h>Counter Code : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="countertype" name="countertype" data-live-search="true">
+                            @foreach (var item in ViewBag.CurrentCC)
+                            {
+                                if (@item.COUNTER_CODE != @ViewBag.COUNTER_CODE)
+                                {
+                                    <option value=@item.COUNTER_CODE data-tokens=@item.COUNTER_CODE>@item.COUNTER_CODE </option>
+                                }
+                                else
+                                {
+                                    <option value=@item.COUNTER_CODE data-tokens=@item.COUNTER_CODE selected>@item.COUNTER_CODE </option>
+
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col col-md-1" style="">
+                        <h>Service Type : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="servicetype" name="servicetype" data-live-search="true">
+
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentST)
+                            {
+                                if (@item.ServiceType != @ViewBag.ServiceType)
+                                {
+                                    <option value=@item.ServiceType data-tokens=@item.ServiceType>@item.ServiceType </option>
+                                }
+                                else
+                                {
+                                    <option value=@item.ServiceType data-tokens=@item.ServiceType selected>@item.ServiceType </option>
+
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+                    <div class="col-md-1">
+                        <label>From Date : </label>
+
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="2020-09-09">
+                    </div>
+
+                    <div class="col-md-1">
+                        <label>To Date : </label>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <input class="form-control subsearch" id="todate" name="todate" placeholder="yyyy-mm-dd" type="Date" value="2024-12-31">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col col-md-1" style="">
+                        <h>Currently in Use : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="currentlyinuse" name="currentlyinuse">
+                                <option value="">--</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                          <h>Rows : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            <div class="dropdown bootstrap-select form-control subsearch">
+                                <select class="form-control selectpicker subsearch" id="maxRows" name="maxRows">
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-1">
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    </div>
+
+                </div>
+
+                <div class="row justify-content-md-center" style="">
+
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                      @*      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+                                Create a Terminal
+                            </button>*@
+                        </div>
+                    </div>
+
+                </div>
+
+            }
+
+        </div>
+
+
+
+    </div>
+
+</div>
+<div class="container-fluid">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
+                <span id="recordCount">-</span>
+            </a>
+        </div>
+    </div>
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    @{
+                        foreach (var head in tableHeaders)
+                        {
+                            <th scope="col" style="text-align:center"> @head </th>
+                        }
+                    }
+
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td colspan="12" style="text-align: center;"> NO DATA </td>
+                </tr>
+            </tbody>
+
+
+        </table>
+
+
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                            <li data-page="prev" id="prev" style="" onclick="updateTable('prev')">
+                                <a style="color: #7a7a7a;">
+                                    <img src="~/images/arrow.png" width="127" height="53" alt="Logo" align="left" style="border: 0; width: 34px;height: 34px;">
+                                </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
+                            <li data-page="next" id="next" style="" onclick=" updateTable('next')">
+                                <a style="color: #7a7a7a;">
+                                    <img src="~/images/arrow.png" width="127" height="53" alt="Logo" align="left" style="border: 0;width: 34px;height: 34px;transform: scaleX(-1);">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control",onchange = "updateTable()"
+                    })
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+@using (Html.BeginForm("TicketManagement", "Operation", FormMethod.Get, new { id = "ModalTransactionID" }))
+{
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="container" style="padding: 0;">
+                    <div style="padding:0;"></div>
+                    <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                        <div class="col-md-3 modelTopic" id="topic_term" style="    background: orange;">
+                            <div class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">
+                                <img src="~/images/button_term.png" style="width: 100%; height: 100%" class="rounded-lg p-0" alt="Terminal Info" />
+
+                            </div>
+                        </div>
+                        <div class="col-md-6 modelTopic">
+                        </div>
+                        <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                            <div class="text-center align-middle" style="font-size:20px;">Status :</div>
+                        </div>
+                        <div class="col-md-2 modelTextbox" style="display: flex;align-items: center;margin: 0;">
+                            @Html.TextBox("STATUS", ViewBag.Status as string, new { @class = "w-100 form-control", @readonly = "true" })
+
+                        </div>
+
+
+                    </div>
+
+                    <div id="terminal-info" style="display:block;border: 10px solid orange;">
+                        <div class="row" style="padding-top:15px;">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="devicE_ID">Device ID </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("DEVICE_ID", ViewBag.devicE_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                              
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TYPE_ID2">Terminal Type </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TYPE_ID2", ViewBag.TYPE_ID2 as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_ID">Terminal No</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_SEQ">Serial No</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_IP">Terminal IP</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("TERM_IP", ViewBag.TERM_IP as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_NAME">Terminal Name </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                                @Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="TERM_LOCATION">Location </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                                @Html.TextBox("TERM_LOCATION", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="COUNTER_CODE">COUNTER CODE </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("COUNTER_CODE", ViewBag.COUNTER_CODE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="SERVICETYPE">SERVICE TYPE</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("SERVICETYPE", ViewBag.SERVICETYPE as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="LATITUDE">LATITUDE </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("LATITUDE", ViewBag.LATITUDE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="LONGITUDE">LONGITUDE</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("LONGITUDE", ViewBag.LONGITUDE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="CONTROL_BY">CONTROL BY </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("CONTROL_BY", ViewBag.CONTROL_BY as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="PROVINCE">PROVINCE</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="SERVICE_BEGINDATE">SERVICE BEGINDATE </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("SERVICE_BEGINDATE", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="SERVICE_ENDDATE">SERVICE ENDDATE</label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("SERVICE_ENDDATE", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
+                            </div>
+                        </div>
+
+
+                        <div class="row" style="margin: 15px;">
+                            <div class="col-6" style="display: flex;justify-content: flex-end;">
+                                <img src="~/images/edit.png" style="width: 100px;height: auto;">
+                            </div>
+                            <div class="col-6" style="display: flex;justify-content: flex-start;">
+                                <img id="saveButton" src="~/images/save.png" style="width: 100px;height: auto;">
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="container" style="padding: 0;">
+                <div style="padding:0;"></div>
+                <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                    <div class="col-md-3 modelTopic" id="topic_term" style="    background: orange;">
+                        <div class="text-center align-middle" style="font-size:20px; background-color:white; border-radius:40px;" id="Terminal_Info">
+                            <img src="~/images/button_term.png" style="width: 100%; height: 100%" class="rounded-lg p-0" alt="Terminal Info" />
+
+                        </div>
+                    </div>
+                    <div class="col-md-6 modelTopic">
+                    </div>
+                    <div class="col-md-1 modelTopic" style="    display: flex;    align-items: center;">
+                    </div>
+                    <div class="col-md-2 modelTextbox" style="display: flex;align-items: center;margin: 0;">
+                    </div>
+
+
+                </div>
+
+                <div id="terminal-info" style="display:block;border: 10px solid orange;">
+                    <div class="row" style="padding-top:15px;">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="devicE_ID">Device ID </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("DEVICE_ID_ADD", ViewBag.devicE_ID as string, new { @class = "w-100 form-control",@readonly = "true"  })
+                        </div>
+                        <div class="col-md-2">
+                            <label>Bank : </label>
+                        </div>
+                        <div class="item col-md-3" style="border-color:#ced4da; background-color: transparent;">
+                            <select class="selectpicker form-control subsearch" id="BANK_ADD" name="bankcode" data-live-search="true">
+                                <option data-tokens="" value="">-- Please Select --</option>
+                                @{
+                                    if (ViewBag.bankcode == "cdm")
+                                    {
+                                        <option data-tokens="cdm" selected value="cdm">CDM</option>
+                                        <option data-tokens="lrm" value="lrm">LRM</option>
+                                        <option data-tokens="2in1" value="2in1">2IN1</option>
+                                    }
+                                    else if (ViewBag.bankcode == "lrm")
+                                    {
+                                        <option data-tokens="cdm" value="cdm">CDM</option>
+                                        <option data-tokens="lrm" selected value="lrm">LRM</option>
+                                        <option data-tokens="2in1" value="2in1">2IN1</option>
+                                    }
+                                    else if (ViewBag.bankcode == "fv")
+                                    {
+                                        <option data-tokens="cdm" value="cdm">CDM</option>
+                                        <option data-tokens="lrm" value="lrm">LRM</option>
+                                        <option data-tokens="fv" selected value="fv">2IN1</option>
+                                    }
+                                    else
+                                    {
+                                        <option data-tokens="cdm" value="cdm">CDM</option>
+                                        <option data-tokens="lrm" value="lrm">LRM</option>
+                                        <option data-tokens="fv" value="fv">2IN1</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TYPE_ID2">Terminal Type </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TYPE_ID_ADD", ViewBag.TYPE_ID2 as string, new { @class = "w-100 form-control",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_ID">Terminal No</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_ID_ADD", ViewBag.TERM_ID as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_SEQ">Serial No</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_SEQ_ADD", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_IP">Terminal IP</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("TERM_IP_ADD", ViewBag.TERM_IP as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_NAME">Terminal Name </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("TERM_NAME_ADD", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="TERM_LOCATION">Location </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("TERM_LOCATION_ADD", ViewBag.TERM_LOCATION as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="COUNTER_CODE">COUNTER CODE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("COUNTER_CODE_ADD", ViewBag.COUNTER_CODE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICETYPE">SERVICE TYPE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICETYPE_ADD", ViewBag.SERVICETYPE as string, new { @class = "w-100 form-control",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="LATITUDE">LATITUDE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("LATITUDE_ADD", ViewBag.LATITUDE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="LONGITUDE">LONGITUDE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("LONGITUDE_ADD", ViewBag.LONGITUDE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="CONTROL_BY">CONTROL BY </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("CONTROL_BY_ADD", ViewBag.CONTROL_BY as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="PROVINCE">PROVINCE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("PROVINCE_ADD", ViewBag.PROVINCE as string, new { @class = "w-100 form-control ",  })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_BEGINDATE">SERVICE BEGINDATE </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_BEGINDATE_ADD", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control " ,@type = "date" })
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SERVICE_ENDDATE">SERVICE ENDDATE</label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("SERVICE_ENDDATE_ADD", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control " ,@type = "date" })
+                        </div>
+                    </div>
+
+
+                    <div class="row" style="margin: 15px;">
+                        <div class="col-12" style="display: flex;justify-content: center;">
+                            <img id="saveButton_ADD" src="~/images/save.png" style="width: 100px;height: auto;">
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+
+    $(document).ready(function () {
+        $('#saveButton').click(function () {
+            var bankcode = $("#bankcode").val();
+            var deviceID = $('#DEVICE_ID').val();
+            var terminalNo = $('#TERM_ID').val();
+            var serialNo = $('#TERM_SEQ').val();
+            var terminalIP = $('#TERM_IP').val();
+            var terminalName = $('#TERM_NAME').val();
+            var location = $('#TERM_LOCATION').val();
+            var counterCode = $('#COUNTER_CODE').val();
+            var latitude = $('#LATITUDE').val();
+            var longitude = $('#LONGITUDE').val();
+            var controlBy = $('#CONTROL_BY').val();
+            var province = $('#PROVINCE').val();
+            var serviceBeginDate = $('#SERVICE_BEGINDATE').val();
+            var serviceEndDate = $('#SERVICE_ENDDATE').val();
+            var currTerminalNo = document.getElementById('TERM_ID').getAttribute('data-id');
+            var data = {
+                DeviceID: deviceID,
+                TerminalNo: terminalNo,
+                SerialNo: serialNo,
+                TerminalIP: terminalIP,
+                TerminalName: terminalName,
+                Location: location,
+                CounterCode: counterCode,
+                Latitude: latitude,
+                Longitude: longitude,
+                ControlBy: controlBy,
+                Province: province,
+                ServiceBeginDate: serviceBeginDate,
+                ServiceEndDate: serviceEndDate,
+                CurrTerminalNo: currTerminalNo,
+                BankCode: bankcode
+                // Add other fields here
+            };
+            var confirmationMessage = "Are you sure you want to update the data?";
+            if (confirm(confirmationMessage)) {
+            $.ajax({
+                url: '@Url.Action("UpdateTerminal", "Management")',
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    // Handle success response
+                    alert('Update Status : ' + response);
+                    updateTable("search");
+                   
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response
+                    alert('Error updating data:', error);
+                }
+                
+            });
+            }
+        });
+    });
+    $(document).ready(function () {
+        $('img[src$="/images/edit.png"]').on('click', function () {
+            $('#myModal').find('.editable').removeAttr('readonly');
+        });
+    });
+    function updateTable(search) {
+       
+        var terminalno = $("#TermID").val();
+        var terminalseq = $("#terminalseq").val();
+        var terminaltype = $("#TYPE_ID").val();
+        var servicetype = $("#servicetype").val();
+        var countertype = $("#countertype").val();
+        var fromdate = $("#fromdate").val();
+        var todate = $("#todate").val();
+        var status = $("#Status").val();
+        var bankcode = $("#bankcode").val();
+        var currentlyinuse = $("#currentlyinuse").val();
+        var row = $("#maxRows").val();
+        var page = $("#page").val();
+        var prevDiv = document.getElementById("prev");
+        var nextDiv = document.getElementById("next");
+        if (bankcode === "") {
+            alert('Please select a bank.');
+            return;
+        }
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("InventoryFetchData", "Management")',
+            data: {
+                terminalno: terminalno,
+                terminalseq: terminalseq,
+                terminaltype: terminaltype,
+                bankcode: bankcode,
+                servicetype: servicetype,
+                countertype: countertype,
+                status: status,
+                row: row,
+                page: page,
+                search: search,
+                fromdate: fromdate,
+                todate: todate,
+                currentlyinuse: currentlyinuse
+            },
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                var jsondata = data.jsonData;
+                var pages = data.page;
+                var currentpage = data.currentPage;
+                var totalterminal = data.totalTerminal;
+                $('#recordCount').text(totalterminal);
+                $("#table-id tbody").empty();
+                if (jsondata.length === 0) {
+                    // Display a message when there is no data
+                    var noDataRow = $("<tr>").append($("<td colspan='12' style='text-align:center;'>").text("No data"));
+                    $("#table-id tbody").append(noDataRow);
+                } else {
+                    $.each(jsondata, function (index, item) {
+                        var editButton = $("<td>").css("text-align", "center").append(
+                            $("<img>").addClass("btn text-dark").attr({
+                                id: "btnEdit",
+                                "data-toggle": "modal",
+                                "data-target": "#myModal",
+                                src: "/operation/images/button_view.png",
+                                style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
+                                onclick: "EditButton(" +
+                                    "'" + item.devicE_ID + "'," +
+                                    "'" + item.terM_SEQ + "'," +
+                                    "'" + item.typE_ID + "'," +
+                                    "'" + item.terM_ID + "'," +
+                                    "'" + item.terM_NAME + "'," +
+                                    "'" + item.connected + "'," +
+                                    "'" + item.status + "'," +
+                                    "'" + item.counteR_CODE + "'," +
+                                    "'" + item.serviceType + "'," +
+                                    "'" + item.terM_LOCATION + "'," +
+                                    "'" + item.latitude + "'," +
+                                    "'" + item.longitude + "'," +
+                                    "'" + item.controL_BY + "'," +
+                                    "'" + item.province + "'," +
+                                    "'" + item.servicE_BEGINDATE + "'," +
+                                    "'" + item.servicE_ENDDATE + "'," +
+                                    "'" + item.versioN_MASTER + "'," +
+                                    "'" + item.version + "'," +
+                                    "'" + item.versioN_AGENT + "'," +
+                                    "'" + item.terM_IP + "'" +
+                                    ")"
+                            })
+                        );
+                        var imgElement = document.createElement("img");
+                        if (item.connected.toLowerCase() === 'online') {
+                            imgElement.src = "/operation/images/icgreen.png";
+                            imgElement.alt = 'Online';
+                        } else if (item.connected.toLowerCase() === 'offline') {
+                            imgElement.src = "/operation/images/icred.png";
+                            imgElement.alt = 'Offline';
+                        } else if (item.connected.toLowerCase() === 'unknown') {
+                            imgElement.src = "/operation/images/icblack.gif";
+                            imgElement.alt = 'Unknown';
+                        }
+                        imgElement.style.height = '30px';
+                        imgElement.style.width = 'auto';
+                        var row = $("<tr>");
+                        row.append($("<td>").css("text-align", "center").text(item.id));
+                        row.append(editButton);
+                        row.append($("<td>").css("text-align", "center").text(item.terM_SEQ));
+                        row.append($("<td>").css("text-align", "center").text(item.typE_ID));
+                        row.append($("<td>").css("text-align", "center").text(item.terM_ID));
+                        row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
+                        @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
+                        row.append($("<td>").css("text-align", "center").append(imgElement));
+                        row.append($("<td>").css("text-align", "center").text(item.status));
+                        row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
+                        row.append($("<td>").css("text-align", "center").text(item.servicE_ENDDATE));
+
+                        
+                        $("#table-id tbody").append(row);
+                        window.scrollTo(0, 0);
+                    });
+                }
+                generatePageButtons(pages, currentpage);
+                if (pages >= 1) {
+
+                    $("#page").empty();
+                    for (var i = 1; i <= pages; i++) {
+                        var option = $('<option>', {
+                            value: i,
+                            text: i
+                        });
+                        if (i === currentpage) {
+                            option.prop("selected", true);
+                        }
+                        $("#page").append(option);
+
+                    }
+                }
+                else {
+                    $("#page").empty();
+                    var option = $('<option>', {
+                        value: 1,
+                        text: 1
+                    });
+                    $("#page").append(option);
+
+                }
+
+                if ((currentpage == 1 || page == null) && pages > 1) {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "visible";
+
+                }
+                else if ((currentpage == pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "hidden";
+
+                }
+                else if ((currentpage < pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "visible";
+
+                }
+                else {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "hidden";
+
+                }
+
+            },
+            error: function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            }
+        });
+    }
+    function generatePageButtons(pages, currentpage) {
+        var pageButtonsContainer = $("#pageButtonsContainer");
+        pageButtonsContainer.empty();
+
+        var maxButtons = 5;
+        var startPage = Math.max(1, currentpage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(startPage + maxButtons - 1, pages);
+
+        for (var i = startPage; i <= endPage; i++) {
+            var button = $("<a>").text(i).click(function () {
+                $("#page").val($(this).text()); // Set #page value
+                updateTable();
+            });
+            button.css({
+                "display": "inline-flex",
+                "align-items": "center",
+                "justify-content": "center"
+            });
+            // Highlight the current page button
+            if (i === currentpage) {
+                button.addClass("current-page");
+            }
+
+            pageButtonsContainer.append(button);
+        }
+    }
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+        var terminalno_ex = $("#TermID").val();
+        var terminalseq_ex = $("#terminalseq").val();
+        var terminaltype_ex = $("#TYPE_ID").val();
+        var servicetype_ex = $("#servicetype").val();
+        var countertype_ex = $("#countertype").val();
+        var fromdate_ex = $("#fromdate").val();
+        var todate_ex = $("#todate").val();
+        var status_ex = $("#Status").val();
+        var bankcode_ex = $("#bankcode").val();
+        var currentlyinuse_ex = $("#currentlyinuse").val();
+        console.log(terminalno_ex + " : " + terminalseq_ex + " : " + terminaltype_ex + " : " + servicetype_ex);
+        console.log(countertype_ex + " : " + fromdate_ex + " : " + todate_ex + " : " + status_ex);
+        console.log(bankcode_ex + " : " + currentlyinuse_ex);
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: {
+                TerminalSeq: terminalseq_ex,
+                TerminalNo: terminalno_ex,
+                TerminalType: terminaltype_ex,
+                ServiceType: servicetype_ex,
+                CounterType: countertype_ex,
+                Status: status_ex,
+                FromDate: fromdate_ex,
+                ToDate: todate_ex,
+                BankCode: bankcode_ex,
+                CurrentlyInUse: currentlyinuse_ex
+            },  
+            url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
+            success: function (result) {
+                if (result.success == 'S') {
+
+                    var url = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")'
+                    window.location = '@Url.Action("Inventory_DownloadExportFile", "Maintenance")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+        
+    });
+    document.getElementById('myForm').addEventListener('submit', function (event) {
+        console.log('Form submitted');
+        var bankCodeSelect = document.getElementById('bankcode');
+        console.log('Selected value:', bankCodeSelect.value);
+        if (!bankCodeSelect.value) {
+            alert('Please select a bank.');
+            event.preventDefault(); // Prevent form submission
+        }
+    });
+
+    function EditButton(devicE_ID, terM_SEQ, typE_ID, terM_ID, terM_NAME, connected, status, counteR_CODE,
+        serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
+        servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT,terM_IP) {
+        $('#myModal').find('.editable').attr('readonly', true);
+        document.getElementById('DEVICE_ID').value = devicE_ID;
+        document.getElementById('TERM_SEQ').value = terM_SEQ;
+        document.getElementById('TYPE_ID2').value = typE_ID;
+        document.getElementById('TERM_ID').value = terM_ID;
+        document.getElementById('TERM_ID').setAttribute('data-id', terM_ID);
+        document.getElementById('TERM_NAME').value = terM_NAME;
+        document.getElementById('STATUS').value = status;
+        document.getElementById('COUNTER_CODE').value = counteR_CODE;
+        document.getElementById('SERVICETYPE').value = serviceType;
+        document.getElementById('TERM_LOCATION').value = terM_LOCATION;
+        document.getElementById('LATITUDE').value = latitude;
+        document.getElementById('LONGITUDE').value = longitude;
+        document.getElementById('CONTROL_BY').value = controL_BY;
+        document.getElementById('PROVINCE').value = PROVINCE;
+        document.getElementById('SERVICE_BEGINDATE').value = servicE_BEGINDATE;
+        if (servicE_ENDDATE === "เครื่องยังเปิดให้บริการ" || servicE_ENDDATE === "เครื่องไม่เปิดให้บริการ") {
+            servicE_ENDDATE = '';
+        }
+        document.getElementById('SERVICE_ENDDATE').value = servicE_ENDDATE;
+        document.getElementById('TERM_IP').value = terM_IP;
+
+    }
+    $(document).ready(function () {
+        $('#saveButton_ADD').click(function () {
+            // Extract data from the form fields
+            var data = {
+                DEVICE_ID: $('#DEVICE_ID_ADD').val(),
+                TYPE_ID: $('#TYPE_ID_ADD').val(),
+                TERM_ID: $('#TERM_ID_ADD').val(),
+                TERM_SEQ: $('#TERM_SEQ_ADD').val(),
+                TERM_IP: $('#TERM_IP_ADD').val(),
+                TERM_NAME: $('#TERM_NAME_ADD').val(),
+                TERM_LOCATION: $('#TERM_LOCATION_ADD').val(),
+                COUNTER_CODE: $('#COUNTER_CODE_ADD').val(),
+                SERVICETYPE: $('#SERVICETYPE_ADD').val(),
+                LATITUDE: $('#LATITUDE_ADD').val(),
+                LONGITUDE: $('#LONGITUDE_ADD').val(),
+                CONTROL_BY: $('#CONTROL_BY_ADD').val(),
+                PROVINCE: $('#PROVINCE_ADD').val(),
+                SERVICE_BEGINDATE: $('#SERVICE_BEGINDATE_ADD').val(),
+                SERVICE_ENDDATE: $('#SERVICE_ENDDATE_ADD').val(),
+                BANK: $('#BANK_ADD').val(),
+            };
+            console.log('Data to be sent:', data);
+            if ($('#BANK_ADD').val() === "") {
+                alert('Please select a bank.');
+                return;
+            }
+            
+            
+            // Send AJAX request to ASP.NET Core controller
+            $.ajax({
+                url: '@Url.Action("InsertData", "Maintenance")', // Adjust the URL to match your controller endpoint
+                method: 'POST',
+                data: data,
+                success: function (response) {
+                    // Handle success response
+                    alert('Add Status : ' + response.message);
+                    console.log('Data inserted successfully' + response);
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response
+                    alert('Error updating data:', error);
+                }
+            });
+        });
+    });
+    if($("#bankcode").val()!= ""){
+        updateTable("search");
+    }
+   
+</script>
+
+            
