@@ -73,6 +73,7 @@ namespace SLA_Management.Controllers
             string terminalFinalQuery = string.Empty;
             DateTime fromDate = DateTime.Parse(fromDateStr);
             DateTime toDate = DateTime.Parse(toDateStr);
+            string trxstatusStr = string.Empty;
             string tablequery = string.Empty;
             var allowedValues = _myConfiguration.GetSection("Receipt").Get<string[]>();
             string probcodes = string.Join("','", allowedValues);
@@ -92,22 +93,31 @@ namespace SLA_Management.Controllers
                 case "Deposit":
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA') ";
                     tablequery = "ejhistory";
+                    trxstatusStr = " AND trx_status = 'OK' ";
                     break;
                 case "Withdraw":
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
+                    trxstatusStr = " AND trx_status = 'OK' ";
                     break;
                 case "": 
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
                     break;
                 case "Receipt":
-                    terminalQuery += $"AND a.probcode IN ('{probcodes}') ";
+                    terminalQuery += $" AND a.probcode IN ('{probcodes}') ";
                     tablequery = "termprobsla";
+                    trxstatusStr = "";
+                    break;
+                case "Barcode":
+                    terminalQuery += " AND trx_type IN ('BAR_P00','BAR_PCB') ";
+                    tablequery = "ejhistory";
+                    trxstatusStr = "";
                     break;
                 default:
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
+                    trxstatusStr = " AND trx_status = 'OK' ";
                     break;
             }
             StringBuilder queryBuilder = new StringBuilder();
@@ -146,7 +156,7 @@ namespace SLA_Management.Controllers
                         WHERE 
                             trxid IS NOT NULL " + terminalQuery + @"
                             AND trx_datetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
-                            AND trx_status = 'OK'
+                            "+ trxstatusStr + @"
                         GROUP BY 
                             terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd")+".terminalid");
 
@@ -162,7 +172,7 @@ namespace SLA_Management.Controllers
                                 WHERE 
                                     trxid IS NOT NULL " + terminalQuery + @"
                                     AND trx_datetime BETWEEN '" + date.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + date.ToString("yyyy-MM-dd") + @" 23:59:59'
-                                    AND trx_status = 'OK'
+                                    "+ trxstatusStr + @"
                                 GROUP BY 
                                     terminalid) AS _" + dateStr + @"
                                 ON 
