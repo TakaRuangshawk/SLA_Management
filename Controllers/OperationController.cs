@@ -15,6 +15,7 @@ using SLA_Management.Data;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using System.Security.AccessControl;
+using SLA_Management.Data.TermProb;
 
 namespace SLA_Management.Controllers
 {
@@ -30,6 +31,7 @@ namespace SLA_Management.Controllers
         List<SelectListItem> ddlMonths = new List<SelectListItem>();
         List<SelectListItem> ddlYears = new List<SelectListItem>();
         private IConfiguration _myConfiguration;
+        private DBService_TermProb dBService_;
         private string sladailydowntime_table;
         private string slatracking_table;
         private string slamonthlydowntime_table;
@@ -67,6 +69,7 @@ namespace SLA_Management.Controllers
 
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
+            dBService_ = new DBService_TermProb(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
             sqlServer = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
             db = new ConnectSQL_Server(sqlServer);
@@ -76,12 +79,48 @@ namespace SLA_Management.Controllers
             slamonthlydowntime_table = "sla_reportmonthly";
             startquery_reportdaily = "SELECT TOP 5000 ID,Report_Date, Open_Date, Appointment_Date, Closed_Repair_Date, Down_Time, AS_OpenDate, AS_AppointmentDate, AS_CloseRepairDate, AS_Downtime, Discount, Net_Downtime, AS_Discription, AS_CIT_Request, AS_Service_PM, Status, TERM_ID, Model, TERM_SEQ, Province, Location, Problem_Detail, Solving_Program, Service_Team, Contact_Name_Branch_CIT, Open_By, Remark FROM ";
             startquery_tracking = "SELECT TOP 5000 ID,APPNAME,UPDATE_DATE,STATUS,REMARK,USER_IP FROM " + slatracking_table;
-            startquery_reportmonthly = "SELECT TOP 5000 t1.ID,t1.TERM_ID,t1.TERM_SEQ,t1.LOCATION,t1.PROVINCE,t1.INSTALL_LOT,t1.REPLENISHMENT_DATE,t1.STARTSERVICE_DATE,t1.TOTALSERVICEDAY,t1.SERVICE_GROUP,t1.SERVICE_DATE,t1.SERVICEDAY_CHARGE,t1.SERVICETIME_CHARGE_PERDAY,t1.SERVICETIME_PERMONTH_HOUR,t1.SERVICETIME_PERHOUR_MINUTE,t1.TOTALDOWNTIME_HOUR,t1.TOTALDOWNTIME_MINUTE,t1.ACTUAL_SERVICETIME_PERMONTH_HOUR,t1.ACTUAL_SERVICETIME_PERHOUR_MINUTE,t1.ACTUAL_PERCENTSLA,t1.RATECHARGE,t1.SERVICECHARGE,t1.NETCHARGE,t1.REMARK,t2.TERM_NAME FROM " + slamonthlydowntime_table;
+            startquery_reportmonthly = @"
+            SELECT TOP 5000 
+                COALESCE(t1.ID, '-') AS ID,
+                COALESCE(t1.REPORT_MONTH, '-') AS REPORT_MONTH,
+                COALESCE(t1.TERM_ID, '-') AS TERM_ID,
+                COALESCE(t1.TERM_SEQ, '-') AS TERM_SEQ,
+                COALESCE(t1.LOCATION, '-') AS LOCATION,
+                COALESCE(t1.PROVINCE, '-') AS PROVINCE,
+                COALESCE(t1.INSTALL_LOT, '-') AS INSTALL_LOT,
+                COALESCE(t1.REPLENISHMENT_DATE, '-') AS REPLENISHMENT_DATE,
+                COALESCE(t1.STARTSERVICE_DATE, '-') AS STARTSERVICE_DATE,
+                COALESCE(t1.STARTSERVICEDAY, '-') AS STARTSERVICEDAY,
+                COALESCE(t1.TOTALSTARTSERVICEDAY, '-') AS TOTALSTARTSERVICEDAY,
+                COALESCE(t1.SERVICE_GROUP, '-') AS SERVICE_GROUP,
+                COALESCE(t1.SERVICE_DATE, '-') AS SERVICE_DATE,
+                COALESCE(t1.STARTSERVICEDATE, '-') AS STARTSERVICEDATE,
+                COALESCE(t1.TOTALSTARTSERVICEDATE, '-') AS TOTALSTARTSERVICEDATE,
+                COALESCE(t1.SERVICETIME_PERDAY, '-') AS SERVICETIME_PERDAY,
+                COALESCE(t1.SERVICETIME_PERHOUR, '-') AS SERVICETIME_PERHOUR,
+                COALESCE(t1.SERVICETIME_PERMINUTE, '-') AS SERVICETIME_PERMINUTE,
+                COALESCE(t1.TOTALDOWNTIME_HOUR, '-') AS TOTALDOWNTIME_HOUR,
+                COALESCE(t1.TOTALDOWNTIME_MINUTE, '-') AS TOTALDOWNTIME_MINUTE,
+                COALESCE(t1.TOTALSERVICETIME_PERHOUR, '-') AS TOTALSERVICETIME_PERHOUR,
+                COALESCE(t1.TOTALSERVICETIME_PERMINUTE, '-') AS TOTALSERVICETIME_PERMINUTE,
+                COALESCE(t1.PERCENTSLA, '-') AS PERCENTSLA,
+                COALESCE(t1.SLA, '-') AS SLA,
+                COALESCE(t1.RATECHARGE, '-') AS RATECHARGE,
+                COALESCE(t1.SERVICECHARGE, '-') AS SERVICECHARGE,
+                COALESCE(t1.NETSERVICECHARGE, '-') AS NETSERVICECHARGE,
+                COALESCE(t1.REMARK, '-') AS REMARK,
+                COALESCE(t1.REASONFORWAIVEDOWNTIME, '-') AS REASONFORWAIVEDOWNTIME,
+                COALESCE(t2.TERM_NAME, '-') AS TERM_NAME
+            FROM " + slamonthlydowntime_table;
 
         }
         #region sla
-        public IActionResult SlaReportMonthly(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby, string maxRows)
+        public IActionResult SlaReportMonthly(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby, string maxRows,int page)
         {
+            if (page == 0)
+            {
+                page = 1;
+            }
             string Day = "";
             if (maxRows == null || maxRows == "") maxRows = "100";
             ViewBag.maxRows = maxRows;
@@ -98,9 +137,10 @@ namespace SLA_Management.Controllers
             int pageSize = con.GetCountTable("SELECT COUNT(*) FROM " + slamonthlydowntime_table + "_" + Year + Month);
             if (pageSize == 0)
             {
-                pageSize = 1;
+                pageSize = 100;
             }
-            return View(messageRequestList_m.ToPagedList(1, pageSize));
+            ViewBag.totaldata = messageRequestList_m.Count();
+            return View(messageRequestList_m.ToPagedList(page, 129680));
         }
         private void FatchDataMainDowntime_m(string TerminalID, string TerminalSEQ, string Month, string Year, string Orderby, string Sortby)
         {
@@ -108,48 +148,56 @@ namespace SLA_Management.Controllers
             {
                 messageRequestList.Clear();
             }
-            if (Month == null) Month = "";
-            if (Year == null) Year = "";
-            if (Orderby == null) Orderby = "TERM_SEQ";
-            if (Sortby == null || Sortby == "") Sortby = "asc";
-            if (Month != "" && Year != "")
+            if (string.IsNullOrEmpty(Month) || string.IsNullOrEmpty(Year))
             {
-                com.CommandText = startquery_reportmonthly + "_" + Year + Month + " as t1 left join device_info_record as t2 on t1.TERM_ID =t2.TERM_ID ";
+                DateTime lastMonth = DateTime.Now.AddMonths(-1);
+                Year = lastMonth.ToString("yyyy");
+                Month = lastMonth.ToString("MM");
             }
-            if (TerminalSEQ != "" || TerminalID != "")
-            {
-                com.CommandText += "Where ";
+            Orderby = Orderby ?? "TERM_SEQ";
+            Sortby = string.IsNullOrEmpty(Sortby) ? "asc" : Sortby;
 
-            }
-            if (TerminalSEQ != "")
-            {
-                com.CommandText += " t1.TERM_SEQ = '" + TerminalSEQ + "' ";
-            }
-            if (TerminalID != "")
-            {
+            // Start building the query
+            com.CommandText = startquery_reportmonthly + " as t1 left join device_info_record as t2 on t1.TERM_ID = t2.TERM_ID ";
 
-                if (TerminalSEQ != "")
+            // Add condition for Year and Month combined as REPORT_MONTH
+            com.CommandText += $"WHERE t1.REPORT_MONTH = '{Year}{Month}' ";
+
+            // Add conditions for TerminalSEQ and TerminalID
+            if (!string.IsNullOrEmpty(TerminalSEQ) || !string.IsNullOrEmpty(TerminalID))
+            {
+                if (!string.IsNullOrEmpty(TerminalSEQ))
                 {
-                    com.CommandText += "AND t1.TERM_ID = '" + TerminalID + "' ";
+                    com.CommandText += $"AND t1.TERM_SEQ = '{TerminalSEQ}' ";
                 }
-                else
+
+                if (!string.IsNullOrEmpty(TerminalID))
                 {
-                    com.CommandText += " t1.TERM_ID = '" + TerminalID + "' ";
+                    com.CommandText += (!string.IsNullOrEmpty(TerminalSEQ) ? "AND " : "") + $"t1.TERM_ID = '{TerminalID}' ";
                 }
             }
+
+            // Handle ordering
             if (Orderby != "TERM_SEQ")
             {
                 Orderby += ",TERM_SEQ";
             }
-            com.CommandText += " order by " + Orderby + " " + Sortby;
+            com.CommandText += $"ORDER BY {Orderby} {Sortby}";
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
+            
             messageRequestList_m = SLAReportMonthly.mapToList(con.GetDatatable(com)).ToList();
         }
-        public IActionResult SlaReportDaily(string TerminalID, string Month, string Year, string chk_date, string date, string maxRows)
+        public IActionResult SlaReportDaily(string TerminalID, string Month, string Year, string chk_date, string date, string maxRows,int page)
         {
             string Day = "";
-            if (maxRows == null || maxRows == "") maxRows = "200";
+            if(page == 0)
+            {
+                page = 1;
+            }
+            if (maxRows == null || maxRows == "") maxRows = "50";
             ViewBag.maxRows = maxRows;
+            ViewBag.month = Month;
+            ViewBag.year = Year;
             if (TerminalID == null) TerminalID = "";
             if (date != null)
             {
@@ -160,7 +208,10 @@ namespace SLA_Management.Controllers
                 chk_date = "false";
             }
             if (date == null) date = DateTime.Now.ToString("yyyyMMdd");
-            ViewBag.idCard = TerminalID;
+
+            List<Device_info_record> device_Info_Records = dBService_.GetDeviceInfoFeelview();
+            ViewBag.CurrentTID = device_Info_Records;
+            ViewBag.TerminalID = TerminalID;
             if (Month != null)
             {
                 Month = DateTime.ParseExact(Month, "MMMM", CultureInfo.CurrentCulture).Month.ToString("D2");
@@ -191,9 +242,10 @@ namespace SLA_Management.Controllers
 
             if (pageSize == 0)
             {
-                pageSize = 1;
+                pageSize = 50;
             }
-            return View(messageRequestList.ToPagedList(1, pageSize));
+            ViewBag.totaldata = messageRequestList.Count();
+            return View(messageRequestList.ToPagedList(page, pageSize));
         }
         //old version
         public IActionResult SlaReportDaily2(string TerminalID, string Problem_Detail, string frDate, string toDate, string status, string maxRows, int? Year)

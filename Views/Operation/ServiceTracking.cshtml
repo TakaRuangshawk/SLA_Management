@@ -114,6 +114,7 @@
             new SelectListItem(){ Text="NDCT", Value = "NDCT" },
             new SelectListItem(){ Text="Downtime", Value = "Downtime" },
             new SelectListItem(){ Text="SLA Report", Value = "SLA Report" },
+            new SelectListItem(){ Text="SLA Report (D1-GSB)", Value = "SLA Report (D1-GSB)" },
             }, new
             {
             @class = "my-dropdown",
@@ -185,6 +186,7 @@
 </div>
 
 </div>
+<div class="container">
 <div class="table-responsive" style="overflow-x: hidden;">
     <table id="table-id" class="table table-striped custom-table" style="">
         <thead>
@@ -214,7 +216,28 @@
                             <td style="text-align: center;vertical-align: middle;"> @Data.APPNAME </td>
                             <td style="text-align: right;vertical-align: middle;"> @Data.USER_IP </td>
                             <td style="text-align: center;vertical-align: middle;"> @Data.UPDATE_DATE </td>
-                            <td style="text-align: center;vertical-align: middle;"> @Data.STATUS </td>
+                           
+                            @{
+                                if (Data.STATUS.ToLower() == "ok")
+                                {
+                                    <td style="text-align-last: center;">
+                                        <img style="height:1.5rem;width:auto;" src="~/images/home_ok.png" />
+                                    </td>
+                                }
+                                else if (Data.STATUS.ToLower() == "process" || Data.STATUS.ToLower() == "processing")
+                                {
+                                    <td style="text-align-last: center;">
+                                        <img style="height:1.5rem;width:auto;" src="~/images/home_process.png" />
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td style="text-align-last: center;">
+                                        <img style="height:1.5rem;width:auto;" src="~/images/home_error.png" />
+                                    </td>
+                                }
+
+                            }
                         </tr>
                     }
 
@@ -229,6 +252,7 @@
 
 
     </table>
+    </div>
     <div class="row">
         <div class="col-md-2" style="z-index:2;">
             <p style="font-size:16px;font-weight:bolder;">

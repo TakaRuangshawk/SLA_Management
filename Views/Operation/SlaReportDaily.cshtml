@@ -83,8 +83,22 @@
                 <div class="col-md-4 ">
                     <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-size:18px;" >Terminal ID: </p>
                 </div>
-                <div class ="col-md-6" style="padding-top:6px;"> 
-                     @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+                <div class ="col-md-6" style="padding-top:6px;">
+                    <select class="selectpicker form-control subsearch" id="TerminalID" name="TerminalID" data-live-search="true">
+                        <option data-tokens="" value="">--</option>
+                        @foreach (var item in ViewBag.CurrentTID)
+                        {
+                            if (@item.TERM_ID != @ViewBag.TerminalID)
+                            {
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                            }
+                            else
+                            {
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                            }
+                        }
+                    </select>
                 </div>
                 <div class="col-md-1"></div>
              </div>
@@ -128,8 +142,22 @@
                 <div class="col-md-4 ">
                     <p class ="align-text-bottom" style="margin-top:15px;margin-bottom:0px;font-size:18px;" >Terminal ID: </p>
                 </div>
-                <div class ="col-md-6" style="padding-top:6px;"> 
-                     @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "TerminalID" })
+                <div class ="col-md-6" style="padding-top:6px;">
+                    <select class="selectpicker form-control subsearch" id="TerminalID" name="TerminalID" data-live-search="true">
+                        <option data-tokens="" value="">--</option>
+                        @foreach (var item in ViewBag.CurrentTID)
+                        {
+                            if (@item.TERM_ID != @ViewBag.TerminalID)
+                            {
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                            }
+                            else
+                            {
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                            }
+                        }
+                    </select>
                 </div>
                 <div class="col-md-1"></div>
              </div>
@@ -542,7 +570,8 @@
         head_downtime.style.backgroundColor = "white";
 }
     var maxRows = @ViewBag.maxRows;
-    var md_Count = @Model.Count;
+    var md_Count = @ViewBag.totaldata;
+    console.log(maxRows + ' : ' + md_Count);
         getPagination('#table-id', maxRows);
         function getPagination(table, row) {
             var lastPage = 1;
@@ -732,7 +761,17 @@
             // END OF PAGINATION
         }
 
+    document.getElementById("seletePageNow").addEventListener("change", function () {
+        console.log('test')
+        var selectedPage = this.value;
+        var currentUrl = new URL(window.location.href);
 
+        // Set the 'page' parameter
+        currentUrl.searchParams.set('page', selectedPage);
+
+        // Redirect to the new URL
+        window.location.href = currentUrl.toString();
+    });
         function limitPagging() {
 
                     if ($('.pagination li').length > 7) {

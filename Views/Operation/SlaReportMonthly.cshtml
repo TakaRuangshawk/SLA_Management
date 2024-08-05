@@ -152,25 +152,27 @@
             @{
                 if (Model != null)
                 {
-                    foreach (var Data in Model)
+                    foreach (var item in Model)
                     {
                         <tr>
-                            <td> @Data.ID </td>
+                            <td>@item.ID</td>
                             <td style="text-align: center;">
-                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton_m('@Data.ID','@Data.TERM_ID','@Data.TERM_SEQ','@Data.LOCATION','@Data.PROVINCE', '@Data.INSTALL_LOT', '@Data.REPLENISHMENT_DATE', '@Data.STARTSERVICE_DATE', '@Data.TOTALSERVICEDAY', '@Data.SERVICE_GROUP', '@Data.SERVICE_DATE', '@Data.SERVICEDAY_CHARGE', '@Data.SERVICETIME_CHARGE_PERDAY', '@Data.SERVICETIME_PERMONTH_HOUR', '@Data.SERVICETIME_PERHOUR_MINUTE', '@Data.TOTALDOWNTIME_HOUR','@Data.TOTALDOWNTIME_MINUTE','@Data.ACTUAL_SERVICETIME_PERMONTH_HOUR','@Data.ACTUAL_SERVICETIME_PERHOUR_MINUTE','@Data.ACTUAL_PERCENTSLA','@Data.RATECHARGE','@Data.SERVICECHARGE','@Data.NETCHARGE','@Data.REMARK','@Data.TERM_NAME')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
+                                <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal"
+                                   onclick="EditButton_m('@item.ID', '@item.REPORT_MONTH', '@item.TERM_ID', '@item.TERM_SEQ', '@item.LOCATION', '@item.PROVINCE', '@item.INSTALL_LOT', '@item.REPLENISHMENT_DATE', '@item.STARTSERVICE_DATE', '@item.STARTSERVICEDAY', '@item.TOTALSTARTSERVICEDAY', '@item.SERVICE_GROUP', '@item.SERVICE_DATE', '@item.STARTSERVICEDATE', '@item.TOTALSTARTSERVICEDATE', '@item.SERVICETIME_PERDAY', '@item.SERVICETIME_PERHOUR', '@item.SERVICETIME_PERMINUTE', '@item.TOTALDOWNTIME_HOUR', '@item.TOTALDOWNTIME_MINUTE', '@item.TOTALSERVICETIME_PERHOUR', '@item.TOTALSERVICETIME_PERMINUTE', '@item.PERCENTSLA', '@item.SLA', '@item.RATECHARGE', '@item.SERVICECHARGE', '@item.NETSERVICECHARGE', '@item.REMARK', '@item.REASONFORWAIVEDOWNTIME', '@item.TERM_NAME')"
+                                   data-toggle="tooltip" name="cmdButton" title="View" value="View" style="cursor: pointer; border-radius: 40px; letter-spacing: 2px;">View</a>
                             </td>
-                            <td> @Data.TERM_ID </td>
-                            <td> @Data.TERM_SEQ </td>
-                            <td> @Data.TERM_NAME</td>
-                            <td> @Data.SERVICE_DATE </td>
-                            <td> @Data.TOTALDOWNTIME_HOUR </td>
-                            <td> @Data.ACTUAL_PERCENTSLA </td>
-                            <td> @Data.NETCHARGE </td>
+                            <td>@item.TERM_ID</td>
+                            <td>@item.TERM_SEQ</td>
+                            <td>@item.TERM_NAME</td>
+                            <td>@item.SERVICE_DATE</td>
+                            <td>@item.TOTALDOWNTIME_HOUR</td>
+                            <td>@item.PERCENTSLA</td>
+                            <td>@item.NETSERVICECHARGE</td>
                         </tr>
                     }
 
                 }
-                if (Model.Count == 0)
+                if (Model.Count == 0)   
                 {
 
                 <td colspan="12" style="text-align: center;"> NO DATA </td>
@@ -218,222 +220,121 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="container-fluid" style="padding: 10px;">
-
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="No">No </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("ID", ViewBag.ID as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="TERM_ID">TERMINAL ID </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="No">No</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("ID", ViewBag.ID as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="REPORT_MONTH">REPORT MONTH</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("REPORT_MONTH", ViewBag.REPORT_MONTH as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="TERM_SEQ">SERIAL NO </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="LOCATION">LOCATION </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("LOCATION", ViewBag.LOCATION as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="TERM_ID">TERMINAL ID</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TERM_ID", ViewBag.TERM_ID as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="TERM_SEQ">SERIAL NO</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TERM_SEQ", ViewBag.TERM_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="PROVINCE">PROVINCE </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="INSTALL_LOT">INSTALL LOT</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("INSTALL_LOT", ViewBag.INSTALL_LOT as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="LOCATION">LOCATION</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("LOCATION", ViewBag.LOCATION as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="PROVINCE">PROVINCE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("PROVINCE", ViewBag.PROVINCE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="REPLENISHMENT_DATE">REPLENISHMENT DATE </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("REPLENISHMENT_DATE", ViewBag.REPLENISHMENT_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="STARTSERVICE_DATE">STARTSERVICE DATE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("STARTSERVICE_DATE", ViewBag.STARTSERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="INSTALL_LOT">INSTALL LOT</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("INSTALL_LOT", ViewBag.INSTALL_LOT as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="REPLENISHMENT_DATE">REPLENISHMENT DATE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("REPLENISHMENT_DATE", ViewBag.REPLENISHMENT_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="TOTALSERVICEDAY">TOTALSERVICEDAY </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TOTALSERVICEDAY", ViewBag.TOTALSERVICEDAY as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICE_GROUP">SERVICE GROUP</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICE_GROUP", ViewBag.SERVICE_GROUP as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="STARTSERVICE_DATE">START SERVICE DATE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("STARTSERVICE_DATE", ViewBag.STARTSERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="STARTSERVICEDAY">START SERVICE DAY</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("STARTSERVICEDAY", ViewBag.STARTSERVICEDAY as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICE_DATE">SERVICE DATE </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICE_DATE", ViewBag.SERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICEDAY_CHARGE">SERVICEDAY CHARGE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICEDAY_CHARGE", ViewBag.SERVICEDAY_CHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALSTARTSERVICEDAY">TOTAL START SERVICE DAY</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALSTARTSERVICEDAY", ViewBag.TOTALSTARTSERVICEDAY as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICE_GROUP">SERVICE GROUP</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICE_GROUP", ViewBag.SERVICE_GROUP as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICETIME_CHARGE_PERDAY">SERVICE CHARGE PER DAY </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICETIME_CHARGE_PERDAY", ViewBag.SERVICETIME_CHARGE_PERDAY as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICETIME_PERMONTH_HOUR">SERVICETIME PERMONTH HOUR</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICETIME_PERMONTH_HOUR", ViewBag.SERVICETIME_PERMONTH_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICE_DATE">SERVICE DATE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICE_DATE", ViewBag.SERVICE_DATE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="STARTSERVICEDATE">START SERVICE DATE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("STARTSERVICEDATE", ViewBag.STARTSERVICEDATE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICETIME_PERHOUR_MINUTE">SERVICETIME PERHOUR MINUTE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICETIME_PERHOUR_MINUTE", ViewBag.SERVICETIME_PERHOUR_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="TOTALDOWNTIME_HOUR">TOTALDOWNTIME HOUR</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TOTALDOWNTIME_HOUR", ViewBag.TOTALDOWNTIME_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALSTARTSERVICEDATE">TOTAL START SERVICE DATE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALSTARTSERVICEDATE", ViewBag.TOTALSTARTSERVICEDATE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICETIME_PERDAY">SERVICE TIME PER DAY</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICETIME_PERDAY", ViewBag.SERVICETIME_PERDAY as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="TOTALDOWNTIME_MINUTE">TOTALDOWNTIME MINUTE </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TOTALDOWNTIME_MINUTE", ViewBag.TOTALDOWNTIME_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="Remark">ACTUAL SERVICETIME PERMONTH HOUR</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("ACTUAL_SERVICETIME_PERMONTH_HOUR", ViewBag.ACTUAL_SERVICETIME_PERMONTH_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICETIME_PERHOUR">SERVICE TIME PER HOUR</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICETIME_PERHOUR", ViewBag.SERVICETIME_PERHOUR as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICETIME_PERMINUTE">SERVICE TIME PER MINUTE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICETIME_PERMINUTE", ViewBag.SERVICETIME_PERMINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="ACTUAL_SERVICETIME_PERHOUR_MINUTE">ACTUAL SERVICETIME PERHOUR MINUTE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("ACTUAL_SERVICETIME_PERHOUR_MINUTE", ViewBag.ACTUAL_SERVICETIME_PERHOUR_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true",@row = 3 })
-                        </div>
-                    </div>
-                  
-                    <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="ACTUAL_PERCENTSLA">ACTUAL PERCENTSLA</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("ACTUAL_PERCENTSLA", ViewBag.ACTUAL_PERCENTSLA as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="RATECHARGE">RATECHARGE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("RATECHARGE", ViewBag.RATECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALDOWNTIME_HOUR">TOTAL DOWNTIME HOUR</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALDOWNTIME_HOUR", ViewBag.TOTALDOWNTIME_HOUR as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALDOWNTIME_MINUTE">TOTAL DOWNTIME MINUTE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALDOWNTIME_MINUTE", ViewBag.TOTALDOWNTIME_MINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="SERVICECHARGE">SERVICE CHARGE </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("SERVICECHARGE", ViewBag.SERVICECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="NETCHARGE">NETCHARGE</label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("NETCHARGE", ViewBag.NETCHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALSERVICETIME_PERHOUR">TOTAL SERVICE TIME PER HOUR</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALSERVICETIME_PERHOUR", ViewBag.TOTALSERVICETIME_PERHOUR as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="TOTALSERVICETIME_PERMINUTE">TOTAL SERVICE TIME PER MINUTE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TOTALSERVICETIME_PERMINUTE", ViewBag.TOTALSERVICETIME_PERMINUTE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-2 modelTopic">
-                            <label for="REMARK">REMARK </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("REMARK", ViewBag.REMARK as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
-                       <div class="col-md-2 modelTopic">
-                            <label for="TERM_NAME">TERM NAME </label>
-                        </div>
-                        <div class="col-md-3 modelTextbox">
-                            @Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="PERCENTSLA">PERCENT SLA</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("PERCENTSLA", ViewBag.PERCENTSLA as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="SLA">SLA</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SLA", ViewBag.SLA as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
                     </div>
-                  
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="RATECHARGE">RATE CHARGE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("RATECHARGE", ViewBag.RATECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="SERVICECHARGE">SERVICE CHARGE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("SERVICECHARGE", ViewBag.SERVICECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="NETSERVICECHARGE">NET SERVICE CHARGE</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("NETSERVICECHARGE", ViewBag.NETSERVICECHARGE as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="REMARK">REMARK</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("REMARK", ViewBag.REMARK as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2 modelTopic"><label for="REASONFORWAIVEDOWNTIME">REASON FOR WAIVE DOWNTIME</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("REASONFORWAIVEDOWNTIME", ViewBag.REASONFORWAIVEDOWNTIME as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                        <div class="col-md-2 modelTopic"><label for="TERM_NAME">TERM NAME</label></div>
+                        <div class="col-md-3 modelTextbox">@Html.TextBox("TERM_NAME", ViewBag.TERM_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 }
 <script>
   
  
     var maxRows = @ViewBag.maxRows;
-    var md_Count = @Model.Count;
+    var md_Count = @ViewBag.totaldata;
         getPagination('#table-id', maxRows);
         function getPagination(table, row) {
             var lastPage = 1;
@@ -640,34 +541,39 @@
                         }
                     }
         }
-        function EditButton_m(ID, TERM_ID, TERM_SEQ, LOCATION, PROVINCE, INSTALL_LOT, REPLENISHMENT_DATE, STARTSERVICE_DATE, TOTALSERVICEDAY,SERVICE_GROUP, SERVICE_DATE, SERVICEDAY_CHARGE, SERVICETIME_CHARGE_PERDAY, SERVICETIME_PERMONTH_HOUR, SERVICETIME_PERHOUR_MINUTE, TOTALDOWNTIME_HOUR,TOTALDOWNTIME_MINUTE, ACTUAL_SERVICETIME_PERMONTH_HOUR,ACTUAL_SERVICETIME_PERHOUR_MINUTE, ACTUAL_PERCENTSLA,RATECHARGE,SERVICECHARGE,NETCHARGE,REMARK,TERM_NAME) {
-                            if(typeof ID !== null && ID !== 'undefined') { document.getElementById('ID').value = ID; }
-                            if(typeof TERM_ID !== null && TERM_ID !== 'undefined') { document.getElementById('TERM_ID').value = TERM_ID; }
-                            if(typeof TERM_SEQ !== null && TERM_SEQ !== 'undefined') { document.getElementById('TERM_SEQ').value = TERM_SEQ; }
-                            if(typeof LOCATION !== null && LOCATION !== 'undefined') { document.getElementById('LOCATION').value = LOCATION; }
-                            if(typeof PROVINCE !== null && PROVINCE !== 'undefined') { document.getElementById('PROVINCE').value = PROVINCE; }
-                            if(typeof INSTALL_LOT !== null && INSTALL_LOT !== 'undefined') { document.getElementById('INSTALL_LOT').value = INSTALL_LOT; }
-                            if(typeof REPLENISHMENT_DATE !== null && REPLENISHMENT_DATE !== 'undefined') { document.getElementById('REPLENISHMENT_DATE').value = REPLENISHMENT_DATE; } 
-                            if(typeof STARTSERVICE_DATE !== null && STARTSERVICE_DATE !== 'undefined') { document.getElementById('STARTSERVICE_DATE').value = STARTSERVICE_DATE; }
-                            if(typeof TOTALSERVICEDAY !== null && TOTALSERVICEDAY !== 'undefined') { document.getElementById('TOTALSERVICEDAY').value = TOTALSERVICEDAY; } 
-                            if(typeof SERVICE_GROUP !== null && SERVICE_GROUP !== 'undefined') { document.getElementById('SERVICE_GROUP').value = SERVICE_GROUP; }
-                            if(typeof SERVICE_DATE !== null && SERVICE_DATE !== 'undefined') { document.getElementById('SERVICE_DATE').value = SERVICE_DATE; }
-                            if(typeof SERVICEDAY_CHARGE !== null && SERVICEDAY_CHARGE !== 'undefined') { document.getElementById('SERVICEDAY_CHARGE').value = SERVICEDAY_CHARGE; }
-                            if(typeof SERVICETIME_CHARGE_PERDAY !== null && SERVICETIME_CHARGE_PERDAY !== 'undefined') { document.getElementById('SERVICETIME_CHARGE_PERDAY').value = SERVICETIME_CHARGE_PERDAY; }
-                            if(typeof SERVICETIME_PERMONTH_HOUR !== null && SERVICETIME_PERMONTH_HOUR !== 'undefined') { document.getElementById('SERVICETIME_PERMONTH_HOUR').value = SERVICETIME_PERMONTH_HOUR; }
-                            if(typeof SERVICETIME_PERHOUR_MINUTE !== null && SERVICETIME_PERHOUR_MINUTE !== 'undefined') { document.getElementById('SERVICETIME_PERHOUR_MINUTE').value = SERVICETIME_PERHOUR_MINUTE; }
-                            if(typeof TOTALDOWNTIME_HOUR !== null && TOTALDOWNTIME_HOUR !== 'undefined') { document.getElementById('TOTALDOWNTIME_HOUR').value = TOTALDOWNTIME_HOUR; }
-                            if(typeof TOTALDOWNTIME_MINUTE !== null && TOTALDOWNTIME_MINUTE !== 'undefined') { document.getElementById('TOTALDOWNTIME_MINUTE').value = TOTALDOWNTIME_MINUTE; }
-                            if(typeof ACTUAL_SERVICETIME_PERMONTH_HOUR !== null && ACTUAL_SERVICETIME_PERMONTH_HOUR !== 'undefined') { document.getElementById('ACTUAL_SERVICETIME_PERMONTH_HOUR').value = ACTUAL_SERVICETIME_PERMONTH_HOUR; }
-                            if(typeof ACTUAL_SERVICETIME_PERHOUR_MINUTE !== null && ACTUAL_SERVICETIME_PERHOUR_MINUTE !== 'undefined') { document.getElementById('ACTUAL_SERVICETIME_PERHOUR_MINUTE').value = ACTUAL_SERVICETIME_PERHOUR_MINUTE; }
-                            if(typeof ACTUAL_PERCENTSLA !== null && ACTUAL_PERCENTSLA !== 'undefined') { document.getElementById('ACTUAL_PERCENTSLA').value = ACTUAL_PERCENTSLA; }
-                            if(typeof RATECHARGE !== null && RATECHARGE !== 'undefined') { document.getElementById('RATECHARGE').value = RATECHARGE; }
-                            if(typeof SERVICECHARGE !== null && SERVICECHARGE !== 'undefined') { document.getElementById('SERVICECHARGE').value = SERVICECHARGE; }
-                            if(typeof NETCHARGE !== null && NETCHARGE !== 'undefined') { document.getElementById('NETCHARGE').value = NETCHARGE; }
-                            if(typeof REMARK !== null && REMARK !== 'undefined') { document.getElementById('REMARK').value = REMARK; }
-                            if(typeof TERM_NAME !== null && TERM_NAME !== 'undefined') { document.getElementById('TERM_NAME').value = TERM_NAME; }
-                            
-       }       
-       
+    function EditButton_m(ID, REPORT_MONTH, TERM_ID, TERM_SEQ, LOCATION, PROVINCE, INSTALL_LOT, REPLENISHMENT_DATE, STARTSERVICE_DATE, STARTSERVICEDAY, TOTALSTARTSERVICEDAY, SERVICE_GROUP, SERVICE_DATE, STARTSERVICEDATE, TOTALSTARTSERVICEDATE, SERVICETIME_PERDAY, SERVICETIME_PERHOUR, SERVICETIME_PERMINUTE, TOTALDOWNTIME_HOUR, TOTALDOWNTIME_MINUTE, TOTALSERVICETIME_PERHOUR, TOTALSERVICETIME_PERMINUTE, PERCENTSLA, SLA, RATECHARGE, SERVICECHARGE, NETSERVICECHARGE, REMARK, REASONFORWAIVEDOWNTIME, TERM_NAME) {
+        document.getElementById('ID').value = ID || '-';
+        document.getElementById('REPORT_MONTH').value = REPORT_MONTH || '-';
+        document.getElementById('TERM_ID').value = TERM_ID || '-';
+        document.getElementById('TERM_SEQ').value = TERM_SEQ || '-';
+        document.getElementById('LOCATION').value = LOCATION || '-';
+        document.getElementById('PROVINCE').value = PROVINCE || '-';
+        document.getElementById('INSTALL_LOT').value = INSTALL_LOT || '-';
+        document.getElementById('REPLENISHMENT_DATE').value = REPLENISHMENT_DATE || '-';
+        document.getElementById('STARTSERVICE_DATE').value = STARTSERVICE_DATE || '-';
+        document.getElementById('STARTSERVICEDAY').value = STARTSERVICEDAY || '-';
+        document.getElementById('TOTALSTARTSERVICEDAY').value = TOTALSTARTSERVICEDAY || '-';
+        document.getElementById('SERVICE_GROUP').value = SERVICE_GROUP || '-';
+        document.getElementById('SERVICE_DATE').value = SERVICE_DATE || '-';
+        document.getElementById('STARTSERVICEDATE').value = STARTSERVICEDATE || '-';
+        document.getElementById('TOTALSTARTSERVICEDATE').value = TOTALSTARTSERVICEDATE || '-';
+        document.getElementById('SERVICETIME_PERDAY').value = SERVICETIME_PERDAY || '-';
+        document.getElementById('SERVICETIME_PERHOUR').value = SERVICETIME_PERHOUR || '-';
+        document.getElementById('SERVICETIME_PERMINUTE').value = SERVICETIME_PERMINUTE || '-';
+        document.getElementById('TOTALDOWNTIME_HOUR').value = TOTALDOWNTIME_HOUR || '-';
+        document.getElementById('TOTALDOWNTIME_MINUTE').value = TOTALDOWNTIME_MINUTE || '-';
+        document.getElementById('TOTALSERVICETIME_PERHOUR').value = TOTALSERVICETIME_PERHOUR || '-';
+        document.getElementById('TOTALSERVICETIME_PERMINUTE').value = TOTALSERVICETIME_PERMINUTE || '-';
+        document.getElementById('PERCENTSLA').value = PERCENTSLA || '-';
+        document.getElementById('SLA').value = SLA || '-';
+        document.getElementById('RATECHARGE').value = RATECHARGE || '-';
+        document.getElementById('SERVICECHARGE').value = SERVICECHARGE || '-';
+        document.getElementById('NETSERVICECHARGE').value = NETSERVICECHARGE || '-';
+        document.getElementById('REMARK').value = REMARK || '-';
+        document.getElementById('REASONFORWAIVEDOWNTIME').value = REASONFORWAIVEDOWNTIME || '-';
+        document.getElementById('TERM_NAME').value = TERM_NAME || '-';
+    }
+
+
 
 </script>
