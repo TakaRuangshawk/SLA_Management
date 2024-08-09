@@ -31,108 +31,224 @@
         background-color: #f2f2f2;
 
       }
-  </style>
-<div class="row" style="margin-left:0px;margin-right:0px; width: 100%;">
 
-    <div class="col-md-2">
-        <p class="text-black fs-3">Terminal ID</p>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    td {
+        padding: 0.5em !important;
+        vertical-align: middle;
+    }
+
+    .pagination li a {
+        color: black !important;
+    }
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+<div class="row">
+    <div class="col col-md-1">
     </div>
-    <div class="col-md-2">
-        <p class="text-black fs-3">SERIAL NO</p>
-    </div>
-    <div class="col-md-2">
-        <p class="text-black fs-3">Month</p>
-    </div>
-    <div class="col-md-2">
-        <p class="text-black fs-3">Year</p>
-    </div>
-    <div class="col-md-1">
-        <p class="text-black fs-3">Order by</p>
-    </div>
-    <div class="col-md-1">
-        <p class ="text-black fs-3">Sort by</p>
+    <div class="col col-md-11">
+        <a class="text-white fs-4" id="header_search">SLA Monthly</a>
     </div>
 </div>
+<div id="main_search" style="">
+    @using (Html.BeginForm("SlaReportMonthly", "Operation", FormMethod.Get, new { id = "IndexID" }))
+    {
+        <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+            <div class="col col-md-1" style="">
+                <h>TerminalID : </h>
+            </div>
+            <div class="col-md-2">
 
-@using (Html.BeginForm("SlaReportMonthly", "Operation", FormMethod.Get, new { id = "IndexID" }))
-{
-    <div class="row" style="margin-left:0px;margin-right:0px;">
+                        <div class="form-group">
+                            <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
 
-        <div class="col-md-2">
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
-            @Html.TextBox("TerminalID", ViewBag.TerminalID as string, new { @class = "form-control subsearch", @placeholder = "Terminal ID" })
+                                    }
+                                }
+
+                            </select>
+                        </div>
+            </div>
+            <div class="col col-md-1" style="">
+                <h>Month : </h>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required" })
+            </div>
+            <div class="col col-md-1" style="">
+                <h>Year : </h>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required" })
+            </div>
+
+
+
+
         </div>
-        <div class="col-md-2">
-
-            @Html.TextBox("TerminalSEQ", ViewBag.TerminalSEQ as string, new { @class = "form-control subsearch", @placeholder = "Serial No" })
-        </div>
-        <div class="col-md-2">
-                    @Html.DropDownList("Month", new SelectList(CultureInfo.CurrentCulture.DateTimeFormat.MonthNames), "Select Month", new{ @class = "my-dropdown",@required = "required" })
-        </div>
-        
-        <div class="col-md-2"> 
-                    @Html.DropDownList("Year", new SelectList(Enumerable.Range(DateTime.Now.Year - 5, 6).Reverse()), "Select Year", new{ @class = "my-dropdown",@required = "required" })
-        </div>  
-
-        <div class="col-md-1">
-                    @Html.DropDownList("Orderby", new SelectListItem[] { 
-                        new SelectListItem(){ Text="Serial No", Value = "TERM_SEQ" },
-                        new SelectListItem(){ Text="TerminalID", Value = "TERM_ID" },
-                        new SelectListItem(){ Text="Total Downtime", Value = "TOTALDOWNTIME_HOUR" },
-                        new SelectListItem(){ Text="NET CHARGE", Value = "NETCHARGE" },
-                    }, new
-                    {
-                        @class = "my-dropdown",
-                        @name = "state"
-                    })
-
-   
-        </div>
-        <div class="col-md-1">
-           @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="น้อยไปมาก", Value = "ASC"  },
-                new SelectListItem(){ Text="มากไปน้อย", Value = "DESC" }
+        <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+            <div class="col col-md-1" style="">
+                <h>Orderby : </h>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("Orderby", new SelectListItem[] {
+            new SelectListItem(){ Text="Serial No", Value = "TERM_SEQ" },
+            new SelectListItem(){ Text="TerminalID", Value = "TERM_ID" },
+            new SelectListItem(){ Text="Total Downtime", Value = "TOTALDOWNTIME_HOUR" },
+            new SelectListItem(){ Text="NET CHARGE", Value = "NETCHARGE" },
             }, new
             {
             @class = "my-dropdown",
             @name = "state"
-     })
-        </div>
-        <div class="col-md-1" style="margin-left:0px;margin-right:0px;">
-            <button type="submit" id="btnsearch" class="btnsearch">search  </button>
-        </div>
-        <div class="col-md-1" style="margin-left:0px;margin-right:0px;">
-            <button type="reset" id="btnsearch" class="btnsearch">Reset  </button>
-        </div>
-
-    </div>
-    
-    <div class="row" style="margin-top: 15px">
-    <div class="col-md-1 colRows">
-        <p style="font-size:16px;font-weight:bolder;">Rows : </p>
-    </div>
-
-    <div class="col-md-1" style="padding-top: 10px;">
-        <div class="form-group">
-            <!--		Show Numbers Of Rows 		-->
-            @Html.DropDownList("maxRows", new SelectListItem[] {
-            new SelectListItem(){ Text="20", Value = "20"  },
-            new SelectListItem(){ Text="50", Value = "50"  },
-            new SelectListItem(){ Text="100", Value = "100" },
-            new SelectListItem(){ Text="200", Value = "200"  },
-            new SelectListItem(){ Text="1000", Value = "1000"  }
-            }, new
-            {
-            @class = "form-control"
-            ,
-            @name = "state"
-
             })
 
+
+            </div>
+            <div class="col col-md-1" style="">
+                <h>Sort : </h>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("Sortby", new SelectListItem[] { new SelectListItem(){ Text="น้อยไปมาก", Value = "ASC"  },
+            new SelectListItem(){ Text="มากไปน้อย", Value = "DESC" }
+            }, new
+            {
+            @class = "my-dropdown",
+            @name = "state"
+            })
+            </div>
+            <div class="col-md-1">
+                <p style="font-size:16px;">Rows : </p>
+            </div>
+
+            <div class="col-md-2" style="">
+                <div class="form-group">
+                    <!--		Show Numbers Of Rows 		-->
+                @Html.DropDownList("maxRows", new SelectListItem[] {
+                new SelectListItem(){ Text="20", Value = "20"  },
+                new SelectListItem(){ Text="50", Value = "50"  },
+                new SelectListItem(){ Text="100", Value = "100" },
+                new SelectListItem(){ Text="200", Value = "200"  },
+                new SelectListItem(){ Text="1000", Value = "1000"  }
+                }, new
+                {
+                        @class = "my-dropdown"
+                ,
+                @name = "state"
+
+                })
+
+                </div>
+            </div>
         </div>
+        <div class="row justify-content-md-center" style="">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+
+                            @* <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                        <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                        </a>*@
+                        </div>
+                    </div>
+
+        </div>
+
+    }
+    </div>
     </div>
 </div>
-}
-
 
 <div class="table-responsive" style="overflow-x: hidden;">
     <table id="table-id" class="table table-striped custom-table" style="">

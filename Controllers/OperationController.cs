@@ -123,9 +123,11 @@ namespace SLA_Management.Controllers
             }
             string Day = "";
             if (maxRows == null || maxRows == "") maxRows = "100";
-            ViewBag.maxRows = maxRows;
             if (TerminalID == null) TerminalID = "";
-            ViewBag.idCard = TerminalID;
+            ViewBag.maxRows = maxRows;
+            List<Device_info_record> device_Info_Records = dBService_.GetDeviceInfoFeelview();
+            ViewBag.CurrentTID = device_Info_Records;
+            ViewBag.TerminalID = TerminalID;
             if (TerminalSEQ == null) TerminalSEQ = "";
             ViewBag.seqCard = TerminalSEQ;
             if (Month != null)
