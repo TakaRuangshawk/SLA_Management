@@ -189,7 +189,7 @@ namespace SLA_Management.Controllers
             
             messageRequestList_m = SLAReportMonthly.mapToList(con.GetDatatable(com)).ToList();
         }
-        public IActionResult SlaReportDaily(string TerminalID, string Month, string Year, string chk_date, string date, string maxRows,int page)
+        public IActionResult SlaReportDaily(string TerminalID, string TerminalID2, string Month, string Year, string chk_date, string date, string maxRows,int page)
         {
             string Day = "";
             if(page == 0)
@@ -213,13 +213,13 @@ namespace SLA_Management.Controllers
 
             List<Device_info_record> device_Info_Records = dBService_.GetDeviceInfoFeelview();
             ViewBag.CurrentTID = device_Info_Records;
-            ViewBag.TerminalID = TerminalID;
             if (Month != null)
             {
                 Month = DateTime.ParseExact(Month, "MMMM", CultureInfo.CurrentCulture).Month.ToString("D2");
             }
             if (chk_date == "true")
             {
+                ViewBag.TerminalID2 = TerminalID2;
                 if (date != null)
                 {
                     date = date.Replace("-", "");
@@ -230,6 +230,10 @@ namespace SLA_Management.Controllers
                     Console.WriteLine("test date data : " + date + "Year : " + Year + "Month : " + Month + "Day : " + Day);
 
                 }
+            }
+            else
+            {
+                ViewBag.TerminalID = TerminalID;
             }
             FatchDataMainDowntime(TerminalID, Day, Month, Year);
             int pageSize = 0;
@@ -353,7 +357,7 @@ namespace SLA_Management.Controllers
                 }
 
             }
-            com.CommandText += " order by TERM_ID,Open_Date ASC";
+            com.CommandText += " order by ID ASC";
             Console.WriteLine("com.CommandText :  " + com.CommandText.ToString());
             messageRequestList = SLAReportDaily.mapToList(con.GetDatatable(com)).ToList();
         }

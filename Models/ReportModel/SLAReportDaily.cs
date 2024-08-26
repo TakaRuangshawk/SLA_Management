@@ -37,39 +37,48 @@ namespace SLA_Management.Models.ReportModel
 
         public static IList<SLAReportDaily> mapToList(DataTable list)
         {
-            IList<SLAReportDaily> items = list.AsEnumerable().Select(row => new SLAReportDaily
+            IList<SLAReportDaily> items = new List<SLAReportDaily>();
+
+            for (int i = 0; i < list.Rows.Count; i++)
             {
-                ID = row.Field<long?>("ID") ?? 0,
-                Report_Date = row.Field<string>("Report_Date"),
-                Open_Date = row.Field<string>("Open_Date"),
-                Appointment_Date = row.Field<string>("Appointment_Date"),
-                Closed_Repair_Date = row.Field<string>("Closed_Repair_Date"),
-                Down_Time = row.Field<string>("Down_Time"),
-                AS_OpenDate = row.Field<string>("AS_OpenDate"),
-                AS_AppointmentDate = row.Field<string>("AS_AppointmentDate"),
-                AS_CloseRepairDate = row.Field<string>("AS_CloseRepairDate"),
-                AS_Downtime = row.Field<string>("AS_Downtime"),
-                Discount = row.Field<string>("Discount"),
-                Net_Downtime = row.Field<string>("Net_Downtime"),
-                AS_Discription = row.Field<string>("AS_Discription")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                AS_CIT_Request = row.Field<string>("AS_CIT_Request")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                AS_Service_PM = row.Field<string>("AS_Service_PM")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                Status = row.Field<string>("Status"),
-                Terminal_ID = row.Field<string>("TERM_ID"),
-                Model = row.Field<string>("Model"),
-                Serial_NO = row.Field<string>("TERM_SEQ"),
-                Province = row.Field<string>("Province"),
-                Location = row.Field<string>("Location"),
-                Problem_Detail = row.Field<string>("Problem_Detail")?.Replace(Environment.NewLine, " ").Replace("\t", " ").Replace("\n", " ").Replace("\r", " ").Replace(",", "|").Replace("-", ">"),
-                Service_Team = row.Field<string>("Service_Team")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                Solving_Program = row.Field<string>("Solving_Program")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                Contact_Name_Branch_CIT = row.Field<string>("Contact_Name_Branch_CIT")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                Open_By = row.Field<string>("Open_By")?.Replace(Environment.NewLine, " ").Replace("\n", "").Replace("\r", "").Replace(",", "|"),
-                Remark = row.Field<string>("Remark"),
-            }).ToList();
+                DataRow row = list.Rows[i];
+                var item = new SLAReportDaily
+                {
+                    ID = i + 1, // Row number as ID, starting from 1
+                    Report_Date = row.Field<string>("Report_Date"),
+                    Open_Date = row.Field<string>("Open_Date"),
+                    Appointment_Date = row.Field<string>("Appointment_Date"),
+                    Closed_Repair_Date = row.Field<string>("Closed_Repair_Date"),
+                    Down_Time = row.Field<string>("Down_Time"),
+                    AS_OpenDate = row.Field<string>("AS_OpenDate"),
+                    AS_AppointmentDate = row.Field<string>("AS_AppointmentDate"),
+                    AS_CloseRepairDate = row.Field<string>("AS_CloseRepairDate"),
+                    AS_Downtime = row.Field<string>("AS_Downtime"),
+                    Discount = row.Field<string>("Discount"),
+                    Net_Downtime = row.Field<string>("Net_Downtime"),
+                    AS_Discription = row.Field<string>("AS_Discription")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    AS_CIT_Request = row.Field<string>("AS_CIT_Request")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    AS_Service_PM = row.Field<string>("AS_Service_PM")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    Status = row.Field<string>("Status"),
+                    Terminal_ID = row.Field<string>("TERM_ID"),
+                    Model = row.Field<string>("Model"),
+                    Serial_NO = row.Field<string>("TERM_SEQ"),
+                    Province = row.Field<string>("Province"),
+                    Location = row.Field<string>("Location"),
+                    Problem_Detail = row.Field<string>("Problem_Detail")?.Replace(Environment.NewLine, " ").Replace("\t", " ").Replace("\n", " ").Replace("\r", " ").Replace(",", "|").Replace("-", ">"),
+                    Service_Team = row.Field<string>("Service_Team")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    Solving_Program = row.Field<string>("Solving_Program")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    Contact_Name_Branch_CIT = row.Field<string>("Contact_Name_Branch_CIT")?.Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    Open_By = row.Field<string>("Open_By")?.Replace(Environment.NewLine, " ").Replace("\n", "").Replace("\r", "").Replace(",", "|"),
+                    Remark = row.Field<string>("Remark"),
+                };
+
+                items.Add(item);
+            }
 
             return items;
         }
+
     }
     public class TicketManagement
     {

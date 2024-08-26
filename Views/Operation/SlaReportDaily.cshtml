@@ -147,7 +147,7 @@
                         <option data-tokens="" value="">--</option>
                         @foreach (var item in ViewBag.CurrentTID)
                         {
-                            if (@item.TERM_ID != @ViewBag.TerminalID)
+                            if (@item.TERM_ID != @ViewBag.TerminalID2)
                             {
                                 <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                             }
@@ -208,7 +208,7 @@
                 @{
                     foreach (var head in tableHeaders)
                     {
-                        <th scope="col"> @head </th>
+                        <th style="text-align:center;white-space:nowrap;vertical-align:middle;" scope="col"> @head </th>
                     }
                 }
 
@@ -222,14 +222,19 @@
                     foreach (var Data in Model)
                     {
                         <tr>
-                            <td> @Data.ID </td>
+                            <td style="text-align: center;vertical-align: middle;"> @Data.ID </td>
                             <td style="text-align: center;">
                                 <a class="btn btn-light text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.ID', '@Data.Open_Date','@Data.Appointment_Date', '@Data.Report_Date', '@Data.Closed_Repair_Date', '@Data.Down_Time', '@Data.AS_OpenDate', '@Data.AS_AppointmentDate', '@Data.AS_CloseRepairDate', '@Data.AS_Downtime', '@Data.Discount', '@Data.Net_Downtime', '@Data.AS_Discription', '@Data.AS_CIT_Request', '@Data.AS_Service_PM', '@Data.Status', '@Data.Terminal_ID', '@Data.Model','@Data.Serial_NO','@Data.Province','@Data.Location','@Data.Problem_Detail','@Data.Solving_Program','@Data.Service_Team','@Data.Contact_Name_Branch_CIT','@Data.Open_By','@Data.Remark')" data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="cursor: pointer;border-radius: 40px; letter-spacing: 2px;">View</a>
                             </td>
                             <td> @Data.Remark</td>
                             <td> @Data.Serial_NO</td>
                             <td> @Data.Terminal_ID </td>
-                            <td> @Data.Problem_Detail </td>
+                            <td style="white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 180px;">
+                                    @Data.Problem_Detail
+                             </td>
                             <td> @Data.Open_Date </td>
                             <td> @Data.Closed_Repair_Date</td>
                             <td> @Data.Net_Downtime </td>
@@ -240,8 +245,9 @@
                 }
                 if (Model.Count == 0)
                 {
-
-                <td colspan="12" style="text-align: center;"> NO DATA </td>
+                <tr>
+                    <td colspan="10" style="text-align: center;"> NO DATA </td>
+                </tr>
                 }
             }
         </tbody>
