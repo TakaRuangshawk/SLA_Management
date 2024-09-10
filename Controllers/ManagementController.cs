@@ -1,14 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Linq.Expressions;
 
 namespace SLA_Management.Controllers
@@ -27,6 +31,116 @@ namespace SLA_Management.Controllers
         {
             return View();
         }
+        private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+        public class IssueName
+        {
+            public string Issue_Name { get; set; }
+        }
+        private static List<IssueName> GetIssue_Name(string _bank, IConfiguration _myConfiguration)
+        {
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT Issue_Name FROM reportcases  group by Issue_Name order by Issue_Name;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<IssueName> test = ConvertDataTableToModel.ConvertDataTable<IssueName>(testss);
+
+            return test;
+        }
+        public class StatusName
+        {
+            public string Status_Name { get; set; }
+        }
+        private static List<StatusName> GetStatus_Name(string _bank, IConfiguration _myConfiguration)
+        {
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT Status_Name FROM reportcases  group by Status_Name order by Status_Name;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<StatusName> test = ConvertDataTableToModel.ConvertDataTable<StatusName>(testss);
+
+            return test;
+        }
+        public IActionResult ReportCases()
+        {
+            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
+            ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
+            ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+            // For now, just return the empty view
+            return View();
+        }
+
+        public JsonResult GetReportCases(string termID, string issueName, string statusName, DateTime? fromDate, DateTime? toDate)
+        {
+            List<ReportCase> reportCases = new List<ReportCase>();
+
+            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                conn.Open();
+
+                string query = "SELECT Case_Error_No, Terminal_ID, Place_Install, Issue_Name, Date_Inform, Status_Name " +
+                               "FROM reportcases WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(termID))
+                {
+                    query += " AND Terminal_ID = @TermID";
+                }
+                if (!string.IsNullOrEmpty(issueName))
+                {
+                    query += " AND Issue_Name = @IssueName";
+                }
+                if (!string.IsNullOrEmpty(statusName))
+                {
+                    query += " AND Status_Name = @StatusName";
+                }
+                if (fromDate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) >= DATE(@FromDate)";
+                }
+                if (toDate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) <= DATE(@ToDate)";
+                }
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TermID", termID);
+                cmd.Parameters.AddWithValue("@IssueName", issueName);
+                cmd.Parameters.AddWithValue("@StatusName", statusName);
+                cmd.Parameters.AddWithValue("@FromDate", fromDate);
+                cmd.Parameters.AddWithValue("@ToDate", toDate);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        reportCases.Add(new ReportCase
+                        {
+                            CaseErrorNo = reader.GetInt64("Case_Error_No"),
+                            TerminalID = reader.GetString("Terminal_ID"),
+                            PlaceInstall = reader.GetString("Place_Install"),
+                            IssueName = reader.GetString("Issue_Name"),
+                            DateInform = reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy"),
+                            StatusName = reader.GetString("Status_Name")
+                        });
+                    }
+                }
+            }
+
+            return Json(reportCases);
+        }
+
         [HttpGet]
         public IActionResult GetEvents()
         {
@@ -157,6 +271,252 @@ namespace SLA_Management.Controllers
             
            
 
+        }
+        [HttpGet]
+        public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName, int row = 50, int page = 1)
+        {
+            List<ReportCase> reportCases = new List<ReportCase>();
+            int totalCases = 0;
+            int totalPages = 0;
+            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                conn.Open();
+
+                string query = "SELECT Case_Error_No, Terminal_ID, Place_Install, Issue_Name, Date_Inform, Status_Name, Branch_name_pb, Repair1, Repair2, Repair3, Repair4, Repair5, Incident_No, Date_Close_Pb, Type_Project, Update_Date, Update_By, Remark " +
+                               "FROM reportcases WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                {
+                    query += " AND Terminal_ID = @TerminalID";
+                }
+                if (!string.IsNullOrEmpty(placeInstall))
+                {
+                    query += " AND Place_Install LIKE @PlaceInstall";
+                }
+                if (!string.IsNullOrEmpty(issueName))
+                {
+                    query += " AND Issue_Name LIKE @IssueName";
+                }
+                if (fromdate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) >= @FromDate";
+                }
+                if (todate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) <= @ToDate";
+                }
+                if (!string.IsNullOrEmpty(statusName))
+                {
+                    query += " AND Status_Name = @StatusName";
+                }
+
+                query += " ORDER BY Date_Inform ASC ";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TerminalID", terminalID);
+                cmd.Parameters.AddWithValue("@PlaceInstall", "%" + placeInstall + "%");
+                cmd.Parameters.AddWithValue("@IssueName", "%" + issueName + "%");
+                cmd.Parameters.AddWithValue("@FromDate", fromdate);
+                cmd.Parameters.AddWithValue("@ToDate", todate);
+                cmd.Parameters.AddWithValue("@StatusName", statusName);
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        reportCases.Add(new ReportCase
+                        {
+                            CaseErrorNo = reader.GetInt64("Case_Error_No"),
+                            TerminalID = reader["Terminal_ID"] != DBNull.Value ? reader.GetString("Terminal_ID") : string.Empty,
+                            PlaceInstall = reader["Place_Install"] != DBNull.Value ? reader.GetString("Place_Install") : string.Empty,
+                            IssueName = reader["Issue_Name"] != DBNull.Value ? reader.GetString("Issue_Name") : string.Empty,
+                            DateInform = reader["Date_Inform"] != DBNull.Value ? reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy") : string.Empty,
+                            StatusName = reader["Status_Name"] != DBNull.Value ? reader.GetString("Status_Name") : string.Empty,
+                            BranchName = reader["Branch_name_pb"] != DBNull.Value ? reader.GetString("Branch_name_pb") : string.Empty,
+                            Repair1 = reader["Repair1"] != DBNull.Value ? reader.GetString("Repair1") : string.Empty,
+                            Repair2 = reader["Repair2"] != DBNull.Value ? reader.GetString("Repair2") : string.Empty,
+                            Repair3 = reader["Repair3"] != DBNull.Value ? reader.GetString("Repair3") : string.Empty,
+                            Repair4 = reader["Repair4"] != DBNull.Value ? reader.GetString("Repair4") : string.Empty,
+                            Repair5 = reader["Repair5"] != DBNull.Value ? reader.GetString("Repair5") : string.Empty,
+                            IncidentNo = reader["Incident_No"] != DBNull.Value ? reader.GetString("Incident_No") : string.Empty,
+                            DateClosePb = reader["Date_Close_Pb"] != DBNull.Value ? reader.GetDateTime("Date_Close_Pb").ToString("dd/MM/yyyy") : string.Empty,
+                            TypeProject = reader["Type_Project"] != DBNull.Value ? reader.GetString("Type_Project") : string.Empty,
+                            UpdateDate = reader["Update_Date"] != DBNull.Value ? reader.GetDateTime("Update_Date").ToString("dd/MM/yyyy HH:mm") : string.Empty,
+                            UpdateBy = reader["Update_By"] != DBNull.Value ? reader.GetString("Update_By") : string.Empty,
+                            Remark = reader["Remark"] != DBNull.Value ? reader.GetString("Remark") : string.Empty
+                        });
+
+                    }
+                    if (reader.NextResult() && reader.Read())
+                    {
+                        totalCases = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            totalPages = (int)Math.Ceiling((double)totalCases / row);
+
+            return Json(new
+            {
+                jsonData = reportCases,
+                currentPage = page,
+                totalPages = totalPages,
+                totalCases = totalCases
+            });
+        }
+        public IActionResult ExportReportCasesToExcel(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName)
+        {
+
+            using (var connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                connection.Open();
+                string query = "SELECT * FROM reportcases WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                    query += " AND Terminal_ID = @TerminalID";
+                if (!string.IsNullOrEmpty(placeInstall))
+                    query += " AND Place_Install LIKE @PlaceInstall";
+                if (!string.IsNullOrEmpty(issueName))
+                    query += " AND Issue_Name LIKE @IssueName";
+                if (fromdate.HasValue)
+                    query += " AND Date_Inform >= @FromDate";
+                if (todate.HasValue)
+                    query += " AND Date_Inform <= @ToDate";
+                if (!string.IsNullOrEmpty(statusName))
+                    query += " AND Status_Name = @StatusName";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@TerminalID", terminalID);
+                    command.Parameters.AddWithValue("@PlaceInstall", "%" + placeInstall + "%");
+                    command.Parameters.AddWithValue("@IssueName", "%" + issueName + "%");
+                    command.Parameters.AddWithValue("@FromDate", fromdate?.Date);
+                    command.Parameters.AddWithValue("@ToDate", todate?.Date);
+                    command.Parameters.AddWithValue("@StatusName", statusName);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    using (var reader = command.ExecuteReader())
+                    {
+                        using (var package = new ExcelPackage())
+                        {
+                            var worksheet = package.Workbook.Worksheets.Add("ReportCases");
+
+                            // Add headers
+                            worksheet.Cells[1, 1].Value = "Case No";
+                            worksheet.Cells[1, 2].Value = "Terminal ID";
+                            worksheet.Cells[1, 3].Value = "Place Install";
+                            worksheet.Cells[1, 4].Value = "Issue Name";
+                            worksheet.Cells[1, 5].Value = "Date Inform";
+                            worksheet.Cells[1, 6].Value = "Status Name";
+                            worksheet.Cells[1, 7].Value = "Branch Name";
+                            worksheet.Cells[1, 8].Value = "Repair 1";
+                            worksheet.Cells[1, 9].Value = "Repair 2";
+                            worksheet.Cells[1, 10].Value = "Repair 3";
+                            worksheet.Cells[1, 11].Value = "Repair 4";
+                            worksheet.Cells[1, 12].Value = "Repair 5";
+                            worksheet.Cells[1, 13].Value = "Incident No";
+                            worksheet.Cells[1, 14].Value = "Date Close Pb";
+                            worksheet.Cells[1, 15].Value = "Type Project";
+                            worksheet.Cells[1, 16].Value = "Update Date";
+                            worksheet.Cells[1, 17].Value = "Update By";
+                            worksheet.Cells[1, 18].Value = "Remark";
+                            using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
+                            {
+                                range.Style.Font.Bold = true; // Bold font
+                                range.Style.Font.Size = 14; // Larger font size
+                                range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Set fill pattern to solid
+                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue); // Set background color
+                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Center text
+                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center; // Center vertically
+                            }
+                            int row = 2;
+                            while (reader.Read())
+                            {
+                                worksheet.Cells[row, 1].Value = reader["Case_Error_No"] != DBNull.Value ? reader["Case_Error_No"] : null;
+                                worksheet.Cells[row, 2].Value = reader["Terminal_ID"] != DBNull.Value ? reader["Terminal_ID"] : null;
+                                worksheet.Cells[row, 3].Value = reader["Place_Install"] != DBNull.Value ? reader["Place_Install"] : null;
+                                worksheet.Cells[row, 4].Value = reader["Issue_Name"] != DBNull.Value ? reader["Issue_Name"] : null;
+                                worksheet.Cells[row, 5].Value = reader["Date_Inform"] != DBNull.Value ? reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 6].Value = reader["Status_Name"] != DBNull.Value ? reader["Status_Name"] : null;
+                                worksheet.Cells[row, 7].Value = reader["Branch_name_pb"] != DBNull.Value ? reader["Branch_name_pb"] : null;
+                                worksheet.Cells[row, 8].Value = reader["Repair1"] != DBNull.Value ? reader["Repair1"] : null;
+                                worksheet.Cells[row, 9].Value = reader["Repair2"] != DBNull.Value ? reader["Repair2"] : null;
+                                worksheet.Cells[row, 10].Value = reader["Repair3"] != DBNull.Value ? reader["Repair3"] : null;
+                                worksheet.Cells[row, 11].Value = reader["Repair4"] != DBNull.Value ? reader["Repair4"] : null;
+                                worksheet.Cells[row, 12].Value = reader["Repair5"] != DBNull.Value ? reader["Repair5"] : null;
+                                worksheet.Cells[row, 13].Value = reader["Incident_No"] != DBNull.Value ? reader["Incident_No"] : null;
+                                worksheet.Cells[row, 14].Value = reader["Date_Close_Pb"] != DBNull.Value ? reader.GetDateTime("Date_Close_Pb").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 15].Value = reader["Type_Project"] != DBNull.Value ? reader["Type_Project"] : null;
+                                worksheet.Cells[row, 16].Value = reader["Update_Date"] != DBNull.Value ? reader.GetDateTime("Update_Date").ToString("dd/MM/yyyy HH:mm") : null;
+                                worksheet.Cells[row, 17].Value = reader["Update_By"] != DBNull.Value ? reader["Update_By"] : null;
+                                worksheet.Cells[row, 18].Value = reader["Remark"] != DBNull.Value ? reader["Remark"] : null;
+
+
+                                row++;
+                            }
+
+                            worksheet.Cells.AutoFitColumns();
+
+                            // Build the filename based on filters
+                            string excelName = "ReportCases";
+                            if (!string.IsNullOrEmpty(terminalID))
+                                excelName += $"_Terminal_{terminalID}";
+                            if (!string.IsNullOrEmpty(placeInstall))
+                                excelName += $"_Place_{placeInstall.Replace(" ", "_")}";
+                            if (!string.IsNullOrEmpty(issueName))
+                                excelName += $"_Issue_{issueName.Replace(" ", "_")}";
+                            if (fromdate.HasValue)
+                                excelName += $"_From_{fromdate.Value.ToString("yyyyMMdd")}";
+                            if (todate.HasValue)
+                                excelName += $"_To_{todate.Value.ToString("yyyyMMdd")}";
+                            if (!string.IsNullOrEmpty(statusName))
+                                excelName += $"_Status_{statusName.Replace(" ", "_")}";
+
+                            excelName += ".xlsx";
+
+                            var stream = new MemoryStream();
+                            package.SaveAs(stream);
+                            stream.Position = 0;
+
+                            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+                        }
+                    }
+                }
+            }
+        }
+        [HttpPost]
+        public IActionResult UpdateRemark(string caseErrorNo, string remark)
+        {
+            try
+            {
+                string connectionString = _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")??"";
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    string query = "UPDATE reportcases SET Remark = @Remark WHERE Case_Error_No = @CaseErrorNo";
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Remark", remark);
+                        command.Parameters.AddWithValue("@CaseErrorNo", caseErrorNo);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok(new { success = true, message = "Remark updated successfully" });
+                        }
+                        else
+                        {
+                            return NotFound(new { success = false, message = "Case not found" });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         #region ticket
@@ -539,4 +899,5 @@ namespace SLA_Management.Controllers
 
         #endregion
     }
+    
 }

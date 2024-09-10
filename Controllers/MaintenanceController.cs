@@ -130,13 +130,16 @@ namespace SLA_Management.Controllers
             }
             if(fromdate != "" && todate != "")
             {
-                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
-                filterquery +=  "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
+                filterquery += " AND (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') BETWEEN '" + fromdate + "' AND '" + todate + "' ";
+                filterquery += " OR (LENGTH(TRIM(di.SERVICE_ENDDATE)) = 0 AND (STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "' ";
+                filterquery += " OR STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d') < '" + todate + "'))) ";
             }
             else
             {
-                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '"+ DateTime.Now.ToString("yyyy-MM-dd") +"'";
-                filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
+                string currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+                filterquery += " AND (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') BETWEEN '2020-05-01' AND '" + currentDate + "' ";
+                filterquery += "OR (LENGTH(TRIM(di.SERVICE_ENDDATE)) = 0 AND (STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + currentDate + "' ";
+                filterquery += "OR STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d') < '" + currentDate + "'))) ";
             }
            if(currentlyinuse == "no")
             {
@@ -156,13 +159,19 @@ namespace SLA_Management.Controllers
                 string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,
                 CASE WHEN SERVICE_ENDDATE IS NULL OR SERVICE_ENDDATE = '' THEN 'Active' ELSE 'Inactive' END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
-                di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,di.SERVICE_BEGINDATE,
+                di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,DATE_FORMAT(
+                     COALESCE(
+                         STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d'),
+                         STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d')
+                     ), 
+                     '%Y-%m-%d'
+                 ) AS SERVICE_BEGINDATE,
 				di.SERVICE_ENDDATE,di.VERSION_AGENT
 				FROM device_info di
                 where di.TERM_ID is not null ";
 
 
-                query += filterquery + " order by di.TERM_SEQ asc,STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') asc";
+                query += filterquery + " order by di.TERM_SEQ asc,DATE_FORMAT(COALESCE(STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d'),STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d')),'%Y-%m-%d') asc";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
 
