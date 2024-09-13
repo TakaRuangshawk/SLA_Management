@@ -45,7 +45,7 @@
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("LastTransaction", "Operation", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("LastTransaction", "Monitor", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
@@ -53,7 +53,7 @@
                         <h>Terminal : </h>
                     </div>
 
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; backgsround-color: transparent;">
                         <div class="form-group">
                             <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
 
@@ -398,11 +398,11 @@
             dataType: "json",
             data: '{ "exparams" : "' + expParams + '" }',
             contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("LastTransaction_ExportExc", "Operation")',
+            url: '@Url.Action("LastTransaction_ExportExc", "Monitor")',
             success: function (result) {
                 if (result.success == 'S') {
-                    var url = '@Url.Action("LastTransaction_DownloadExportFile", "Operation")'
-                    window.location = '@Url.Action("LastTransaction_DownloadExportFile", "Operation")/?rpttype=' + rptType;
+                    var url = '@Url.Action("LastTransaction_DownloadExportFile", "Monitor")'
+                    window.location = '@Url.Action("LastTransaction_DownloadExportFile", "Monitor")/?rpttype=' + rptType;
                 }
                 else { alert(result.errstr); }
             },
