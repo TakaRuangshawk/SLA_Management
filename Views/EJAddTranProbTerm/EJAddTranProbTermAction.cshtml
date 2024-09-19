@@ -108,6 +108,29 @@
     th {
         text-align: center;
     }
+
+    .boxDownload {
+       /*  background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 250px;
+        right: 550px;
+        pointer-events: none;
+        z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+     .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 </style>
 
 
@@ -177,7 +200,7 @@
                     <div class="col-2 " style="padding:0; ">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
                         </div>
                     </div>
                     <div class="col-2" style="">
@@ -186,7 +209,7 @@
                     <div class="col-2" style="padding:0;">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
                         </div>
                     </div>
                 </div>
@@ -279,8 +302,8 @@
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
-                       @* @Html.DropDownList("terminalType", new SelectListItem[] {
+                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+                            @* @Html.DropDownList("terminalType", new SelectListItem[] {
                         new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                         new SelectListItem(){ Text="ATM", Value = "G165"  },
                         new SelectListItem(){ Text="ADM", Value = "G262"  }
@@ -311,19 +334,19 @@
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
-                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                            @Html.DropDownList("maxRows", new SelectListItem[] {
                         new SelectListItem(){ Text="50", Value = "50" },
                         new SelectListItem(){ Text="100", Value = "100"  },
                         new SelectListItem(){ Text="500", Value = "500"  },
                         new SelectListItem(){ Text="1000", Value = "1000"  }
-                        }, new
-                        {
-                        @class = "form-control dropdown"
-                        ,
-                        @style = " border-radius: 10px;" ,
-                        @name = "state"
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
 
-                        })
+                                        })
 
                         </div>
                     </div>
@@ -482,10 +505,10 @@
                         Select page :
                         @Html.DropDownList("seletePageNow", new SelectListItem[] {
 
-                        }, new
-                        {
-                        @class = "form-control"
-                        })
+                                        }, new
+                                        {
+                                            @class = "form-control"
+                                        })
                     </p>
                 </div>
             </div>
@@ -526,7 +549,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("username", ViewBag.username as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "username"})
+                                @Html.TextBox("username", ViewBag.username as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "username" })
                             </div>
                         </div>
                     </div>
@@ -538,7 +561,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("email", ViewBag.email as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "email"})
+                                @Html.TextBox("email", ViewBag.email as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "email" })
                             </div>
                         </div>
                     </div>
@@ -550,7 +573,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("probCodeStr", ViewBag.probCodeStr as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "problemcode"})
+                                @Html.TextBox("probCodeStr", ViewBag.probCodeStr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "problemcode" })
                             </div>
                         </div>
                     </div>
@@ -562,7 +585,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("probNameStr", ViewBag.probNameStr as string, new { @style = " border-radius: 10px;" ,@class = "form-control subsearch", @placeholder = "error message"})
+                                @Html.TextBox("probNameStr", ViewBag.probNameStr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "error message" })
                             </div>
                         </div>
                     </div>
@@ -576,12 +599,12 @@
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @Html.DropDownList("probTypeStr", ViewBag.probTypeStr as SelectList, "--", new { @class = "form-control" })
                                 @*@Html.TextBox("probTypeStr", ViewBag.probTypeStr as string, new { @class = "form-control subsearch", @placeholder = "probType"})*@
-                              @*  <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
-                                    <option data-tokens="" value="">--</option>
-                                    @foreach (var item in ViewBag.probTypeStr)
-                                    {
-                                        <option value=@item>@item </option>
-                                    }
+                                @*  <select class="selectpicker form-control subsearch" id="probTypeStr" name="probTypeStr" data-live-search="true">
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.probTypeStr)
+                                {
+                                <option value=@item>@item </option>
+                                }
                                 </select>*@
                             </div>
                         </div>
@@ -596,16 +619,16 @@
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @Html.DropDownList("probTermStr", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
 
-                               @* <select class="selectpicker form-control subsearch" id="probTermStr" name="probTermStr" data-live-search="true">
-                                    <option data-tokens="" value="G165;G262">ALL</option>
-                                    @foreach (var item in ViewBag.probTermStr)
-                                    {                                        
-                                        <option value=@item>@item </option>
-                                                         
-                                    }
+                                @* <select class="selectpicker form-control subsearch" id="probTermStr" name="probTermStr" data-live-search="true">
+                                <option data-tokens="" value="G165;G262">ALL</option>
+                                @foreach (var item in ViewBag.probTermStr)
+                                {
+                                <option value=@item>@item </option>
+
+                                }
                                 </select>*@
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
-                              @*  @Html.DropDownList("probTermStr", new SelectListItem[] {
+                                @*  @Html.DropDownList("probTermStr", new SelectListItem[] {
                                 new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                                 new SelectListItem(){ Text="ATM", Value = "G165"  },
                                 new SelectListItem(){ Text="ADM", Value = "G262"  }
@@ -633,14 +656,14 @@
                                 @Html.DropDownList("displayflagStr", new SelectListItem[] {
                                 new SelectListItem(){ Text = "1",Value = "1" },
                                 new SelectListItem(){ Text = "0",Value = "0" }
-                                }, new
-                                {
-                                @class = "form-control dropdown"
-                                ,
-                                @style = " border-radius: 10px;" ,
-                                @name = "state"
+                                                        }, new
+                                                        {
+                                                            @class = "form-control dropdown"
+                                         ,
+                                                            @style = " border-radius: 10px;",
+                                                            @name = "state"
 
-                                })
+                                                        })
                             </div>
                         </div>
                     </div>
@@ -652,7 +675,7 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextArea("memo", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;" ,@class = "form-control subsearch", @placeholder = "memo message"})
+                                @Html.TextArea("memo", ViewBag.memoStr as string, new { @style = " border-radius: 10px; height: 100px;", @class = "form-control subsearch", @placeholder = "memo message" })
                             </div>
                         </div>
                     </div>
@@ -664,14 +687,10 @@
                         <div class="col-6 col-md-6" style="">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                                @Html.TextBox("startDate", ViewBag.startDate as string, new { @style = " border-radius: 10px;" , @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                                @Html.TextBox("startDate", ViewBag.startDate as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
                             </div>
                         </div>
                     </div>
-                   
-                  
-
-
 
                     <div style="margin-top:15px;">
                         <output name="result"></output>
@@ -689,6 +708,9 @@
 
         </div>
     </div>
+</div>
+<div class="boxDownload" id="boxDownload" style="display: block;">
+    <img class="imgDownload" src="~/images/loading.gif">
 </div>
 
 <script>
@@ -745,19 +767,69 @@
         });
         });*@
 
-        $("#EJAddTranProbTermRecheckDate").submit(function (e) {
-            var FrDateTemp = new Date($('#FrDate').val());
-            var ToDateTemp = new Date($('#ToDate').val());
+     $("#btnsearch").click(function (e) {
+        e.preventDefault();
 
-           
+            $("#boxDownload").show();
 
-            if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
-                alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
-                return false;
-            } else {
-                return true;
-            }
+
+            setTimeout(function () {
+                $("#EJAddTranProbTermRecheckDate").submit();
+            }, 100); // Use 0 milliseconds for minimal delay
+
         });
+
+
+    $("#btnclear").click(function (e) {
+        e.preventDefault();
+
+            $("#boxDownload").show();
+
+
+            setTimeout(function () {
+                $("#EJAddTranProbTermRecheckDate").submit();
+            }, 100); // Use 0 milliseconds for minimal delay
+
+        });
+
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        $("#boxDownload").show();
+
+
+        setTimeout(function () {
+            $("#EJAddTranProbTermRecheckDate").submit();
+        }, 100); // Use 0 milliseconds for minimal delay
+
+    });
+
+  
+
+
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    $("#EJAddTranProbTermRecheckDate").submit(async function (e) {
+        e.preventDefault();
+
+        var FrDateTemp = new Date($('#FrDate').val());
+        var ToDateTemp = new Date($('#ToDate').val());
+
+       
+
+        if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+            alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+            $("#boxDownload").hide();
+
+        } else {
+           
+            this.submit();
+        }
+
+    });
 
     getPagination('#table-id', @ViewBag.maxRows);
 
@@ -808,10 +880,10 @@
                                 '<li data-page="' +
                                 i +
                                 '">\
-                                                                           <a style="color: #333333;">' +
+                                                                               <a style="color: #333333;">' +
                                 i++ +
                                 '\
-                                                                                    </li>'
+                                                                                        </li>'
                             )
                             .show();
                     } // end for i
@@ -891,7 +963,7 @@
                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                                  var select = document.getElementById("seletePageNow");
+                                                                      var select = document.getElementById("seletePageNow");
                 for (var i = parseInt(pagenum); i > 0; i--) {
                     var option = document.createElement('option');
                     option.text = option.value = i;
@@ -945,7 +1017,7 @@
 
 
         // end of on select change
-
+        document.getElementById("boxDownload").style.display = "none";
         // END OF PAGINATION
     }
 
@@ -1015,7 +1087,10 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
+        $("#boxDownload").hide();
     });
+
+
 
     $("#btnInsertProbMasterMain").click(function (e) {
         e.preventDefault();

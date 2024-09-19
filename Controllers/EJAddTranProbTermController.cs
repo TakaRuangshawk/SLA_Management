@@ -264,7 +264,7 @@ namespace SLA_Management.Controllers
                 }
                 else
                 {
-                    if (chk_date)
+                    if (chk_date && TermID != null)
                     {
                         recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
                     }
