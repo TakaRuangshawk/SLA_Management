@@ -2223,9 +2223,19 @@ namespace SLA_Management.Controllers
                         worksheet.Cells[i + 2, 7].Value = jsonData[i].ptr_version;
                         worksheet.Cells[i + 2, 8].Value = jsonData[i].bcr_version;
                         worksheet.Cells[i + 2, 9].Value = jsonData[i].siu_version;
-                        worksheet.Cells[i + 2, 10].Value = jsonData[i].update_date;
+                        // Apply date format for Update Date
+                        DateTime updateDate;
+                        if (DateTime.TryParse(jsonData[i].update_date, out updateDate))
+                        {
+                            worksheet.Cells[i + 2, 10].Value = updateDate;
+                            worksheet.Cells[i + 2, 10].Style.Numberformat.Format = "yyyy-MM-dd";
+                        }
+                        else
+                        {
+                            worksheet.Cells[i + 2, 10].Value = jsonData[i].update_date;
+                        }
                     }
-                    
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
                     try
                     {
                        
