@@ -136,6 +136,10 @@ build_metadata.AdditionalFiles.CssScope = b-bzhh0ruu14
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxDYXJkUmV0YWluMi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = b-sba12q1c0p
 
+[D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/DeviceFirmware.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxEZXZpY2VGaXJtd2FyZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = b-dby9yn71c5
+
 [D:/Workspace/Git/SLA_Management/SLA_Management/Views/Monitor/LastTransaction.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9uaXRvclxMYXN0VHJhbnNhY3Rpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-j9khgaa9sg

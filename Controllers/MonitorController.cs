@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using OfficeOpenXml;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
@@ -9,12 +11,14 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using static SLA_Management.Controllers.MonitorController;
 using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Controllers
 {
     public class MonitorController : Controller
     {
+        private readonly IWebHostEnvironment _webHostEnvironment;
         CultureInfo _cultureEnInfo = new CultureInfo("en-US");
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_fv;
@@ -34,14 +38,15 @@ namespace SLA_Management.Controllers
         public static string trxtype_ej;
         public static string rc_ej;
         #endregion
-        public MonitorController(IConfiguration myConfiguration)
+        public MonitorController(IConfiguration myConfiguration, IWebHostEnvironment webHostEnvironment)
         {
-
+            _webHostEnvironment = webHostEnvironment;
             _myConfiguration = myConfiguration;
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
             db_all = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
 
         }
+
         private static List<Device_info_record> GetDeviceInfoFeelview()
         {
 
@@ -1944,6 +1949,388 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+        private static List<DeviceFirmwareModel> devicefirmware_dataList = new List<DeviceFirmwareModel>();
+        [HttpGet]
+        public IActionResult DeviceFirmware()
+        {
+            int pageSize = 100;
+            int? maxRows = 100;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            return View();
+        }
+        public class DeviceFirmwareModel
+        {
+            public string no { get; set; }
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string pin_version { get; set; }
+            public string idc_version { get; set; }
+            public string ptr_version { get; set; }
+            public string bcr_version { get; set; }
+            public string siu_version { get; set; }
+            public string update_date { get; set; }
+
+        }
+        [HttpGet]
+        public IActionResult DeviceFirmwareFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype)
+        {
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            terminaltype = terminaltype ?? "";
+            sort = sort ?? "terminalno";
+            List<DeviceFirmwareModel> jsonData = new List<DeviceFirmwareModel>();
+            if (search == "search"|| search == "paging")
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+                    string query = @"SELECT t.TERM_ID, dih.TERM_SEQ, dih.TERM_NAME, 
+                        t.CRM_VERSION, t.PIN_VERSION, t.IDC_VERSION, 
+                        t.PTR_VERSION, t.BCR_VERSION, t.SIU_VERSION, 
+                        DATE(t.UPDATE_DATE)
+                 FROM gsb_logview.devfwversion_record t
+                 LEFT JOIN device_info_history dih ON t.TERM_ID = dih.TERM_ID
+                 WHERE 1 = 1"; // Add 'WHERE 1=1' to facilitate appending further conditions
+
+                    // Filter by terminal number if provided
+                    if (!string.IsNullOrEmpty(terminalno))
+                    {
+                        query += " AND t.TERM_ID = '"+terminalno+"'";
+                    }
+
+                    // Filter by terminal type if provided
+                    if (!string.IsNullOrEmpty(terminaltype))
+                    {
+                        query += " AND dih.TYPE_ID = '" + terminaltype +"'";
+                    }
+
+                    // Sorting logic
+                    switch (sort)
+                    {
+
+                        case "term_id":
+                            query += " ORDER BY t.TERM_ID ASC, t.UPDATE_DATE ASC;";
+                            break;
+                        case "branch_id":
+                            query += " ORDER BY SUBSTRING_INDEX(t.TERM_ID, 'B', -1) ASC, t.UPDATE_DATE ASC;";
+                            break;
+                        case "term_seq":
+                            query += " ORDER BY dih.TERM_SEQ ASC, t.UPDATE_DATE ASC;";
+                            break;
+                        default:
+                            query += " ORDER BY t.TERM_ID ASC, t.UPDATE_DATE ASC;";
+                            break;
+                    }
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    int id_row = 0;
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            jsonData.Add(new DeviceFirmwareModel
+                            {
+                                no = (id_row).ToString(),
+                                term_seq = reader["term_seq"].ToString(),
+                                term_id = reader["term_id"].ToString(),
+                                term_name = reader["term_name"].ToString(),
+                                pin_version = reader["pin_version"].ToString(),
+                                idc_version = reader["idc_version"].ToString(),
+                                ptr_version = reader["ptr_version"].ToString(),
+                                bcr_version = reader["bcr_version"].ToString(),
+                                siu_version = reader["siu_version"].ToString(),
+                                update_date = reader["DATE(t.UPDATE_DATE)"].ToString()
+
+                            });
+                   
+                        }
+                    }
+                }
+            }
+            devicefirmware_dataList = jsonData;
+                    int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<DeviceFirmwareModel> filteredData = RangeFilter_dvfw(jsonData, _page, _row);
+            var response = new DataResponse_DeviceFirmware
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+                    return Json(response);
+        }
+        static List<DeviceFirmwareModel> RangeFilter_dvfw<DeviceFirmwareModel>(List<DeviceFirmwareModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+        public class DataResponse_DeviceFirmware
+        {
+            public List<DeviceFirmwareModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #region Excel DeviceFirmware
+        public class DeviceFirmwareExportRequest
+        {
+            public string Exparams { get; set; }
+            public string Terminalno { get; set; }
+            public string Terminaltype { get; set; }
+        }
+        [HttpPost]
+        public ActionResult DeviceFirmware_ExportExc([FromBody] DeviceFirmwareExportRequest request)
+        {
+            string exparams = request.Exparams;
+            string terminalno = request.Terminalno ?? "";
+            string terminaltype = request.Terminaltype ?? "";
+            string webRootPath = _webHostEnvironment.WebRootPath;
+            string folderPath = Path.Combine(webRootPath, "RegulatorExcel", "excelfiles"); 
+            string strSuccess = "F";
+            string strErr = "Data Not Found";
+            string fname = "";
+            string strPathDesc = "";
+            List<DeviceFirmwareModel> jsonData = new List<DeviceFirmwareModel>();
+
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+                    string query = @"SELECT t.TERM_ID, dih.TERM_SEQ, dih.TERM_NAME, 
+                        t.CRM_VERSION, t.PIN_VERSION, t.IDC_VERSION, 
+                        t.PTR_VERSION, t.BCR_VERSION, t.SIU_VERSION, 
+                        DATE(t.UPDATE_DATE)
+                 FROM gsb_logview.devfwversion_record t
+                 LEFT JOIN device_info_history dih ON t.TERM_ID = dih.TERM_ID
+                 WHERE 1 = 1";
+
+                    // Filter by terminal number if provided
+                    if (!string.IsNullOrEmpty(terminalno))
+                    {
+                        query += " AND t.TERM_ID = '" + terminalno + "'";
+                    }
+
+                    // Filter by terminal type if provided
+                    if (!string.IsNullOrEmpty(terminaltype))
+                    {
+                        query += " AND dih.TYPE_ID = '" + terminaltype + "'";
+                    }
+
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@terminalno", "%" + terminalno + "%");
+                    command.Parameters.AddWithValue("@terminaltype", terminaltype);
+
+                    int id_row = 0;
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            jsonData.Add(new DeviceFirmwareModel
+                            {
+                                no = id_row.ToString(),
+                                term_seq = reader["TERM_SEQ"].ToString(),
+                                term_id = reader["TERM_ID"].ToString(),
+                                term_name = reader["TERM_NAME"].ToString(),
+                                pin_version = reader["PIN_VERSION"].ToString(),
+                                idc_version = reader["IDC_VERSION"].ToString(),
+                                ptr_version = reader["PTR_VERSION"].ToString(),
+                                bcr_version = reader["BCR_VERSION"].ToString(),
+                                siu_version = reader["SIU_VERSION"].ToString(),
+                                update_date = reader["DATE(t.UPDATE_DATE)"].ToString()
+                            });
+                        }
+                    }
+                }
+
+                if (jsonData == null || jsonData.Count == 0)
+                {
+                    return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                }
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                // Create Excel File using EPPlus
+                using (var package = new ExcelPackage())
+                {
+                    
+                    var worksheet = package.Workbook.Worksheets.Add("DeviceFirmwareData");
+
+                    // Set headers
+                    worksheet.Cells[1, 1].Value = "No.";
+                    worksheet.Cells[1, 2].Value = "Serial No.";
+                    worksheet.Cells[1, 3].Value = "Terminal ID";
+                    worksheet.Cells[1, 4].Value = "Terminal Name";
+                    worksheet.Cells[1, 5].Value = "PIN Version";
+                    worksheet.Cells[1, 6].Value = "IDC Version";
+                    worksheet.Cells[1, 7].Value = "PTR Version";
+                    worksheet.Cells[1, 8].Value = "BCR Version";
+                    worksheet.Cells[1, 9].Value = "SIU Version";
+                    worksheet.Cells[1, 10].Value = "Update Date";
+
+                    // Fill data
+                    for (int i = 0; i < jsonData.Count; i++)
+                    {
+                        worksheet.Cells[i + 2, 1].Value = jsonData[i].no;
+                        worksheet.Cells[i + 2, 2].Value = jsonData[i].term_seq;
+                        worksheet.Cells[i + 2, 3].Value = jsonData[i].term_id;
+                        worksheet.Cells[i + 2, 4].Value = jsonData[i].term_name;
+                        worksheet.Cells[i + 2, 5].Value = jsonData[i].pin_version;
+                        worksheet.Cells[i + 2, 6].Value = jsonData[i].idc_version;
+                        worksheet.Cells[i + 2, 7].Value = jsonData[i].ptr_version;
+                        worksheet.Cells[i + 2, 8].Value = jsonData[i].bcr_version;
+                        worksheet.Cells[i + 2, 9].Value = jsonData[i].siu_version;
+                        worksheet.Cells[i + 2, 10].Value = jsonData[i].update_date;
+                    }
+                    
+                    try
+                    {
+                       
+                        folderPath = Path.Combine(webRootPath, "RegulatorExcel", "excelfiles");
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        // Define the file name and path
+                         fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
+                         strPathDesc = Path.Combine(folderPath, fname);
+
+                        // Log or print the file path to ensure it's correct
+                        Console.WriteLine("Attempting to save file at: " + strPathDesc);
+
+                        // Save the Excel file
+                        System.IO.File.WriteAllBytes(strPathDesc, package.GetAsByteArray());
+
+                        // Log success message
+                        Console.WriteLine("File saved successfully at: " + strPathDesc);
+
+                        strSuccess = "S";
+                        strErr = "";  // No errors
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error
+                        Console.WriteLine($"Error saving file: {ex.Message}");
+
+                        // Set the error message to be returned
+                        strSuccess = "F";
+                        strErr = "Error saving file: " + ex.Message;
+                    }
+                }
+
+                strSuccess = "S";
+                strErr = "";
+            }
+            catch (Exception ex)
+            {
+                strErr = ex.Message;
+            }
+
+            return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+        }
+
+        #endregion
+
+
+
+
+        [HttpGet]
+        public ActionResult DeviceFirmware_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
 
         #region Excel Transaction
 
