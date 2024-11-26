@@ -1058,9 +1058,7 @@ namespace SLA_Management.Data.ExcelUtilitie
         public string FileSaveAsXlsxFormat { get; set; }
 
         #endregion
-        #region Contractor
 
-        #endregion
         #region Function 
         public void GatewayOutput(List<CardRetainModel> objData)
         {
@@ -1120,6 +1118,82 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
         #endregion
     }
+    public class ExcelUtilities_EJReportMonitor
+    {
+        #region Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Function
+        public void GatewayOutput(List<EJReportMonitorModel> objData)
+        {
+            int nStartRowData = 0;
+            int nSeq = 1;
+
+            try
+            {
+                nStartRowData = 3; 
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                // Load the template
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\EJLogMonitor.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"]; // Assuming the sheet is named "Sheet1"
+
+                    // Add report header details
+                    //excelWorksheet.Cells[2, 1].Value = "EJ Log Monitoring Report";
+                    //excelWorksheet.Cells[4, 7].Value = DateTime.Now.ToString("dd/MM/yyyy", _cultureEnInfo); // Current date
+                    //excelWorksheet.Cells[5, 7].Value = DateTime.Now.ToString("HH:mm:ss", _cultureEnInfo); // Current time
+
+                    // Populate the data
+                    foreach (EJReportMonitorModel data in objData)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = nSeq++;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.TerminalId;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.TermName;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.TermSeq;                                              
+                        excelWorksheet.Cells[nStartRowData, 5].Value = DateTime.TryParse(data.Date, out DateTime parsedDate)
+                        ? parsedDate.ToString("yyyy-MM-dd")
+                        : data.Date;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = data.TransactionHistory; 
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionMonitoring; 
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.Status;
+                        for (int col = 2; col <= 9; col++)
+                        {
+                            excelWorksheet.Cells[nStartRowData, col].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            excelWorksheet.Cells[nStartRowData, col].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                        }
+                        nStartRowData++;
+                    }
+                    for (int col = 2; col <= 9; col++)
+                    {
+                        excelWorksheet.Column(col).AutoFit();
+                    }
+                    // Save the updated Excel file
+                    string savePath = Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "EJLogMonitor.xlsx");
+                    oPackage.SaveAs(new FileInfo(savePath));
+                    FileSaveAsXlsxFormat = "EJLogMonitor.xlsx";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error generating Excel report: " + ex.Message, ex);
+            }
+        }
+        #endregion
+    }
+
     public class ExcelUtilities_Transaction
     {
         #region  Local Variable

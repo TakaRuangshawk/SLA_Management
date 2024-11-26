@@ -8,6 +8,7 @@ using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Models.OperationModel;
 using System;
 using System.Data;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -26,6 +27,7 @@ namespace SLA_Management.Controllers
         private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
         private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
         private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
+        private static List<EJReportMonitorModel> ejmonitor_dataList = new List<EJReportMonitorModel>();
         #region export transaction parameter
         public static string bankname_ej;
         public static string fromtodate_ej;
@@ -2473,6 +2475,374 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+        #region EJLogMonitor
 
+
+        [HttpGet]
+        public IActionResult EJLogMonitor()
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+            return View();
+        }
+        [HttpGet]
+        public IActionResult EjreportMonitorFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype, string date)
+        {
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+            terminalno = terminalno ?? "";
+            terminaltype = terminaltype ?? "";
+            sort = sort ?? "term_id";
+            date = date ?? DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+            List<EJReportMonitorModel> jsonData = new List<EJReportMonitorModel>();
+            if (search == "search")
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    connection.Open();
+                    // Modify the SQL query to use the 'input' parameter for filtering
+                    string query = "SELECT t1.terminalId,fdi.TERM_SEQ,fdi.TERM_NAME,date,t1.transaction_history,t1.transaction_monitoring,  CASE WHEN t1.transaction_history = t1.transaction_monitoring THEN 'Complete' WHEN t1.transaction_history > t1.transaction_monitoring THEN 'N/A' WHEN t1.transaction_history < t1.transaction_monitoring THEN 'Incomplete' END AS status FROM ejlog_monitoring_report t1 left join fv_device_info fdi on t1.terminalId = fdi.TERM_ID where id is not null ";
+                    if (terminalno != "")
+                    {
+                        query += " and fdi.TERM_ID like '%" + terminalno + "%' ";
+                    }
+                    if (terminaltype != "")
+                    {
+                        query += " and fdi.TYPE_ID = '" + terminaltype + "' ";
+                    }
+                    if (!string.IsNullOrEmpty(date))
+                    {
+                        query += " AND t1.date = '" + date + "' ";
+                    }
+                    switch (sort)
+                    {
+
+                        case "term_id":
+                            query += " ORDER BY fdi.term_id asc";
+                            break;
+                        case "branch_id":
+                            query += " ORDER BY SUBSTRING_INDEX(fdi.term_id, 'B', -1) asc";
+                            break;
+                        case "term_seq":
+                            query += " ORDER BY fdi.term_seq asc";
+                            break;
+                        default:
+                            query += " ORDER BY fdi.term_id asc";
+                            break;
+                    }
+                    MySqlCommand command = new MySqlCommand(query, connection);
+                    int id_row = 0;
+                    string _trxdatetime = "";
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            id_row += 1;
+                            string _trxdate;
+                            if (reader["date"] != DBNull.Value && DateTime.TryParse(reader["date"].ToString(), out DateTime trxDate))
+                            {
+                                _trxdate = trxDate.ToString("yyyy-MM-dd");
+                            }
+                            else
+                            {
+                                _trxdate = "-";
+                            }
+                            jsonData.Add(new EJReportMonitorModel
+                            {
+                                TerminalId = reader["terminalId"]?.ToString() ?? "-",
+                                TermSeq = reader["TERM_SEQ"]?.ToString() ?? "-",
+                                TermName = reader["TERM_NAME"]?.ToString() ?? "-",
+                                Date = _trxdate,
+                                TransactionHistory = reader["transaction_history"]?.ToString() ?? "-",
+                                TransactionMonitoring = reader["transaction_monitoring"]?.ToString() ?? "-",
+                                Status = reader["status"]?.ToString() ?? "-"
+                            });
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                jsonData = ejmonitor_dataList;
+            }
+            ejmonitor_dataList = jsonData;
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            List<EJReportMonitorModel> filteredData = RangeFilter_ejr(jsonData, _page, _row);
+            var response = new DataResponse_EJReportMonitor
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = jsonData.Count(),
+            };
+            return Json(response);
+        }
+
+        static List<EJReportMonitorModel> RangeFilter_ejr<EJReportMonitorModel>(List<EJReportMonitorModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+        public class EJReportMonitorModel
+        {
+            public string TerminalId { get; set; }
+            public string TermSeq { get; set; }
+            public string TermName { get; set; }
+            public string Date { get; set; }
+            public string TransactionHistory { get; set; }
+            public string TransactionMonitoring { get; set; }
+            public string Status { get; set; }
+        }
+
+        public class DataResponse_EJReportMonitor
+        {
+            public List<EJReportMonitorModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+        #endregion
+        #region Excel EJLogMonitor
+
+        public class ExportParams_EJLogMonitor
+        {
+            public string Terminalno { get; set; }
+            public string Terminaltype { get; set; }
+            public string Date { get; set; }
+        }
+
+        [HttpPost]
+        public ActionResult EJLogMonitor_ExportExc([FromBody] ExportParams_EJLogMonitor exportParams)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+
+            try
+            {
+                // Define SQL query for filtering data
+                string query = @"
+            SELECT 
+                t1.terminalId,
+                fdi.TERM_SEQ,
+                fdi.TERM_NAME,
+                t1.date,
+                t1.transaction_history,
+                t1.transaction_monitoring,
+                CASE
+                    WHEN t1.transaction_history = t1.transaction_monitoring THEN 'Complete'
+                    WHEN t1.transaction_history > t1.transaction_monitoring THEN 'N/A'
+                    ELSE 'Incomplete'
+                END AS status
+            FROM ejlog_monitoring_report t1
+            LEFT JOIN fv_device_info fdi ON t1.terminalId = fdi.TERM_ID
+            WHERE 1=1 ";
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(exportParams.Terminalno))
+                {
+                    query += " AND fdi.TERM_ID LIKE @TerminalNo ";
+                }
+                if (!string.IsNullOrEmpty(exportParams.Terminaltype))
+                {
+                    query += " AND fdi.TYPE_ID = @TerminalType ";
+                }
+                if (!string.IsNullOrEmpty(exportParams.Date))
+                {
+                    query += " AND t1.date = @Date ";
+                }
+
+                // Execute query and fetch data
+                List<EJReportMonitorModel> filteredData = new List<EJReportMonitorModel>();
+                using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    conn.Open();
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        if (!string.IsNullOrEmpty(exportParams.Terminalno))
+                            cmd.Parameters.AddWithValue("@TerminalNo", "%" + exportParams.Terminalno + "%");
+                        if (!string.IsNullOrEmpty(exportParams.Terminaltype))
+                            cmd.Parameters.AddWithValue("@TerminalType", exportParams.Terminaltype);
+                        if (!string.IsNullOrEmpty(exportParams.Date))
+                            cmd.Parameters.AddWithValue("@Date", exportParams.Date);
+
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                filteredData.Add(new EJReportMonitorModel
+                                {
+                                    TerminalId = reader["terminalId"].ToString(),
+                                    TermSeq = reader["TERM_SEQ"].ToString(),
+                                    TermName = reader["TERM_NAME"].ToString(),
+                                    Date = reader["date"].ToString(),
+                                    TransactionHistory = reader["transaction_history"].ToString(),
+                                    TransactionMonitoring = reader["transaction_monitoring"].ToString(),
+                                    Status = reader["status"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Validate data
+                if (filteredData == null || filteredData.Count == 0)
+                    return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                // Generate Excel file
+                string strPath = Environment.CurrentDirectory;
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                ExcelUtilities_EJReportMonitor obj = new ExcelUtilities_EJReportMonitor
+                {
+                    PathDefaultTemplate = folder_name
+                };
+                obj.GatewayOutput(filteredData);
+
+                // Define source and destination paths
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+                fname = "EJLogMonitor_" + DateTime.Now.ToString("yyyyMMdd");
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+
+
+
+        [HttpGet]
+        public ActionResult EJLogMonitor_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            string tsDate = "";
+            string teDate = "";
+            try
+            {
+
+
+
+
+                fname = "EJLogMonitor_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
     }
 }

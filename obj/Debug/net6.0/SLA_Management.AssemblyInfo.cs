@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SLA_Management")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d33632e9b9fe406875d7689d3203941d0f3f2a5a")]
 [assembly: System.Reflection.AssemblyProductAttribute("SLA_Management")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SLA_Management")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
