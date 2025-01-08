@@ -1167,16 +1167,17 @@ namespace SLA_Management.Data.ExcelUtilitie
                         ? parsedDate.ToString("yyyy-MM-dd")
                         : data.Date;
                         excelWorksheet.Cells[nStartRowData, 6].Value = data.TransactionHistory; 
-                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionMonitoring; 
-                        excelWorksheet.Cells[nStartRowData, 8].Value = data.Status;
-                        for (int col = 2; col <= 9; col++)
+                        excelWorksheet.Cells[nStartRowData, 7].Value = data.TransactionMonitoring;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = data.Diff;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = data.Status;
+                        for (int col = 2; col <= 10; col++)
                         {
                             excelWorksheet.Cells[nStartRowData, col].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             excelWorksheet.Cells[nStartRowData, col].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                         }
                         nStartRowData++;
                     }
-                    for (int col = 2; col <= 9; col++)
+                    for (int col = 2; col <= 10; col++)
                     {
                         excelWorksheet.Column(col).AutoFit();
                     }

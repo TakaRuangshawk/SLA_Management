@@ -2491,7 +2491,7 @@ namespace SLA_Management.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult EjreportMonitorFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype, string date)
+        public IActionResult EjreportMonitorFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype, string date,string status)
         {
             int _page;
 
@@ -2531,7 +2531,7 @@ namespace SLA_Management.Controllers
                 {
                     connection.Open();
                     // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = "SELECT t1.terminalId,fdi.TERM_SEQ,fdi.TERM_NAME,date,t1.transaction_history,t1.transaction_monitoring,  CASE WHEN t1.transaction_history = t1.transaction_monitoring THEN 'Complete' WHEN t1.transaction_history > t1.transaction_monitoring THEN 'N/A' WHEN t1.transaction_history < t1.transaction_monitoring THEN 'Incomplete' END AS status FROM ejlog_monitoring_report t1 left join fv_device_info fdi on t1.terminalId = fdi.TERM_ID where id is not null ";
+                    string query = "SELECT t1.terminalId,fdi.TERM_SEQ,fdi.TERM_NAME,date,t1.transaction_history,t1.transaction_monitoring,t1.transaction_history - t1.transaction_monitoring AS diff,  CASE WHEN t1.transaction_history = t1.transaction_monitoring THEN 'Complete' WHEN t1.transaction_history > t1.transaction_monitoring THEN 'N/A' WHEN t1.transaction_history < t1.transaction_monitoring THEN 'Incomplete' END AS status FROM ejlog_monitoring_report t1 left join fv_device_info fdi on t1.terminalId = fdi.TERM_ID where id is not null ";
                     if (terminalno != "")
                     {
                         query += " and fdi.TERM_ID like '%" + terminalno + "%' ";
@@ -2544,9 +2544,24 @@ namespace SLA_Management.Controllers
                     {
                         query += " AND t1.date = '" + date + "' ";
                     }
+                    switch (status)
+                    {
+                        case "Complete":
+                            query += " AND t1.transaction_history = t1.transaction_monitoring ";
+                            break;
+                        case "N/A":
+                            query += " AND t1.transaction_history > t1.transaction_monitoring ";
+                            break;
+                        case "Incomplete":
+                            query += " AND t1.transaction_history < t1.transaction_monitoring ";
+                            break;
+                        default: break;
+                    }
                     switch (sort)
                     {
-
+                        case "diff":
+                            query += " ORDER BY t1.transaction_history - t1.transaction_monitoring desc";
+                            break;
                         case "term_id":
                             query += " ORDER BY fdi.term_id asc";
                             break;
@@ -2585,6 +2600,7 @@ namespace SLA_Management.Controllers
                                 Date = _trxdate,
                                 TransactionHistory = reader["transaction_history"]?.ToString() ?? "-",
                                 TransactionMonitoring = reader["transaction_monitoring"]?.ToString() ?? "-",
+                                Diff = Convert.ToInt32(reader["diff"]),
                                 Status = reader["status"]?.ToString() ?? "-"
                             });
                         }
@@ -2637,6 +2653,7 @@ namespace SLA_Management.Controllers
             public string Date { get; set; }
             public string TransactionHistory { get; set; }
             public string TransactionMonitoring { get; set; }
+            public int Diff { get; set; }
             public string Status { get; set; }
         }
 
@@ -2655,6 +2672,7 @@ namespace SLA_Management.Controllers
             public string Terminalno { get; set; }
             public string Terminaltype { get; set; }
             public string Date { get; set; }
+            public string Status { get; set; }
         }
 
         [HttpPost]
@@ -2677,6 +2695,7 @@ namespace SLA_Management.Controllers
                 t1.date,
                 t1.transaction_history,
                 t1.transaction_monitoring,
+                t1.transaction_history - t1.transaction_monitoring AS diff,
                 CASE
                     WHEN t1.transaction_history = t1.transaction_monitoring THEN 'Complete'
                     WHEN t1.transaction_history > t1.transaction_monitoring THEN 'N/A'
@@ -2699,7 +2718,19 @@ namespace SLA_Management.Controllers
                 {
                     query += " AND t1.date = @Date ";
                 }
-
+                switch (exportParams.Status)
+                {
+                    case "Complete":
+                        query += " AND t1.transaction_history = t1.transaction_monitoring ";
+                        break;
+                    case "N/A":
+                        query += " AND t1.transaction_history > t1.transaction_monitoring ";
+                        break;
+                    case "Incomplete":
+                        query += " AND t1.transaction_history < t1.transaction_monitoring ";
+                        break;
+                    default: break;
+                }
                 // Execute query and fetch data
                 List<EJReportMonitorModel> filteredData = new List<EJReportMonitorModel>();
                 using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
@@ -2726,6 +2757,7 @@ namespace SLA_Management.Controllers
                                     Date = reader["date"].ToString(),
                                     TransactionHistory = reader["transaction_history"].ToString(),
                                     TransactionMonitoring = reader["transaction_monitoring"].ToString(),
+                                    Diff = Convert.ToInt32(reader["diff"]),
                                     Status = reader["status"].ToString()
                                 });
                             }
