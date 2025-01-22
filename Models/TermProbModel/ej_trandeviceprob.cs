@@ -13,7 +13,7 @@ namespace SLA_Management.Models.TermProbModel
 
         public string BranchName { get; set; }
 
-        
+        public string TerminalType { get; set; }
         public string TerminalID { get; set; }
 
         public string Location { get; set; }

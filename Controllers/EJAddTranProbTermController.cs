@@ -40,7 +40,7 @@ namespace SLA_Management.Controllers
         {
 
             _myConfiguration = myConfiguration;
-            dBService = new DBService_TermProb(_myConfiguration);
+
 
         }
 
@@ -51,18 +51,38 @@ namespace SLA_Management.Controllers
         public IActionResult EJAddTranProbTermAction(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
         , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
         , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
-        , string currPageSize, int? page, string maxRows, string KeyWordList, string terminalType, string startDate)
+        , string currPageSize, int? page, string maxRows, string KeyWordList, string terminalType, string startDate, string bankName)
         {
 
             List<ej_trandeviceprob> recordset = new List<ej_trandeviceprob>();
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
-            if (terminalType == "ADM") terminalType = "G262";
-            else if (terminalType == "ATM") terminalType = "G165";
-            else if (terminalType == "All") terminalType = "G165;G262";
+            if (bankName == null) bankName = "BAAC";
 
-            if(startDate == null|| startDate == "")
+            switch (bankName)
+            {
+                case "BAAC":
+                    dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                    break;
+                case "ICBC":
+                    dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                    break;
+                case "BOC":
+                    dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                    break;
+                default:
+                    dBService = new DBService_TermProb(_myConfiguration);
+                    break;
+            }
+
+
+
+            //if (terminalType == "ADM") terminalType = "G262";
+            //else if (terminalType == "ATM") terminalType = "G165";
+            //else if (terminalType == "All") terminalType = "G165;G262";
+
+            if (startDate == null || startDate == "")
                 startDate = DateTime.Now.ToString("yyyy-MM-dd");
 
             ViewBag.startDate = startDate;
@@ -77,8 +97,8 @@ namespace SLA_Management.Controllers
             {
 
 
-                    if (cmdButton == "Clear")
-                        return RedirectToAction("EJAddTranProbTermAction");
+                if (cmdButton == "Clear")
+                    return RedirectToAction("EJAddTranProbTermAction");
 
 
                 #region Set viewBag and default data
@@ -165,11 +185,16 @@ namespace SLA_Management.Controllers
                 List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
 
                 var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
+                if (bankName == "BAAC")
+                {
+                    additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
+                }
+
                 var item = new List<string> { "All" };
 
 
                 ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
-                
+
 
                 ViewBag.CurrentTID = device_Info_Records;
                 ViewBag.TermID = TermID;
@@ -235,7 +260,7 @@ namespace SLA_Management.Controllers
                 else
                     param.PAGESIZE = 20;
 
-                
+
                 param.MONTHPERIOD = "";
                 param.YEARPERIOD = "";
                 param.TRXTYPE = "";
@@ -280,6 +305,27 @@ namespace SLA_Management.Controllers
                 else
                     ViewBag.maxRows = maxRows;
 
+                if (recordset.Count > 0)
+                {
+                    if (bankName == "BAAC")
+                    {
+                        switch (terminalType)
+                        {
+                            case "LOT572":
+                                recordset.RemoveAll(item => item.TerminalType == "LOT587");
+                                break;
+                            case "LOT587":
+                                recordset.RemoveAll(item => item.TerminalType == "LOT572");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    recordset = recordset.OrderByDescending(x => x.TransactionDate).ToList();
+
+                }
+
 
                 if (null == recordset || recordset.Count <= 0)
                 {
@@ -292,6 +338,8 @@ namespace SLA_Management.Controllers
                     ejLog_dataList = recordset;
                     param.PAGESIZE = recordset.Count;
                 }
+
+
 
 
                 if (recCnt > 0)
@@ -314,21 +362,12 @@ namespace SLA_Management.Controllers
                 if (recordset.Count > 0)
                 {
 
-                    switch (terminalType)
-                    {
-                        case "G165":
-                            recordset.RemoveAll(item => item.TerminalID.Substring(item.TerminalID.Length - 4) == "G262");
-                            break;
-                        case "G262":
-                            recordset.RemoveAll(item => item.TerminalID.Substring(item.TerminalID.Length - 4) == "G165");
-                            break;
-                        default:
-                            
-                            break;
-                    }
-                  
+
                     recordset = recordset.OrderByDescending(x => x.TransactionDate).ToList();
+
                 }
+
+
 
             }
             catch (Exception)
@@ -346,18 +385,18 @@ namespace SLA_Management.Controllers
 
             try
             {
-                if (paramTemp.PROBNAME.Contains("SLA"))
-                {
-                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_sla(paramTemp));
-                }
-                else if (Array.IndexOf(strErrorWordSeparate, paramTemp.PROBNAME) > -1)
-                {
-                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_ejreport(paramTemp));
-                }
-                else
-                {
+                //if (paramTemp.PROBNAME.Contains("SLA"))
+                //{
+                //    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_sla(paramTemp));
+                //}
+                //else if (Array.IndexOf(strErrorWordSeparate, paramTemp.PROBNAME) > -1)
+                //{
+                //    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database_ejreport(paramTemp));
+                //}
+                //else
+                //{
                     ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database(paramTemp));
-                }
+                //}
             }
             catch (Exception)
             {
@@ -506,9 +545,9 @@ namespace SLA_Management.Controllers
 
 
         #endregion
-    
+
         [HttpPost]
-        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr, string displayflagStr, string memo,string startDate)
+        public ActionResult InsertProbMaster(string username, string email, string probCodeStr, string probNameStr, string probTypeStr, string probTermStr, string displayflagStr, string memo, string startDate)
         {
             bool result = false;
             string error = "incomplete information";
@@ -545,14 +584,14 @@ namespace SLA_Management.Controllers
                     if (probCodeStr != null && probNameStr != null && probTypeStr != null && probTermStr != null)
                     {
                         string atmType = probTermStr;
-                        if (probTermStr == "ADM") probTermStr = "G262";
-                        else if (probTermStr == "ATM") probTermStr = "G165";
-                        else if (probTermStr == "All") probTermStr = "G165;G262";
+                        //if (probTermStr == "ADM") probTermStr = "G262";
+                        //else if (probTermStr == "ATM") probTermStr = "G165";
+                        //else if (probTermStr == "All") probTermStr = "G165;G262";
 
                         result = dBService.InsertDataToProbMaster(probCodeStr, probNameStr, probTypeStr, probTermStr, memo, username, displayflagStr);
                         if (result) dBService.AddJobTaskDeviceTermProb(startDate + " 00:00:00", probCodeStr, atmType);
                     }
-                       
+
 
                 }
                 catch (Exception ex)

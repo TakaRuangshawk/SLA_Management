@@ -11,11 +11,21 @@ namespace SLA_Management.Data.TermProb
     {
 
         #region Constructor
+
         public DBService_TermProb(IConfiguration myConfiguration) : base(myConfiguration)
         {
             ConnectString_MySQL = myConfiguration;
 
             FullNameConnection = ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection");
+
+            _objDb = new ConnectMySQL(FullNameConnection);
+        }
+        public DBService_TermProb(IConfiguration myConfiguration , string fullNameConnection) : base(myConfiguration)
+        {
+            ConnectString_MySQL = myConfiguration;
+
+            FullNameConnection = fullNameConnection;
+            //ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection");
 
             _objDb = new ConnectMySQL(FullNameConnection);
         }
@@ -35,7 +45,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + displayflag + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
+                _sql = "INSERT INTO `baac_logview`.`ejlog_problemmascode` (`probcode`,`probname`,`probtype`,`probterm`,`status`,`displayflag`,`memo`,`createdate`,`updatedate`,`updateby`)VALUE ( '" + probCode + "','" + probName + "','" + probType + "','" + probTerm + "','" + "1" + "','" + displayflag + "','" + memo + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + username + "') ;";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);
@@ -62,7 +72,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "INSERT INTO `gsb_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`,`createdate`,`atmtype`)VALUE ( '" + startDate + "',0,'Queuing','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + atmType + "');";
+                _sql = "INSERT INTO `baac_logview`.`taskjob_devicetermprob` (`startdate`,`status`,`insert_data_status`,`remark`,`updatedate`,`createdate`,`atmtype`)VALUE ( '" + startDate + "',0,'Queuing','" + probCode + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + atmType + "');";
 
 
                 result = _objDb.ExecuteQueryNoneParam(_sql);
@@ -82,7 +92,7 @@ namespace SLA_Management.Data.TermProb
         {
 
             MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT * FROM fv_device_info order by TERM_SEQ;";
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
             DataTable tableTemp = _objDb.GetDatatable(com);
 
             List<Device_info_record> deviceInfoRecordsList = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(tableTemp);
@@ -300,6 +310,7 @@ namespace SLA_Management.Data.TermProb
             record.ProbName = reader["probname"].ToString();
             record.Remark = reader["remark"].ToString();
             record.Memo = reader["probMemo"].ToString();
+            record.TerminalType = reader["terminaltype"].ToString();
             record.TransactionDate = Convert.ToDateTime(reader["trxdatetime"]);
 
             return record;
