@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using MySql.Data.MySqlClient;
+using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Data.HealthCheck;
+using SLA_Management.Data.TermProb;
+using SLA_Management.Models;
 using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.TermProbModel;
 using System;
 using System.Data;
 using System.Globalization;
@@ -21,6 +27,10 @@ namespace SLA_Management.Controllers
         private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
         private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
         private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
+        private static ej_trandada_seek param = new ej_trandada_seek();
+        private static List<HealthCheckModel> healthCheck_dataList = new List<HealthCheckModel>();
+
+
         #region export transaction parameter
         public static string bankname_ej;
         public static string fromtodate_ej;
@@ -63,9 +73,9 @@ namespace SLA_Management.Controllers
         {
             List<Dictionary<string, object>> resultList = new List<Dictionary<string, object>>();
             string finalQuery = string.Empty;
-            string fromDateStr = model.fromDate.ToString("yyyy-MM-dd HH:mm:dd")??DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string fromDateStr = model.fromDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
             string toDateStr = model.toDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
-            string terminalStr = model.terminalId??"";
+            string terminalStr = model.terminalId ?? "";
             string terminaltypeStr = model.terminalType ?? "";
             string trxtpyeStr = model.transactionType ?? "";
             string terminalQuery = string.Empty;
@@ -81,7 +91,7 @@ namespace SLA_Management.Controllers
                 terminalFinalQuery += " and fdi.TERM_ID = '" + terminalStr + "' ";
 
             }
-            if(terminaltypeStr != "")
+            if (terminaltypeStr != "")
             {
                 terminalQuery += " and terminalid like '%" + terminaltypeStr + "' ";
                 terminalFinalQuery += " and fdi.TERM_ID like '%" + terminaltypeStr + "' ";
@@ -96,7 +106,7 @@ namespace SLA_Management.Controllers
                     terminalQuery += " AND trx_type IN ('FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
                     break;
-                case "": 
+                case "":
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
                     break;
@@ -147,12 +157,12 @@ namespace SLA_Management.Controllers
                             AND trx_datetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
                             AND trx_status = 'OK'
                         GROUP BY 
-                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd")+".terminalid");
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
 
-                            for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
-                            {
-                                string dateStr = date.ToString("yyyyMMdd");
-                                queryBuilder.AppendLine(@"    LEFT JOIN
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        queryBuilder.AppendLine(@"    LEFT JOIN
                                 (SELECT 
                                     terminalid,
                                     SUM(CASE WHEN DATE(trx_datetime) = '" + date.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + dateStr + @"
@@ -166,10 +176,10 @@ namespace SLA_Management.Controllers
                                     terminalid) AS _" + dateStr + @"
                                 ON 
                                     fdi.TERM_ID = _" + dateStr + @".terminalid");
-                            }
+                    }
 
-                            finalQuery = queryBuilder.ToString();
-                            finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                    finalQuery = queryBuilder.ToString();
+                    finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
 
                 case "termprobsla":
@@ -206,7 +216,7 @@ namespace SLA_Management.Controllers
                             a.seqno IS NOT NULL " + terminalQuery + @"
                             AND trxdatetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
                         GROUP BY 
-                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd")+".terminalid");
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
 
                     for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
                     {
@@ -229,14 +239,14 @@ namespace SLA_Management.Controllers
 
                     finalQuery = queryBuilder.ToString();
                     finalQuery += @"  join (SELECT @row_number:=0) AS t 
-                                       where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                                       where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
                 default:
-                    
+
                     break;
             }
-            
-           
+
+
 
             try
             {
@@ -270,12 +280,12 @@ namespace SLA_Management.Controllers
                 }
                 return Json(resultList);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString);
                 return Json(resultList);
             }
-            
+
         }
         public class TerminalTransactionModel
         {
@@ -285,6 +295,262 @@ namespace SLA_Management.Controllers
             public string terminalType { get; set; }
             public string transactionType { get; set; }
         }
+
+
+        #region Health Check by boom
+
+        [HttpGet]
+        public IActionResult HealthCheck(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
+        , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
+        , string ddlProbMaster, string currProbMaster, string MessErrKeyWord, string currMessErrKeyWord
+        , string currPageSize, int? page, string maxRows, string KeyWordList, string terminalType, string startDate, string bankName)
+        {
+
+            List<HealthCheckModel> recordset = new List<HealthCheckModel>();
+            DBService_HealthCheck dBService;
+
+
+            if (bankName == null) bankName = "BAAC";
+
+            switch (bankName)
+            {
+                case "BAAC":
+                    dBService = new DBService_HealthCheck(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                    break;
+                case "ICBC":
+                    dBService = new DBService_HealthCheck(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                    break;
+                case "BOC":
+                    dBService = new DBService_HealthCheck(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                    break;
+                default:
+                    dBService = new DBService_HealthCheck(_myConfiguration);
+                    break;
+            }
+
+            if (startDate == null || startDate == "")
+                startDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            ViewBag.startDate = startDate;
+
+           
+
+            healthCheck_dataList.Clear();
+
+            int pageNum = 1;
+
+            try
+            {
+
+
+                if (cmdButton == "Clear")
+                    return RedirectToAction("HealthCheck");
+
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    FrTime = (FrTime ?? currFrTime);
+                    ToTime = (ToTime ?? currToTime);
+                    TermID = (TermID ?? currTID);
+                    ddlProbMaster = (ddlProbMaster ?? currProbMaster);
+                    MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
+                }
+
+
+                if (DBService.CheckDatabase())
+                {
+
+                    recordset = dBService.GetAllTerminalHaveErrorSLA445(FrDate + " 00:00:00", ToDate + " 23:59:59");
+                
+
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
+
+                var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
+                if (bankName == "BAAC")
+                {
+                    additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
+                }
+
+                var item = new List<string> { "All" };
+
+
+                ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
+
+
+                ViewBag.CurrentTID = device_Info_Records;
+                ViewBag.TermID = TermID;
+                ViewBag.CurrentFr = (FrDate ?? currFr);
+                ViewBag.CurrentTo = (ToDate ?? currTo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+
+                #region Set param
+                bool chk_date = false;
+                if (null == TermID)
+                    param.TERMID = currTID == null ? "" : currTID;
+                else
+                    param.TERMID = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
+                }
+                else
+                {
+                    if ((FrTime == "" && currFrTime == "") || (FrTime == null && currFrTime == null) ||
+                        (FrTime == null && currFrTime == "") || (FrTime == "" && currFrTime == null))
+                        param.FRDATE = FrDate + " 00:00:00";
+                    else
+                        param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    if ((ToTime == "" && currToTime == "") || (ToTime == null && currToTime == null) ||
+                        (ToTime == null && currToTime == "") || (ToTime == "" && currToTime == null))
+                        param.TODATE = ToDate + " 23:59:59";
+                    else
+                        param.TODATE = ToDate + " " + ToTime;
+                }
+
+                if (ddlProbMaster == null && currProbMaster == null)
+                    param.PROBNAME = "All";
+                else
+                    param.PROBNAME = ddlProbMaster == null ? currProbMaster : ddlProbMaster;
+
+                if (MessErrKeyWord == null && currMessErrKeyWord == null)
+                    param.PROBKEYWORD = "";
+                else
+                    param.PROBKEYWORD = MessErrKeyWord == null ? currMessErrKeyWord : MessErrKeyWord;
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+
+                param.MONTHPERIOD = "";
+                param.YEARPERIOD = "";
+                param.TRXTYPE = "";
+
+                #endregion
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+                if (recordset.Count > 0)
+                {
+                    if (bankName == "BAAC")
+                    {
+                        switch (terminalType)
+                        {
+                            case "LOT572":
+                                recordset.RemoveAll(item => item.Terminal_Type == "LOT587");
+                                break;
+                            case "LOT587":
+                                recordset.RemoveAll(item => item.Terminal_Type == "LOT572");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+
+                    if (TermID != null)
+                    {
+                        recordset.RemoveAll(item => item.Terminal_ID != TermID);
+                    }
+
+
+
+
+                }
+
+
+                if (null == recordset || recordset.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = recordset.Count;
+                    healthCheck_dataList = recordset;
+                    param.PAGESIZE = recordset.Count;
+                }
+
+
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = recordset.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    recordset.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+
+                if (recordset.Count > 0)
+                {
+
+
+                    //recordset = recordset.OrderByDescending(x => x.Transaction_DateTime).ToList();
+
+                }
+
+
+
+            }
+            catch (Exception)
+            {
+
+            }
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
+        }
+
+        #endregion
+
+
+
         #region Excel TransactionSummary
 
         [HttpGet]
@@ -295,9 +561,9 @@ namespace SLA_Management.Controllers
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
-            string fromDateStr = fromDate.ToString("yyyy-MM-dd HH:mm:dd")??DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string fromDateStr = fromDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
             string toDateStr = toDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
-            string terminalStr = terminalId??"";
+            string terminalStr = terminalId ?? "";
             string terminaltypeStr = terminalType ?? "";
             string trxtpyeStr = transactionType ?? "";
             string terminalQuery = "";
@@ -309,7 +575,7 @@ namespace SLA_Management.Controllers
             {
                 terminalQuery += " and terminalid = '" + terminalStr + "' ";
             }
-            if(terminaltypeStr != "")
+            if (terminaltypeStr != "")
             {
                 terminalQuery += " and terminalid like '%" + terminaltypeStr + "' ";
             }
@@ -384,7 +650,7 @@ namespace SLA_Management.Controllers
             }
 
             finalQuery = queryBuilder.ToString();
-            finalQuery += @" left JOIN fv_device_info fdi on _"+ fromDate.ToString("yyyyMMdd") +".terminalid = fdi.TERM_ID " +
+            finalQuery += @" left JOIN fv_device_info fdi on _" + fromDate.ToString("yyyyMMdd") + ".terminalid = fdi.TERM_ID " +
                 " join (SELECT @row_number:=0) AS t";
 
             try
@@ -418,7 +684,7 @@ namespace SLA_Management.Controllers
 
                 }
 
-            
+
 
 
 
@@ -444,12 +710,12 @@ namespace SLA_Management.Controllers
 
                 strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
 
-                if(trxtpyeStr != "")
+                if (trxtpyeStr != "")
                 {
                     trxtpyeStr = "_" + trxtpyeStr;
                 }
 
-                fname = "TransactionSummary_"+ DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
+                fname = "TransactionSummary_" + DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
 
                 strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
 
@@ -488,7 +754,7 @@ namespace SLA_Management.Controllers
 
 
         [HttpGet]
-        public ActionResult DownloadExportFile_TransactionSummary(string rpttype,string transactionType)
+        public ActionResult DownloadExportFile_TransactionSummary(string rpttype, string transactionType)
         {
             string fname = "";
             string tempPath = "";

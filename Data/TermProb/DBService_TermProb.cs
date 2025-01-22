@@ -132,6 +132,7 @@ namespace SLA_Management.Data.TermProb
 
 
 
+
         public List<ProblemMaster> GetAllMasterSysErrorWord()
         {
             List<ProblemMaster> _result = new List<ProblemMaster>();

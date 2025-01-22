@@ -64,7 +64,12 @@ namespace SLA_Management.Commons
         {
             if (sftp.Exists(path))
             {
-                List<SftpFile> files = sftp.ListDirectory(path).Where(q => q.Name != "." || q.Name != "..").ToList();
+                //List<SftpFile> files = sftp.ListDirectory(path).Where(q => q.Name != "." || q.Name != "..").ToList();
+                List<SftpFile> files = sftp.ListDirectory(path)
+                 .Where(q => q.Name != "." && q.Name != "..")
+                 .Cast<SftpFile>()
+                 .ToList();
+
                 return files;
             }
             else
