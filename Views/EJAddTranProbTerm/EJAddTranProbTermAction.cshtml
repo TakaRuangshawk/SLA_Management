@@ -158,6 +158,7 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->                          
                             @Html.DropDownList("bankName", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = ""  },
                         new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
                         new SelectListItem(){ Text="ICBC", Value = "ICBC" }                     
 
