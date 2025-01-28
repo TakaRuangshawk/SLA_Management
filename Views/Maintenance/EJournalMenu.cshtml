@@ -1,25 +1,25 @@
-﻿@model PagedList.IPagedList<SLA_Management.Models.HealthCheckModel>
+﻿@using Newtonsoft.Json
+@model PagedList.IPagedList<SLA_Management.Models.EJournalModel>
 @{
-    ViewData["Title"] = "Health Check";
+    ViewData["Title"] = "EJournalMenu";
     string[] tableHeaders = new string[]
                                                                                                     {
 
-    "Date",
-    "Time",
-    "Serial No",
-    "Terminal_ID",
-    "Terminal Name",
-    "Counter Code",
-    "Status",
-                                                                                                          };
+    "Terminal ID",
+    "FileName",
+    "Update Date",
+    "Last Uploading Time",
+    "File Length",
+    "Update Status",
+
+
+                                                                                                    };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 
-
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Table #6</title>
@@ -110,11 +110,11 @@
 
     .boxDownload {
         /*  background-color: rgba(255, 255, 255, 0.5);
-                position: fixed;
-                top: 250px;
-                right: 550px;
-                pointer-events: none;
-                z-index: 10; */
+                    position: fixed;
+                    top: 250px;
+                    right: 550px;
+                    pointer-events: none;
+                    z-index: 10; */
         background-color: rgba(255, 255, 255, 0.5);
         position: fixed;
         top: 0px;
@@ -134,6 +134,22 @@
 
 </style>
 
+<style>
+   
+    .modal-dialog {
+        max-width: 80%; 
+    }
+
+    .modal-content {
+        max-height: 80vh; 
+        overflow-y: auto; 
+    }
+
+    .modal-body {
+        max-height: 60vh; 
+        overflow-y: auto; 
+    }
+</style>
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
@@ -141,15 +157,15 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-4">
-                <a class="text-white fs-4" id="header_search">Health Check</a>
+                <a class="text-white fs-4" id="header_search">EJournal</a>
             </div>
         </div>
 
 
         <div id="main_search">
-            @using (Html.BeginForm("HealthCheck", "Monitor", FormMethod.Get, new { id = "HealthCheckRecheckDate" }))
+            @using (Html.BeginForm("EJournalMenu", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+               @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-2" style="">
                         <h>Bank : </h>
                     </div>
@@ -179,7 +195,7 @@
                         </button>
                     </div>
 
-                </div>
+                </div> *@
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                     <div class="col-2" style="">
@@ -191,13 +207,13 @@
                             <option data-tokens="" value="">--</option>
                             @foreach (var item in ViewBag.CurrentTID)
                             {
-                                if (@item.TERM_ID != @ViewBag.TermID)
+                                if (@item != @ViewBag.TermID)
                                 {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    <option value=@item data-tokens=@item>@item </option>
                                 }
                                 else
                                 {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    <option value=@item data-tokens=@item selected>@item </option>
 
                                 }
                             }
@@ -224,20 +240,6 @@
                 </div>
 
                 <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-
-                    <div class="col-2" style="">
-                        <h>TerminalType : </h>
-                    </div>
-
-                    <div class="col-2" style="padding:0px;">
-                        <div class="form-group">
-
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
-
-
-                        </div>
-                    </div>
-
                     <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
@@ -261,10 +263,11 @@
 
                         </div>
                     </div>
+
                 </div>
 
-                <div class="row">
 
+                <div class="row">
                     <div class="col" id="before-submit">
                         <div id="submit">
                             <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
@@ -274,15 +277,6 @@
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
-
-
-                           @*  <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                            </a>
-
-                            <button type="button" id="btnInsertProb" class="btn" name="InsertProbButton" title="Insert Problem Master" data-toggle="modal" data-target="#InsertProbModal" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/icon_add.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
-                            </button> *@
                         </div>
                     </div>
                 </div>
@@ -325,20 +319,16 @@
                             {
                                 <tr>
 
-                                    <td style="text-align:center;"> @Data.Transaction_DateTime?.Date.ToString("yyyy-MM-dd")</td>
-                                    <td style="text-align:center;"> @Data.Transaction_DateTime?.TimeOfDay</td>
-                                    <td style="text-align:center;"> @Data.Serial_No</td>
-                                    <td style="text-align:center;"> @Data.Terminal_ID </td>
-                                    <td style="text-align:center;"> @Data.Terminal_Name </td>
-                                    <td style="text-align:center;"> @Data.Terminal_Type</td>
-                                    @if (Data.Status == "true")
-                                    {
-                                        <td style="text-align:center; color: red;">Warning: More then 5 day</td>
-                                    }
-                                    else
-                                    {
-                                        <td style="text-align:center; color: green;">Normal</td>
-                                    }
+                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;">
+                                        <a style="color: #007bff;" href="javascript:void(0);" onclick="openModal('@Data.pathOfFile')">
+                                            @Data.FileName
+                                        </a>
+                                    </td>
+                                    <td style="text-align:center;"> @Data.UpdateDate </td>
+                                    <td style="text-align:center;"> @Data.LastUploadingTime</td>
+                                    <td style="text-align:center;"> @Data.FileLength </td>
+                                    <td style="text-align:center;"> @Data.UploadStatus </td>
                                 </tr>
                             }
 
@@ -346,7 +336,7 @@
                         if (Model.Count == 0)
                         {
 
-                        <td colspan="8" style="text-align: center;"> NO DATA </td>
+                        <td colspan="6" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
@@ -390,10 +380,67 @@
     </div>
 
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileModalLabel">File Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- ข้อมูลจะถูกโหลดมาแสดงที่นี่ -->
+                <p>Loading...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="boxDownload" id="boxDownload" style="display: block;">
     <img class="imgDownload" src="~/images/loading.gif">
 </div>
 
+
+
+<script>
+                function openModal(pathOfFile) {
+        console.log("pathOfFile ที่ได้รับ: " + pathOfFile);
+
+        var modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = "<p>Loading...</p>";
+        
+
+        fetch('https://admreport.svoa.co.th:8444/non-outsource-operation/Maintenance/GetFileContent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pathOfFile) // ส่ง pathOfFile เป็น JSON
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text(); // รับข้อมูลจาก backend
+        })
+        .then(data => {
+            console.log('File content received:', data);
+            modalBody.innerHTML = `<pre>${data}</pre>`;
+            $('#fileModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = "<p>Error loading file content.</p>";
+        });
+    }
+
+
+</script>
 
 <script>
     async function AJAXSubmit(oFormElement) {
@@ -432,7 +479,7 @@
 
          $("#boxDownload").show();
 
-        document.getElementById("HealthCheckRecheckDate").submit();
+        document.getElementById("EJAddTranProbTermRecheckDate").submit();
     } *@
     @* $(document).ready(function () {
         $(function () {
@@ -462,7 +509,7 @@
 
 
              setTimeout(function () {
-                 $("#HealthCheckRecheckDate").submit();
+                 $("#EJournalMenuRecheckDate").submit();
              }, 100); // Use 0 milliseconds for minimal delay
 
          });
@@ -475,7 +522,7 @@
 
 
              setTimeout(function () {
-                 $("#HealthCheckRecheckDate").submit();
+                 $("#EJournalMenuRecheckDate").submit();
              }, 100); // Use 0 milliseconds for minimal delay
 
          });
@@ -487,7 +534,7 @@
 
 
          setTimeout(function () {
-             $("#HealthCheckRecheckDate").submit();
+             $("#EJournalMenuRecheckDate").submit();
          }, 100); // Use 0 milliseconds for minimal delay
 
      });
@@ -500,7 +547,7 @@
      }
 
 
-     $("#HealthCheckRecheckDate").submit(async function (e) {
+     $("#EJournalMenuRecheckDate").submit(async function (e) {
          e.preventDefault();
 
          var FrDateTemp = new Date($('#FrDate').val());
@@ -651,7 +698,7 @@
                  var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                                   var select = document.getElementById("seletePageNow");
+                 var select = document.getElementById("seletePageNow");
                  for (var i = parseInt(pagenum); i > 0; i--) {
                      var option = document.createElement('option');
                      option.text = option.value = i;
@@ -734,7 +781,7 @@
 
      $(function () {
          // Just to append id number for each row
-         $('table tr:eq(0)').prepend('<th > No </th>');
+         $('table tr:eq(0)').prepend('<th> No </th>');
 
          var id = 0;
          var count = @Model.Count;
@@ -742,7 +789,7 @@
          $('table tr:gt(0)').each(function () {
              id++;
              if (count != 0) {
-                 $(this).prepend('<td style="text-align:center;">' + id + '</td>');
+                 $(this).prepend('<td>' + id + '</td>');
              }
 
          });
@@ -752,46 +799,7 @@
      // yasser.mas2@gmail.com
 
 
-     $("#btnSEExp").click(function (e) {
-         e.preventDefault();
-
-         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
-             + '|' + "xlsx";
-         var rptType = "xlsx";
-         $.ajax({
-             type: "POST",
-             dataType: "json",
-             data: '{ "exparams" : "' + expParams + '" }',
-             contentType: 'application/json; charset=utf-8',
-             url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
-             success: function (result) {
-                 if (result.success == 'S') {
-                     var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
-                     window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
-                 }
-                 else { alert(result.errstr); }
-             },
-             error: function (err) {
-                 alert('@ViewBag.ErrorMsg');
-             }
-         });
-          $("#boxDownload").hide();
-     });
-
-
-     function clearInsertDataProb() {
-
-         document.getElementById('username').value = "";
-         document.getElementById('email').value = "";
-         document.getElementById('probCodeStr').value = "";
-         document.getElementById('probNameStr').value = "";
-         document.getElementById('probTypeStr').value = "";
-         document.getElementById('probTermStr').value = "";
-         document.getElementById('memoStr').value = "";
-
-
-     }
-
-
 
 </script>
+
+

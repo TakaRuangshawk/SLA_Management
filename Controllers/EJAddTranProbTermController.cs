@@ -17,6 +17,8 @@ using System.Data;
 using System.Data.Common;
 using System.Drawing;
 using System.Globalization;
+using SLA_Management.Data.HealthCheck;
+using SLA_Management.Models;
 
 
 namespace SLA_Management.Controllers
@@ -58,7 +60,11 @@ namespace SLA_Management.Controllers
             List<ProblemMaster> ProdMasData = new List<ProblemMaster>();
             List<ProblemMaster> ProdAllMasData = new List<ProblemMaster>();
 
-            if (bankName == null) bankName = "BAAC";
+            DBService_TermProb dBService;
+
+            bool noBankSelect = false;
+
+            //if (bankName == null) bankName = "BAAC";
 
             switch (bankName)
             {
@@ -72,6 +78,7 @@ namespace SLA_Management.Controllers
                     dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
                     break;
                 default:
+                    noBankSelect = true;
                     dBService = new DBService_TermProb(_myConfiguration);
                     break;
             }
@@ -121,7 +128,7 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
-                if (DBService.CheckDatabase())
+                if (DBService.CheckDatabase() )
                 {
                     ProdMasData = dBService.GetMasterSysErrorWord();
                     ProdAllMasData = dBService.GetAllMasterSysErrorWord();
@@ -182,7 +189,16 @@ namespace SLA_Management.Controllers
 
                     }
                 }
-                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
+
+                List<Device_info_record> device_Info_Records = new List<Device_info_record>();
+
+                if (!noBankSelect)
+                {
+                     device_Info_Records = dBService.GetDeviceInfoFeelview();
+
+                }
+
+                
 
                 var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
                 if (bankName == "BAAC")
@@ -267,34 +283,42 @@ namespace SLA_Management.Controllers
 
                 #endregion
 
-
-                #region KeywordList
-                //Console.WriteLine("TermID :" + TermID);
-                if (KeyWordList != null)
+                if (!noBankSelect)
                 {
-                    string[] KeyWordListTemp = KeyWordList.Split(",");
-                    foreach (string KeyWord in KeyWordListTemp)
+                    #region KeywordList
+                    //Console.WriteLine("TermID :" + TermID);
+                    if (KeyWordList != null)
                     {
-                        //Console.WriteLine(KeyWord);
-
-                        param.PROBNAME = KeyWord;
-                        if (ddlProbMaster != null || TermID != null && param != null)
+                        string[] KeyWordListTemp = KeyWordList.Split(",");
+                        foreach (string KeyWord in KeyWordListTemp)
                         {
+                            //Console.WriteLine(KeyWord);
 
-                            recordset.AddRange(GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate));
+                            param.PROBNAME = KeyWord;
+                            if (ddlProbMaster != null || TermID != null && param != null)
+                            {
+
+                                recordset.AddRange(GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate, dBService));
+
+                            }
 
                         }
-
                     }
+                    else
+                    {
+                        if (chk_date)
+                        {
+                            recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate , dBService);
+                        }
+                    }
+                    #endregion
                 }
                 else
                 {
-                    if (chk_date)
-                    {
-                        recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate);
-                    }
+                    recordset = recordset ?? new List<ej_trandeviceprob>();
                 }
-                #endregion
+
+
 
 
                 #region Set page
@@ -379,7 +403,7 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Private function
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate)
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate ,DBService_TermProb dBService_TermProb)
         {
             List<ej_trandeviceprob> ej_Trandeviceprobs = new List<ej_trandeviceprob>();
 
@@ -395,7 +419,7 @@ namespace SLA_Management.Controllers
                 //}
                 //else
                 //{
-                    ej_Trandeviceprobs.AddRange(dBService.GetErrorTermDeviceEJLog_Database(paramTemp));
+                    ej_Trandeviceprobs.AddRange(dBService_TermProb.GetErrorTermDeviceEJLog_Database(paramTemp));
                 //}
             }
             catch (Exception)

@@ -309,8 +309,9 @@ namespace SLA_Management.Controllers
             List<HealthCheckModel> recordset = new List<HealthCheckModel>();
             DBService_HealthCheck dBService;
 
+            bool noBankSelect = false;
 
-            if (bankName == null) bankName = "BAAC";
+            //if (bankName == null) bankName = "BAAC";
 
             switch (bankName)
             {
@@ -324,6 +325,7 @@ namespace SLA_Management.Controllers
                     dBService = new DBService_HealthCheck(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
                     break;
                 default:
+                    noBankSelect = true;
                     dBService = new DBService_HealthCheck(_myConfiguration);
                     break;
             }
@@ -366,21 +368,24 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
+                List<Device_info_record> device_Info_Records = new List<Device_info_record>();
 
-                if (DBService.CheckDatabase())
+
+                if (DBService.CheckDatabase() && !noBankSelect)
                 {
 
                     recordset = dBService.GetAllTerminalHaveErrorSLA445(FrDate + " 00:00:00", ToDate + " 23:59:59");
-                
+
+                    device_Info_Records = dBService.GetDeviceInfoFeelview();
+
 
                     ViewBag.ConnectDB = "true";
                 }
                 else
                 {
+                    recordset = recordset ?? new List<HealthCheckModel>();
                     ViewBag.ConnectDB = "false";
                 }
-
-                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
 
                 var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
                 if (bankName == "BAAC")
@@ -497,10 +502,10 @@ namespace SLA_Management.Controllers
                 }
 
 
-                if (null == recordset || recordset.Count <= 0)
+                if ( recordset.Count <= 0)
                 {
                     ViewBag.NoData = "true";
-
+                    param.PAGESIZE = 1;
                 }
                 else
                 {
@@ -544,7 +549,7 @@ namespace SLA_Management.Controllers
             {
 
             }
-            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
         }
 
         #endregion

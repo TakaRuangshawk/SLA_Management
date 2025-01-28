@@ -47,6 +47,7 @@ namespace SLA_Management.Data.HealthCheck
                     HealthCheckModel obj = new HealthCheckModel();
                     obj.Terminal_ID = _dr["TERM_ID"].ToString();
                     obj.Problem_ID = _dr["probcode"].ToString();
+                    obj.Status = "false";
                     if (_dr["latest_trxdatetime"] != DBNull.Value)
                     {
                         DateTime tempDate;
@@ -54,6 +55,12 @@ namespace SLA_Management.Data.HealthCheck
                         if (DateTime.TryParse(_dr["latest_trxdatetime"].ToString(), out tempDate))
                         {
                             obj.Transaction_DateTime = tempDate;
+
+                            if ((DateTime.Now - tempDate).TotalDays > 5)
+                            {
+                                obj.Status = "true";
+                            }
+
                         }
                         else
                         {
@@ -65,6 +72,12 @@ namespace SLA_Management.Data.HealthCheck
                         obj.Transaction_DateTime = null; // If DBNull, set to null.
                     }
                     obj.Terminal_Type = _dr["COUNTER_CODE"].ToString();
+                    obj.Terminal_Name = _dr["Terminal_Name"].ToString();
+                    obj.Serial_No = _dr["Serial_No"].ToString();
+
+
+
+
                     _result.Add(obj);
                 }
             }
@@ -103,7 +116,7 @@ namespace SLA_Management.Data.HealthCheck
 
             try
             {
-                _sql = @"SELECT b.TERM_ID, a.probcode, MAX(a.trxdatetime) AS latest_trxdatetime, b.COUNTER_CODE
+                _sql = @"SELECT b.TERM_ID, a.probcode, MAX(a.trxdatetime) AS latest_trxdatetime, b.COUNTER_CODE as COUNTER_CODE , b.TERM_SEQ as Serial_No , b.TERM_NAME as Terminal_Name
                         FROM device_info b
                         LEFT JOIN ejlog_devicetermprob a
                         ON a.terminalid = b.TERM_ID 
