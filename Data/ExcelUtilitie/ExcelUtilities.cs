@@ -1,6 +1,7 @@
 ﻿
 using OfficeOpenXml;
 using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using System.Globalization;
@@ -1350,6 +1351,63 @@ namespace SLA_Management.Data.ExcelUtilitie
             catch (Exception ex)
             { throw ex; }
         }
+        #endregion
+    }
+
+    public class ExcelUtilities_RecurringCases
+    {
+        #region  Local Variable
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Function
+        public void GatewayOutput(List<RecurringCase> vm)
+        {
+            int nStartRowData = 0;
+            int nSeq = 1;
+            try
+            {
+                nStartRowData = 2;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\RecurringCases.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+
+                    foreach (var item in vm)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = item.Serial_No;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = item.Terminal_Id;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = item.Terminal_Name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = item.Counter_Code;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = item.Total_Recurring_Cases;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "RecurringCases.xlsx"))));
+                    FileSaveAsXlsxFormat = "RecurringCases.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            { 
+                throw ex; 
+            }
+        }
+        
         #endregion
     }
 

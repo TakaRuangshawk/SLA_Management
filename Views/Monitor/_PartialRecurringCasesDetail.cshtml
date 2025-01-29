@@ -1,0 +1,71 @@
+﻿
+@model SLA_Management.Models.RecurringCasesMonitor.RecurringCasesMonitorViewModel
+<div class="container" style="padding: 0;">
+    <div style="padding:0;"></div>
+    <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+        <div class="col-md-12 modelTopic" id="topic_term" style="    background: orange;">
+            <h2>Recurring Cases Information</h2>
+        </div>
+    </div>
+    <div id="terminal-info" style="display:block;">
+        <div class="row" style="padding-top:15px;">
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-2 modelTopic">
+                <label for="Serial_No">Serial No </label>&nbsp;:&nbsp;
+            </div>
+            <div class="col-md-3 modelTextbox">
+                @Html.TextBoxFor(m => Model.RecurringCase.Serial_No, new { @class = "w-100 form-control", @readonly = "true" })
+            </div>
+        </div>
+        <div class="row" style="padding-top:15px;">
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-2 modelTopic">
+                <label for="Term_ID">Terminal ID </label>&nbsp;:&nbsp;
+            </div>
+            <div class="col-md-3 modelTextbox">
+                @Html.TextBoxFor(m => Model.RecurringCase.Terminal_Id, new { @class = "w-100 form-control", @readonly = "true" })
+            </div>
+            <div class="col-md-2 modelTopic">
+                <label for="Term_Name">Terminal Name</label>&nbsp;:&nbsp;
+            </div>
+            <div class="col-md-3 modelTextbox">
+                @Html.TextBoxFor(m => Model.RecurringCase.Terminal_Name, new { @class = "w-100 form-control", @readonly = "true" })
+            </div>
+        </div>  
+    </div>
+    <div class="table-responsive-detail" style="max-height: 500px;padding-top:7px;">
+        <table id="table-recurringCase" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    <th style="position:sticky;z-index:10;top:0;width:120px;">Date Inform</th>
+                    <th style="position:sticky;z-index:10;top:0;width:200px;">Case Error No</th>
+                    <th style="position:sticky;z-index:10;top:0;width:350px;">Issue Name</th>
+                    <th style="position:sticky;z-index:10;top:0;width:600px;">Repair 1</th>
+                    <th style="position:sticky;z-index:10;top:0;width:600px;">Repair 2</th>
+                    <th style="position:sticky;z-index:10;top:0;width:350px;">Incident No</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if(Model.RecurringCaseDetails != null)
+                    {
+                        foreach (var item in Model.RecurringCaseDetails)
+                        {
+                            <tr>
+                                <td style="text-align:left;">@item.Date_Inform</td>
+                                <td style="text-align:left;">@item.Case_Error_No</td>
+                                <td style="text-align:left;">@item.Issue_Name</td>
+                                <td style="text-align:left;">@item.Repair1</td>
+                                <td style="text-align:left;">@item.Repair2</td>
+                                <td style="text-align:left;">@item.Incident_No</td>
+                            </tr>
+                        }
+                    }                    
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

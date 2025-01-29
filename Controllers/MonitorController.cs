@@ -1,19 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis;
 using MySql.Data.MySqlClient;
+using Mysqlx.Crud;
+using OfficeOpenXml;
 using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data.HealthCheck;
+using SLA_Management.Data.RecurringCasesMonitor;
 using SLA_Management.Data.TermProb;
 using SLA_Management.Models;
 using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.TermProbModel;
 using System;
 using System.Data;
 using System.Globalization;
 using System.Text;
+using static SLA_Management.Controllers.MaintenanceController;
 using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Controllers
@@ -29,6 +35,8 @@ namespace SLA_Management.Controllers
         private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
         private static ej_trandada_seek param = new ej_trandada_seek();
         private static List<HealthCheckModel> healthCheck_dataList = new List<HealthCheckModel>();
+        RecurringCasesMonitorViewModel vm = new RecurringCasesMonitorViewModel();
+        RecurringCasesDataContext dbContext;
 
 
         #region export transaction parameter
@@ -309,9 +317,8 @@ namespace SLA_Management.Controllers
             List<HealthCheckModel> recordset = new List<HealthCheckModel>();
             DBService_HealthCheck dBService;
 
-            bool noBankSelect = false;
 
-            //if (bankName == null) bankName = "BAAC";
+            if (bankName == null) bankName = "BAAC";
 
             switch (bankName)
             {
@@ -325,7 +332,6 @@ namespace SLA_Management.Controllers
                     dBService = new DBService_HealthCheck(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
                     break;
                 default:
-                    noBankSelect = true;
                     dBService = new DBService_HealthCheck(_myConfiguration);
                     break;
             }
@@ -335,7 +341,7 @@ namespace SLA_Management.Controllers
 
             ViewBag.startDate = startDate;
 
-
+           
 
             healthCheck_dataList.Clear();
 
@@ -353,19 +359,12 @@ namespace SLA_Management.Controllers
 
                     FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-
+                
                     page = 1;
                 }
                 else
                 {
-
-                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     // Return temp value back to it own variable
-
-                    FrTime = (FrTime ?? currFrTime);
-                    ToTime = (ToTime ?? currToTime);
-
                     FrDate = (FrDate ?? currFr);
                     ToDate = (ToDate ?? currTo);
                     FrTime = (FrTime ?? currFrTime);
@@ -375,24 +374,21 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
-                List<Device_info_record> device_Info_Records = new List<Device_info_record>();
 
-
-                if (DBService.CheckDatabase() && !noBankSelect)
+                if (DBService.CheckDatabase())
                 {
 
                     recordset = dBService.GetAllTerminalHaveErrorSLA445(FrDate + " 00:00:00", ToDate + " 23:59:59");
-
-                    device_Info_Records = dBService.GetDeviceInfoFeelview();
-
+                
 
                     ViewBag.ConnectDB = "true";
                 }
                 else
                 {
-                    recordset = recordset ?? new List<HealthCheckModel>();
                     ViewBag.ConnectDB = "false";
                 }
+
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfoFeelview();
 
                 var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
                 if (bankName == "BAAC")
@@ -509,10 +505,10 @@ namespace SLA_Management.Controllers
                 }
 
 
-                if (recordset.Count <= 0)
+                if (null == recordset || recordset.Count <= 0)
                 {
                     ViewBag.NoData = "true";
-                    param.PAGESIZE = 1;
+
                 }
                 else
                 {
@@ -545,14 +541,10 @@ namespace SLA_Management.Controllers
                 {
 
 
-                    recordset = recordset
-     .OrderBy(x => x.Status == "true" ? 0 : (x.Status == "N/A" ? 1 : 2)) 
-     .ThenByDescending(x => x.Status == "false")
-     .ThenBy(x => x.Transaction_DateTime )
-     .ToList();
+                    //recordset = recordset.OrderByDescending(x => x.Transaction_DateTime).ToList();
 
                 }
-              
+
 
 
             }
@@ -560,7 +552,7 @@ namespace SLA_Management.Controllers
             {
 
             }
-            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE));
         }
 
         #endregion
@@ -1862,6 +1854,234 @@ namespace SLA_Management.Controllers
 
 
                 fname = "Transaction_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
+
+        #region RecurringCases by Arkar
+        [HttpGet]
+        public IActionResult RecurringCasesMonitor(string bankName,string termID, string frDate,string toDate,string terminalType,int page, int maxRows,string orderBy)
+        {
+            
+            if (bankName == null) bankName = "BAAC";
+
+            switch (bankName.ToUpper())
+            {
+                case "BAAC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                    break;
+                case "ICBC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                    break;
+                case "BOC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                    break;
+                default:
+                    dbContext = new RecurringCasesDataContext("");
+                    break;
+            }
+            vm.Device_Info_Records = dbContext.GetDeviceInfoFeelview();
+            
+            if (bankName.ToUpper() == "BAAC")
+            {
+                vm.TerminalTypes = vm.Device_Info_Records
+                                   .Where(x => !string.IsNullOrWhiteSpace(x.COUNTER_CODE))
+                                   .DistinctBy(x => x.COUNTER_CODE)
+                                   .Select(x => new TerminalType { Terminal_Type = x.COUNTER_CODE }).ToList();
+            }
+            else
+            {
+                vm.TerminalTypes = vm.Device_Info_Records
+                               .Where(x => !string.IsNullOrWhiteSpace(x.TYPE_ID))
+                               .DistinctBy(x => x.TYPE_ID)
+                               .Select(x => new TerminalType { Terminal_Type = x.TYPE_ID }).ToList();
+            }
+            vm.RecurringCases = dbContext.GetRecurringTerminalList(termID,frDate,toDate,terminalType,orderBy);
+            if (vm.RecurringCases != null) 
+            {
+                //Apply pagination
+                int recurCount = vm.RecurringCases.Count;
+                int totalPages = (int)Math.Ceiling((double)recurCount / maxRows);
+                var paginatedRecurringList = vm.RecurringCases.Skip((page - 1) * maxRows).Take(maxRows).ToList();
+                vm.TotalRecords = recurCount;
+                vm.RecurringCases = paginatedRecurringList;
+                vm.CurrentPage = page;
+                vm.TotalPages = totalPages;
+                vm.PageSize = maxRows;
+            }
+            vm.frDate = frDate;
+            vm.toDate = toDate;
+            vm.bank = bankName;
+            vm.selectedTerminal = termID;
+            vm.selectedTerminalType = terminalType;
+            return View(vm);
+        }
+
+        //getting Detail
+        [HttpGet]
+        public async Task<IActionResult> GetRecurringCasesList(string bankName,string termID,string frDate,string toDate,string TermName,string SerialNo)
+        {
+            List<RecurringCaseDetail> detailList = new List<RecurringCaseDetail>();
+            vm.RecurringCase = new RecurringCase();
+            switch (bankName.ToUpper())
+            {
+                case "BAAC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                    break;
+                case "ICBC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                    break;
+                case "BOC":
+                    dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                    break;
+                default:
+                    dbContext = new RecurringCasesDataContext("");
+                    break;
+            }
+            detailList = dbContext.GetRecurringCaseDetailsList(termID,frDate,toDate);
+            vm.RecurringCaseDetails = detailList;
+            vm.RecurringCase.Terminal_Id = termID;
+            vm.RecurringCase.Terminal_Name= TermName;
+            vm.RecurringCase.Serial_No= SerialNo;
+            return PartialView("_PartialRecurringCasesDetail", vm);
+        }
+
+        //export Excel
+        [HttpPost]
+        public ActionResult RecurringCases_ExportXlsx([FromBody] ExportModel exportModel)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string conn ="";
+            try
+            {
+                if (exportModel.bankName == null) exportModel.bankName = "BAAC";
+                
+                switch (exportModel.bankName.ToUpper())
+                {
+                    case "BAAC":
+                        dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                        break;
+                    case "ICBC":
+                        dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                        break;
+                    case "BOC":
+                        dbContext = new RecurringCasesDataContext(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                        break;
+                    default:
+                        dbContext = new RecurringCasesDataContext("");
+                        break;
+                }
+                vm.RecurringCases = dbContext.GetRecurringTerminalList(exportModel.termID, exportModel.frDate, exportModel.toDate, exportModel.terminalType, exportModel.orderBy);
+                if (vm.RecurringCases == null || vm.RecurringCases.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_RecurringCases obj = new ExcelUtilities_RecurringCases();
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(vm.RecurringCases);
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "RecurringCases_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+        [HttpGet]
+        public ActionResult RecurringCases_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            try
+            {
+
+
+
+
+                fname = "RecurringCases_" + DateTime.Now.ToString("yyyyMMdd");
 
                 switch (rpttype.ToLower())
                 {

@@ -1,0 +1,603 @@
+﻿@using System.Globalization
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SLA_Management.Models.RecurringCasesMonitor.RecurringCasesMonitorViewModel
+@{
+    ViewData["Title"] = "Recurring Cases Monitor";
+    string[] tableHeaders = new string[]
+    {
+        "No",
+        "Action",
+        "Serial No",
+        "Terminal ID",
+        "Terminal Name",
+        "Counter Code",
+        "Total Recurring Cases",
+    }; 
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .modal1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1055;
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        outline: 0;
+    }
+    .pagination li a.active {
+        background-color: #ffc107;
+        font-weight: bold;
+        border-color: #ffc107;
+    }
+
+
+    option:hover {
+        box-shadow: 0 0 10px 100px #ffc107 inset;
+        transition: all .2s ease-in-out;
+    }
+
+    option:checked {
+        box-shadow: 0 0 10px 100px #ffc107 inset !important;
+    }
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+    .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
+        width: 526px;
+        margin-left: -2px;
+    }
+
+    .bootstrap-select > .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 3vw 30px 3vw;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    .table-responsive-detail {
+        overflow-x: auto; 
+    }
+
+    th {
+        white-space: nowrap; 
+    }
+
+    .modal-content {
+        overflow: auto; 
+    }
+
+    .disabled {
+        color: gray !important;
+        cursor: not-allowed;
+        pointer-events: none; 
+        text-decoration: none;
+        opacity: 0.6;
+    }
+</style>
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Recurring Cases Monitor</a>
+            </div>
+        </div>
+        <div id="main_search">
+            @using (Html.BeginForm("RecurringCasesMonitor", "Monitor", FormMethod.Get, new { id = "RecurringCasesMonitor" }))
+            {
+                <input type="hidden" id="page" name="page" value="@Model.CurrentPage" />
+                <input type="hidden" id="totalPage" name="totalPage" value="@Model.TotalPages" />
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                                new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                                new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                                }, new{
+                                    @class = "form-control dropdown",
+                                    @style = " border-radius: 10px;",
+                                    @name = "state",
+                                })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Terminal : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="termID" name="termID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in Model.Device_Info_Records)
+                            {
+                                if(item.TERM_ID == Model.selectedTerminal)
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }                               
+                            }
+                        </select>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>From Date : </h>
+                    </div>
+                    @{
+                        var today = DateTime.Today;                        
+                        var fromDate = new DateTime(today.Year, today.Month, 1);
+                        var toDate = today;
+
+                    }
+                    <div class="col-2 " style="padding:0; ">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("frDate", fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
+                        </div>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-2" style="padding:0;">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("toDate", toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-2" style="">
+                        <h>Terminal Type : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="terminalType" name="terminalType" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @if (Model.selectedTerminalType == "ALL")
+                            {
+                                <option data-tokens="ALL" value="ALL" selected>ALL</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="ALL" value="ALL">ALL</option>
+                            }
+                            @foreach (var item in Model.TerminalTypes)
+                            {
+                                if (item.Terminal_Type == Model.selectedTerminalType)
+                                {                                    
+                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type" selected>@item.Terminal_Type</option>
+                                }
+                                else
+                                {                                    
+                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type">@item.Terminal_Type</option>
+                                }                                
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-2" style="">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50" },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="500", Value = "500"  },
+                        new SelectListItem(){ Text="1000", Value = "1000"  }
+                                        }, new{@class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+                                        })
+                        </div>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>OrderBy : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("orderBy", new SelectListItem[] {
+                        new SelectListItem(){ Text="ASC", Value = "ASC" },
+                        new SelectListItem(){ Text="DESC", Value = "DESC"  }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+                                        })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;" onclick="clearDate()">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            }
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a id="totalRecords" style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@Model.TotalRecords</a>
+            </div>
+        </div>
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="table-recurringCase" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in tableHeaders)
+                            {
+                                                  <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        if (Model.RecurringCases != null)
+                        {
+                            foreach (var item in Model.RecurringCases)
+                            {
+                                                    <tr>
+                                                        <td style="text-align:center;"> @item.No</td>
+                                                        <td>
+                                                        @using (Html.BeginForm("GetRecurringCasesList", "Monitor", FormMethod.Get, new { id = "detailForm" }))
+                                        {
+                                                            <input type="hidden" name="TermID" value="@item.Terminal_Id" />
+                                                            <input type="hidden" name="frDate" value="@Model.frDate" />
+                                                            <input type="hidden" name="toDate" value="@Model.toDate" />
+                                                            <input type="hidden" name="bankName" value="@Model.bank" />
+                                                            <input type="hidden" name="TermName" value="@item.Terminal_Name" />
+                                                            <input type="hidden" name="SerialNo" value="@item.Serial_No" />
+                                                            <img class="btn text-dark" id="btnEdit" alt="View Issue Data" onclick="submitForm(this)"
+                                                                 style="height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;" src="~/images/button_view.png" />
+                                        }
+                                                        </td>
+                                                        <td style="text-align:center;"> @item.Serial_No</td>
+                                                        <td style="text-align:center;"> @item.Terminal_Id </td>
+                                                        <td style="text-align:center;"> @item.Terminal_Name</td>
+                                                        <td style="text-align:center;"> @item.Counter_Code</td>
+                                                        <td style="text-align:center;"> @item.Total_Recurring_Cases</td>
+                                                    </tr>
+                            }
+
+                        }
+                        if (Model.RecurringCases == null)
+                        {
+                                                    <tr>
+                                                        <td colspan="7" style="text-align: center;"> NO DATA </td>
+                                                    </tr>                           
+                        }
+                    }
+                </tbody>
+
+
+            </table>
+            <div class="row">
+                <div class="col-md-2" style="z-index:2;">
+                    <p style="font-size:16px;font-weight:bolder;">
+                        Select page :
+                        @Html.DropDownList("seletePageNow", new SelectList(Enumerable.Range(1, Model.TotalPages), Model.CurrentPage), new
+                                        {
+                                            @class = "form-control DropDown",
+                                            @onchange = "fetchData(this);",
+                                        })
+                    </p>
+                </div>
+                @* handle page size one time *@
+                @{
+                    int maxPageShow = 5;
+                    int currentPage = Model.CurrentPage;
+
+                    int startPage = ((currentPage - 1) / maxPageShow) * maxPageShow + 1;
+                    int endPage = Math.Min(startPage + maxPageShow - 1, Model.TotalPages);
+                }
+                <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                    <nav>                        
+                        <div class="pagination" id="pagination">
+                            <li data-page="prev" id="prev">
+                                <a style="color: #7a7a7a;"> < </a>
+                            </li>
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li data-page="@i" id="page-link">
+                                    <a style="color: #7a7a7a;" class="@(i == Model.CurrentPage ? "active" : "")">@i</a>
+                                </li>                              
+                            }
+                            <li data-page="next" id="next">
+                                <a style="color: #7a7a7a;"> > </a>
+                            </li>
+
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<div class="modal1 fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" id="recurringDetailModal">
+        </div>
+    </div>
+</div>
+<script>
+    var selectBank = document.getElementById("bankName");
+    const terminalID = document.getElementById("termID");
+    const terminalType = document.getElementById("terminalType");
+    const maxRow = document.getElementById("maxRows");
+    const orderBy = document.getElementById("orderBy");
+
+    selectBank.addEventListener("change", function () {
+        var selectedBankCode = selectBank.value;
+        selectBank.value = selectedBankCode;
+
+    });
+    terminalID.addEventListener("change", function () {
+        var id = terminalID.value;
+        terminalID.value = id;
+
+    });
+    terminalType.addEventListener("change", function () {
+        var type = terminalType.value;
+        terminalType.value = type;
+
+    });
+    maxRow.addEventListener("change", function () {
+        var row = maxRow.value;
+        maxRow.value = row;
+
+    });
+    orderBy.addEventListener("change", function () {
+        var row = orderBy.value;
+        orderBy.value = row;
+    });
+    document.getElementById("RecurringCasesMonitor").addEventListener("submit", function (event) {
+        var fromDateVal = document.getElementById("frDate").value;
+        var toDateVal = document.getElementById("toDate").value;
+
+        var submitButton = event.submitter; // getting submit button
+        if (submitButton.id === "btnsearch") {
+            if (fromDateVal === "") {
+                alert("Please choose From Date");
+                event.preventDefault();
+            } else if (toDateVal === "") {
+                alert("Please choose To Date");
+                event.preventDefault();
+            }
+        }
+           
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentPage = parseInt(document.getElementById('page').value);
+        let totalPages = parseInt(document.getElementById('totalPage').value);
+
+
+        //handle page click
+        const page_click = document.querySelectorAll('#page-link');
+        page_click.forEach(x => {
+            x.addEventListener('click', function (e) {
+                e.preventDefault();              
+                const page = parseInt(this.getAttribute('data-page'));
+                resubmitPage(page);
+            });
+        });
+
+        const next = document.getElementById('next');
+        const prev = document.getElementById('prev');
+
+        
+        next.replaceWith(next.cloneNode(true));
+        prev.replaceWith(prev.cloneNode(true));
+
+        
+        const newNext = document.getElementById('next');
+        const newPrev = document.getElementById('prev');
+        
+        newPrev.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (currentPage > 1) {
+                currentPage--;
+                resubmitPage(currentPage);
+            }
+        });
+
+        
+        newNext.addEventListener('click', function (e) {
+            e.preventDefault();
+            currentPage++;            
+            resubmitPage(currentPage);
+        });
+
+        
+        if (currentPage >= totalPages) {
+            newNext.classList.add('disabled');             
+            newNext.style.pointerEvents = 'none'; 
+        } else {
+            newNext.classList.remove('disabled');            
+            newNext.style.pointerEvents = 'auto';
+        }
+
+        
+        if (currentPage <= 1) {
+            newPrev.classList.add('disabled');
+            newPrev.style.pointerEvents = 'none';
+        } else {
+            newPrev.classList.remove('disabled');
+            newPrev.style.pointerEvents = 'auto';
+        }
+        newNext.classList.toggle('disabled', currentPage >= totalPages);
+        newNext.disabled = currentPage >= totalPages;
+        newPrev.classList.toggle('disabled', currentPage === 1);
+    });
+    function resubmitPage(page) {
+        const pageInput = document.getElementById('page');
+        pageInput.value = page;
+        document.getElementById('RecurringCasesMonitor').submit();
+    }
+
+    function fetchData(dropdown) {
+        var selectPage = parseInt(dropdown.value);
+        resubmitPage(selectPage);
+    }
+    //clear data
+    function clearDate() {
+        // Clear the value of the Fields
+        document.querySelector('[name="termID"]').value = "";
+        document.querySelector('[name="terminalType"]').value = "";
+        document.querySelector('[name="frDate"]').value = "";
+        document.querySelector('[name="toDate"]').value = "";
+
+        document.getElementById('RecurringCasesMonitor').submit();
+    }
+
+    function submitForm(imgElement) {
+        var form = $(imgElement).closest('form');
+        const actionUrl = form.attr('action');
+        $.ajax({
+            url: actionUrl,
+            type: "GET",
+            data: form.serialize(),
+            success: function (response) {
+                // Inject the partial view response into the modal body
+                $("#recurringDetailModal").html(response);
+
+                // Show the modal
+                $("#myModal").modal('show');
+            },
+            error: function (xhr, status, error) {
+                alert("Error: " + error);
+            }
+        });
+    }
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+        var fromdate = $("#frDate").val();
+        var todate = $("#toDate").val();
+        var page = $('#page').val();
+        var order = $('#orderBy').val();
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify({
+                bankName : selectBank.value,
+                termID : terminalID.value,
+                frDate : fromdate,
+                toDate : todate,
+                terminalType : terminalType.value,
+                page : page,
+                maxRows : maxRow.value, 
+                orderBy : order
+            }),
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("RecurringCases_ExportXlsx", "Monitor")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("RecurringCases_DownloadExportFile", "Monitor")'
+                    window.location = '@Url.Action("RecurringCases_DownloadExportFile", "Monitor")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+</script>
