@@ -142,8 +142,8 @@ namespace SLA_Management.Data.HealthCheck
     COALESCE(b.COUNTER_CODE, '-') AS COUNTER_CODE, 
     COALESCE(b.TERM_SEQ, '-') AS Serial_No, 
     COALESCE(b.TERM_NAME, '-') AS Terminal_Name
-FROM baac_logview.device_info b
-LEFT JOIN baac_logview.ejlog_devicetermprob a
+FROM device_info b
+LEFT JOIN ejlog_devicetermprob a
     ON a.terminalid = b.TERM_ID 
     AND a.probcode = 'SLA_445'
 WHERE b.Status IN ('use', 'roustop')
