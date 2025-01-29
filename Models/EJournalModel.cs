@@ -5,6 +5,10 @@
         public string ID { get; set; }
         public string TerminalID { get; set; }
 
+        public string SerialNo { get; set; }
+
+        public string TerminalName { get; set; }
+
         public string FileName { get; set; }
 
         public string FileContent { get; set; }

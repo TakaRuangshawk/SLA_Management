@@ -335,7 +335,7 @@ namespace SLA_Management.Controllers
 
             ViewBag.startDate = startDate;
 
-           
+
 
             healthCheck_dataList.Clear();
 
@@ -353,12 +353,19 @@ namespace SLA_Management.Controllers
 
                     FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                
+
                     page = 1;
                 }
                 else
                 {
+
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
                     // Return temp value back to it own variable
+
+                    FrTime = (FrTime ?? currFrTime);
+                    ToTime = (ToTime ?? currToTime);
+
                     FrDate = (FrDate ?? currFr);
                     ToDate = (ToDate ?? currTo);
                     FrTime = (FrTime ?? currFrTime);
@@ -502,7 +509,7 @@ namespace SLA_Management.Controllers
                 }
 
 
-                if ( recordset.Count <= 0)
+                if (recordset.Count <= 0)
                 {
                     ViewBag.NoData = "true";
                     param.PAGESIZE = 1;
@@ -538,10 +545,14 @@ namespace SLA_Management.Controllers
                 {
 
 
-                    //recordset = recordset.OrderByDescending(x => x.Transaction_DateTime).ToList();
+                    recordset = recordset
+     .OrderBy(x => x.Status == "true" ? 0 : (x.Status == "N/A" ? 1 : 2)) 
+     .ThenByDescending(x => x.Status == "false")
+     .ThenBy(x => x.Transaction_DateTime )
+     .ToList();
 
                 }
-
+              
 
 
             }

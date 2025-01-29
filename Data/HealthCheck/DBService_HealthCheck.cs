@@ -33,7 +33,7 @@ namespace SLA_Management.Data.HealthCheck
         }
         #endregion
 
-        public List<HealthCheckModel> GetAllTerminalHaveErrorSLA445(string fromDateTime , string toDateTime)
+        public List<HealthCheckModel> GetAllTerminalHaveErrorSLA445(string fromDateTime, string toDateTime)
         {
             List<HealthCheckModel> _result = new List<HealthCheckModel>();
             DataTable _dt = new DataTable();
@@ -64,11 +64,13 @@ namespace SLA_Management.Data.HealthCheck
                         }
                         else
                         {
+                            obj.Status = "N/A";
                             obj.Transaction_DateTime = null; // If parsing fails, set to null or a default value.
                         }
                     }
                     else
                     {
+                        obj.Status = "N/A";
                         obj.Transaction_DateTime = null; // If DBNull, set to null.
                     }
                     obj.Terminal_Type = _dr["COUNTER_CODE"].ToString();
@@ -116,21 +118,41 @@ namespace SLA_Management.Data.HealthCheck
 
             try
             {
-                _sql = @"SELECT b.TERM_ID, a.probcode, MAX(a.trxdatetime) AS latest_trxdatetime, b.COUNTER_CODE as COUNTER_CODE , b.TERM_SEQ as Serial_No , b.TERM_NAME as Terminal_Name
-                        FROM device_info b
-                        LEFT JOIN ejlog_devicetermprob a
-                        ON a.terminalid = b.TERM_ID 
-                        AND a.probcode = 'SLA_445'
-                        AND a.trxdatetime BETWEEN '" + fromDateTime + "' AND '" + toDateTime + "' " +
-                        @"GROUP BY  b.TERM_ID , b.COUNTER_CODE
-                        HAVING 
-                         MAX(a.trxdatetime) IS NOT NULL
-                        ORDER BY 
-                        CASE 
-                            WHEN a.probcode IS NOT NULL THEN 0
-                        ELSE 1
-                            END,
-                        b.TERM_ID , b.COUNTER_CODE;";
+                //_sql = @"SELECT b.TERM_ID, a.probcode, MAX(a.trxdatetime) AS latest_trxdatetime, b.COUNTER_CODE as COUNTER_CODE , b.TERM_SEQ as Serial_No , b.TERM_NAME as Terminal_Name
+                //        FROM device_info b
+                //        LEFT JOIN ejlog_devicetermprob a
+                //        ON a.terminalid = b.TERM_ID 
+                //        AND a.probcode = 'SLA_445'
+                //        AND a.trxdatetime BETWEEN '" + fromDateTime + "' AND '" + toDateTime + "' " +
+                //        @"GROUP BY  b.TERM_ID , b.COUNTER_CODE
+                //        HAVING 
+                //         MAX(a.trxdatetime) IS NOT NULL
+                //        ORDER BY 
+                //        CASE 
+                //            WHEN a.probcode IS NOT NULL THEN 0
+                //        ELSE 1
+                //            END,
+                //        b.TERM_ID , b.COUNTER_CODE;";
+
+
+                _sql = @"SELECT 
+    b.TERM_ID, 
+    a.probcode, 
+    MAX(a.trxdatetime) AS latest_trxdatetime, 
+    COALESCE(b.COUNTER_CODE, '-') AS COUNTER_CODE, 
+    COALESCE(b.TERM_SEQ, '-') AS Serial_No, 
+    COALESCE(b.TERM_NAME, '-') AS Terminal_Name
+FROM baac_logview.device_info b
+LEFT JOIN baac_logview.ejlog_devicetermprob a
+    ON a.terminalid = b.TERM_ID 
+    AND a.probcode = 'SLA_445'
+WHERE b.Status IN ('use', 'roustop')
+GROUP BY 
+    b.TERM_ID
+ORDER BY 
+    b.TERM_ID;
+;
+";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }

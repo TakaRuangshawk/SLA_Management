@@ -149,7 +149,7 @@
         <div id="main_search">
             @using (Html.BeginForm("HealthCheck", "Monitor", FormMethod.Get, new { id = "HealthCheckRecheckDate" }))
             {
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 7vw 0vw 7vw;white-space:nowrap;">
                     <div class="col-2" style="">
                         <h>Bank : </h>
                     </div>
@@ -180,7 +180,7 @@
                     </div>
 
                 </div>
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;padding:0vw 7vw 0vw 7vw;white-space:nowrap;">
 
                     <div class="col-2" style="">
                         <h>Terminal : </h>
@@ -203,7 +203,20 @@
                             }
                         </select>
                     </div>
-                    <div class="col-2" style="">
+
+                    <div class="col-2" style="margin-left:200px;">
+                        <h>TerminalType : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+
+                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+
+
+                        </div>
+                    </div>
+                   @*  <div class="col-2" style="">
                         <h>From Date : </h>
                     </div>
                     <div class="col-2 " style="padding:0; ">
@@ -220,23 +233,12 @@
                             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
                         </div>
-                    </div>
+                    </div>*@
                 </div>
 
-                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 7vw 0vw 7vw;white-space:nowrap;">
 
-                    <div class="col-2" style="">
-                        <h>TerminalType : </h>
-                    </div>
-
-                    <div class="col-2" style="padding:0px;">
-                        <div class="form-group">
-
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
-
-
-                        </div>
-                    </div>
+                   
 
                     <div class="col-2" style="">
                         <h>Rows : </h>
@@ -325,8 +327,12 @@
                             {
                                 <tr>
 
-                                    <td style="text-align:center;"> @Data.Transaction_DateTime?.Date.ToString("yyyy-MM-dd")</td>
-                                    <td style="text-align:center;"> @Data.Transaction_DateTime?.TimeOfDay</td>
+                                    <td style="text-align:center;">
+                                        @(@Data.Transaction_DateTime?.Date.ToString("yyyy-MM-dd") ?? "N/A")
+                                    </td>
+                                    <td style="text-align:center;">
+                                        @(@Data.Transaction_DateTime?.TimeOfDay.ToString() ?? "N/A")
+                                    </td>
                                     <td style="text-align:center;"> @Data.Serial_No</td>
                                     <td style="text-align:center;"> @Data.Terminal_ID </td>
                                     <td style="text-align:center;"> @Data.Terminal_Name </td>
@@ -335,8 +341,10 @@
                                     {
                                         <td style="text-align:center; color: red;">Warning: More then 5 day</td>
                                     }
-                                    else
+                                    else if (Data.Status == "N/A")
                                     {
+                                        <td style="text-align:center; color: cornflowerblue;">N/A</td>
+                                    }else{
                                         <td style="text-align:center; color: green;">Normal</td>
                                     }
                                 </tr>

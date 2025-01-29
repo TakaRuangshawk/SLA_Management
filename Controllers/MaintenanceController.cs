@@ -18,6 +18,7 @@ using PagedList;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using SLA_Management.Data.TermProb;
 
 namespace SLA_Management.Controllers
 {
@@ -976,7 +977,7 @@ namespace SLA_Management.Controllers
 
         private static string GenerateUniqueID()
         {
-            return Guid.NewGuid().ToString(); 
+            return Guid.NewGuid().ToString();
         }
 
         private static string FormatFileLength(long lengthInBytes)
@@ -1123,11 +1124,16 @@ namespace SLA_Management.Controllers
             string password = "P@ssw0rd";
             string remoteFilePath = "/opt/FileServerBAAC/EJ/";
 
-            List<string> terminals = new List<string>() ;
+            List<string> terminals = new List<string>();
 
             List<EJournalModel> journalListResult = new List<EJournalModel>();
 
 
+            List<Device_info_record> device_Info_Records = new List<Device_info_record>();
+
+            DBService_TermProb dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+
+            device_Info_Records = dBService.GetDeviceInfoFeelview();
 
 
 
@@ -1167,7 +1173,7 @@ namespace SLA_Management.Controllers
 
 
 
-               
+
                 ViewBag.CurrentFr = (FrDate ?? currFr);
                 ViewBag.CurrentTo = (ToDate ?? currTo);
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
@@ -1290,7 +1296,7 @@ namespace SLA_Management.Controllers
 
                                         checkDate = new DateTime(int.Parse(fileYear.Name), 1, 1);
 
-                                        if (!(checkDate >= startDateTemp && checkDate <= endDateTemp))
+                                        if (checkDate.Year < startDateTemp.Year || checkDate.Year > endDateTemp.Year)
                                         {
                                             continue;
                                         }
@@ -1312,7 +1318,9 @@ namespace SLA_Management.Controllers
 
                                                 checkDate = new DateTime(int.Parse(fileYear.Name), int.Parse(fileMonth.Name), 1);
 
-                                                if (!(checkDate >= startDateTemp && checkDate <= endDateTemp))
+
+                                                if (checkDate.Year < startDateTemp.Year || (checkDate.Year == startDateTemp.Year && checkDate.Month < startDateTemp.Month) ||
+                                                    checkDate.Year > endDateTemp.Year || (checkDate.Year == endDateTemp.Year && checkDate.Month > endDateTemp.Month))
                                                 {
                                                     continue;
                                                 }
@@ -1336,7 +1344,7 @@ namespace SLA_Management.Controllers
                                                         checkDate = DateTime.ParseExact(dateFromFile, "yyyyMMdd", null);
 
 
-                                                        if (!(checkDate >= startDateTemp && checkDate <= endDateTemp))
+                                                        if (checkDate < startDateTemp || checkDate > endDateTemp)
                                                         {
                                                             continue;
                                                         }
@@ -1351,11 +1359,15 @@ namespace SLA_Management.Controllers
 
 
                                                             //string content = reader.ReadToEnd();
+                                                            Device_info_record filteredRecordsTemp = device_Info_Records
+                                                             .FirstOrDefault(device => device.TERM_ID == terminal);
 
 
                                                             var journal = new EJournalModel
                                                             {
                                                                 ID = GenerateUniqueID(),
+                                                                SerialNo = filteredRecordsTemp.TERM_SEQ,
+                                                                TerminalName = filteredRecordsTemp.TERM_NAME,
                                                                 FileName = fileDay.Name,
                                                                 FileContent = "",
                                                                 TerminalID = terminal,
@@ -1414,7 +1426,13 @@ namespace SLA_Management.Controllers
 
                 #endregion
 
-                ViewBag.CurrentTID = terminals;
+
+
+                var filteredRecords = device_Info_Records
+                        .Where(device => terminals.Contains(device.TERM_ID))
+                        .ToList();
+
+                ViewBag.CurrentTID = filteredRecords;
                 ViewBag.TermID = TermID;
 
 
@@ -1491,7 +1509,7 @@ namespace SLA_Management.Controllers
                 if (journalListResult.Count > 0)
                 {
 
-                    journalListResult = journalListResult.OrderByDescending(x => x.UpdateDate).ToList();
+                    journalListResult = journalListResult.OrderBy(x => x.FileName).ToList();
 
                 }
 

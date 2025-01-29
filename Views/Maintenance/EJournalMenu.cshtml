@@ -4,13 +4,12 @@
     ViewData["Title"] = "EJournalMenu";
     string[] tableHeaders = new string[]
                                                                                                     {
-
+    "Serial No.",
     "Terminal ID",
+    "Terminal Name",
     "FileName",
     "Update Date",
-    "Last Uploading Time",
     "File Length",
-    "Update Status",
 
 
                                                                                                     };
@@ -207,13 +206,13 @@
                             <option data-tokens="" value="">--</option>
                             @foreach (var item in ViewBag.CurrentTID)
                             {
-                                if (@item != @ViewBag.TermID)
+                                if (@item.TERM_ID != @ViewBag.TermID)
                                 {
-                                    <option value=@item data-tokens=@item>@item </option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
                                 else
                                 {
-                                    <option value=@item data-tokens=@item selected>@item </option>
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
 
                                 }
                             }
@@ -318,17 +317,16 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-
+                                    <td style="text-align:center;"> @Data.SerialNo</td>
                                     <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;"> @Data.TerminalName</td>
                                     <td style="text-align:center;">
                                         <a style="color: #007bff;" href="javascript:void(0);" onclick="openModal('@Data.pathOfFile')">
                                             @Data.FileName
                                         </a>
                                     </td>
-                                    <td style="text-align:center;"> @Data.UpdateDate </td>
-                                    <td style="text-align:center;"> @Data.LastUploadingTime</td>
-                                    <td style="text-align:center;"> @Data.FileLength </td>
-                                    <td style="text-align:center;"> @Data.UploadStatus </td>
+                                    <td style="text-align:center;"> @Data.UpdateDate </td>                                   
+                                    <td style="text-align:center;"> @Data.FileLength </td>                                   
                                 </tr>
                             }
 
@@ -336,7 +334,7 @@
                         if (Model.Count == 0)
                         {
 
-                        <td colspan="6" style="text-align: center;"> NO DATA </td>
+                        <td colspan="7" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
@@ -789,7 +787,7 @@
          $('table tr:gt(0)').each(function () {
              id++;
              if (count != 0) {
-                 $(this).prepend('<td>' + id + '</td>');
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
              }
 
          });
