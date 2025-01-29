@@ -167,6 +167,7 @@
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="HealthCheck">Health Check</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a>
                                @*  <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LastTransaction">Last Transaction Monitor</a>
@@ -175,15 +176,23 @@
                             </div>
                         </li>
 
-                       <li class="nav-item dropdown nav-report">
+                       @* <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Maintenance
+                                Report
                             </a>
-                            <div class="dropdown-menu">                         
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Maintenance History</a> 
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="WhitelistReport">Whitelist Report</a>
+                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="AuditingReport" asp-action="AuditingReportAction">Auditing Report</a>
+                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="HardwareReport">Hardware Report</a>
+                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report Daily(POC)</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report Monthly(POC)</a>
+                                
+                                
                             </div>
-                        </li>     
-
+                        </li>   *@   
                         <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Management
