@@ -9,6 +9,8 @@
 
         public string TerminalName { get; set; }
 
+        public string TerminalType { get; set; }
+
         public string FileName { get; set; }
 
         public string FileContent { get; set; }

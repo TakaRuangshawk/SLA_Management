@@ -239,6 +239,19 @@
                 </div>
 
                 <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-2" >
+                        <h>TerminalType : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+
+                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+
+
+                        </div>
+                    </div>
                     <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>

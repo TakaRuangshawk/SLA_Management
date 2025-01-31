@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using SLA_Management.Data.TermProb;
+using System.Linq;
 
 namespace SLA_Management.Controllers
 {
@@ -1368,6 +1369,7 @@ namespace SLA_Management.Controllers
                                                                 ID = GenerateUniqueID(),
                                                                 SerialNo = filteredRecordsTemp.TERM_SEQ,
                                                                 TerminalName = filteredRecordsTemp.TERM_NAME,
+                                                                TerminalType = filteredRecordsTemp.COUNTER_CODE,
                                                                 FileName = fileDay.Name,
                                                                 FileContent = "",
                                                                 TerminalID = terminal,
@@ -1428,12 +1430,25 @@ namespace SLA_Management.Controllers
 
 
 
-                var filteredRecords = device_Info_Records
+
+
+                var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
+
+
+                var item = new List<string> { "All" };
+
+
+                ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
+
+
+
+                List<Device_info_record> filteredRecords = device_Info_Records
                         .Where(device => terminals.Contains(device.TERM_ID))
                         .ToList();
 
                 ViewBag.CurrentTID = filteredRecords;
                 ViewBag.TermID = TermID;
+
 
 
 
@@ -1473,6 +1488,22 @@ namespace SLA_Management.Controllers
 
                 //}
 
+                if (journalListResult.Count > 0)
+                {
+
+                    if (terminalType != null)
+                    {
+                        journalListResult = journalListResult.Where(z => z.TerminalType.Contains(terminalType)).OrderBy(x => x.FileName).ToList();
+                    }
+                    else
+                    {
+                        journalListResult = journalListResult.OrderBy(x => x.FileName).ToList();
+                    }
+
+
+                }
+
+
 
                 if (null == journalListResult || journalListResult.Count <= 0)
                 {
@@ -1506,13 +1537,7 @@ namespace SLA_Management.Controllers
                 }
                 #endregion
 
-                if (journalListResult.Count > 0)
-                {
-
-                    journalListResult = journalListResult.OrderBy(x => x.FileName).ToList();
-
-                }
-
+               
 
 
             }
@@ -1559,7 +1584,7 @@ namespace SLA_Management.Controllers
 
         private static string GetFileContentFromSFTP(string path)
         {
-            // ตั้งค่าการเชื่อมต่อ SFTP
+           
             string host = "10.98.10.31";
             string username = "root";
             string password = "P@ssw0rd";
@@ -1568,7 +1593,7 @@ namespace SLA_Management.Controllers
             {
                 try
                 {
-                    sftp.Connect(); // เชื่อมต่อ SFTP
+                    sftp.Connect(); 
                     if (!sftp.Exists(path))
                     {
                         return $"Error: File '{path}' not found on the server.";
@@ -1576,19 +1601,19 @@ namespace SLA_Management.Controllers
 
                     var fileContent = string.Empty;
 
-                    // อ่านเนื้อหาของไฟล์จาก SFTP server โดยใช้ path ที่ได้รับ
+                  
                     using (var fileStream = new MemoryStream())
                     {
-                        sftp.DownloadFile(path, fileStream); // โหลดไฟล์ลง MemoryStream
+                        sftp.DownloadFile(path, fileStream); 
                         fileStream.Position = 0;
 
                         using (var reader = new StreamReader(fileStream))
                         {
-                            fileContent = reader.ReadToEnd(); // อ่านเนื้อหาของไฟล์
+                            fileContent = reader.ReadToEnd(); 
                         }
                     }
 
-                    return fileContent; // คืนค่าข้อมูลไฟล์
+                    return fileContent; 
                 }
                 catch (Exception ex)
                 {
@@ -1596,7 +1621,7 @@ namespace SLA_Management.Controllers
                 }
                 finally
                 {
-                    sftp.Disconnect(); // ตัดการเชื่อมต่อเมื่อเสร็จ
+                    sftp.Disconnect(); 
                 }
             }
         }
