@@ -1,0 +1,945 @@
+﻿@using System.Globalization;
+@model PagedList.IPagedList<SLA_Management.Models.Monitor.LogAnalysisModel>
+
+@{
+    ViewData["Title"] = "Log Analysis Monitor";
+    string[] tableHeaders = new string[]{
+    "Category",
+    "Sub Category",
+    "Total Cases"
+    };
+    string[] tableHeaders1 = new string[]{
+    "Action",
+    "Serial No.",
+    "Terminal ID",
+    "Terminal Name",
+    "Counter Code",
+    "Incident Date",
+    "Category",
+    "Sub Category",
+    "Analysis Information 02",
+    "Inform By"
+    };    
+  }
+
+  <style>
+      #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+      #main_search {
+        margin-bottom: 50px;
+        padding: 30px 3vw 30px 3vw;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+    
+    .item {
+        padding: 0px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+  </style>
+  
+  <div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Log Analysis Monitor</a>
+            </div>
+        </div>
+
+
+        <div id="main_search">
+            @using (Html.BeginForm("LogAnalysis", "Monitor", FormMethod.Get, new { id = "CheckDate" }))
+            {
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                            new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                            new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                            }, 
+                            new{
+                                @class = "form-control dropdown",
+                                @style = " border-radius: 10px;",
+                                @name = "state",
+                            })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>                            
+                    </div>    
+
+                 </div>
+                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                        <div class="col-2" style="">
+                            <h>Terminal : </h>
+                        </div>
+
+                        <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                            <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-2" style="">
+                            <h>From Date : </h>
+                        </div>
+                        <div class="col-2 " style="padding:0; ">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
+                            </div>
+                        </div>
+                        <div class="col-2" style="">
+                            <h>To Date : </h>
+                        </div>
+                        <div class="col-2" style="padding:0;">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row " style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                        <div class="col-2" style="">
+                            <h>Category : </h>
+                        </div>
+                        <div class="col-2" style="padding:0px;">
+                            <div class="form-group">
+                            @Html.DropDownList("categoryType", ViewBag.category as SelectList, "--", new { @class = "form-control" })
+                            </div>
+                        </div>
+                        <div class="col-2" style="">
+                            <h>Counter Code : </h>
+                        </div>
+
+                        <div class="col-2" style="padding:0px;">
+                            <div class="form-group">
+                            @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <div class="col-2" style="">
+                            <h>Rows : </h>
+                        </div>
+
+                        <div class="col-2" style="padding:0px;">
+                            <div class="form-group">
+                            @Html.DropDownList("maxRows", new SelectListItem[] {
+                            new SelectListItem(){ Text="50", Value = "50" },
+                            new SelectListItem(){ Text="100", Value = "100"  },
+                            new SelectListItem(){ Text="500", Value = "500"  },
+                            new SelectListItem(){ Text="1000", Value = "1000"  }
+                            }, 
+                            new{
+                                @class = "form-control dropdown",
+                                @style = " border-radius: 10px;",
+                                @name = "state"
+                                })
+                         </div>
+                      </div>
+                    </div>   
+
+                    <div class="row">
+                        <div class="col" id="before-submit">
+                            <div id="submit">
+                                <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                                    <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                                </button>
+
+                                    <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="clearButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                    <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                                </button>
+                                <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                    <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                                </a>
+
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+                                    Add Ticket Information
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+            }
+        </div>
+    </div>
+    <div class="container-fluid d-flex justify-content-center">
+       <div class="table-responsive" style="overflow-x: hidden;">
+          <table id="headertable-id" class="table table-striped custom-table">
+              <thead>
+                  <tr>
+                        @{
+                            foreach (var head in tableHeaders)
+                            {
+                                <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+                  </tr>
+              </thead>
+                @{
+                    var totalCaseData = ViewBag.TotalCaseData as List<SLA_Management.Models.Monitor.TotalCase_record>;
+                }
+              <tbody>
+                    @if (totalCaseData != null && totalCaseData.Any())
+                    {
+                        @foreach (var Data in totalCaseData)
+                        {
+                                <tr>
+                                    <td style="text-align:center;"> @Data.incident_name </td>
+                                    <td style="text-align:center;"> @Data.analyst_01 </td>
+                                    <td style="text-align:center;"> @Data.TotalCount </td>
+                                </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" style="text-align: center;"> NO DATA </td>
+                        </tr>
+                    }
+              </tbody>
+          </table>
+      </div>     
+
+  </div>
+    <div class="container-fluid">
+        <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@ViewBag.Records</a>
+            </div>
+        </div>
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="table-id" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in tableHeaders1)
+                            {
+                                <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        if (Model != null)
+                        {
+                            foreach (var Data in Model)
+                            {
+                                <tr>
+                                   <td style="text-align: center;">
+                                         <img class="btn text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.Incident_No','@Data.Terminal_ID','@Data.Terminal_SEQ','@Data.Terminal_NAME','@Data.Category','@Data.Incident_Date','@Data.SubCategory','@Data.Analyst_Info','@Data.Inform_By')"
+                                        data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;" src="~/images/button_view.png" />
+                                   </td>
+                                    <td style="text-align:center;"> @Data.Terminal_SEQ </td>
+                                    <td style="text-align:center;"> @Data.Terminal_ID </td>
+                                    <td style="text-align:center;"> @Data.Terminal_NAME </td>
+                                    <td style="text-align:center;"> @Data.Counter_Code </td>                                    
+                                    <td style="text-align:center;"> @Convert.ToDateTime(Data.Incident_Date).ToString("dd/MM/yyyy") </td>  
+                                    <td style="text-align:center;"> @Data.Category</td>
+                                    <td style="text-align:center;"> @Data.SubCategory </td>
+                                    <td style="text-align:center;"> @Data.Analyst_Info </td>
+                                    <td style="text-align:center;"> @Data.Inform_By </td>
+                                </tr>               
+                            }
+                        }
+                        if (Model.Count == 0)
+                        {
+                            <td colspan="11" style="text-align: center;"> NO DATA </td>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="row">
+                <div class="col colPagination" style="padding-top:10px;z-index:1;">
+                    <nav>
+                        <div class="pagination">
+                            <li data-page="prev" id="back" style="background-color:transparent;">
+                                <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
+                            </li>
+                            
+                            <li data-page="next" id="prev" style="background-color:transparent;">
+                                <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
+                            </li>
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-md-2" style="z-index:2;">
+                    <p style="font-size:16px;font-weight:bolder;">
+                        Select page :
+                        @Html.DropDownList("seletePageNow", new SelectListItem[] {
+                        }, 
+                        new
+                        {
+                            @class = "form-control"
+                        })
+                                                        
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog modal-xl" style="max-width: 1300px;">
+        <div class="modal-content">
+            <div class="container" style="padding: 0;  max-width: 1400px;">
+                <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                    <div class="col-md-12 modelTopic" id="topic_term" style="    background: orange;">
+                        <div class="text-left align-middle" style="font-size:20px; background-color:orange;">
+                            Ticket Information
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="bankCode" id="bankCode" value="@ViewBag.BankCode" />
+                <div class="row" style="padding-top:20px;">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2 modelTopic">
+                        <label for="terminalId">Terminal ID</label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-3 modelTextbox">
+                        <select class="selectpicker form-control subsearch" id="TermIDModal" name="TermIDModal" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                }
+                        </select>
+                    </div>
+                </div>
+                <div class="row" >
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2 modelTopic">
+                    <label for="addCategory">Category </label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-8 modelTextbox">
+                        @Html.TextBox("addCategory", null, new { @class = "w-100 form-control", })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-2 modelTopic">
+                        <label for="addIncidentDate">Incident Date </label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-3 modelTextbox">
+                        @Html.TextBox("addIncidentDate", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @class = "w-100 form-control", @type = "date" })
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2 modelTopic">
+                        <label for="addSubCategory">Analysis Information 01 </label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-8 modelTextbox">
+                         @Html.TextBox("addSubCategory", null, new { @class = "w-100 form-control" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2 modelTopic">
+                        <label for="addAnalystInfo2">Analysis Information 02 </label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-8 modelTextbox">
+                         @Html.TextBox("addAnalystInfo2", null, new { @class = "w-100 form-control" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-2 modelTopic">
+                        <label for="addInform">Inform By </label>&nbsp;:&nbsp;
+                    </div>
+                    <div class="col-md-8 modelTextbox">
+                         @Html.TextBox("addInform", null, new { @class = "w-100 form-control editable" })
+                    </div>
+                </div>
+                <div class="row" style="margin: 15px;">
+                    <div class="col-6"></div>
+                    <div class="col-6" style="display: flex;justify-content: flex-start;">
+                        <img id="saveTicket" src="~/images/save.png" style="width: 100px;height: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+   </div>
+</div>
+@using (Html.BeginForm("LogAnalysis", "Monitor", FormMethod.Get, new { id = "UpdateData" }))
+{
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-xl" style="max-width: 1300px;">
+            <div class="modal-content">
+                <div class="container" style="padding: 0;  max-width: 1400px;">                   
+                    <div class="row" style="padding: 0; margin:0; background-color:lightgray;">
+                        <div class="col-md-12 modelTopic" id="topic_term" style="    background: orange;">
+                            <div class="text-left align-middle" style="font-size:20px; background-color:orange;">
+                                Ticket Information
+                            </div>
+                        </div>
+                    </div> 
+                    <input type="hidden" name="BankCode" id="BankCode" value="@ViewBag.BankCode" />
+                    <div class="row" style="padding-top:15px;">
+                        <div class="col-md-1"></div>
+                                <div class="col-md-3 modelTextbox" id="incidentNoField">
+                                    @Html.TextBox("Incident_No", ViewBag.Incident_No as string, new { @class = "w-100 form-control", @readonly = "true" })
+                                </div>
+
+                            <div class="col-md-2 modelTopic">
+                                <label for="Terminal_ID">Terminal ID </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Terminal_ID", ViewBag.Terminal_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Terminal_SEQ">Serial No </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("Terminal_SEQ", ViewBag.Terminal_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                    </div>
+                    <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Terminal_NAME">Terminal Name </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                                @Html.TextBox("Terminal_NAME", ViewBag.Terminal_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
+                    </div>                    
+                    <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Category">Category </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                                @Html.TextBox("Category", ViewBag.Category as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Incident_Date">Incident Date </label>&nbsp;:&nbsp;
+                            </div>
+                        <div class="col-md-3 modelTextbox">                                                 
+                            @Html.TextBox("Incident_Date", ViewBag.Incident_Date as String, new { @class = "w-100 form-control editable", @readonly = "true", @type = "date" })
+                        </div>                           
+                    </div>
+                    <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="SubCategory">Analysis Information 01 </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("SubCategory", ViewBag.SubCategory as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                    </div>
+                    <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Analyst_Info">Analysis Information 02 </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("Analyst_Info", ViewBag.Analyst_Info as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                    </div>
+                    <div class="row">
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="Inform_By">Inform By </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-8 modelTextbox">
+                                @Html.TextBox("Inform_By", ViewBag.Inform_By as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                            </div>
+                    </div>
+                    <div class="row" style="margin: 15px;">
+                            <div class="col-6" style="display: flex;justify-content: flex-end;">
+                                <img src="~/images/edit.png" style="width: 100px;height: auto;">
+                            </div>
+                            <div class="col-6" style="display: flex;justify-content: flex-start;">
+                                <img id="saveButton" src="~/images/save.png" style="width: 100px;height: auto;">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+}
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>   
+<script>
+     $(document).ready(function () {
+        $('#saveButton').click(function () {  
+            var bankCode = $('#bankName').val();
+            var incidentNo = $('#Incident_No').val();
+            var terminalId = $('#Terminal_ID').val();
+            var terminalSeq = $('#Terminal_SEQ').val();
+            var terminalName = $('#Terminal_NAME').val();
+            var category = $('#Category').val();
+            var incidentDate = $('#Incident_Date').val();
+            var subCategory = $('#SubCategory').val();
+            var analystInfo = $('#Analyst_Info').val();
+            var informBy = $('#Inform_By').val();          
+            var confirmationMessage = "Are you sure you want to update the data?";
+        if (confirm(confirmationMessage)) {
+        $.ajax({
+            url: '@Url.Action("UpdateLogAnalysis", "Monitor")',
+            type: 'POST',
+            dataType: "json",
+            data: {
+                BankCode: bankCode,
+                Incident_No : incidentNo,
+                Terminal_ID: terminalId,
+                Terminal_SEQ: terminalSeq,
+                Terminal_NAME: terminalName,
+                Category: category,
+                Incident_Date : incidentDate,
+                SubCategory : subCategory,
+                Analyst_Info : analystInfo,
+                Inform_By : informBy
+            },  
+            success: function (response) {
+                alert('Update Status : ' +  response.message);
+                location.reload();
+
+            },
+            error: function (xhr, status, error) {
+                alert('Error updating data:', error);
+            }
+
+        });
+        }
+    });
+
+});
+$(document).ready(function () {
+        $('img[src$="/images/edit.png"]').on('click', function () {
+            $('#myModal').find('.editable').removeAttr('readonly');
+        });
+    });
+
+    function EditButton(Incident_No,Terminal_ID, Terminal_SEQ, Terminal_NAME, Category, Incident_Date, SubCategory, Analyst_Info, Inform_By) {
+        document.getElementById('Incident_No').value = Incident_No;
+        document.getElementById("incidentNoField").style.display = "none";
+        document.getElementById('Terminal_ID').value = Terminal_ID;
+        document.getElementById('Terminal_SEQ').value = Terminal_SEQ;
+        document.getElementById('Terminal_NAME').value = Terminal_NAME;
+        document.getElementById('Category').value = Category;
+        document.getElementById('Incident_Date').value = Incident_Date;
+        document.getElementById('SubCategory').value = SubCategory;
+        document.getElementById('Analyst_Info').value = Analyst_Info;
+        document.getElementById('Inform_By').value = Inform_By;        
+    }
+</script>
+
+<script>
+
+    document.getElementById("boxDownload").style.display = "none";
+    $("#btnsearch").click(function (e) 
+    {
+         e.preventDefault();
+
+             $("#boxDownload").show();
+
+             setTimeout(function () 
+             {
+                 $("#CheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
+
+     });
+
+     $(document).ready(function () 
+     {
+        // Target the specific table
+        var table = $('#table-id'); 
+
+        table.find('tr:eq(0)').prepend('<th>No</th>');
+
+        var id = 0;
+        var count = @Model.Count;
+
+        table.find('tr:gt(0)').each(function () 
+        {
+            id++;
+            if (count != 0) 
+            {
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
+            }
+        });
+    });  
+
+      $("#btnclear").click(function (e) {
+        e.preventDefault();
+        document.querySelector('[name="FrDate"]').value = "";
+        document.querySelector('[name="ToDate"]').value = "";
+
+        $("#boxDownload").show();
+
+        setTimeout(function () {
+            $("#CheckDate").submit();
+        }, 100);
+       });
+
+      $("#CheckDate").submit(async function (e) {
+            e.preventDefault();
+
+            var FrDateTemp = new Date($('#FrDate').val());
+            var ToDateTemp = new Date($('#ToDate').val());
+
+            if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+                alert("'From date' (" + FrDateTemp.toISOString().split('T')[0] + ") should be less than 'To date' (" + ToDateTemp.toISOString().split('T')[0] + "). Please check again!");
+                $("#boxDownload").hide();
+            } else {
+                this.submit();
+            }
+       });                     
+
+    $("#saveTicket").click(function (e) {
+
+            e.preventDefault();
+            var bank = $("#bankCode").val();
+            var category = $("#addCategory").val();
+            var date = $("#addIncidentDate").val();
+            var termID = $("#TermIDModal").val();
+            var anaInform1 = $("#addSubCategory").val();
+            var anaInform2 = $("#addAnalystInfo2").val();
+            var inform = $("#addInform").val();
+            if(!termID)
+            {
+                alert("Please select Terminal Id.");
+                return;
+            }
+            $.ajax({
+            type: "POST",
+            url: '@Url.Action("InsertTicketInfo", "Monitor")',
+            data: {
+                bankCode: bank,
+                addCategory: category,
+                addIncidentDate: date,
+                terminalId: termID,
+                addSubCategory: anaInform1,
+                addAnalystInfo2: anaInform2,
+                addInform: inform
+            },
+
+            success: function (result) {
+
+                if (result.success) {
+                    alert('Add Status : ' +result.message);
+                    location.reload();
+
+                } else {
+
+                    alert('Data Insert Failed!');
+                }
+            }
+
+        });
+
+    });
+
+    
+
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+        var bankCode = $("#bankName").val();
+        var terminalId = $("#TermID").val();
+        var fromdate = $("#FrDate").val();
+        var todate = $("#ToDate").val();  
+        var category = $("#categoryType").val();
+        var countercode = $("#counterCode").val(); 
+        var rptType = "xlsx";
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: {
+                BankCode : bankCode,
+                Terminal_ID: terminalId,
+                FromDate: fromdate,
+                ToDate: todate,
+                Category: category,
+                Counter_Code : countercode
+            },  
+            url: '@Url.Action("LogAnalysis_ExportExc", "Monitor")',
+            success: function (result) {
+                if (result.success == 'S') {
+
+                    var url = '@Url.Action("LogAnalysis_DownloadExportFile", "Monitor")'
+                    window.location = '@Url.Action("LogAnalysis_DownloadExportFile", "Monitor")/?rpttype=' + rptType;
+
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+        $("#boxDownload").hide();
+    });
+
+    
+    
+
+    getPagination('#table-id', @ViewBag.maxRows);
+
+    function getPagination(table, row) {
+         var lastPage = 1;
+
+         $('#maxRows')
+             .on('change', function (evt) {
+                 $('.paginationprev').html('');
+
+                 lastPage = 1;
+                 $('.pagination')
+                     .find('li')
+                     .slice(1, -1)
+                     .remove();
+                 var trnum = 0;
+                 var maxRows = parseInt($(this).val());
+
+                 if (maxRows == 5000) {
+                     $('.pagination').hide();
+                 } else {
+                     $('.pagination').show();
+                 }
+
+                 var totalRows = $(table + ' tbody tr').length; 
+                 $(table + ' tr:gt(0)').each(function () {
+                     trnum++; 
+                     if (trnum > maxRows) {
+                         $(this).hide();
+                     }
+                     if (trnum <= maxRows) {
+                         $(this).show();
+                     } 
+                 }); 
+                 if (totalRows > maxRows) {
+                     var pagenum = Math.ceil(totalRows / maxRows);
+
+                     for (var i = 1; i <= pagenum;) {
+                         $('.pagination #prev')
+                             .before(
+                                 '<li data-page="' +
+                                 i +
+                                 '">\
+                                    <a style="color: #333333;">' +
+                                 i++ +
+                                 '\
+                                 </li>'
+                             )
+                             .show();
+                     } 
+                     $('#back').show();
+
+
+
+                 } else {
+                     $('#back').hide();
+                     $('#prev').hide();
+                 }
+
+                 $('.pagination [data-page="1"]').addClass('active'); 
+                 $('.pagination li').on('click', function (evt) {
+                     // on click each page
+                     evt.stopImmediatePropagation();
+                     evt.preventDefault();
+                     var pageNum = $(this).attr('data-page'); 
+
+                     var maxRows = parseInt($('#maxRows').val()); 
+
+
+
+                     if (pageNum == 'prev') {
+                         if (lastPage == 1) {
+                             return;
+                         }
+                         pageNum = --lastPage;
+                     }
+                     if (maxRows < totalRows) {
+                         if (pageNum == 'next') {
+                             if (lastPage == $('.pagination li').length - 2) {
+                                 return;
+                             }
+                             pageNum = ++lastPage;
+                         }
+                     }
+
+
+                     lastPage = pageNum;
+                     var trIndex = 0; 
+                     $('.pagination li').removeClass('active'); 
+                     $('.pagination [data-page="' + lastPage + '"]').addClass('active'); 
+                     limitPagging();
+                     $(table + ' tr:gt(0)').each(function () {
+                         trIndex++;
+                         if (
+                             trIndex > maxRows * pageNum ||
+                             trIndex <= maxRows * pageNum - maxRows
+                         ) {
+                             $(this).hide();
+                         } else {
+                             $(this).show();
+                         } 
+                     }); 
+
+                     $('#seletePageNow').val(lastPage);
+                 }); 
+
+                 limitPagging();
+                     $('#seletePageNow')
+                         .find('option')
+                         .remove()
+                         .end();
+
+                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
+
+                 var select = document.getElementById("seletePageNow");
+                 for (var i = parseInt(pagenum); i > 0; i--) {
+                     var option = document.createElement('option');
+                     option.text = option.value = i;
+                     select.add(option, 0);
+                 }
+
+                 $('#seletePageNow').val(lastPage);
+
+             })
+             .val(row)
+             .change();
+
+             $('#seletePageNow')
+             .on('change', function (evt) {
+                 // on click each page
+                 evt.stopImmediatePropagation();
+                 evt.preventDefault();
+                 var maxRows = parseInt($('#maxRows').val()); 
+
+                 var pageNum = $(this).val();
+
+                 if (pageNum == null) pageNum = 1;
+
+                 lastPage = pageNum;
+                 var trIndex = 0; 
+                 $('.pagination li').removeClass('active'); 
+                 $('.pagination [data-page="' + lastPage + '"]').addClass('active');		
+                 limitPagging();
+                 $(table + ' tr:gt(0)').each(function () {                    
+                     trIndex++; 
+                     if (
+                         trIndex > maxRows * pageNum ||
+                         trIndex <= maxRows * pageNum - maxRows
+                     ) {
+                         $(this).hide();
+                     } else {
+                         $(this).show();
+                     } 
+                 }); 
+             }).change();
+          document.getElementById("boxDownload").style.display = "none";
+     }
+
+     function limitPagging() {
+
+         if ($('.pagination li').length > 7) {
+             if ($('.pagination li.active').attr('data-page') <= 3) {
+                 $('.pagination li:gt(5)').hide();
+                 $('.pagination li:lt(5)').show();
+                 $('.pagination [data-page="next"]').show();
+             } if ($('.pagination li.active').attr('data-page') > 3) {
+                 $('.pagination li:gt(0)').hide();
+                 $('.pagination [data-page="next"]').show();
+                 for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                     $('.pagination [data-page="' + i + '"]').show();
+
+                 }
+             }
+         }
+     }
+      
+</script>
+
+
+    

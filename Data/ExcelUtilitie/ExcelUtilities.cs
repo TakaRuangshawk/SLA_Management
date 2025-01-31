@@ -1,5 +1,6 @@
 ﻿
 using OfficeOpenXml;
+using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.ReportModel;
@@ -1408,6 +1409,79 @@ namespace SLA_Management.Data.ExcelUtilitie
             }
         }
         
+        #endregion
+    }
+    public class ExcelUtilities_LogAnalysis
+    {
+        #region  Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Contractor
+
+        public ExcelUtilities_LogAnalysis() { }
+
+        #endregion
+
+        #region Function 
+        public void LogAnalysisExcelOutput(List<LogAnalysisModel> objData)
+        {
+            int nStartRowData = 2;
+            int nSeq = 1;
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                // Path to the Excel template
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\LogAnalysis.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    var oWorkbook = oPackage.Workbook;
+
+                    var excelWorksheet = oWorkbook.Worksheets.FirstOrDefault(ws => ws.Name == "Sheet1");
+                    if (excelWorksheet == null)
+                    {
+                        excelWorksheet = oWorkbook.Worksheets.Add("Log Analysis");
+                    }
+                    else
+                    {
+                        excelWorksheet.Name = "Log Analysis";
+                    }
+
+                    foreach (LogAnalysisModel data in objData)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = data.Terminal_SEQ;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = data.Terminal_ID;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = data.Terminal_NAME;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = data.Category;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = data.TotalCase;
+                        nStartRowData++;
+                        nSeq++;
+                    }
+                    excelWorksheet.Cells.AutoFitColumns();
+
+                    // Save the modified Excel file
+                    var outputFilePath = Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "LogAnalysis.xlsx");
+                    oPackage.SaveAs(new FileInfo(outputFilePath));
+                    FileSaveAsXlsxFormat = "LogAnalysis.xlsx";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error while exporting log analysis output.", ex);
+            }
+        }
+
         #endregion
     }
 

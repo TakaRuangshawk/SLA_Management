@@ -9,15 +9,18 @@ using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data.HealthCheck;
+using SLA_Management.Data.Monitor;
 using SLA_Management.Data.RecurringCasesMonitor;
 using SLA_Management.Data.TermProb;
 using SLA_Management.Models;
+using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.TermProbModel;
 using System;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using static SLA_Management.Controllers.MaintenanceController;
 using static SLA_Management.Controllers.ReportController;
@@ -37,6 +40,7 @@ namespace SLA_Management.Controllers
         private static List<HealthCheckModel> healthCheck_dataList = new List<HealthCheckModel>();
         RecurringCasesMonitorViewModel vm = new RecurringCasesMonitorViewModel();
         RecurringCasesDataContext dbContext;
+        private static List<LogAnalysisModel> logAnalysis_dataList = new List<LogAnalysisModel>();
 
 
         #region export transaction parameter
@@ -2137,6 +2141,468 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+
+        #region LogAnalysisMonitor
+        [HttpGet]
+
+        public IActionResult LogAnalysis(string bankName, string TermID, string FrDate, string ToDate, string FrTime, string ToTime, string counterCode, string currTID, string clearButton,
+            int? page, string currFr, string currTo, string currFrTime, string currToTime, string categoryType, string lstPageSize, string currPageSize, string maxRows)
+        {
+            List<LogAnalysisModel> recordset = new List<LogAnalysisModel>();
+            DBService_LogAnalysis dBService;
+            if (bankName == null) bankName = "BAAC";
+
+            switch (bankName)
+            {
+                case "BAAC":
+                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac") ?? "");
+                    break;
+                case "ICBC":
+                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc") ?? "");
+                    break;
+                case "BOC":
+                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct") ?? "");
+                    break;
+                default:
+                    dBService = new DBService_LogAnalysis(_myConfiguration);
+                    break;
+            }
+
+            logAnalysis_dataList.Clear();
+            int pageNum = 1;
+
+            try
+            {
+                if (DBService.CheckDatabase())
+                {
+                    recordset = dBService.FetchAllData(TermID, FrDate + " 00:00:00", ToDate + " 23:59:59", categoryType, counterCode);
+
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfo();
+                var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Where(x => !string.IsNullOrEmpty(x)).Distinct();
+                var item = new List<string> { "ALL" }.Concat(additionalItems).ToList();
+                ViewBag.counterCode = new SelectList(item.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                List<Sisbu_analysis_record> sisbu_Analysis_Records = dBService.GetCategory();
+                var additionalCategory = sisbu_Analysis_Records.Select(x => x.incident_name).Distinct();
+                var categoryitem = new List<string> { "ALL" }.Concat(additionalCategory).ToList();
+                ViewBag.category = new SelectList(categoryitem.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+
+                List<TotalCase_record> TotalCase_Records = dBService.FetchTotalCaseData(TermID, FrDate + " 00:00:00", ToDate + " 23:59:59", categoryType, counterCode);
+                ViewBag.TotalCaseData = TotalCase_Records;
+                ViewBag.incident_name = TotalCase_Records.Select(x => x.incident_name);
+                ViewBag.analyst_01 = TotalCase_Records.Select(x => x.analyst_01);
+                ViewBag.TotalCount = TotalCase_Records.Select(x => x.TotalCount);
+
+
+                ViewBag.CurrentTID = device_Info_Records;
+
+
+                ViewBag.TermID = TermID;
+                ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+                ViewBag.BankCode = bankName;
+
+                #region Set param
+                bool chk_date = false;
+                if (null == TermID)
+                    param.TERMID = currTID == null ? "" : currTID;
+                else
+                    param.TERMID = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
+                }
+                else
+                {
+                    if ((FrTime == "" && currFrTime == "") || (FrTime == null && currFrTime == null) ||
+                        (FrTime == null && currFrTime == "") || (FrTime == "" && currFrTime == null))
+                        param.FRDATE = FrDate + " 00:00:00";
+                    else
+                        param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    if ((ToTime == "" && currToTime == "") || (ToTime == null && currToTime == null) ||
+                        (ToTime == null && currToTime == "") || (ToTime == "" && currToTime == null))
+                        param.TODATE = ToDate + " 23:59:59";
+                    else
+                        param.TODATE = ToDate + " " + ToTime;
+                }
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+                #endregion
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+                if (recordset.Count > 0)
+                {
+                    if (bankName == "BAAC")
+                    {
+                        switch (counterCode)
+                        {
+                            case "LOT572":
+                                recordset.RemoveAll(item => item.Counter_Code == "LOT587");
+                                break;
+                            case "LOT587":
+                                recordset.RemoveAll(item => item.Counter_Code == "LOT572");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    if (TermID != null)
+                    {
+                        recordset.RemoveAll(item => item.Terminal_ID != TermID);
+                    }
+
+                }
+
+                if (null == recordset || recordset.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = recordset.Count;
+                    logAnalysis_dataList = recordset;
+                    param.PAGESIZE = recordset.Count;
+                }
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = recordset.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    recordset.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching data.", ex);
+            }
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
+        }
+
+        [HttpPost]
+        public ActionResult LogAnalysis_ExportExc(LogAnalysisModel model)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string filterquery = string.Empty;
+
+            try
+            {
+                string bankCode = model.BankCode;
+                string terminalId = model.Terminal_ID;
+                string fromDate = model.FromDate;
+                string toDate = model.ToDate;
+                string category = model.Category;
+                string countercode = model.Counter_Code;
+
+                if (!string.IsNullOrEmpty(terminalId))
+                {
+                    filterquery += " a.TERM_ID LIKE '" + terminalId + "' AND";
+                }
+                if (!string.IsNullOrEmpty(category))
+                {
+                    filterquery += " a.incident_name LIKE '" + category + "' AND";
+                }
+
+                if (!string.IsNullOrEmpty(countercode))
+                {
+                    filterquery += " b.COUNTER_CODE LIKE '" + countercode + "' AND";
+                }
+
+                if (!string.IsNullOrEmpty(fromDate) && !string.IsNullOrEmpty(toDate))
+                {
+                    filterquery += " (STR_TO_DATE(a.incident_date, '%Y-%m-%d') between '" + fromDate + "' and '" + toDate + "')";
+                }
+                else
+                {
+                    filterquery += " a.incident_date IS NULL";
+                }
+
+                List<LogAnalysisModel> jsonData = new List<LogAnalysisModel>();
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankCode)))
+                {
+                    connection.Open();
+
+                    string query = @"SELECT DISTINCT b.TERM_SEQ, a.TERM_ID, b.TERM_NAME,b.COUNTER_CODE, 
+                    a.incident_name, CONVERT(COUNT(a.incident_name), CHAR) AS TotalCase                     
+                    FROM sisbu_analysis a
+                    INNER JOIN device_info b
+                    ON a.TERM_ID = b.TERM_ID                    
+                    WHERE ";
+
+                    query += filterquery + " GROUP BY b.TERM_SEQ, a.TERM_ID, b.TERM_NAME,b.COUNTER_CODE,a.incident_name;";
+
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            jsonData.Add(new LogAnalysisModel
+                            {
+                                Terminal_SEQ = reader["TERM_SEQ"].ToString() ?? "",
+                                Terminal_ID = reader["TERM_ID"].ToString() ?? "",
+                                Terminal_NAME = reader["TERM_NAME"].ToString() ?? "",
+                                Category = reader["incident_name"].ToString() ?? "",
+                                TotalCase = reader["TotalCase"].ToString() ?? "",
+                            });
+                        }
+                    }
+                }
+
+                logAnalysis_dataList = jsonData;
+
+                if (jsonData.Count == 0)
+                {
+                    return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                }
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_LogAnalysis obj = new ExcelUtilities_LogAnalysis();
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                // Generate the Excel file
+                obj.LogAnalysisExcelOutput(logAnalysis_dataList);
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+                fname = "LogAnalysis_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+        [HttpGet]
+        public ActionResult LogAnalysis_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            try
+            {
+                fname = "LogAnalysis_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateLogAnalysis(UpdateLogAnalysis model)
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + model.BankCode)))
+                {
+                    connection.Open();
+
+                    string query = @"UPDATE sisbu_analysis 
+                        SET 
+                        incident_name = @Category,
+                        incident_date = @Incident_Date, 
+                        analyst_01 = @SubCategory, 
+                        analyst_02 = @Analyst_Info, 
+                        inform_by = @Inform_By,   
+                        update_date = @Update_date,
+                        update_by = @Update_by
+                        WHERE TERM_ID = @Terminal_ID AND incident_no = @Incident_No";
+
+                    using (var cmd = new MySqlCommand(query, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@Category", model.Category ?? "");
+                        if (DateTime.TryParse(model.Incident_Date, out DateTime incidentDate))
+                        {
+                            cmd.Parameters.AddWithValue("@Incident_Date", incidentDate.ToString("yyyy-MM-dd"));
+                        }
+                        cmd.Parameters.AddWithValue("@SubCategory", model.SubCategory ?? "");
+                        cmd.Parameters.AddWithValue("@Analyst_Info", model.Analyst_Info ?? "");
+                        cmd.Parameters.AddWithValue("@Inform_By", model.Inform_By ?? "");
+                        cmd.Parameters.AddWithValue("@Terminal_ID", model.Terminal_ID ?? "");
+                        cmd.Parameters.AddWithValue("@Update_date", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@Update_by", "System");
+                        cmd.Parameters.AddWithValue("@Incident_No", model.Incident_No ?? "");
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Json(new { success = true, message = "Data updated successfully." });
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "No data found." });
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult InsertTicketInfo(string bankCode, string addCategory, string addIncidentDate, string terminalId, string addSubCategory, string addAnalystInfo2, string addInform)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankCode)))
+                {
+                    connection.Open();
+                    int incident_no = 0;
+                    string query = "SELECT MAX(incident_no) as incident_no from sisbu_analysis";
+                    using (var cmd = new MySqlCommand(query, connection))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                incident_no = Convert.ToInt32(reader["incident_no"]);
+                            }
+                        }
+                    }
+                    string insertQuery = "INSERT INTO sisbu_analysis(incident_no,incident_name,incident_date,term_id,analyst_01,analyst_02,inform_by,update_date,update_by)" +
+                        "values (@incident_no,@addCategory,@addIncidentDate,@terminalId,@addSubCategory,@addAnalystInfo2,@addInform,@updateDate,@updateBy)";
+                    using (var cmd = new MySqlCommand(insertQuery, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@incident_no", incident_no + 1);
+                        cmd.Parameters.AddWithValue("@addCategory", addCategory);
+                        cmd.Parameters.AddWithValue("@addIncidentDate", addIncidentDate);
+                        cmd.Parameters.AddWithValue("@terminalId", terminalId);
+                        cmd.Parameters.AddWithValue("@addSubCategory", addSubCategory);
+                        cmd.Parameters.AddWithValue("@addAnalystInfo2", addAnalystInfo2);
+                        cmd.Parameters.AddWithValue("@addInform", addInform);
+                        cmd.Parameters.AddWithValue("@updateDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@updateBy", "System");
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                ViewBag.SuccessMessage = "Data Insert Successfully.";
+            }
+            catch
+            {
+                ViewBag.SuccessMessage = "Insert Fail!";
+            }
+
+            return Json(new { success = true, message = ViewBag.SuccessMessage });
+        }
+
+        #endregion
+
 
     }
 }
