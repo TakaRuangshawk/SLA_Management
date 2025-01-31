@@ -71,7 +71,7 @@ namespace SLA_Management.Data.Monitor
 
             try
             {
-                _sql = @"SELECT b.TERM_SEQ,a.incident_no,a.TERM_ID,b.TERM_NAME,DATE_FORMAT(a.incident_date, '%d/%m/%Y') AS incident_date, 
+                _sql = @"SELECT b.TERM_SEQ,a.incident_no,a.TERM_ID,b.TERM_NAME,a.incident_date, 
                 a.incident_name,a.analyst_01,a.analyst_02,a.inform_by,b.COUNTER_CODE
                 FROM sisbu_analysis a
                 Inner JOIN device_info b
