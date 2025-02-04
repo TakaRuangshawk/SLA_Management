@@ -1485,4 +1485,65 @@ namespace SLA_Management.Data.ExcelUtilitie
         #endregion
     }
 
+    public class ExcelUtilities_DeviceFirmware
+    {
+        #region  Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Function
+        public void GatewayOutput(List<DeviceFirmware> devices)
+        {
+            int nStartRowData = 0;
+            int nSeq = 1;
+            try
+            {
+                nStartRowData = 2;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\DeviceFirmware.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+
+                    foreach (var item in devices)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = item.Term_SEQ;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = item.Term_ID;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = item.Term_Name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = item.PIN_Ver;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = item.IDC_Ver;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = item.PTR_Ver;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = item.BCR_Ver;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = item.SIU_Ver;
+                        excelWorksheet.Cells[nStartRowData, 9].Value = item.Update_Date;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+                    excelWorksheet.Cells.AutoFitColumns();
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "DeviceFirmware.xlsx"))));
+                    FileSaveAsXlsxFormat = "DeviceFirmware.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+    }
+
 }

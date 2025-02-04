@@ -1914,7 +1914,7 @@ namespace SLA_Management.Controllers
         }
         #endregion
 
-        #region RecurringCases by Arkar
+        #region RecurringCases
         [HttpGet]
         public IActionResult RecurringCasesMonitor(string bankName,string termID, string frDate,string toDate,string terminalType,int page, int maxRows,string orderBy)
         {
@@ -1958,6 +1958,10 @@ namespace SLA_Management.Controllers
                 //Apply pagination
                 int recurCount = vm.RecurringCases.Count;
                 int totalPages = (int)Math.Ceiling((double)recurCount / maxRows);
+                if (page > totalPages)
+                {
+                    page = 1;  // Reset to first page to show available data
+                }
                 var paginatedRecurringList = vm.RecurringCases.Skip((page - 1) * maxRows).Take(maxRows).ToList();
                 vm.TotalRecords = recurCount;
                 vm.RecurringCases = paginatedRecurringList;
@@ -2601,6 +2605,244 @@ namespace SLA_Management.Controllers
             return Json(new { success = true, message = ViewBag.SuccessMessage });
         }
 
+        #endregion
+
+        #region Device Fireware
+        [HttpGet]
+        public IActionResult DeviceFirmware(string termID, string terminalType, string sort, int page, int maxRows)
+        {
+            if (maxRows == 0)
+            {
+                return RedirectToAction("DeviceFirmware", new { termID, terminalType, sort, page = 1, maxRows = 50 });
+            }
+            DeviceFirmwareViewModel viewModel = new DeviceFirmwareViewModel();
+            List<DeviceFirmware> devices = new List<DeviceFirmware>();
+            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
+            dbContext = new RecurringCasesDataContext(conn);
+
+            viewModel.Device_Info_Records = dbContext.GetDeviceInfoFeelview();
+            viewModel.TerminalTypes = viewModel.Device_Info_Records
+                                   .Where(x => !string.IsNullOrWhiteSpace(x.COUNTER_CODE))
+                                   .DistinctBy(x => x.COUNTER_CODE)
+                                   .Select(x => new TermType { Terminal_Type = x.COUNTER_CODE }).ToList();
+            using (var connection = new MySqlConnection(conn))
+            {
+                connection.OpenAsync();
+                string procName = "GetDeviceFirmware";
+                using (MySqlCommand cmd = new MySqlCommand(procName, connection))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@terminal", termID);
+                    cmd.Parameters.AddWithValue("@counter_code", terminalType == "ALL" ? null : terminalType);
+                    cmd.Parameters.AddWithValue("@sort", sort);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        int recordCount = 1;
+                        while (reader.Read())
+                        {
+                            var devFirmware = new DeviceFirmware
+                            {
+                                No = recordCount,
+                                Term_ID = reader["TERM_ID"].ToString(),
+                                Term_SEQ = reader["TERM_SEQ"].ToString(),
+                                Term_Name = reader["TERM_NAME"].ToString(),
+                                PIN_Ver = reader["PIN_VERSION"].ToString(),
+                                IDC_Ver = reader["IDC_VERSION"].ToString(),
+                                PTR_Ver = reader["PTR_VERSION"].ToString(),
+                                BCR_Ver = reader["BCR_VERSION"].ToString(),
+                                SIU_Ver = reader["SIU_VERSION"].ToString(),
+                                Update_Date = reader["UPDATE_DATE"].ToString()
+                            };
+                            devices.Add(devFirmware);
+                            recordCount++;
+
+                        }
+                    }
+                }
+
+            }
+            viewModel.DeviceFirmwareList = devices;
+            viewModel.selectedTerminal = termID;
+            viewModel.selectedTerminalType = terminalType;
+            if (viewModel.DeviceFirmwareList != null)
+            {
+                //Apply pagination
+                int devFirmwareCount = viewModel.DeviceFirmwareList.Count;
+                int totalPages = (int)Math.Ceiling((double)devFirmwareCount / maxRows);
+                if (page > totalPages)
+                {
+                    page = 1;  // Reset to first page to show available data
+                }
+                var paginatedRecurringList = viewModel.DeviceFirmwareList.Skip((page - 1) * maxRows).Take(maxRows).ToList();
+                viewModel.TotalRecords = devFirmwareCount;
+                viewModel.DeviceFirmwareList = paginatedRecurringList;
+                viewModel.CurrentPage = page;
+                viewModel.TotalPages = totalPages;
+                viewModel.PageSize = maxRows;
+            }
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public ActionResult DeviceFirmware_ExportXlsx([FromBody] DeviceFirmwareExport export)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
+            DeviceFirmwareViewModel viewModel = new DeviceFirmwareViewModel();
+            List<DeviceFirmware> devices = new List<DeviceFirmware>();
+            try
+            {
+                using (var connection = new MySqlConnection(conn))
+                {
+                    connection.OpenAsync();
+                    string procName = "GetDeviceFirmware";
+                    using (MySqlCommand cmd = new MySqlCommand(procName, connection))
+                    {
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@terminal", export.termID);
+                        cmd.Parameters.AddWithValue("@counter_code", export.terminalType == "ALL" ? null : export.terminalType);
+                        cmd.Parameters.AddWithValue("@sort", export.sort);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            int recordCount = 1;
+                            while (reader.Read())
+                            {
+                                var devFirmware = new DeviceFirmware
+                                {
+                                    No = recordCount,
+                                    Term_ID = reader["TERM_ID"].ToString(),
+                                    Term_SEQ = reader["TERM_SEQ"].ToString(),
+                                    Term_Name = reader["TERM_NAME"].ToString(),
+                                    PIN_Ver = reader["PIN_VERSION"].ToString(),
+                                    IDC_Ver = reader["IDC_VERSION"].ToString(),
+                                    PTR_Ver = reader["PTR_VERSION"].ToString(),
+                                    BCR_Ver = reader["BCR_VERSION"].ToString(),
+                                    SIU_Ver = reader["SIU_VERSION"].ToString(),
+                                    Update_Date = Convert.ToDateTime(reader["UPDATE_DATE"]).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                                };
+                                devices.Add(devFirmware);
+                                recordCount++;
+
+                            }
+                        }
+                    }
+
+                }
+                viewModel.DeviceFirmwareList = devices;
+                if (viewModel.DeviceFirmwareList == null || viewModel.DeviceFirmwareList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_DeviceFirmware obj = new ExcelUtilities_DeviceFirmware();
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                obj.GatewayOutput(viewModel.DeviceFirmwareList);
+
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+
+
+
+                fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+        [HttpGet]
+        public ActionResult DeviceFirmware_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            try
+            {
+
+
+
+
+                fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+
+
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
         #endregion
 
 
