@@ -46,5 +46,32 @@ namespace SLA_Management.Controllers
                 }
             }
         }
+        #region EncryptionMonitor
+        [HttpPost]
+        public async Task<IActionResult> UploadEncryptionExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid Excel file.");
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                try
+                {
+                    await _excelService.ImportEncryptionExcelDataAsync(stream);
+                    return Ok("Data imported successfully.");
+                }
+                catch (Exception ex)
+                {
+                    // Log the error if necessary
+                    return StatusCode(500, $"An error occurred: {ex.Message}");
+                }
+            }
+        }
+        #endregion
     }
 }

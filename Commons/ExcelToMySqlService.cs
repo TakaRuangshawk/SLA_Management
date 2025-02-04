@@ -123,5 +123,54 @@ namespace SLA_Management.Commons
                 }
             }
         }
+
+        #region EncryptionMonitor
+        public async Task ImportEncryptionExcelDataAsync(Stream excelStream)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(excelStream))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.Rows;
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                    {
+                        var terminalSeq = worksheet.Cells[row, 1].Value?.ToString();
+                        var version = worksheet.Cells[row, 2].Value?.ToString();
+                        var policy = worksheet.Cells[row, 3].Value?.ToString();
+                        var updateDate = DateTime.Now;
+                        var updateBy = "System";
+                        var remark = "Imported From Excel";
+
+                        var query = @"INSERT INTO secureageversion_record 
+                                    (Term_Seq, SecureAge_Version, Policy, Update_Date, Update_By, Remark) 
+                                    VALUES 
+                                    (@TermSeq, @SecureAgeVersion, @Policy, @UpdateDate, @UpdateBy, @Remark)
+                                    ON DUPLICATE KEY UPDATE 
+                                    SecureAge_Version = @SecureAgeVersion,
+                                    Policy = @Policy,
+                                    Update_Date = @UpdateDate,
+                                    Update_By = @UpdateBy;";
+
+                        using (var command = new MySqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@TermSeq", terminalSeq);
+                            command.Parameters.AddWithValue("@SecureAgeVersion", version);
+                            command.Parameters.AddWithValue("@Policy", policy);
+                            command.Parameters.AddWithValue("@UpdateDate", updateDate);
+                            command.Parameters.AddWithValue("@UpdateBy", updateBy);
+                            command.Parameters.AddWithValue("@Remark", remark);
+
+                            await command.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }

@@ -224,42 +224,44 @@
         </div>
     </div>
     <div class="container-fluid d-flex justify-content-center">
-       <div class="table-responsive" style="overflow-x: hidden;">
-          <table id="headertable-id" class="table table-striped custom-table">
-              <thead>
-                  <tr>
-                        @{
-                            foreach (var head in tableHeaders)
-                            {
-                                <th scope="col" style="text-align:center"> @head </th>
+       <div class="table-container" style="overflow-y: auto; max-height: 400px;"> 
+            <div class="table-responsive" style="overflow-x: hidden;">
+                <table id="headertable-id" class="table table-striped custom-table">
+                    <thead>
+                        <tr>
+                            @{
+                                foreach (var head in tableHeaders)
+                                {
+                                    <th scope="col" style="text-align:center"> @head </th>
+                                }
                             }
+                        </tr>
+                    </thead>
+                        @{
+                            var totalCaseData = ViewBag.TotalCaseData as List<SLA_Management.Models.Monitor.TotalCase_record>;
                         }
-                  </tr>
-              </thead>
-                @{
-                    var totalCaseData = ViewBag.TotalCaseData as List<SLA_Management.Models.Monitor.TotalCase_record>;
-                }
-              <tbody>
-                    @if (totalCaseData != null && totalCaseData.Any())
-                    {
-                        @foreach (var Data in totalCaseData)
+                    <tbody>
+                        @if (totalCaseData != null && totalCaseData.Any())
                         {
+                            @foreach (var Data in totalCaseData)
+                            {
                                 <tr>
                                     <td style="text-align:center;"> @Data.incident_name </td>
                                     <td style="text-align:center;"> @Data.analyst_01 </td>
                                     <td style="text-align:center;"> @Data.TotalCount </td>
                                 </tr>
+                            }
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="3" style="text-align: center;"> NO DATA </td>
-                        </tr>
-                    }
-              </tbody>
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" style="text-align: center;"> NO DATA </td>
+                            </tr>
+                        }
+                </tbody>
           </table>
-      </div>     
+      </div> 
+    </div>        
 
   </div>
     <div class="container-fluid">
@@ -548,7 +550,7 @@
     </div>
     
 }
-<div class="boxDownload" id="boxDownload" style="display: none;">
+<div class="boxDownload" id="boxDownload" style="display: block;">
     <img class="imgDownload" src="~/images/loading.gif">
 </div>   
 <script>
@@ -618,7 +620,6 @@ $(document).ready(function () {
 
 <script>
 
-    document.getElementById("boxDownload").style.display = "none";
     $("#btnsearch").click(function (e) 
     {
          e.preventDefault();
@@ -654,8 +655,11 @@ $(document).ready(function () {
 
       $("#btnclear").click(function (e) {
         e.preventDefault();
-        document.querySelector('[name="FrDate"]').value = "";
-        document.querySelector('[name="ToDate"]').value = "";
+        document.querySelector('[name="TermID"]').value = "--";
+        document.querySelector('[name="categoryType"]').value = "--";
+        document.querySelector('[name="counterCode"]').value = "--";
+        document.querySelector('[name="FrDate"]').value = getFormattedDate();
+        document.querySelector('[name="ToDate"]').value = getFormattedDate();
 
         $("#boxDownload").show();
 
@@ -676,7 +680,15 @@ $(document).ready(function () {
             } else {
                 this.submit();
             }
-       });                     
+       });     
+       
+       function getFormattedDate() {
+            var today = new Date();
+        var year = today.getFullYear();
+        var month = ("0" + (today.getMonth() + 1)).slice(-2); // Add leading zero for single digit months
+        var day = ("0" + today.getDate()).slice(-2); // Add leading zero for single digit days
+        return year + "-" + month + "-" + day;
+        }
 
     $("#saveTicket").click(function (e) {
 

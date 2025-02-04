@@ -41,6 +41,7 @@ namespace SLA_Management.Controllers
         RecurringCasesMonitorViewModel vm = new RecurringCasesMonitorViewModel();
         RecurringCasesDataContext dbContext;
         private static List<LogAnalysisModel> logAnalysis_dataList = new List<LogAnalysisModel>();
+        private static List<EncryptionModel> encryption_dataList = new List<EncryptionModel>();
 
 
         #region export transaction parameter
@@ -2845,6 +2846,285 @@ namespace SLA_Management.Controllers
         }
         #endregion
 
+        #region EncryptionMonitor
+        [HttpGet]
 
+        public IActionResult Encryption(string terminalId, string counterCode, string version, string policy, string lstPageSize, string currPageSize, int? page, string maxRows)
+        {
+            List<EncryptionModel> recordset = new List<EncryptionModel>();
+            DBService_Encryption dBService;
+
+            dBService = new DBService_Encryption(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac") ?? "");
+
+            int pageNum = 1;
+
+            try
+            {
+                if (DBService.CheckDatabase())
+                {
+                    recordset = dBService.FetchAllData(terminalId, counterCode, version, policy);
+
+                    ViewBag.ConnectDB = "true";
+                }
+                else
+                {
+                    ViewBag.ConnectDB = "false";
+                }
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfo();
+                var countercode = device_Info_Records.Select(x => x.COUNTER_CODE).Where(x => !string.IsNullOrEmpty(x)).Distinct();
+                var counterCodeList = new List<string> { "ALL" }.Concat(countercode).ToList();
+                ViewBag.counterCode = new SelectList(counterCodeList.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                ViewBag.CurrentTID = device_Info_Records;
+                ViewBag.terminalId = terminalId;
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+
+                List<Version_info_record> version_Info_Records = dBService.GetVersionInfo();
+                var SAversion = version_Info_Records.Select(x => x.SecureAge_Version).Where(x => !string.IsNullOrEmpty(x)).Distinct();
+                var versionList = new List<string> { "ALL" }.Concat(SAversion).ToList();
+                ViewBag.version = new SelectList(versionList.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                var SApolicy = version_Info_Records.Select(x => x.Policy).Where(x => !string.IsNullOrEmpty(x)).Distinct();
+                var policyList = new List<string> { "ALL" }.Concat(SApolicy).ToList();
+                ViewBag.policy = new SelectList(policyList.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+                if (recordset.Count > 0)
+                {
+                    if (terminalId != null)
+                    {
+                        recordset.RemoveAll(item => item.Terminal_ID != terminalId);
+                    }
+
+                }
+
+                if (null == recordset || recordset.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = recordset.Count;
+                    encryption_dataList = recordset;
+                    param.PAGESIZE = recordset.Count;
+                }
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = recordset.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    recordset.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching data.", ex);
+            }
+
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
+        }
+        [HttpPost]
+        public ActionResult Encryption_ExportExc(EncryptionModel model)
+        {
+            string fname = "";
+            string strPathSource = string.Empty;
+            string strPathDesc = string.Empty;
+            string strSuccess = string.Empty;
+            string strErr = string.Empty;
+            string filterquery = string.Empty;
+
+            try
+            {
+                string terminalId = model.Terminal_ID;
+                string countercode = model.Counter_Code;
+                string version = model.Version;
+                string policy = model.Policy;
+
+                if (!string.IsNullOrEmpty(terminalId))
+                {
+                    filterquery += " b.TERM_ID LIKE '" + terminalId + "' AND";
+                }
+                if (!string.IsNullOrEmpty(countercode))
+                {
+                    filterquery += " b.COUNTER_CODE LIKE '" + countercode + "' AND";
+                }
+                if (!string.IsNullOrEmpty(version))
+                {
+                    filterquery += " a.SecureAge_Version LIKE '" + version + "' AND";
+                }
+                if (!string.IsNullOrEmpty(policy))
+                {
+                    filterquery += " a.Policy LIKE '" + policy + "' AND";
+                }
+
+
+                List<EncryptionModel> jsonData = new List<EncryptionModel>();
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac")))
+                {
+                    connection.Open();
+
+                    string query = @"SELECT a.Term_Seq, b.TERM_ID, b.TERM_NAME,b.COUNTER_CODE, 
+                    a.SecureAge_Version,a.Policy                     
+                    FROM secureageversion_record a
+                    INNER JOIN device_info b
+                    ON a.Term_Seq = b.TERM_SEQ ";
+
+                    if (!string.IsNullOrEmpty(filterquery))
+                    {
+                        query += "WHERE " + filterquery + " ORDER BY a.TERM_SEQ ASC;";
+                    }
+                    else
+                    {
+                        query += "ORDER BY a.Term_Seq ASC;";
+                    }
+
+                    MySqlCommand command = new MySqlCommand(query, connection);
+
+                    using (MySqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            jsonData.Add(new EncryptionModel
+                            {
+                                Terminal_SEQ = reader["Term_Seq"].ToString() ?? "",
+                                Terminal_ID = reader["TERM_ID"].ToString() ?? "",
+                                Terminal_NAME = reader["TERM_NAME"].ToString() ?? "",
+                                Counter_Code = reader["COUNTER_CODE"].ToString() ?? "",
+                                Version = reader["SecureAge_Version"].ToString() ?? "",
+                                Policy = reader["Policy"].ToString() ?? "",
+                            });
+                        }
+                    }
+                }
+
+                encryption_dataList = jsonData;
+
+                if (jsonData.Count == 0)
+                {
+                    return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+                }
+                string strPath = Environment.CurrentDirectory;
+                ExcelUtilities_Encryption obj = new ExcelUtilities_Encryption();
+
+                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+
+                if (!Directory.Exists(folder_name))
+                {
+                    Directory.CreateDirectory(folder_name);
+                }
+
+                obj.PathDefaultTemplate = folder_name;
+
+                // Generate the Excel file
+                obj.EncryptionExcelOutput(encryption_dataList);
+
+                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+                fname = "Encryption_" + DateTime.Now.ToString("yyyyMMdd");
+
+                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+                if (obj.FileSaveAsXlsxFormat != null)
+                {
+
+                    if (System.IO.File.Exists(strPathDesc))
+                        System.IO.File.Delete(strPathDesc);
+
+                    if (!System.IO.File.Exists(strPathDesc))
+                    {
+                        System.IO.File.Copy(strPathSource, strPathDesc);
+                        System.IO.File.Delete(strPathSource);
+                    }
+                    strSuccess = "S";
+                    strErr = "";
+                }
+                else
+                {
+                    fname = "";
+                    strSuccess = "F";
+                    strErr = "Data Not Found";
+                }
+
+                ViewBag.ErrorMsg = "Error";
+                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = ex.Message;
+                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+            }
+        }
+
+        [HttpGet]
+        public ActionResult Encryption_DownloadExportFile(string rpttype)
+        {
+            string fname = "";
+            string tempPath = "";
+            try
+            {
+                fname = "Encryption_" + DateTime.Now.ToString("yyyyMMdd");
+
+                switch (rpttype.ToLower())
+                {
+                    case "csv":
+                        fname = fname + ".csv";
+                        break;
+                    case "pdf":
+                        fname = fname + ".pdf";
+                        break;
+                    case "xlsx":
+                        fname = fname + ".xlsx";
+                        break;
+                }
+
+                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+
+                if (rpttype.ToLower().EndsWith("s") == true)
+                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+                else if (rpttype.ToLower().EndsWith("f") == true)
+                    return File(tempPath + "xml", "application/pdf", fname);
+                else  //(rpttype.ToLower().EndsWith("v") == true)
+                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+                return Json(new
+                {
+                    success = false,
+                    fname
+                });
+            }
+        }
+        #endregion
     }
 }
