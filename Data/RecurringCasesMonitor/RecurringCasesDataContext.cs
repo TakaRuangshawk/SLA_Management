@@ -138,7 +138,7 @@ namespace SLA_Management.Data.RecurringCasesMonitor
             }
             else
             {
-                return null;
+                return recurringCases;
             }
         }        
     }

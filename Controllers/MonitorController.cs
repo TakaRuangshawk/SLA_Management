@@ -1953,7 +1953,7 @@ namespace SLA_Management.Controllers
                                .Select(x => new TerminalType { Terminal_Type = x.TYPE_ID }).ToList();
             }
             vm.RecurringCases = dbContext.GetRecurringTerminalList(termID,frDate,toDate,terminalType,orderBy);
-            if (vm.RecurringCases != null) 
+            if (vm.RecurringCases != null && vm.RecurringCases.Count != 0) 
             {
                 //Apply pagination
                 int recurCount = vm.RecurringCases.Count;
