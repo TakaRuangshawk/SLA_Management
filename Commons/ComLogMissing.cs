@@ -5,7 +5,7 @@ using SLA_Management.Models.COMLogModel;
 using SLA_Management.Data;
 using System.Data;
 using System.Data.SqlClient;
-using static Org.BouncyCastle.Math.EC.ECCurve;
+
 
 namespace SLA_Management.Commons
 {

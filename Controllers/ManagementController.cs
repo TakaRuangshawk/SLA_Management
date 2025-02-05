@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Models.ManagementModel;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using SLA_Management.Commons;
@@ -10,6 +12,7 @@ using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -357,6 +360,7 @@ namespace SLA_Management.Controllers
 
             totalPages = (int)Math.Ceiling((double)totalCases / row);
 
+           
             return Json(new
             {
                 jsonData = reportCases,
@@ -762,6 +766,7 @@ namespace SLA_Management.Controllers
             return test;
         }
         #endregion
+
         #region Excel Ticket
 
         [HttpPost]
@@ -898,6 +903,102 @@ namespace SLA_Management.Controllers
 
 
         #endregion
+
+
+
+
+        public IActionResult CardRetain()
+        {
+            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
+            //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
+            //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+            // For now, just return the empty view
+            return View();
+        }
+
+
+
+        [HttpGet]
+        public JsonResult FetchCardRetain(string terminalID, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
+        {
+            List<CardRetain> cardRetain = new List<CardRetain>();
+            int totalCases = 0;
+            int totalPages = 0;
+            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                conn.Open();
+
+                string query = "SELECT * " +
+                               "FROM cardretain WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                {
+                    query += " AND TerminalID = @TerminalID";
+                }
+               
+                if (fromdate.HasValue)
+                {
+                    query += " AND DATE >= @FromDate";
+                }
+                if (todate.HasValue)
+                {
+                    query += " AND DATE <= @ToDate";
+                }
+              
+
+                query += " ORDER BY Date ASC ";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TerminalID", terminalID);              
+                cmd.Parameters.AddWithValue("@FromDate", fromdate);
+                cmd.Parameters.AddWithValue("@ToDate", todate);           
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        cardRetain.Add(new CardRetain
+                        {
+                            Location = reader["Location"] != DBNull.Value ? reader.GetString("Location") : string.Empty,
+                            TerminalID = reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty,
+                            TerminalName = reader["TerminalName"] != DBNull.Value ? reader.GetString("TerminalName") : string.Empty,
+                            CardNo = reader["CardNo"] != DBNull.Value ? reader.GetString("CardNo") : string.Empty,
+                            Date = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : string.Empty,
+                            Reason = reader["Reason"] != DBNull.Value ? reader.GetString("Reason") : string.Empty,
+                            Vendor = reader["Vendor"] != DBNull.Value ? reader.GetString("Vendor") : string.Empty,
+                            ErrorCode = reader["ErrorCode"] != DBNull.Value ? reader.GetString("ErrorCode") : string.Empty,
+                            InBankFlag = reader["InBankFlag"] != DBNull.Value ? reader.GetString("InBankFlag") : string.Empty,
+                            CardStatus = reader["CardStatus"] != DBNull.Value ? reader.GetString("CardStatus") : string.Empty,
+                            Telephone = reader["Telephone"] != DBNull.Value ? reader.GetString("Telephone") : string.Empty,
+                            UpdateDate = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy") : string.Empty,
+
+                        });
+
+                    }
+                    if (reader.NextResult() && reader.Read())
+                    {
+                        totalCases = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            totalPages = (int)Math.Ceiling((double)totalCases / row);
+
+          
+
+            return Json(new
+            {
+                jsonData = cardRetain,
+                currentPage = page,
+                totalPages = totalPages,
+                totalCases = totalCases
+            });
+        }
+
+
+
+
     }
     
 }

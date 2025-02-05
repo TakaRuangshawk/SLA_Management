@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
+using Models.ManagementModel;
 namespace SLA_Management.Commons
 {
     public class ExcelToMySqlService
@@ -172,5 +173,97 @@ namespace SLA_Management.Commons
             }
         }
         #endregion
+
+        public async Task ImportExcelDataAsync_CardRetain(Stream excelStream)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(excelStream))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.Rows;
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (var transaction = await connection.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            for (int row = 4; row <= rowCount; row++) // Skip header row
+                            {
+                                // Map Excel row to CardRetain object
+                                var cardRetain = new CardRetain
+                                {
+                                    Location = worksheet.Cells[row, 1].Value?.ToString(),
+                                    TerminalID = worksheet.Cells[row, 2].Value?.ToString(),
+                                    TerminalName = worksheet.Cells[row, 3].Value?.ToString(),
+                                    CardNo = worksheet.Cells[row, 4].Value?.ToString(),
+                                    Date = worksheet.Cells[row, 5].Value?.ToString(),
+                                    Reason = worksheet.Cells[row, 6].Value?.ToString(),
+                                    Vendor = worksheet.Cells[row, 7].Value?.ToString(),
+                                    ErrorCode = worksheet.Cells[row, 8].Value?.ToString(),
+                                    InBankFlag = worksheet.Cells[row, 9].Value?.ToString(),
+                                    CardStatus = worksheet.Cells[row, 10].Value?.ToString(),
+                                    Telephone = worksheet.Cells[row, 11].Value?.ToString(),
+                                    UpdateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), // Current timestamp
+                                };
+
+                                // Database Insert Query
+                                var query = @"
+                        INSERT INTO cardretain 
+                        (Location, TerminalID, TerminalName, CardNo, Date, Reason, Vendor, ErrorCode, InBankFlag, CardStatus, Telephone, UpdateDate) 
+                        VALUES 
+                        (@Location, @TerminalID, @TerminalName, @CardNo, @Date, @Reason, @Vendor, @ErrorCode, @InBankFlag, @CardStatus, @Telephone, @UpdateDate)
+                        ON DUPLICATE KEY UPDATE 
+                            Location = @Location,
+                            TerminalID = @TerminalID,
+                            TerminalName = @TerminalName,
+                            CardNo = @CardNo,
+                            Date = @Date,
+                            Reason = @Reason,
+                            Vendor = @Vendor,
+                            ErrorCode = @ErrorCode,
+                            InBankFlag = @InBankFlag,
+                            CardStatus = @CardStatus,
+                            Telephone = @Telephone,
+                            UpdateDate = @UpdateDate;";
+
+                                using (var command = new MySqlCommand(query, connection, (MySqlTransaction)transaction))
+                                {
+                                    // Adding parameters to the query
+                                    command.Parameters.AddWithValue("@Location", cardRetain.Location);
+                                    command.Parameters.AddWithValue("@TerminalID", cardRetain.TerminalID);
+                                    command.Parameters.AddWithValue("@TerminalName", cardRetain.TerminalName);
+                                    command.Parameters.AddWithValue("@CardNo", cardRetain.CardNo);
+                                    command.Parameters.AddWithValue("@Date", cardRetain.Date);
+                                    command.Parameters.AddWithValue("@Reason", cardRetain.Reason);
+                                    command.Parameters.AddWithValue("@Vendor", cardRetain.Vendor);
+                                    command.Parameters.AddWithValue("@ErrorCode", cardRetain.ErrorCode);
+                                    command.Parameters.AddWithValue("@InBankFlag", cardRetain.InBankFlag);
+                                    command.Parameters.AddWithValue("@CardStatus", cardRetain.CardStatus);
+                                    command.Parameters.AddWithValue("@Telephone", cardRetain.Telephone);
+                                    command.Parameters.AddWithValue("@UpdateDate", cardRetain.UpdateDate);
+
+                                    await command.ExecuteNonQueryAsync();
+                                }
+                            }
+
+                            await transaction.CommitAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            await transaction.RollbackAsync();
+                            // Log exception here (ex.Message)
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
     }
 }

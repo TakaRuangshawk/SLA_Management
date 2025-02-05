@@ -4,15 +4,16 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using SLA_Management.Commons;
+using OfficeOpenXml;
 
 namespace SLA_Management.Controllers
 {
     public class ExcelController : Controller
-{
-    public IActionResult Index()
     {
-        return View();
-    }
+        public IActionResult Index()
+        {
+            return View();
+        }
         private readonly ExcelToMySqlService _excelService;
 
         public ExcelController(IConfiguration configuration)
@@ -46,6 +47,117 @@ namespace SLA_Management.Controllers
                 }
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadExcel_CardRetain(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid Excel file.");
+            }
+
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            // เช็คว่าเป็นไฟล์ .xls หรือ .xlsx
+            if (fileExtension == ".xls")
+            {
+                return await UploadXlsFile(file);  // จัดการไฟล์ .xls
+            }
+            else if (fileExtension == ".xlsx")
+            {
+                return await UploadXlsxFile(file);  // จัดการไฟล์ .xlsx
+            }
+            else
+            {
+                return BadRequest("Invalid file type. Please upload a .xls or .xlsx file.");
+            }
+        }
+
+
+
+
+        public async Task<IActionResult> UploadXlsFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid Excel file.");
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);  // คัดลอกข้อมูลจาก IFormFile ไปยัง MemoryStream
+                stream.Position = 0;  // รีเซ็ตตำแหน่ง
+
+                // แปลง .xls เป็น .xlsx โดยใช้ ExcelPackage
+                var xlsxStream = ConvertXlsToXlsx(stream);
+
+                // ส่งไฟล์ .xlsx ไปยังเซอร์วิส
+                await _excelService.ImportExcelDataAsync_CardRetain(xlsxStream);
+
+                return Ok("Data imported successfully.");
+            }
+        }
+
+        public MemoryStream ConvertXlsToXlsx(MemoryStream xlsStream)
+        {
+            // รีเซ็ตตำแหน่งของ xlsStream ไปที่จุดเริ่มต้น
+            xlsStream.Position = 0;
+
+            // สร้าง MemoryStream สำหรับเก็บไฟล์ .xlsx ที่แปลงแล้ว
+            var xlsxStream = new MemoryStream();
+
+            try
+            {
+                // ใช้ NPOI HSSFWorkbook เพื่อเปิดไฟล์ .xls
+                var hssfWorkbook = new NPOI.HSSF.UserModel.HSSFWorkbook(xlsStream);
+
+                // สร้าง XSSFWorkbook สำหรับไฟล์ .xlsx
+                var xssfWorkbook = new NPOI.XSSF.UserModel.XSSFWorkbook();
+
+                // คัดลอกข้อมูลจากทุกๆ sheet จาก .xls ไปยัง .xlsx
+                for (int sheetIndex = 0; sheetIndex < hssfWorkbook.NumberOfSheets; sheetIndex++)
+                {
+                    var sheet = hssfWorkbook.GetSheetAt(sheetIndex);
+                    var newSheet = xssfWorkbook.CreateSheet(sheet.SheetName);
+
+                    // คัดลอกข้อมูลจาก row และ cell
+                    for (int rowIndex = 0; rowIndex <= sheet.LastRowNum; rowIndex++)
+                    {
+                        var row = sheet.GetRow(rowIndex);
+                        if (row == null) continue;
+
+                        var newRow = newSheet.CreateRow(rowIndex);
+
+                        for (int cellIndex = 0; cellIndex < row.LastCellNum; cellIndex++)
+                        {
+                            var cell = row.GetCell(cellIndex);
+                            if (cell != null)
+                            {
+                                var newCell = newRow.CreateCell(cellIndex);
+                                newCell.SetCellValue(cell.ToString());
+                            }
+                        }
+                    }
+                }
+
+                // บันทึกไฟล์ .xlsx ลงใน xlsxStream
+                xssfWorkbook.Write(xlsxStream);
+
+                // ใช้ Flush เพื่อทำให้ข้อมูลถูกเขียนทั้งหมดลงใน MemoryStream
+                xlsxStream.Flush();
+
+                // สร้าง MemoryStream ใหม่เพื่อให้พร้อมใช้งาน
+                var finalStream = new MemoryStream(xlsxStream.ToArray());
+
+                return finalStream;
+            }
+            catch (Exception ex)
+            {
+                // ถ้ามีข้อผิดพลาด ให้แสดงข้อความ
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                throw; // หรือจัดการตามที่ต้องการ
+            }
+        }
         #region EncryptionMonitor
         [HttpPost]
         public async Task<IActionResult> UploadEncryptionExcel(IFormFile file)
@@ -73,5 +185,51 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<IActionResult> UploadXlsxFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid Excel file.");
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0; // รีเซ็ตตำแหน่งเพื่อใช้งานในลำดับถัดไป
+
+                // ส่งไฟล์ที่เป็น .xlsx ไปยังเซอร์วิส
+                await _excelService.ImportExcelDataAsync_CardRetain(stream);
+            }
+
+            return Ok("Data imported successfully.");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }
