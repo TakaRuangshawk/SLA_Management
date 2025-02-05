@@ -176,6 +176,40 @@
                     </div>
                 </div>
 
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-md-1" style="margin-right: 40px;">
+                        <h>Reason : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <select class="selectpicker form-control subsearch" id="reason" name="reason" data-live-search="true">
+
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in ViewBag.Reason as List<string>)
+                                {
+                                    
+                                    var selectedValue = ViewBag.SelectedReason as string;
+
+                                    if (item == selectedValue)
+                                    {
+                                        <option value="@item" data-tokens="@item" selected>@item</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item" data-tokens="@item">@item</option>
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+
+                   
+                </div>
+
+
 
                 <div class="row justify-content-md-center" style="padding: 50px 50px 0px 50px;">
                     <div id="dropArea" class="border p-5 text-center">
@@ -198,9 +232,9 @@
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
                             </button>
-                          @*   <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                            </a> *@
+                            </a>
                         </div>
                     </div>
 
@@ -451,6 +485,7 @@
         var terminalID = $("#TerminalID").val();
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
+         var reason = $("#reason").val();
 
            $.ajax({
         type: "GET",
@@ -459,6 +494,7 @@
             terminalID: terminalID,
             fromdate: fromdate,
             todate: todate,
+            reason: reason
         },
         dataType: "json",
        success: function (data) {
@@ -637,6 +673,7 @@
             var terminalID = $("#TerminalID").val();           
             var fromdate = $("#fromdate").val();
             var todate = $("#todate").val();
+             var reason = $("#reason").val();
 
 
             $.ajax({
@@ -645,7 +682,8 @@
                 data: {
                     terminalID: terminalID,                  
                     fromdate: fromdate,
-                    todate: todate                   
+                    todate: todate  ,
+                    reason: reason
                 },
                 xhrFields: {
                     responseType: 'blob'

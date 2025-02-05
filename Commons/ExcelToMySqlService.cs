@@ -21,7 +21,7 @@ namespace SLA_Management.Commons
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(excelStream))
             {
-                var worksheet = package.Workbook.Worksheets[0]; 
+                var worksheet = package.Workbook.Worksheets[0];
                 var rowCount = worksheet.Dimension.Rows;
 
                 using (var connection = new MySqlConnection(_connectionString))
@@ -97,7 +97,7 @@ namespace SLA_Management.Commons
                             Update_Date = @UpdateDate,
                             Update_By = @UpdateBy;";
 
-                        using (var command = new MySqlCommand(query, connection))   
+                        using (var command = new MySqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@CaseErrorNo", caseErrorNo);
                             command.Parameters.AddWithValue("@TerminalId", terminalId);
@@ -190,62 +190,74 @@ namespace SLA_Management.Commons
                     {
                         try
                         {
-                            for (int row = 4; row <= rowCount; row++) // Skip header row
+                            for (int row = 4; row <= rowCount; row++)
                             {
-                                // Map Excel row to CardRetain object
+
                                 var cardRetain = new CardRetain
                                 {
                                     Location = worksheet.Cells[row, 1].Value?.ToString(),
                                     TerminalID = worksheet.Cells[row, 2].Value?.ToString(),
                                     TerminalName = worksheet.Cells[row, 3].Value?.ToString(),
                                     CardNo = worksheet.Cells[row, 4].Value?.ToString(),
-                                    Date = worksheet.Cells[row, 5].Value?.ToString(),
+                                    Date = worksheet.Cells[row, 5].Value.ToString(),
                                     Reason = worksheet.Cells[row, 6].Value?.ToString(),
                                     Vendor = worksheet.Cells[row, 7].Value?.ToString(),
                                     ErrorCode = worksheet.Cells[row, 8].Value?.ToString(),
                                     InBankFlag = worksheet.Cells[row, 9].Value?.ToString(),
                                     CardStatus = worksheet.Cells[row, 10].Value?.ToString(),
                                     Telephone = worksheet.Cells[row, 11].Value?.ToString(),
-                                    UpdateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), // Current timestamp
+                                    UpdateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                                 };
 
-                                // Database Insert Query
-                                var query = @"
-                        INSERT INTO cardretain 
-                        (Location, TerminalID, TerminalName, CardNo, Date, Reason, Vendor, ErrorCode, InBankFlag, CardStatus, Telephone, UpdateDate) 
-                        VALUES 
-                        (@Location, @TerminalID, @TerminalName, @CardNo, @Date, @Reason, @Vendor, @ErrorCode, @InBankFlag, @CardStatus, @Telephone, @UpdateDate)
-                        ON DUPLICATE KEY UPDATE 
-                            Location = @Location,
-                            TerminalID = @TerminalID,
-                            TerminalName = @TerminalName,
-                            CardNo = @CardNo,
-                            Date = @Date,
-                            Reason = @Reason,
-                            Vendor = @Vendor,
-                            ErrorCode = @ErrorCode,
-                            InBankFlag = @InBankFlag,
-                            CardStatus = @CardStatus,
-                            Telephone = @Telephone,
-                            UpdateDate = @UpdateDate;";
 
-                                using (var command = new MySqlCommand(query, connection, (MySqlTransaction)transaction))
+                                var queryCheck = @"
+                            SELECT COUNT(*) 
+                            FROM cardretain 
+                            WHERE TerminalID = @TerminalID 
+                            AND Date = @Date 
+                            AND Location = @Location";
+
+                                using (var commandCheck = new MySqlCommand(queryCheck, connection, (MySqlTransaction)transaction))
                                 {
-                                    // Adding parameters to the query
-                                    command.Parameters.AddWithValue("@Location", cardRetain.Location);
-                                    command.Parameters.AddWithValue("@TerminalID", cardRetain.TerminalID);
-                                    command.Parameters.AddWithValue("@TerminalName", cardRetain.TerminalName);
-                                    command.Parameters.AddWithValue("@CardNo", cardRetain.CardNo);
-                                    command.Parameters.AddWithValue("@Date", cardRetain.Date);
-                                    command.Parameters.AddWithValue("@Reason", cardRetain.Reason);
-                                    command.Parameters.AddWithValue("@Vendor", cardRetain.Vendor);
-                                    command.Parameters.AddWithValue("@ErrorCode", cardRetain.ErrorCode);
-                                    command.Parameters.AddWithValue("@InBankFlag", cardRetain.InBankFlag);
-                                    command.Parameters.AddWithValue("@CardStatus", cardRetain.CardStatus);
-                                    command.Parameters.AddWithValue("@Telephone", cardRetain.Telephone);
-                                    command.Parameters.AddWithValue("@UpdateDate", cardRetain.UpdateDate);
+                                    commandCheck.Parameters.AddWithValue("@TerminalID", cardRetain.TerminalID);
+                                    commandCheck.Parameters.AddWithValue("@Date", cardRetain.Date);
+                                    commandCheck.Parameters.AddWithValue("@Location", cardRetain.Location);
 
-                                    await command.ExecuteNonQueryAsync();
+                                    var existingRecordCount = Convert.ToInt32(await commandCheck.ExecuteScalarAsync());
+
+                                    if (existingRecordCount == 0)
+                                    {
+
+                                        var queryInsert = @"
+                                    INSERT INTO cardretain 
+                                    (Location, TerminalID, TerminalName, CardNo, Date, Reason, Vendor, ErrorCode, InBankFlag, CardStatus, Telephone, UpdateDate) 
+                                    VALUES 
+                                    (@Location, @TerminalID, @TerminalName, @CardNo, @Date, @Reason, @Vendor, @ErrorCode, @InBankFlag, @CardStatus, @Telephone, @UpdateDate);";
+
+                                        using (var commandInsert = new MySqlCommand(queryInsert, connection, (MySqlTransaction)transaction))
+                                        {
+
+                                            commandInsert.Parameters.AddWithValue("@Location", cardRetain.Location);
+                                            commandInsert.Parameters.AddWithValue("@TerminalID", cardRetain.TerminalID);
+                                            commandInsert.Parameters.AddWithValue("@TerminalName", cardRetain.TerminalName);
+                                            commandInsert.Parameters.AddWithValue("@CardNo", cardRetain.CardNo);
+                                            commandInsert.Parameters.AddWithValue("@Date", cardRetain.Date);
+                                            commandInsert.Parameters.AddWithValue("@Reason", cardRetain.Reason);
+                                            commandInsert.Parameters.AddWithValue("@Vendor", cardRetain.Vendor);
+                                            commandInsert.Parameters.AddWithValue("@ErrorCode", cardRetain.ErrorCode);
+                                            commandInsert.Parameters.AddWithValue("@InBankFlag", cardRetain.InBankFlag);
+                                            commandInsert.Parameters.AddWithValue("@CardStatus", cardRetain.CardStatus);
+                                            commandInsert.Parameters.AddWithValue("@Telephone", cardRetain.Telephone);
+                                            commandInsert.Parameters.AddWithValue("@UpdateDate", cardRetain.UpdateDate);
+
+                                            await commandInsert.ExecuteNonQueryAsync();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Data already exists, so skip this record or log the duplicate
+                                        // Optionally: Log the duplicate or handle accordingly
+                                    }
                                 }
                             }
 
@@ -254,14 +266,13 @@ namespace SLA_Management.Commons
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
-                            // Log exception here (ex.Message)
+
                             throw;
                         }
                     }
                 }
             }
         }
-
 
 
 

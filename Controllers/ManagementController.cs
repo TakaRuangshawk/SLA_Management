@@ -46,6 +46,25 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+
+        private static List<string> GetReasonCardRetain(string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT distinct Reason FROM cardretain ;";
+            DataTable testss = db_mysql.GetDatatable(com);
+            List<string> test = new List<string>();
+
+            foreach (DataRow row in testss.Rows)
+            {
+                // Assuming "Reason" is the name of the column you're selecting
+                test.Add(row["Reason"].ToString());
+            }
+
+
+            return test;
+        }
         public class IssueName
         {
             public string Issue_Name { get; set; }
@@ -488,6 +507,9 @@ namespace SLA_Management.Controllers
                 }
             }
         }
+
+
+
         [HttpPost]
         public IActionResult UpdateRemark(string caseErrorNo, string remark)
         {
@@ -910,6 +932,7 @@ namespace SLA_Management.Controllers
         public IActionResult CardRetain()
         {
             ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
+            ViewBag.Reason = GetReasonCardRetain("BAAC", _configuration);
             //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
             //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
             // For now, just return the empty view
@@ -919,7 +942,7 @@ namespace SLA_Management.Controllers
 
 
         [HttpGet]
-        public JsonResult FetchCardRetain(string terminalID, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
+        public JsonResult FetchCardRetain(string terminalID,string reason, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
         {
             List<CardRetain> cardRetain = new List<CardRetain>();
             int totalCases = 0;
@@ -944,14 +967,20 @@ namespace SLA_Management.Controllers
                 {
                     query += " AND DATE <= @ToDate";
                 }
-              
 
-                query += " ORDER BY Date ASC ";
+                if (!string.IsNullOrEmpty(reason))
+                {
+                    query += " AND REASON = @Reason";
+                }
+
+
+                query += " ORDER BY Date DESC ";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TerminalID", terminalID);              
                 cmd.Parameters.AddWithValue("@FromDate", fromdate);
-                cmd.Parameters.AddWithValue("@ToDate", todate);           
+                cmd.Parameters.AddWithValue("@ToDate", todate);
+                cmd.Parameters.AddWithValue("@Reason", reason);
                 cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
 
                 using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -996,7 +1025,108 @@ namespace SLA_Management.Controllers
             });
         }
 
+        public IActionResult ExportCardRetainToExcel(string terminalID, string reason, DateTime? fromdate, DateTime? todate)
+        {
 
+            using (var connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                connection.Open();
+                string query = "SELECT * FROM cardretain WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                    query += " AND TerminalID = @TerminalID";             
+                if (fromdate.HasValue)
+                    query += " AND Date >= @FromDate";
+                if (todate.HasValue)
+                    query += " AND Date <= @ToDate";
+                if (!string.IsNullOrEmpty(reason))
+                    query += " AND Reason = @reason";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@TerminalID", terminalID);
+                    command.Parameters.AddWithValue("@FromDate", fromdate?.Date);
+                    command.Parameters.AddWithValue("@ToDate", todate?.Date);
+                    command.Parameters.AddWithValue("@reason", reason);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    using (var reader = command.ExecuteReader())
+                    {
+                        using (var package = new ExcelPackage())
+                        {
+                            var worksheet = package.Workbook.Worksheets.Add("ReportCases");
+
+                            // Add headers
+                            worksheet.Cells[1, 1].Value = "CardRetainID";
+                            worksheet.Cells[1, 2].Value = "Location";
+                            worksheet.Cells[1, 3].Value = "TerminalID";
+                            worksheet.Cells[1, 4].Value = "TerminalName";
+                            worksheet.Cells[1, 5].Value = "CardNo";
+                            worksheet.Cells[1, 6].Value = "Date";
+                            worksheet.Cells[1, 7].Value = "Reason";
+                            worksheet.Cells[1, 8].Value = "Vendor";
+                            worksheet.Cells[1, 9].Value = "ErrorCode";
+                            worksheet.Cells[1, 10].Value = "InBankFlag";
+                            worksheet.Cells[1, 11].Value = "CardStatus";
+                            worksheet.Cells[1, 12].Value = "Telephone";
+                            worksheet.Cells[1, 13].Value = "UpdateDate";
+                           
+                            using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
+                            {
+                                range.Style.Font.Bold = true; // Bold font
+                                range.Style.Font.Size = 14; // Larger font size
+                                range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Set fill pattern to solid
+                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue); // Set background color
+                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Center text
+                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center; // Center vertically
+                            }
+                            int row = 2;
+                            while (reader.Read())
+                            {
+                                worksheet.Cells[row, 1].Value = reader["CardRetainID"] != DBNull.Value ? Convert.ToInt32(reader["CardRetainID"]) : null;
+                                worksheet.Cells[row, 2].Value = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : null;
+                                worksheet.Cells[row, 3].Value = reader["TerminalID"] != DBNull.Value ? reader["TerminalID"].ToString() : null;
+                                worksheet.Cells[row, 4].Value = reader["TerminalName"] != DBNull.Value ? reader["TerminalName"].ToString() : null;
+                                worksheet.Cells[row, 5].Value = reader["CardNo"] != DBNull.Value ? reader["CardNo"].ToString() : null;
+                                worksheet.Cells[row, 6].Value = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 7].Value = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : null;
+                                worksheet.Cells[row, 8].Value = reader["Vendor"] != DBNull.Value ? reader["Vendor"].ToString() : null;
+                                worksheet.Cells[row, 9].Value = reader["ErrorCode"] != DBNull.Value ? reader["ErrorCode"].ToString() : null;
+                                worksheet.Cells[row, 10].Value = reader["InBankFlag"] != DBNull.Value ? reader["InBankFlag"].ToString() : null;
+                                worksheet.Cells[row, 11].Value = reader["CardStatus"] != DBNull.Value ? reader["CardStatus"].ToString() : null;
+                                worksheet.Cells[row, 12].Value = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : null;
+                                worksheet.Cells[row, 13].Value = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy HH:mm") : null;
+
+
+
+
+                                row++;
+                            }
+
+                            worksheet.Cells.AutoFitColumns();
+
+                            // Build the filename based on filters
+                            string excelName = "CardRetain";
+                            if (!string.IsNullOrEmpty(terminalID))
+                                excelName += $"_Terminal_{terminalID}";                           
+                            if (fromdate.HasValue)
+                                excelName += $"_From_{fromdate.Value.ToString("yyyyMMdd")}";
+                            if (todate.HasValue)
+                                excelName += $"_To_{todate.Value.ToString("yyyyMMdd")}";
+                            if (!string.IsNullOrEmpty(reason))
+                                excelName += $"_reason_{reason.Replace(" ", "_")}";
+
+                            excelName += ".xlsx";
+
+                            var stream = new MemoryStream();
+                            package.SaveAs(stream);
+                            stream.Position = 0;
+
+                            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+                        }
+                    }
+                }
+            }
+        }
 
 
     }
