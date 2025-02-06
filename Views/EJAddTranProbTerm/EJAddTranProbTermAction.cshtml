@@ -110,12 +110,12 @@
     }
 
     .boxDownload {
-       /*  background-color: rgba(255, 255, 255, 0.5);
-        position: fixed;
-        top: 250px;
-        right: 550px;
-        pointer-events: none;
-        z-index: 10; */
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                position: fixed;
+                top: 250px;
+                right: 550px;
+                pointer-events: none;
+                z-index: 10; */
         background-color: rgba(255, 255, 255, 0.5);
         position: fixed;
         top: 0px;
@@ -125,7 +125,8 @@
         pointer-events: none;
         z-index: 10;
     }
-     .imgDownload {
+
+    .imgDownload {
         position: sticky;
         top: 50%;
         left: 50%;
@@ -156,21 +157,21 @@
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->                          
+                            <!--		Show Numbers Of Rows 		-->
                             @Html.DropDownList("bankName", new SelectListItem[] {
                         new SelectListItem(){ Text="--", Value = ""  },
                         new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
-                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }                     
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
 
-                        }, new
-                        {
-                        @class = "form-control dropdown"
-                        ,
-                        @style = " border-radius: 10px;" ,
-                        @name = "state",
-                        // @onchange = "submitForm()"
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state",
+                                            // @onchange = "submitForm()"
 
-                        })
+                                        })
 
                         </div>
                     </div>
@@ -179,7 +180,7 @@
                             <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                         </button>
                     </div>
-                   
+
                 </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
@@ -395,7 +396,7 @@
 
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                            <button type="submit" id="btnsearch2" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
 
@@ -415,45 +416,6 @@
                     </div>
                 </div>
 
-                @* <div class="row justify-content-md-center" style="margin-top: 15px">
-
-            @if (ViewBag.ConnectDB == "false")
-            {
-            <div class="col col-lg-2">
-            <p style="color: red "> Can't connect database !</p>
-            </div>
-            <div class="col col-lg-1">
-            <button type="button" id="btnsearch" class="btn btn-secondary">search  </button>
-            </div>
-            <div class="col col-lg-1">
-            <button type="reset" id="btnclear" class="btn btn-secondary" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-            </div>
-            <div class="col col-lg-2">
-            <a id="btnSEExpTemp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-            </a>
-            </div>
-            }
-            else
-            {
-            <div class="col col-lg-1">
-            </div>
-            <div class="col col-lg-2">
-            <button type="submit" id="btnsearch" class="btn btn-success">search  </button>
-            </div>
-            <div class="col col-lg-2">
-            <button type="submit" id="btnclear" class="btn btn-success" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear">clear </button>
-            </div>
-            <div class="col col-lg-2">
-            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer">
-            <img src="~/images/excel_green.png" style="width: 50px; height: 50px" class="rounded-lg shadow p-0" alt="Excel Export Report" />
-            </a>
-            </div>
-            }
-
-
-            </div>
-            *@
             }
 
         </div>
@@ -746,15 +708,9 @@
     </div>
 </div>
 
-
-
-<div class="boxDownload" id="boxDownload" style="display: block;">
+<div class="boxDownload" id="boxDownload" style="display: none;">
     <img class="imgDownload" src="~/images/loading.gif">
 </div>
-
-
-
-
 
 
 <script>
@@ -790,408 +746,387 @@
 
 <script>
 
-   @*  function submitForm() {
-       
-         $("#boxDownload").show();
 
-        document.getElementById("EJAddTranProbTermRecheckDate").submit();
-    } *@
-    @* $(document).ready(function () {
-        $(function () {
-
-        $('#FrDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-
-        $('#ToDate').datepicker({
-        format: "yyyy-mm-dd",
-        maxViewMode: 3,
-        daysOfWeekHighlighted: "0,6",
-        autoclose: true,
-        todayHighlight: true
-        });
-        });
-        });*@
 
          $("#btnsearch").click(function (e) {
-        e.preventDefault();
+         e.preventDefault();
 
-            $("#boxDownload").show();
+             $("#boxDownload").show();
 
+           
 
-            setTimeout(function () {
-                $("#EJAddTranProbTermRecheckDate").submit();
-            }, 100); // Use 0 milliseconds for minimal delay
+             setTimeout(function () {
+                 $("#EJAddTranProbTermRecheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
 
-        });
+         });
 
+          $("#btnsearch2").click(function (e) {
+         e.preventDefault();
 
-    $("#btnclear").click(function (e) {
-        e.preventDefault();
-
-            $("#boxDownload").show();
-
-
-            setTimeout(function () {
-                $("#EJAddTranProbTermRecheckDate").submit();
-            }, 100); // Use 0 milliseconds for minimal delay
-
-        });
-
-        $("#btnSEExp").click(function (e) {
-        e.preventDefault();
-
-        $("#boxDownload").show();
-
-
-        setTimeout(function () {
-            $("#EJAddTranProbTermRecheckDate").submit();
-        }, 100); // Use 0 milliseconds for minimal delay
-
-    });
+             $("#boxDownload").show();
 
 
 
+             setTimeout(function () {
+                 $("#EJAddTranProbTermRecheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
 
-    function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-
-    $("#EJAddTranProbTermRecheckDate").submit(async function (e) {
-        e.preventDefault();
-
-        var FrDateTemp = new Date($('#FrDate').val());
-        var ToDateTemp = new Date($('#ToDate').val());
+         });
 
 
+     $("#btnclear").click(function (e) {
+         e.preventDefault();
 
-        if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
-            alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
-            $("#boxDownload").hide();
-
-        } else {
-
-            this.submit();
-        }
-
-    });
-
-    getPagination('#table-id', @ViewBag.maxRows);
+             $("#boxDownload").show();
 
 
-    function getPagination(table, row) {
-        var lastPage = 1;
+             setTimeout(function () {
+                 $("#EJAddTranProbTermRecheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
 
-        $('#maxRows')
-            .on('change', function (evt) {
-                $('.paginationprev').html('');
+         });
 
-                lastPage = 1;
-                $('.pagination')
-                    .find('li')
-                    .slice(1, -1)
-                    .remove();
-                var trnum = 0;
-                var maxRows = parseInt($(this).val());
 
-                if (maxRows == 5000) {
-                    $('.pagination').hide();
-                } else {
-                    $('.pagination').show();
-                }
+     function delay(ms) {
+         return new Promise(resolve => setTimeout(resolve, ms));
+     }
 
-                var totalRows = $(table + ' tbody tr').length; // numbers of rows
-                $(table + ' tr:gt(0)').each(function () {
-                    // each TR in  table and not the header
-                    trnum++; // Start Counter
-                    if (trnum > maxRows) {
-                        // if tr number gt maxRows
 
-                        $(this).hide(); // fade it out
-                    }
-                    if (trnum <= maxRows) {
-                        $(this).show();
-                    } // else fade in Important in case if it ..
-                }); //  was fade out to fade it in
-                if (totalRows > maxRows) {
-                    // if tr total rows gt max rows option
-                    var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
-                    //	numbers of pages
+     $("#EJAddTranProbTermRecheckDate").submit(async function (e) {
+         e.preventDefault();
 
-                    for (var i = 1; i <= pagenum;) {
-                        // for each page append pagination li
-                        $('.pagination #prev')
-                            .before(
-                                '<li data-page="' +
-                                i +
-                                '">\
-                                                                           <a style="color: #333333;">' +
-                                i++ +
-                                '\
-                                                                                    </li>'
-                            )
-                            .show();
-                    } // end for i
-                    $('#back').show();
+         var FrDateTemp = new Date($('#FrDate').val());
+         var ToDateTemp = new Date($('#ToDate').val());
 
 
 
-                } else {
-                    $('#back').hide();
-                    $('#prev').hide();
-                }
+         if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+             alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+             $("#boxDownload").hide();
 
-                // end if row count > max rows
-                $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
-                $('.pagination li').on('click', function (evt) {
-                    // on click each page
-                    evt.stopImmediatePropagation();
-                    evt.preventDefault();
-                    var pageNum = $(this).attr('data-page'); // get it's number
+         } else {
 
-                    var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+             this.submit();
+         }
+
+     });
+
+     getPagination('#table-id', @ViewBag.maxRows);
 
 
+     function getPagination(table, row) {
+         var lastPage = 1;
 
-                    if (pageNum == 'prev') {
-                        if (lastPage == 1) {
-                            return;
-                        }
-                        pageNum = --lastPage;
-                    }
-                    if (maxRows < totalRows) {
-                        if (pageNum == 'next') {
-                            if (lastPage == $('.pagination li').length - 2) {
-                                return;
-                            }
-                            pageNum = ++lastPage;
-                        }
-                    }
+         $('#maxRows')
+             .on('change', function (evt) {
+                 $('.paginationprev').html('');
+
+                 lastPage = 1;
+                 $('.pagination')
+                     .find('li')
+                     .slice(1, -1)
+                     .remove();
+                 var trnum = 0;
+                 var maxRows = parseInt($(this).val());
+
+                 if (maxRows == 5000) {
+                     $('.pagination').hide();
+                 } else {
+                     $('.pagination').show();
+                 }
+
+                 var totalRows = $(table + ' tbody tr').length; // numbers of rows
+                 $(table + ' tr:gt(0)').each(function () {
+                     // each TR in  table and not the header
+                     trnum++; // Start Counter
+                     if (trnum > maxRows) {
+                         // if tr number gt maxRows
+
+                         $(this).hide(); // fade it out
+                     }
+                     if (trnum <= maxRows) {
+                         $(this).show();
+                     } // else fade in Important in case if it ..
+                 }); //  was fade out to fade it in
+                 if (totalRows > maxRows) {
+                     // if tr total rows gt max rows option
+                     var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+                     //	numbers of pages
+
+                     for (var i = 1; i <= pagenum;) {
+                         // for each page append pagination li
+                         $('.pagination #prev')
+                             .before(
+                                 '<li data-page="' +
+                                 i +
+                                 '">\
+                                                                            <a style="color: #333333;">' +
+                                 i++ +
+                                 '\
+                                                                                     </li>'
+                             )
+                             .show();
+                     } // end for i
+                     $('#back').show();
 
 
-                    lastPage = pageNum;
-                    var trIndex = 0; // reset tr counter
-                    $('.pagination li').removeClass('active'); // remove active class from all li
-                    $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
-                    // $(this).addClass('active');					// add active class to the clicked
-                    limitPagging();
-                    $(table + ' tr:gt(0)').each(function () {
-                        // each tr in table not the header
-                        trIndex++; // tr index counter
-                        // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
-                        if (
-                            trIndex > maxRows * pageNum ||
-                            trIndex <= maxRows * pageNum - maxRows
-                        ) {
-                            $(this).hide();
-                        } else {
-                            $(this).show();
-                        } //else fade in
-                    }); // end of for each tr in table
 
+                 } else {
+                     $('#back').hide();
+                     $('#prev').hide();
+                 }
 
-                    $('#seletePageNow').val(lastPage);
+                 // end if row count > max rows
+                 $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+                 $('.pagination li').on('click', function (evt) {
+                     // on click each page
+                     evt.stopImmediatePropagation();
+                     evt.preventDefault();
+                     var pageNum = $(this).attr('data-page'); // get it's number
+
+                     var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
 
 
 
+                     if (pageNum == 'prev') {
+                         if (lastPage == 1) {
+                             return;
+                         }
+                         pageNum = --lastPage;
+                     }
+                     if (maxRows < totalRows) {
+                         if (pageNum == 'next') {
+                             if (lastPage == $('.pagination li').length - 2) {
+                                 return;
+                             }
+                             pageNum = ++lastPage;
+                         }
+                     }
 
-                }); // end of on click pagination list
 
-                limitPagging();
+                     lastPage = pageNum;
+                     var trIndex = 0; // reset tr counter
+                     $('.pagination li').removeClass('active'); // remove active class from all li
+                     $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                     // $(this).addClass('active');					// add active class to the clicked
+                     limitPagging();
+                     $(table + ' tr:gt(0)').each(function () {
+                         // each tr in table not the header
+                         trIndex++; // tr index counter
+                         // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                         if (
+                             trIndex > maxRows * pageNum ||
+                             trIndex <= maxRows * pageNum - maxRows
+                         ) {
+                             $(this).hide();
+                         } else {
+                             $(this).show();
+                         } //else fade in
+                     }); // end of for each tr in table
+
+
+                     $('#seletePageNow').val(lastPage);
+
+
+
+
+                 }); // end of on click pagination list
+
+                 limitPagging();
     @*Set value in seletePage box*@
-                    $('#seletePageNow')
-                        .find('option')
-                        .remove()
-                        .end();
+                     $('#seletePageNow')
+                         .find('option')
+                         .remove()
+                         .end();
 
 
-                var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
+                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
 
 
-                                                                  var select = document.getElementById("seletePageNow");
-                for (var i = parseInt(pagenum); i > 0; i--) {
-                    var option = document.createElement('option');
-                    option.text = option.value = i;
-                    select.add(option, 0);
-                }
+                                                                   var select = document.getElementById("seletePageNow");
+                 for (var i = parseInt(pagenum); i > 0; i--) {
+                     var option = document.createElement('option');
+                     option.text = option.value = i;
+                     select.add(option, 0);
+                 }
 
-                $('#seletePageNow').val(lastPage);
+                 $('#seletePageNow').val(lastPage);
 
-            })
-            .val(row)
-            .change();
-
-
-
-        $('#seletePageNow')
-            .on('change', function (evt) {
-                // on click each page
-                evt.stopImmediatePropagation();
-                evt.preventDefault();
-                var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
-
-                var pageNum = $(this).val();
-
-                if (pageNum == null) pageNum = 1;
+             })
+             .val(row)
+             .change();
 
 
 
+         $('#seletePageNow')
+             .on('change', function (evt) {
+                 // on click each page
+                 evt.stopImmediatePropagation();
+                 evt.preventDefault();
+                 var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
 
+                 var pageNum = $(this).val();
 
-                lastPage = pageNum;
-                var trIndex = 0; // reset tr counter
-                $('.pagination li').removeClass('active'); // remove active class from all li
-                $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
-                // $(this).addClass('active');					// add active class to the clicked
-                limitPagging();
-                $(table + ' tr:gt(0)').each(function () {
-                    // each tr in table not the header
-                    trIndex++; // tr index counter
-                    // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
-                    if (
-                        trIndex > maxRows * pageNum ||
-                        trIndex <= maxRows * pageNum - maxRows
-                    ) {
-                        $(this).hide();
-                    } else {
-                        $(this).show();
-                    } //else fade in
-                }); // end of for each tr in table
-            }).change();
-
-
-
-        // end of on select change
-         document.getElementById("boxDownload").style.display = "none";
-        // END OF PAGINATION
-    }
-
-
-    function limitPagging() {
-        // alert($('.pagination li').length)
-
-        if ($('.pagination li').length > 7) {
-            if ($('.pagination li.active').attr('data-page') <= 3) {
-                $('.pagination li:gt(5)').hide();
-                $('.pagination li:lt(5)').show();
-                $('.pagination [data-page="next"]').show();
-            } if ($('.pagination li.active').attr('data-page') > 3) {
-                $('.pagination li:gt(0)').hide();
-                $('.pagination [data-page="next"]').show();
-                for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
-                    $('.pagination [data-page="' + i + '"]').show();
-
-                }
-
-            }
-        }
-    }
-
-
-
-    $(function () {
-        // Just to append id number for each row
-        $('table tr:eq(0)').prepend('<th> No </th>');
-
-        var id = 0;
-        var count = @Model.Count;
-
-        $('table tr:gt(0)').each(function () {
-            id++;
-            if (count != 0) {
-                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
-            }
-
-        });
-    });
-
-    //  Developed By Yasser Mas
-    // yasser.mas2@gmail.com
-
-
-    $("#btnSEExp").click(function (e) {
-        e.preventDefault();
-
-        var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
-            + '|' + "xlsx";
-        var rptType = "xlsx";
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            data: '{ "exparams" : "' + expParams + '" }',
-            contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
-            success: function (result) {
-                if (result.success == 'S') {
-                    var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
-                    window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
-                }
-                else { alert(result.errstr); }
-            },
-            error: function (err) {
-                alert('@ViewBag.ErrorMsg');
-            }
-        });
-         $("#boxDownload").hide();
-    });
-
-    $("#btnInsertProbMasterMain").click(function (e) {
-        e.preventDefault();
-        var value = $("#probNameStr").val();
-        var encodedString = encodeURIComponent(value);
-
-        $.ajax({
-            type: "POST",
-            dataType: "json",
-            contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val() + '&startDate=' + $("#startDate").val(),
-            success: function (result) {
-                if (result.result == true) {
-                    alert('Insert success! : ' + result.result);
-                    clearInsertDataProb();
-
-                }
-                else {
-                    alert('Insert unsuccess! : ' + result.error);
-                }
-            },
-            error: function (err) {
-                alert('@ViewBag.ErrorMsg');
-            }
-        });
+                 if (pageNum == null) pageNum = 1;
 
 
 
 
 
+                 lastPage = pageNum;
+                 var trIndex = 0; // reset tr counter
+                 $('.pagination li').removeClass('active'); // remove active class from all li
+                 $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                 // $(this).addClass('active');					// add active class to the clicked
+                 limitPagging();
+                 $(table + ' tr:gt(0)').each(function () {
+                     // each tr in table not the header
+                     trIndex++; // tr index counter
+                     // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                     if (
+                         trIndex > maxRows * pageNum ||
+                         trIndex <= maxRows * pageNum - maxRows
+                     ) {
+                         $(this).hide();
+                     } else {
+                         $(this).show();
+                     } //else fade in
+                 }); // end of for each tr in table
+             }).change();
 
-    });
-
-    $("#ddlProbMaster").on("change", function () {
-        var selectValue = $(this).val();
-        document.getElementById('KeyWordList').value = selectValue;
-        console.log("BBB -> selectValue : " + selectValue)
-
-    });
 
 
-    function clearInsertDataProb() {
-
-        document.getElementById('username').value = "";
-        document.getElementById('email').value = "";
-        document.getElementById('probCodeStr').value = "";
-        document.getElementById('probNameStr').value = "";
-        document.getElementById('probTypeStr').value = "";
-        document.getElementById('probTermStr').value = "";
-        document.getElementById('memoStr').value = "";
+         // end of on select change
+          document.getElementById("boxDownload").style.display = "none";
+         // END OF PAGINATION
+     }
 
 
-    }
+     function limitPagging() {
+         // alert($('.pagination li').length)
+
+         if ($('.pagination li').length > 7) {
+             if ($('.pagination li.active').attr('data-page') <= 3) {
+                 $('.pagination li:gt(5)').hide();
+                 $('.pagination li:lt(5)').show();
+                 $('.pagination [data-page="next"]').show();
+             } if ($('.pagination li.active').attr('data-page') > 3) {
+                 $('.pagination li:gt(0)').hide();
+                 $('.pagination [data-page="next"]').show();
+                 for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                     $('.pagination [data-page="' + i + '"]').show();
+
+                 }
+
+             }
+         }
+     }
+
+
+
+     $(function () {
+         // Just to append id number for each row
+         $('table tr:eq(0)').prepend('<th> No </th>');
+
+         var id = 0;
+         var count = @Model.Count;
+
+         $('table tr:gt(0)').each(function () {
+             id++;
+             if (count != 0) {
+                 $(this).prepend('<td style="text-align:center;">' + id + '</td>');
+             }
+
+         });
+     });
+
+     //  Developed By Yasser Mas
+     // yasser.mas2@gmail.com
+
+
+     $("#btnSEExp").click(function (e) {
+         e.preventDefault();
+
+          $("#boxDownload").show();
+
+         var expParams = "xlsx" + '|' + $("#frDate").val() + '|' + $("#toDate").val()
+             + '|' + "xlsx";
+         var rptType = "xlsx";
+         $.ajax({
+             type: "POST",
+             dataType: "json",
+             data: '{ "exparams" : "' + expParams + '" }',
+             contentType: 'application/json; charset=utf-8',
+             url: '@Url.Action("EJAddTermProb_ExportExc", "EJAddTranProbTerm")',
+             success: function (result) {
+                 if (result.success == 'S') {
+                     var url = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")'
+                     window.location = '@Url.Action("DownloadExportFile", "EJAddTranProbTerm")/?rpttype=' + rptType;
+                 }
+                 else { alert(result.errstr); }
+             },
+             error: function (err) {
+                 alert('@ViewBag.ErrorMsg');
+             }
+         });
+         setTimeout(function() {
+        $("#boxDownload").hide();
+    }, 1000);
+     });
+
+     $("#btnInsertProbMasterMain").click(function (e) {
+         e.preventDefault();
+         var value = $("#probNameStr").val();
+         var encodedString = encodeURIComponent(value);
+
+         $.ajax({
+             type: "POST",
+             dataType: "json",
+             contentType: 'application/json; charset=utf-8',
+             url: '@Url.Action("InsertProbMaster", "EJAddTranProbTerm")?username=' + $("#username").val() + '&email=' + $("#email").val() + '&probCodeStr=' + $("#probCodeStr").val() + '&probNameStr=' + encodedString + '&probTypeStr=' + $("#probTypeStr").val() + '&probTermStr=' + $("#probTermStr").val() + '&displayflagStr=' + $("#displayflagStr").val() + '&memo=' + $("#memo").val() + '&startDate=' + $("#startDate").val(),
+             success: function (result) {
+                 if (result.result == true) {
+                     alert('Insert success! : ' + result.result);
+                     clearInsertDataProb();
+
+                 }
+                 else {
+                     alert('Insert unsuccess! : ' + result.error);
+                 }
+             },
+             error: function (err) {
+                 alert('@ViewBag.ErrorMsg');
+             }
+         });
+
+
+
+
+
+
+     });
+
+     $("#ddlProbMaster").on("change", function () {
+         var selectValue = $(this).val();
+         document.getElementById('KeyWordList').value = selectValue;
+         console.log("BBB -> selectValue : " + selectValue)
+
+     });
+
+
+     function clearInsertDataProb() {
+
+         document.getElementById('username').value = "";
+         document.getElementById('email').value = "";
+         document.getElementById('probCodeStr').value = "";
+         document.getElementById('probNameStr').value = "";
+         document.getElementById('probTypeStr').value = "";
+         document.getElementById('probTermStr').value = "";
+         document.getElementById('memoStr').value = "";
+
+
+     }
 
 
 

@@ -30,10 +30,7 @@ namespace SLA_Management.Controllers
         {
             _configuration = configuration;
         }
-        public IActionResult Holiday()
-        {
-            return View();
-        }
+       
         private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
         {
 
@@ -45,26 +42,7 @@ namespace SLA_Management.Controllers
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
 
             return test;
-        }
-
-        private static List<string> GetReasonCardRetain(string _bank, IConfiguration _myConfiguration)
-        {
-
-            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
-            MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT distinct Reason FROM cardretain ;";
-            DataTable testss = db_mysql.GetDatatable(com);
-            List<string> test = new List<string>();
-
-            foreach (DataRow row in testss.Rows)
-            {
-                // Assuming "Reason" is the name of the column you're selecting
-                test.Add(row["Reason"].ToString());
-            }
-
-
-            return test;
-        }
+        }      
         public class IssueName
         {
             public string Issue_Name { get; set; }
@@ -95,72 +73,11 @@ namespace SLA_Management.Controllers
 
             return test;
         }
-        public IActionResult ReportCases()
+
+        #region Holiday
+        public IActionResult Holiday()
         {
-            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
-            ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
-            ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
-            // For now, just return the empty view
             return View();
-        }
-
-        public JsonResult GetReportCases(string termID, string issueName, string statusName, DateTime? fromDate, DateTime? toDate)
-        {
-            List<ReportCase> reportCases = new List<ReportCase>();
-
-            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
-            {
-                conn.Open();
-
-                string query = "SELECT Case_Error_No, Terminal_ID, Place_Install, Issue_Name, Date_Inform, Status_Name " +
-                               "FROM reportcases WHERE 1=1";
-
-                if (!string.IsNullOrEmpty(termID))
-                {
-                    query += " AND Terminal_ID = @TermID";
-                }
-                if (!string.IsNullOrEmpty(issueName))
-                {
-                    query += " AND Issue_Name = @IssueName";
-                }
-                if (!string.IsNullOrEmpty(statusName))
-                {
-                    query += " AND Status_Name = @StatusName";
-                }
-                if (fromDate.HasValue)
-                {
-                    query += " AND DATE(Date_Inform) >= DATE(@FromDate)";
-                }
-                if (toDate.HasValue)
-                {
-                    query += " AND DATE(Date_Inform) <= DATE(@ToDate)";
-                }
-
-                MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@TermID", termID);
-                cmd.Parameters.AddWithValue("@IssueName", issueName);
-                cmd.Parameters.AddWithValue("@StatusName", statusName);
-                cmd.Parameters.AddWithValue("@FromDate", fromDate);
-                cmd.Parameters.AddWithValue("@ToDate", toDate);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        reportCases.Add(new ReportCase
-                        {
-                            CaseErrorNo = reader.GetInt64("Case_Error_No"),
-                            TerminalID = reader.GetString("Terminal_ID"),
-                            PlaceInstall = reader.GetString("Place_Install"),
-                            IssueName = reader.GetString("Issue_Name"),
-                            DateInform = reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy"),
-                            StatusName = reader.GetString("Status_Name")
-                        });
-                    }
-                }
-            }
-
-            return Json(reportCases);
         }
 
         [HttpGet]
@@ -294,6 +211,19 @@ namespace SLA_Management.Controllers
            
 
         }
+
+        #endregion
+
+        #region ReportCases
+        public IActionResult ReportCases()
+        {
+            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
+            ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
+            ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+            // For now, just return the empty view
+            return View();
+        }
+
         [HttpGet]
         public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName, int row = 50, int page = 1)
         {
@@ -508,14 +438,71 @@ namespace SLA_Management.Controllers
             }
         }
 
+        public JsonResult GetReportCases(string termID, string issueName, string statusName, DateTime? fromDate, DateTime? toDate)
+        {
+            List<ReportCase> reportCases = new List<ReportCase>();
 
+            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                conn.Open();
+
+                string query = "SELECT Case_Error_No, Terminal_ID, Place_Install, Issue_Name, Date_Inform, Status_Name " +
+                               "FROM reportcases WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(termID))
+                {
+                    query += " AND Terminal_ID = @TermID";
+                }
+                if (!string.IsNullOrEmpty(issueName))
+                {
+                    query += " AND Issue_Name = @IssueName";
+                }
+                if (!string.IsNullOrEmpty(statusName))
+                {
+                    query += " AND Status_Name = @StatusName";
+                }
+                if (fromDate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) >= DATE(@FromDate)";
+                }
+                if (toDate.HasValue)
+                {
+                    query += " AND DATE(Date_Inform) <= DATE(@ToDate)";
+                }
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TermID", termID);
+                cmd.Parameters.AddWithValue("@IssueName", issueName);
+                cmd.Parameters.AddWithValue("@StatusName", statusName);
+                cmd.Parameters.AddWithValue("@FromDate", fromDate);
+                cmd.Parameters.AddWithValue("@ToDate", toDate);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        reportCases.Add(new ReportCase
+                        {
+                            CaseErrorNo = reader.GetInt64("Case_Error_No"),
+                            TerminalID = reader.GetString("Terminal_ID"),
+                            PlaceInstall = reader.GetString("Place_Install"),
+                            IssueName = reader.GetString("Issue_Name"),
+                            DateInform = reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy"),
+                            StatusName = reader.GetString("Status_Name")
+                        });
+                    }
+                }
+            }
+
+            return Json(reportCases);
+        }
 
         [HttpPost]
         public IActionResult UpdateRemark(string caseErrorNo, string remark)
         {
             try
             {
-                string connectionString = _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")??"";
+                string connectionString = _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC") ?? "";
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
@@ -544,6 +531,8 @@ namespace SLA_Management.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        #endregion
 
         #region ticket
         private DateTime SetTime(DateTime date, int hour, int minute, int second)
@@ -926,209 +915,7 @@ namespace SLA_Management.Controllers
 
         #endregion
 
-
-
-
-        public IActionResult CardRetain()
-        {
-            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
-            ViewBag.Reason = GetReasonCardRetain("BAAC", _configuration);
-            //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
-            //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
-            // For now, just return the empty view
-            return View();
-        }
-
-
-
-        [HttpGet]
-        public JsonResult FetchCardRetain(string terminalID,string reason, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
-        {
-            List<CardRetain> cardRetain = new List<CardRetain>();
-            int totalCases = 0;
-            int totalPages = 0;
-            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
-            {
-                conn.Open();
-
-                string query = "SELECT * " +
-                               "FROM cardretain WHERE 1=1";
-
-                if (!string.IsNullOrEmpty(terminalID))
-                {
-                    query += " AND TerminalID = @TerminalID";
-                }
-               
-                if (fromdate.HasValue)
-                {
-                    query += " AND DATE >= @FromDate";
-                }
-                if (todate.HasValue)
-                {
-                    query += " AND DATE <= @ToDate";
-                }
-
-                if (!string.IsNullOrEmpty(reason))
-                {
-                    query += " AND REASON = @Reason";
-                }
-
-
-                query += " ORDER BY Date DESC ";
-
-                MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@TerminalID", terminalID);              
-                cmd.Parameters.AddWithValue("@FromDate", fromdate);
-                cmd.Parameters.AddWithValue("@ToDate", todate);
-                cmd.Parameters.AddWithValue("@Reason", reason);
-                cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        cardRetain.Add(new CardRetain
-                        {
-                            Location = reader["Location"] != DBNull.Value ? reader.GetString("Location") : string.Empty,
-                            TerminalID = reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty,
-                            TerminalName = reader["TerminalName"] != DBNull.Value ? reader.GetString("TerminalName") : string.Empty,
-                            CardNo = reader["CardNo"] != DBNull.Value ? reader.GetString("CardNo") : string.Empty,
-                            Date = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : string.Empty,
-                            Reason = reader["Reason"] != DBNull.Value ? reader.GetString("Reason") : string.Empty,
-                            Vendor = reader["Vendor"] != DBNull.Value ? reader.GetString("Vendor") : string.Empty,
-                            ErrorCode = reader["ErrorCode"] != DBNull.Value ? reader.GetString("ErrorCode") : string.Empty,
-                            InBankFlag = reader["InBankFlag"] != DBNull.Value ? reader.GetString("InBankFlag") : string.Empty,
-                            CardStatus = reader["CardStatus"] != DBNull.Value ? reader.GetString("CardStatus") : string.Empty,
-                            Telephone = reader["Telephone"] != DBNull.Value ? reader.GetString("Telephone") : string.Empty,
-                            UpdateDate = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy") : string.Empty,
-
-                        });
-
-                    }
-                    if (reader.NextResult() && reader.Read())
-                    {
-                        totalCases = reader.GetInt32(0);
-                    }
-                }
-            }
-
-            totalPages = (int)Math.Ceiling((double)totalCases / row);
-
-          
-
-            return Json(new
-            {
-                jsonData = cardRetain,
-                currentPage = page,
-                totalPages = totalPages,
-                totalCases = totalCases
-            });
-        }
-
-        public IActionResult ExportCardRetainToExcel(string terminalID, string reason, DateTime? fromdate, DateTime? todate)
-        {
-
-            using (var connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
-            {
-                connection.Open();
-                string query = "SELECT * FROM cardretain WHERE 1=1";
-
-                if (!string.IsNullOrEmpty(terminalID))
-                    query += " AND TerminalID = @TerminalID";             
-                if (fromdate.HasValue)
-                    query += " AND Date >= @FromDate";
-                if (todate.HasValue)
-                    query += " AND Date <= @ToDate";
-                if (!string.IsNullOrEmpty(reason))
-                    query += " AND Reason = @reason";
-
-                using (var command = new MySqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@TerminalID", terminalID);
-                    command.Parameters.AddWithValue("@FromDate", fromdate?.Date);
-                    command.Parameters.AddWithValue("@ToDate", todate?.Date);
-                    command.Parameters.AddWithValue("@reason", reason);
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                    using (var reader = command.ExecuteReader())
-                    {
-                        using (var package = new ExcelPackage())
-                        {
-                            var worksheet = package.Workbook.Worksheets.Add("ReportCases");
-
-                            // Add headers
-                            worksheet.Cells[1, 1].Value = "CardRetainID";
-                            worksheet.Cells[1, 2].Value = "Location";
-                            worksheet.Cells[1, 3].Value = "TerminalID";
-                            worksheet.Cells[1, 4].Value = "TerminalName";
-                            worksheet.Cells[1, 5].Value = "CardNo";
-                            worksheet.Cells[1, 6].Value = "Date";
-                            worksheet.Cells[1, 7].Value = "Reason";
-                            worksheet.Cells[1, 8].Value = "Vendor";
-                            worksheet.Cells[1, 9].Value = "ErrorCode";
-                            worksheet.Cells[1, 10].Value = "InBankFlag";
-                            worksheet.Cells[1, 11].Value = "CardStatus";
-                            worksheet.Cells[1, 12].Value = "Telephone";
-                            worksheet.Cells[1, 13].Value = "UpdateDate";
-                           
-                            using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
-                            {
-                                range.Style.Font.Bold = true; // Bold font
-                                range.Style.Font.Size = 14; // Larger font size
-                                range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Set fill pattern to solid
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue); // Set background color
-                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Center text
-                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center; // Center vertically
-                            }
-                            int row = 2;
-                            while (reader.Read())
-                            {
-                                worksheet.Cells[row, 1].Value = reader["CardRetainID"] != DBNull.Value ? Convert.ToInt32(reader["CardRetainID"]) : null;
-                                worksheet.Cells[row, 2].Value = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : null;
-                                worksheet.Cells[row, 3].Value = reader["TerminalID"] != DBNull.Value ? reader["TerminalID"].ToString() : null;
-                                worksheet.Cells[row, 4].Value = reader["TerminalName"] != DBNull.Value ? reader["TerminalName"].ToString() : null;
-                                worksheet.Cells[row, 5].Value = reader["CardNo"] != DBNull.Value ? reader["CardNo"].ToString() : null;
-                                worksheet.Cells[row, 6].Value = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : null;
-                                worksheet.Cells[row, 7].Value = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : null;
-                                worksheet.Cells[row, 8].Value = reader["Vendor"] != DBNull.Value ? reader["Vendor"].ToString() : null;
-                                worksheet.Cells[row, 9].Value = reader["ErrorCode"] != DBNull.Value ? reader["ErrorCode"].ToString() : null;
-                                worksheet.Cells[row, 10].Value = reader["InBankFlag"] != DBNull.Value ? reader["InBankFlag"].ToString() : null;
-                                worksheet.Cells[row, 11].Value = reader["CardStatus"] != DBNull.Value ? reader["CardStatus"].ToString() : null;
-                                worksheet.Cells[row, 12].Value = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : null;
-                                worksheet.Cells[row, 13].Value = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy HH:mm") : null;
-
-
-
-
-                                row++;
-                            }
-
-                            worksheet.Cells.AutoFitColumns();
-
-                            // Build the filename based on filters
-                            string excelName = "CardRetain";
-                            if (!string.IsNullOrEmpty(terminalID))
-                                excelName += $"_Terminal_{terminalID}";                           
-                            if (fromdate.HasValue)
-                                excelName += $"_From_{fromdate.Value.ToString("yyyyMMdd")}";
-                            if (todate.HasValue)
-                                excelName += $"_To_{todate.Value.ToString("yyyyMMdd")}";
-                            if (!string.IsNullOrEmpty(reason))
-                                excelName += $"_reason_{reason.Replace(" ", "_")}";
-
-                            excelName += ".xlsx";
-
-                            var stream = new MemoryStream();
-                            package.SaveAs(stream);
-                            stream.Position = 0;
-
-                            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
-                        }
-                    }
-                }
-            }
-        }
-
-
+       
     }
-    
+
 }

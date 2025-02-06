@@ -8,7 +8,7 @@
     "TerminalID",
     "Date",
     "Reason",
-    "CardStatus"    
+    "CardStatus"
     };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -113,6 +113,31 @@
         pointer-events: none;
         background-color: #f1f1f1; /* หรือสีอื่นๆ ที่ต้องการ */
     }
+
+    .boxDownload {
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                    position: fixed;
+                    top: 250px;
+                    right: 550px;
+                    pointer-events: none;
+                    z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
 </style>
 
 <div class="content contentHeader">
@@ -121,11 +146,11 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-11">
-                <a class="text-white fs-4" id="header_search">Report Cases</a>
+                <a class="text-white fs-4" id="header_search">Card Retain</a>
             </div>
         </div>
         <div id="main_search" style="">
-            @using (Html.BeginForm("CardRetain", "Management", FormMethod.Get, new { id = "myForm" }))
+            @using (Html.BeginForm("CardRetain", "Monitor", FormMethod.Get, new { id = "myForm" }))
             {
 
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
@@ -189,7 +214,7 @@
                                 <option data-tokens="" value="">--</option>
                                 @foreach (var item in ViewBag.Reason as List<string>)
                                 {
-                                    
+
                                     var selectedValue = ViewBag.SelectedReason as string;
 
                                     if (item == selectedValue)
@@ -206,7 +231,7 @@
                         </div>
                     </div>
 
-                   
+
                 </div>
 
 
@@ -372,14 +397,32 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>               
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
 
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
+
 <script>
+
+    $("#btnclear").click(function (e) {
+        e.preventDefault();
+
+            $("#boxDownload").show();
+
+
+            setTimeout(function() {
+        $("#boxDownload").hide();
+    }, 1000);
+
+    });
+
     var dropArea = document.getElementById('dropArea');
     var fileInput = document.getElementById('fileInput');
 
@@ -487,9 +530,11 @@
         var todate = $("#todate").val();
          var reason = $("#reason").val();
 
+          $("#boxDownload").show();
+
            $.ajax({
         type: "GET",
-        url: '@Url.Action("FetchCardRetain", "Management")',
+        url: '@Url.Action("FetchCardRetain", "Monitor")',
         data: {
             terminalID: terminalID,
             fromdate: fromdate,
@@ -503,18 +548,18 @@
     var totalPages = data.totalPages;
     var currentPage = data.currentPage;
 
-            
+
             if (!jsondata || jsondata.length === 0) {
                 console.log("No data available");
                 var noDataRow = $("<tr>").append($("<td colspan='7' style='text-align:center;'>").text("No data"));
-                $("#table-id tbody").empty().append(noDataRow);  
+                $("#table-id tbody").empty().append(noDataRow);
             } else {
                 console.log("jsondata:", jsondata);
                 $("#table-id tbody").empty();
 
-                
+
                 $.each(jsondata, function (index, item) {
-                    var noColumn = index + 1;  
+                    var noColumn = index + 1;
                      var editButton = $("<td>").css("text-align", "center").append(
                         $("<img>").addClass("btn text-dark edit-btn").attr({
                             src: "/non-outsource-operation/images/button_view.png",
@@ -536,15 +581,15 @@
                         })
                     );
                     var row = $("<tr>");
-                    row.append($("<td>").css("text-align", "center").text(noColumn)); 
+                    row.append($("<td>").css("text-align", "center").text(noColumn));
                     row.append(editButton);
                     row.append($("<td>").css("text-align", "center").text(item.location));
-                    row.append($("<td>").css("text-align", "center").text(item.terminalID));           
-                    row.append($("<td>").css("text-align", "center").text(item.date));  
-                    row.append($("<td>").css("text-align", "center").text(item.reason));                   
-                    row.append($("<td>").css("text-align", "center").text(item.cardStatus));                    
+                    row.append($("<td>").css("text-align", "center").text(item.terminalID));
+                    row.append($("<td>").css("text-align", "center").text(item.date));
+                    row.append($("<td>").css("text-align", "center").text(item.reason));
+                    row.append($("<td>").css("text-align", "center").text(item.cardStatus));
 
-                   
+
                     $("#table-id tbody").append(row);
                 });
             }
@@ -571,116 +616,25 @@
         }
     });
 
+        setTimeout(function() {
+        $("#boxDownload").hide();
+    }, 1000);
 
     }
 
-
-
-
-
-        // $.ajax({
-        //     type: "GET",
-        //     url: '@Url.Action("FetchCardRetain", "Management")',
-        //     data: {
-        //         terminalID: terminalID,
-        //         fromdate: fromdate,
-        //         todate: todate,
-        //     },
-        //     dataType: "json",
-        //     success: function (data) {
-        //         var jsondata = data.jsonData;
-        //         var pages = data.page;
-        //         var jsondata = data.jsonData;
-        //         var totalPages = data.totalPages;
-        //         var currentPage = data.currentPage;
-        //         $("#table-id tbody").empty();
-        //         console.log(data);
-        //         if (jsondata.length === 0) {
-        //             var noDataRow = $("<tr>").append($("<td colspan='8' style='text-align:center;'>").text("No data"));
-        //             $("#table-id tbody").append(noDataRow);
-        //         } else {
-        //             $.each(jsondata, function (index, item) {
-        //                 var noColumn = index + 1;  // Calculate the No. column value
-        //                 var editButton = $("<td>").css("text-align", "center").append(
-        //                     $("<img>").addClass("btn text-dark edit-btn").attr({
-        //                         src: "/non-outsource-operation/images/button_view.png",
-        //                         style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
-        //                         "data-case-error-no": item.caseErrorNo,
-        //                         "data-terminal-id": item.terminalID,
-        //                         "data-place-install": item.placeInstall,
-        //                         "data-issue-name": item.issueName,
-        //                         "data-date-inform": item.dateInform,
-        //                         "data-status-name": item.statusName,
-        //                         "data-branch-name": item.branchName,
-        //                         "data-repair1": item.repair1,
-        //                         "data-repair2": item.repair2,
-        //                         "data-repair3": item.repair3,
-        //                         "data-repair4": item.repair4,
-        //                         "data-repair5": item.repair5,
-        //                         "data-incident-no": item.incidentNo,
-        //                         "data-date-close-pb": item.dateClosePb,
-        //                         "data-type-project": item.typeProject,
-        //                         "data-update-date": item.updateDate,
-        //                         "data-update-by": item.updateBy,
-        //                         "data-remark": item.remark,
-        //                         "data-toggle": "modal",
-        //                         "data-target": "#reportCaseModal"
-        //                     })
-        //                 );
-        //                 var row = $("<tr>");
-        //                 row.append($("<td>").css("text-align", "center").text(noColumn));  // No. column
-        //                 row.append(editButton);
-        //                 row.append($("<td>").css("text-align", "center").text(item.caseErrorNo));
-        //                 row.append($("<td>").css("text-align", "center").text(item.terminalID));
-        //                 row.append($("<td>").css("text-align", "center").text(item.placeInstall));
-        //                 row.append($("<td>").css("text-align", "center").text(item.issueName));
-        //                 row.append($("<td>").css("text-align", "center").text(item.dateInform));
-        //                 row.append($("<td>").css("text-align", "center").text(item.statusName));
-
-        //                 $("#table-id tbody").append(row);
-        //                 window.scrollTo(0, 0);
-        //             });
-        //         }
-        //         // Bind the click event after the rows have been added
-        //         $(".edit-btn").click(function () {
-        //             $("#CaseErrorNo").val($(this).data("case-error-no"));
-        //             $("#TerminalID").val($(this).data("terminal-id"));
-        //             $("#PlaceInstall").val($(this).data("place-install"));
-        //             $("#IssueName").val($(this).data("issue-name"));
-        //             $("#DateInform").val($(this).data("date-inform"));
-        //             $("#StatusName").val($(this).data("status-name"));
-        //             $("#BranchName").val($(this).data("branch-name"));
-        //             $("#Repair1").val($(this).data("repair1"));
-        //             $("#Repair2").val($(this).data("repair2"));
-        //             $("#Repair3").val($(this).data("repair3"));
-        //             $("#Repair4").val($(this).data("repair4"));
-        //             $("#Repair5").val($(this).data("repair5"));
-        //             $("#IncidentNo").val($(this).data("incident-no"));
-        //             $("#DateClosePb").val($(this).data("date-close-pb"));
-        //             $("#TypeProject").val($(this).data("type-project"));
-        //             $("#UpdateDate").val($(this).data("update-date"));
-        //             $("#UpdateBy").val($(this).data("update-by"));
-        //             $("#Remark").val($(this).data("remark"));
-        //         });
-        //     },
-        //     error: function (error) {
-        //         console.log("Error: " + JSON.stringify(error));
-        //     }
-        // });
-
     $(document).ready(function () {
         $("#btnSEExp").click(function () {
-            var terminalID = $("#TerminalID").val();           
+            var terminalID = $("#TerminalID").val();
             var fromdate = $("#fromdate").val();
             var todate = $("#todate").val();
              var reason = $("#reason").val();
-
+              $("#boxDownload").show();
 
             $.ajax({
                 type: "GET",
-                url: '@Url.Action("ExportCardRetainToExcel", "Management")',
+                url: '@Url.Action("ExportCardRetainToExcel", "Monitor")',
                 data: {
-                    terminalID: terminalID,                  
+                    terminalID: terminalID,
                     fromdate: fromdate,
                     todate: todate  ,
                     reason: reason
@@ -713,8 +667,16 @@
                     console.log("Error: " + JSON.stringify(error));
                 }
             });
+
+             setTimeout(function() {
+        $("#boxDownload").hide();
+    }, 1000);
         });
+
     });
+
+
+
     $(document).ready(function () {
         // Handle update button click
         $("#updateRemarkBtn").click(function () {
@@ -724,7 +686,7 @@
             // Send AJAX request to update the remark in the database
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("UpdateRemark", "Management")',   // Change to your actual backend URL
+                url: '@Url.Action("UpdateRemark", "Monitor")',   // Change to your actual backend URL
                 data: {
                     caseErrorNo: caseErrorNo,
                     remark: remark

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
+using Models.ManagementModel;
 using MySql.Data.MySqlClient;
 using Mysqlx.Crud;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
@@ -19,6 +21,7 @@ using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.TermProbModel;
 using System;
 using System.Data;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -34,7 +37,7 @@ namespace SLA_Management.Controllers
         private static ConnectMySQL db_fv;
         private static ConnectMySQL db_all;
         private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
-        private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
+        //private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
         private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
         private static ej_trandada_seek param = new ej_trandada_seek();
         private static List<HealthCheckModel> healthCheck_dataList = new List<HealthCheckModel>();
@@ -70,6 +73,19 @@ namespace SLA_Management.Controllers
             MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
             DataTable testss = db_fv.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+
+        private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_mysql.GetDatatable(com);
 
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
 
@@ -578,6 +594,223 @@ namespace SLA_Management.Controllers
 
         #endregion
 
+        #region CardRetain by boom
+        public IActionResult CardRetain()
+        {
+            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _myConfiguration);
+            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);
+            //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
+            //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+            // For now, just return the empty view
+            return View();
+        }
+
+        [HttpGet]
+        public JsonResult FetchCardRetain(string terminalID, string reason, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
+        {
+            List<CardRetain> cardRetain = new List<CardRetain>();
+            int totalCases = 0;
+            int totalPages = 0;
+            using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                conn.Open();
+
+                string query = "SELECT * " +
+                               "FROM cardretain WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                {
+                    query += " AND TerminalID = @TerminalID";
+                }
+
+                if (fromdate.HasValue)
+                {
+                    query += " AND DATE >= @FromDate";
+                }
+                if (todate.HasValue)
+                {
+                    query += " AND DATE <= @ToDate";
+                }
+
+                if (!string.IsNullOrEmpty(reason))
+                {
+                    query += " AND REASON = @Reason";
+                }
+
+
+                query += " ORDER BY Date DESC ";
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TerminalID", terminalID);
+                cmd.Parameters.AddWithValue("@FromDate", fromdate);
+                cmd.Parameters.AddWithValue("@ToDate", todate);
+                cmd.Parameters.AddWithValue("@Reason", reason);
+                cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        cardRetain.Add(new CardRetain
+                        {
+                            Location = reader["Location"] != DBNull.Value ? reader.GetString("Location") : string.Empty,
+                            TerminalID = reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty,
+                            TerminalName = reader["TerminalName"] != DBNull.Value ? reader.GetString("TerminalName") : string.Empty,
+                            CardNo = reader["CardNo"] != DBNull.Value ? reader.GetString("CardNo") : string.Empty,
+                            Date = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : string.Empty,
+                            Reason = reader["Reason"] != DBNull.Value ? reader.GetString("Reason") : string.Empty,
+                            Vendor = reader["Vendor"] != DBNull.Value ? reader.GetString("Vendor") : string.Empty,
+                            ErrorCode = reader["ErrorCode"] != DBNull.Value ? reader.GetString("ErrorCode") : string.Empty,
+                            InBankFlag = reader["InBankFlag"] != DBNull.Value ? reader.GetString("InBankFlag") : string.Empty,
+                            CardStatus = reader["CardStatus"] != DBNull.Value ? reader.GetString("CardStatus") : string.Empty,
+                            Telephone = reader["Telephone"] != DBNull.Value ? reader.GetString("Telephone") : string.Empty,
+                            UpdateDate = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy") : string.Empty,
+
+                        });
+
+                    }
+                    if (reader.NextResult() && reader.Read())
+                    {
+                        totalCases = reader.GetInt32(0);
+                    }
+                }
+            }
+
+            totalPages = (int)Math.Ceiling((double)totalCases / row);
+
+
+
+            return Json(new
+            {
+                jsonData = cardRetain,
+                currentPage = page,
+                totalPages = totalPages,
+                totalCases = totalCases
+            });
+        }
+
+        public IActionResult ExportCardRetainToExcel(string terminalID, string reason, DateTime? fromdate, DateTime? todate)
+        {
+
+            using (var connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+            {
+                connection.Open();
+                string query = "SELECT * FROM cardretain WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(terminalID))
+                    query += " AND TerminalID = @TerminalID";
+                if (fromdate.HasValue)
+                    query += " AND Date >= @FromDate";
+                if (todate.HasValue)
+                    query += " AND Date <= @ToDate";
+                if (!string.IsNullOrEmpty(reason))
+                    query += " AND Reason = @reason";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@TerminalID", terminalID);
+                    command.Parameters.AddWithValue("@FromDate", fromdate?.Date);
+                    command.Parameters.AddWithValue("@ToDate", todate?.Date);
+                    command.Parameters.AddWithValue("@reason", reason);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    using (var reader = command.ExecuteReader())
+                    {
+                        using (var package = new ExcelPackage())
+                        {
+                            var worksheet = package.Workbook.Worksheets.Add("ReportCases");
+
+                            // Add headers
+                            worksheet.Cells[1, 1].Value = "CardRetainID";
+                            worksheet.Cells[1, 2].Value = "Location";
+                            worksheet.Cells[1, 3].Value = "TerminalID";
+                            worksheet.Cells[1, 4].Value = "TerminalName";
+                            worksheet.Cells[1, 5].Value = "CardNo";
+                            worksheet.Cells[1, 6].Value = "Date";
+                            worksheet.Cells[1, 7].Value = "Reason";
+                            worksheet.Cells[1, 8].Value = "Vendor";
+                            worksheet.Cells[1, 9].Value = "ErrorCode";
+                            worksheet.Cells[1, 10].Value = "InBankFlag";
+                            worksheet.Cells[1, 11].Value = "CardStatus";
+                            worksheet.Cells[1, 12].Value = "Telephone";
+                            worksheet.Cells[1, 13].Value = "UpdateDate";
+
+                            using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
+                            {
+                                range.Style.Font.Bold = true; // Bold font
+                                range.Style.Font.Size = 14; // Larger font size
+                                range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Set fill pattern to solid
+                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue); // Set background color
+                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Center text
+                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center; // Center vertically
+                            }
+                            int row = 2;
+                            while (reader.Read())
+                            {
+                                worksheet.Cells[row, 1].Value = reader["CardRetainID"] != DBNull.Value ? Convert.ToInt32(reader["CardRetainID"]) : null;
+                                worksheet.Cells[row, 2].Value = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : null;
+                                worksheet.Cells[row, 3].Value = reader["TerminalID"] != DBNull.Value ? reader["TerminalID"].ToString() : null;
+                                worksheet.Cells[row, 4].Value = reader["TerminalName"] != DBNull.Value ? reader["TerminalName"].ToString() : null;
+                                worksheet.Cells[row, 5].Value = reader["CardNo"] != DBNull.Value ? reader["CardNo"].ToString() : null;
+                                worksheet.Cells[row, 6].Value = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 7].Value = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : null;
+                                worksheet.Cells[row, 8].Value = reader["Vendor"] != DBNull.Value ? reader["Vendor"].ToString() : null;
+                                worksheet.Cells[row, 9].Value = reader["ErrorCode"] != DBNull.Value ? reader["ErrorCode"].ToString() : null;
+                                worksheet.Cells[row, 10].Value = reader["InBankFlag"] != DBNull.Value ? reader["InBankFlag"].ToString() : null;
+                                worksheet.Cells[row, 11].Value = reader["CardStatus"] != DBNull.Value ? reader["CardStatus"].ToString() : null;
+                                worksheet.Cells[row, 12].Value = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : null;
+                                worksheet.Cells[row, 13].Value = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy HH:mm") : null;
+
+
+
+
+                                row++;
+                            }
+
+                            worksheet.Cells.AutoFitColumns();
+
+                            // Build the filename based on filters
+                            string excelName = "CardRetain";
+                            if (!string.IsNullOrEmpty(terminalID))
+                                excelName += $"_Terminal_{terminalID}";
+                            if (fromdate.HasValue)
+                                excelName += $"_From_{fromdate.Value.ToString("yyyyMMdd")}";
+                            if (todate.HasValue)
+                                excelName += $"_To_{todate.Value.ToString("yyyyMMdd")}";
+                            if (!string.IsNullOrEmpty(reason))
+                                excelName += $"_reason_{reason.Replace(" ", "_")}";
+
+                            excelName += ".xlsx";
+
+                            var stream = new MemoryStream();
+                            package.SaveAs(stream);
+                            stream.Position = 0;
+
+                            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static List<string> GetReasonCardRetain(string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT distinct Reason FROM cardretain ;";
+            DataTable testss = db_mysql.GetDatatable(com);
+            List<string> test = new List<string>();
+
+            foreach (DataRow row in testss.Rows)
+            {
+                test.Add(row["Reason"].ToString());
+            }
+
+
+            return test;
+        }
+
+        #endregion
 
         #region Excel TransactionSummary
 
@@ -1036,171 +1269,171 @@ namespace SLA_Management.Controllers
         #region CardRetain
 
 
-        [HttpGet]
-        public IActionResult CardRetain()
-        {
+        //[HttpGet]
+        //public IActionResult CardRetain()
+        //{
 
-            int pageSize = 20;
-            int? maxRows = 20;
-            pageSize = maxRows.HasValue ? maxRows.Value : 100;
-            ViewBag.maxRows = pageSize;
-            ViewBag.CurrentTID = GetDeviceInfoALL();
-            ViewBag.pageSize = pageSize;
-            return View();
-        }
-        [HttpGet]
-        public IActionResult CardRetainFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype)
-        {
-            int _page;
+        //    int pageSize = 20;
+        //    int? maxRows = 20;
+        //    pageSize = maxRows.HasValue ? maxRows.Value : 100;
+        //    ViewBag.maxRows = pageSize;
+        //    ViewBag.CurrentTID = GetDeviceInfoALL();
+        //    ViewBag.pageSize = pageSize;
+        //    return View();
+        //}
+        //[HttpGet]
+        //public IActionResult CardRetainFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype)
+        //{
+        //    int _page;
 
-            if (page == null || search == "search")
-            {
-                _page = 1;
-            }
-            else
-            {
-                _page = int.Parse(page);
-            }
-            if (search == "next")
-            {
-                _page++;
-            }
-            else if (search == "prev")
-            {
-                _page--;
-            }
-            int _row;
-            if (row == null)
-            {
-                _row = 20;
-            }
-            else
-            {
-                _row = int.Parse(row);
-            }
-            terminalno = terminalno ?? "";
-            terminaltype = terminaltype ?? "";
-            sort = sort ?? "trxdatetime";
-            List<CardRetainModel> jsonData = new List<CardRetainModel>();
-            if (search == "search")
-            {
-                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
-                {
-                    connection.Open();
-                    // Modify the SQL query to use the 'input' parameter for filtering
-                    string query = " SELECT adi.term_seq as term_seq, t1.terminalid AS term_id, adi.term_name as term_name, SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS card_number, t2.trxdatetime AS trxdatetime_ejreport FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'LASTTRANS_14' AND (t2.probcode = 'DEVICE05' OR t2.probcode = 'DEVICE14') AND (t2.remark LIKE '%RETAIN CARD%' or t2.remark like '%CARD RETAINED FAILED%') and t1.trxdatetime between '" + DateTime.Now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss") + "' and '" + DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' ";
-                    if (terminalno != "")
-                    {
-                        query += " and adi.TERM_ID like '%" + terminalno + "%' ";
-                    }
-                    if (terminaltype != "")
-                    {
-                        query += " and adi.TYPE_ID = '" + terminaltype + "' ";
-                    }
-                    query += " GROUP BY adi.term_seq, adi.term_id, adi.term_name ";
-                    switch (sort)
-                    {
-                        case "trxdatetime":
-                            query += " ORDER BY t2.trxdatetime asc; ";
-                            break;
-                        case "term_id":
-                            query += " ORDER BY adi.term_id asc,t2.trxdatetime asc;";
-                            break;
-                        case "branch_id":
-                            query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t2.trxdatetime asc;";
-                            break;
-                        case "term_seq":
-                            query += " ORDER BY adi.term_seq asc,t2.trxdatetime asc;";
-                            break;
-                        default:
-                            query += " ORDER BY t2.trxdatetime asc;";
-                            break;
-                    }
-                    MySqlCommand command = new MySqlCommand(query, connection);
-                    int id_row = 0;
-                    string _trxdatetime = "";
-                    using (MySqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            id_row += 1;
-                            if (reader["trxdatetime_ejreport"] != DBNull.Value && DateTime.TryParse(reader["trxdatetime_ejreport"].ToString(), out DateTime trxDateTime))
-                            {
-                                _trxdatetime = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
-                            }
-                            else
-                            {
-                                _trxdatetime = "-";
-                            }
-                            jsonData.Add(new CardRetainModel
-                            {
+        //    if (page == null || search == "search")
+        //    {
+        //        _page = 1;
+        //    }
+        //    else
+        //    {
+        //        _page = int.Parse(page);
+        //    }
+        //    if (search == "next")
+        //    {
+        //        _page++;
+        //    }
+        //    else if (search == "prev")
+        //    {
+        //        _page--;
+        //    }
+        //    int _row;
+        //    if (row == null)
+        //    {
+        //        _row = 20;
+        //    }
+        //    else
+        //    {
+        //        _row = int.Parse(row);
+        //    }
+        //    terminalno = terminalno ?? "";
+        //    terminaltype = terminaltype ?? "";
+        //    sort = sort ?? "trxdatetime";
+        //    List<CardRetainModel> jsonData = new List<CardRetainModel>();
+        //    if (search == "search")
+        //    {
+        //        using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+        //        {
+        //            connection.Open();
+        //            // Modify the SQL query to use the 'input' parameter for filtering
+        //            string query = " SELECT adi.term_seq as term_seq, t1.terminalid AS term_id, adi.term_name as term_name, SUBSTRING_INDEX(SUBSTRING_INDEX(UPPER(t1.remark), 'CARD NUMBER : ', -1), ' ', 4) AS card_number, t2.trxdatetime AS trxdatetime_ejreport FROM ejlog_devicetermprob_ejreport t1 LEFT JOIN ejlog_devicetermprob t2 ON t1.terminalid = t2.terminalid AND t1.trxdatetime BETWEEN DATE_SUB(t2.trxdatetime, INTERVAL 3 minute) AND t2.trxdatetime join fv_device_info adi on t1.terminalid = adi.term_id WHERE t1.probcode = 'LASTTRANS_14' AND (t2.probcode = 'DEVICE05' OR t2.probcode = 'DEVICE14') AND (t2.remark LIKE '%RETAIN CARD%' or t2.remark like '%CARD RETAINED FAILED%') and t1.trxdatetime between '" + DateTime.Now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss") + "' and '" + DateTime.Now.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss") + "' ";
+        //            if (terminalno != "")
+        //            {
+        //                query += " and adi.TERM_ID like '%" + terminalno + "%' ";
+        //            }
+        //            if (terminaltype != "")
+        //            {
+        //                query += " and adi.TYPE_ID = '" + terminaltype + "' ";
+        //            }
+        //            query += " GROUP BY adi.term_seq, adi.term_id, adi.term_name ";
+        //            switch (sort)
+        //            {
+        //                case "trxdatetime":
+        //                    query += " ORDER BY t2.trxdatetime asc; ";
+        //                    break;
+        //                case "term_id":
+        //                    query += " ORDER BY adi.term_id asc,t2.trxdatetime asc;";
+        //                    break;
+        //                case "branch_id":
+        //                    query += " ORDER BY SUBSTRING_INDEX(adi.term_id, 'B', -1) asc,t2.trxdatetime asc;";
+        //                    break;
+        //                case "term_seq":
+        //                    query += " ORDER BY adi.term_seq asc,t2.trxdatetime asc;";
+        //                    break;
+        //                default:
+        //                    query += " ORDER BY t2.trxdatetime asc;";
+        //                    break;
+        //            }
+        //            MySqlCommand command = new MySqlCommand(query, connection);
+        //            int id_row = 0;
+        //            string _trxdatetime = "";
+        //            using (MySqlDataReader reader = command.ExecuteReader())
+        //            {
+        //                while (reader.Read())
+        //                {
+        //                    id_row += 1;
+        //                    if (reader["trxdatetime_ejreport"] != DBNull.Value && DateTime.TryParse(reader["trxdatetime_ejreport"].ToString(), out DateTime trxDateTime))
+        //                    {
+        //                        _trxdatetime = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        //                    }
+        //                    else
+        //                    {
+        //                        _trxdatetime = "-";
+        //                    }
+        //                    jsonData.Add(new CardRetainModel
+        //                    {
 
-                                no = (id_row).ToString(),
-                                term_seq = reader["term_seq"].ToString(),
-                                term_id = reader["term_id"].ToString(),
-                                term_name = reader["term_name"].ToString(),
-                                card_number = reader["card_number"].ToString(),
-                                trxdatetime = _trxdatetime,
+        //                        no = (id_row).ToString(),
+        //                        term_seq = reader["term_seq"].ToString(),
+        //                        term_id = reader["term_id"].ToString(),
+        //                        term_name = reader["term_name"].ToString(),
+        //                        card_number = reader["card_number"].ToString(),
+        //                        trxdatetime = _trxdatetime,
 
-                            });
-                        }
-                    }
-                }
-            }
-            else
-            {
-                jsonData = cardretain_dataList;
-            }
-            cardretain_dataList = jsonData;
-            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
-            List<CardRetainModel> filteredData = RangeFilter_cr(jsonData, _page, _row);
-            var response = new DataResponse_CardRetain
-            {
-                JsonData = filteredData,
-                Page = pages,
-                currentPage = _page,
-                TotalTerminal = jsonData.Count(),
-            };
-            return Json(response);
-        }
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        jsonData = cardretain_dataList;
+        //    }
+        //    cardretain_dataList = jsonData;
+        //    int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+        //    List<CardRetainModel> filteredData = RangeFilter_cr(jsonData, _page, _row);
+        //    var response = new DataResponse_CardRetain
+        //    {
+        //        JsonData = filteredData,
+        //        Page = pages,
+        //        currentPage = _page,
+        //        TotalTerminal = jsonData.Count(),
+        //    };
+        //    return Json(response);
+        //}
 
-        static List<CardRetainModel> RangeFilter_cr<CardRetainModel>(List<CardRetainModel> inputList, int page, int row)
-        {
-            int start_row;
-            int end_row;
-            if (page == 1)
-            {
-                start_row = 0;
-            }
-            else
-            {
-                start_row = (page - 1) * row;
-            }
-            end_row = start_row + row - 1;
-            if (inputList.Count < end_row)
-            {
-                end_row = inputList.Count - 1;
-            }
-            return inputList.Skip(start_row).Take(row).ToList();
-        }
+        //static List<CardRetainModel> RangeFilter_cr<CardRetainModel>(List<CardRetainModel> inputList, int page, int row)
+        //{
+        //    int start_row;
+        //    int end_row;
+        //    if (page == 1)
+        //    {
+        //        start_row = 0;
+        //    }
+        //    else
+        //    {
+        //        start_row = (page - 1) * row;
+        //    }
+        //    end_row = start_row + row - 1;
+        //    if (inputList.Count < end_row)
+        //    {
+        //        end_row = inputList.Count - 1;
+        //    }
+        //    return inputList.Skip(start_row).Take(row).ToList();
+        //}
 
-        public class CardRetainModel
-        {
-            public string no { get; set; }
-            public string term_id { get; set; }
-            public string term_seq { get; set; }
-            public string term_name { get; set; }
-            public string card_number { get; set; }
-            public string trxdatetime { get; set; }
+        //public class CardRetainModel
+        //{
+        //    public string no { get; set; }
+        //    public string term_id { get; set; }
+        //    public string term_seq { get; set; }
+        //    public string term_name { get; set; }
+        //    public string card_number { get; set; }
+        //    public string trxdatetime { get; set; }
 
-        }
-        public class DataResponse_CardRetain
-        {
-            public List<CardRetainModel> JsonData { get; set; }
-            public int Page { get; set; }
-            public int currentPage { get; set; }
-            public int TotalTerminal { get; set; }
-        }
+        //}
+        //public class DataResponse_CardRetain
+        //{
+        //    public List<CardRetainModel> JsonData { get; set; }
+        //    public int Page { get; set; }
+        //    public int currentPage { get; set; }
+        //    public int TotalTerminal { get; set; }
+        //}
         #endregion
 
         #region Transactions
@@ -1653,134 +1886,134 @@ namespace SLA_Management.Controllers
 
         #region Excel CardRetain
 
-        [HttpPost]
-        public ActionResult CardRetain_ExportExc()
-        {
-            string fname = "";
-            string tsDate = "";
-            string teDate = "";
-            string strPathSource = string.Empty;
-            string strPathDesc = string.Empty;
-            string strSuccess = string.Empty;
-            string strErr = string.Empty;
+        //[HttpPost]
+        //public ActionResult CardRetain_ExportExc()
+        //{
+        //    string fname = "";
+        //    string tsDate = "";
+        //    string teDate = "";
+        //    string strPathSource = string.Empty;
+        //    string strPathDesc = string.Empty;
+        //    string strSuccess = string.Empty;
+        //    string strErr = string.Empty;
 
-            try
-            {
+        //    try
+        //    {
 
-                if (cardretain_dataList == null || cardretain_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
+        //        if (cardretain_dataList == null || cardretain_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
-                string strPath = Environment.CurrentDirectory;
-
-
-                string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
+        //        string strPath = Environment.CurrentDirectory;
 
 
-                if (!Directory.Exists(folder_name))
-                {
-                    Directory.CreateDirectory(folder_name);
-                }
-                ExcelUtilities_CardRetain obj = new ExcelUtilities_CardRetain();
-                obj.PathDefaultTemplate = folder_name;
-
-                obj.GatewayOutput(cardretain_dataList);
+        //        string folder_name = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulatorTemplate_Excel");
 
 
+        //        if (!Directory.Exists(folder_name))
+        //        {
+        //            Directory.CreateDirectory(folder_name);
+        //        }
+        //        ExcelUtilities_CardRetain obj = new ExcelUtilities_CardRetain();
+        //        obj.PathDefaultTemplate = folder_name;
 
-                strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
+        //        obj.GatewayOutput(cardretain_dataList);
 
 
 
-                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
-
-                strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
-
-
-                if (obj.FileSaveAsXlsxFormat != null)
-                {
-
-                    if (System.IO.File.Exists(strPathDesc))
-                        System.IO.File.Delete(strPathDesc);
-
-                    if (!System.IO.File.Exists(strPathDesc))
-                    {
-                        System.IO.File.Copy(strPathSource, strPathDesc);
-                        System.IO.File.Delete(strPathSource);
-                    }
-                    strSuccess = "S";
-                    strErr = "";
-                }
-                else
-                {
-                    fname = "";
-                    strSuccess = "F";
-                    strErr = "Data Not Found";
-                }
-
-                ViewBag.ErrorMsg = "Error";
-                return Json(new { success = strSuccess, filename = fname, errstr = strErr });
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMsg = ex.Message;
-                return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
-            }
-        }
+        //        strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
 
 
 
-        [HttpGet]
-        public ActionResult CardRetain_DownloadExportFile(string rpttype)
-        {
-            string fname = "";
-            string tempPath = "";
-            string tsDate = "";
-            string teDate = "";
-            try
-            {
+        //        fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+        //        strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
+
+
+        //        if (obj.FileSaveAsXlsxFormat != null)
+        //        {
+
+        //            if (System.IO.File.Exists(strPathDesc))
+        //                System.IO.File.Delete(strPathDesc);
+
+        //            if (!System.IO.File.Exists(strPathDesc))
+        //            {
+        //                System.IO.File.Copy(strPathSource, strPathDesc);
+        //                System.IO.File.Delete(strPathSource);
+        //            }
+        //            strSuccess = "S";
+        //            strErr = "";
+        //        }
+        //        else
+        //        {
+        //            fname = "";
+        //            strSuccess = "F";
+        //            strErr = "Data Not Found";
+        //        }
+
+        //        ViewBag.ErrorMsg = "Error";
+        //        return Json(new { success = strSuccess, filename = fname, errstr = strErr });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ViewBag.ErrorMsg = ex.Message;
+        //        return Json(new { success = "F", filename = "", errstr = ex.Message.ToString() });
+        //    }
+        //}
 
 
 
-
-                fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
-
-                switch (rpttype.ToLower())
-                {
-                    case "csv":
-                        fname = fname + ".csv";
-                        break;
-                    case "pdf":
-                        fname = fname + ".pdf";
-                        break;
-                    case "xlsx":
-                        fname = fname + ".xlsx";
-                        break;
-                }
-
-                tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
+        //[HttpGet]
+        //public ActionResult CardRetain_DownloadExportFile(string rpttype)
+        //{
+        //    string fname = "";
+        //    string tempPath = "";
+        //    string tsDate = "";
+        //    string teDate = "";
+        //    try
+        //    {
 
 
 
 
-                if (rpttype.ToLower().EndsWith("s") == true)
-                    return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
-                else if (rpttype.ToLower().EndsWith("f") == true)
-                    return File(tempPath + "xml", "application/pdf", fname);
-                else  //(rpttype.ToLower().EndsWith("v") == true)
-                    return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+        //        fname = "CardRetain_" + DateTime.Now.ToString("yyyyMMdd");
+
+        //        switch (rpttype.ToLower())
+        //        {
+        //            case "csv":
+        //                fname = fname + ".csv";
+        //                break;
+        //            case "pdf":
+        //                fname = fname + ".pdf";
+        //                break;
+        //            case "xlsx":
+        //                fname = fname + ".xlsx";
+        //                break;
+        //        }
+
+        //        tempPath = Path.GetFullPath(Environment.CurrentDirectory + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname);
 
 
 
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMsg = "Download Method : " + ex.Message;
-                return Json(new
-                {
-                    success = false,
-                    fname
-                });
-            }
-        }
+
+        //        if (rpttype.ToLower().EndsWith("s") == true)
+        //            return File(tempPath + "xml", "application/vnd.openxmlformats-officedocument.spreadsheetml", fname);
+        //        else if (rpttype.ToLower().EndsWith("f") == true)
+        //            return File(tempPath + "xml", "application/pdf", fname);
+        //        else  //(rpttype.ToLower().EndsWith("v") == true)
+        //            return PhysicalFile(tempPath, "application/vnd.ms-excel", fname);
+
+
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ViewBag.ErrorMsg = "Download Method : " + ex.Message;
+        //        return Json(new
+        //        {
+        //            success = false,
+        //            fname
+        //        });
+        //    }
+        //}
         #endregion
 
         #region Excel Transaction
