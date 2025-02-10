@@ -200,19 +200,34 @@ namespace SLA_Management.Commons
         {
             if (!string.IsNullOrEmpty(version))
             {
-                var (parsedVersion, policy) = ParseVersion(version);
+                var parsedData = ParseVersion(version);
+
+                // Skip the record if no underscore was found
+                if (parsedData == null)
+                {
+                    return;
+                }
+
+                var (parsedVersion, policy) = parsedData.Value;
+
                 terminalSeq = terminalSeq?.Trim().Trim('"');
                 await InsertOrUpdateRecord(connection, terminalSeq, parsedVersion, policy);
             }
         }
 
-        private (string version, string policy) ParseVersion(string version)
+        private (string version, string policy)? ParseVersion(string version)
         {
+            if (!version.Contains("_"))
+            {
+                return null; // Skip processing if no underscore is found
+            }
+
             string[] parts = version.Split('_');
             if (parts.Length == 3)
             {
                 return (parts[1].Trim(), parts[2].Trim().Trim('"'));
             }
+
             return (version.Trim(), string.Empty);
         }
         private async Task InsertOrUpdateRecord(MySqlConnection connection, string terminalSeq, string version, string policy)
