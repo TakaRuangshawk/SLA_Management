@@ -174,7 +174,7 @@ namespace SLA_Management.Controllers
 
                 try
                 {
-                    await _excelService.ImportEncryptionExcelDataAsync(stream);
+                    await _excelService.ImportEncryptionExcelDataAsync(stream, file.FileName);
                     return Ok("Data imported successfully.");
                 }
                 catch (Exception ex)

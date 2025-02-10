@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Threading.Tasks;
 using Models.ManagementModel;
+using NPOI.HSSF.UserModel;
 namespace SLA_Management.Commons
 {
     public class ExcelToMySqlService
@@ -126,50 +127,113 @@ namespace SLA_Management.Commons
         }
 
         #region EncryptionMonitor
-        public async Task ImportEncryptionExcelDataAsync(Stream excelStream)
+        public async Task ImportEncryptionExcelDataAsync(Stream excelStream, string fileName)
+        {
+            var fileExtension = Path.GetExtension(fileName)?.ToLower();
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                switch (fileExtension)
+                {
+                    case ".xlsx":
+                        await ProcessXlsxFileAsync(excelStream, connection);
+                        break;
+
+                    case ".xls":
+                        await ProcessXlsFileAsync(excelStream, connection);
+                        break;
+
+                    case ".csv":
+                        await ProcessCsvFileAsync(excelStream, connection);
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Unsupported file format. Please upload .xlsx, .xls, or .csv");
+                }
+            }
+        }
+        private async Task ProcessXlsxFileAsync(Stream excelStream, MySqlConnection connection)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(excelStream))
             {
                 var worksheet = package.Workbook.Worksheets[0];
-                var rowCount = worksheet.Dimension.Rows;
-
-                using (var connection = new MySqlConnection(_connectionString))
+                for (int row = 2; row <= worksheet.Dimension.Rows; row++)
                 {
-                    await connection.OpenAsync();
-
-                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
-                    {
-                        var terminalSeq = worksheet.Cells[row, 1].Value?.ToString();
-                        var version = worksheet.Cells[row, 2].Value?.ToString();
-                        var policy = worksheet.Cells[row, 3].Value?.ToString();
-                        var updateDate = DateTime.Now;
-                        var updateBy = "System";
-                        var remark = "Imported From Excel";
-
-                        var query = @"INSERT INTO secureageversion_record 
-                                    (Term_Seq, SecureAge_Version, Policy, Update_Date, Update_By, Remark) 
-                                    VALUES 
-                                    (@TermSeq, @SecureAgeVersion, @Policy, @UpdateDate, @UpdateBy, @Remark)
-                                    ON DUPLICATE KEY UPDATE 
-                                    SecureAge_Version = @SecureAgeVersion,
-                                    Policy = @Policy,
-                                    Update_Date = @UpdateDate,
-                                    Update_By = @UpdateBy;";
-
-                        using (var command = new MySqlCommand(query, connection))
-                        {
-                            command.Parameters.AddWithValue("@TermSeq", terminalSeq);
-                            command.Parameters.AddWithValue("@SecureAgeVersion", version);
-                            command.Parameters.AddWithValue("@Policy", policy);
-                            command.Parameters.AddWithValue("@UpdateDate", updateDate);
-                            command.Parameters.AddWithValue("@UpdateBy", updateBy);
-                            command.Parameters.AddWithValue("@Remark", remark);
-
-                            await command.ExecuteNonQueryAsync();
-                        }
-                    }
+                    await ProcessRowAsync(worksheet.Cells[row, 1].Value?.ToString(), worksheet.Cells[row, 2].Value?.ToString(), connection);
                 }
+            }
+        }
+
+        private async Task ProcessXlsFileAsync(Stream excelStream, MySqlConnection connection)
+        {
+            var workbook = new HSSFWorkbook(excelStream);
+            var sheet = workbook.GetSheetAt(0);
+            for (int row = 2; row <= sheet.LastRowNum; row++)
+            {
+                var currentRow = sheet.GetRow(row);
+                if (currentRow != null)
+                {
+                    await ProcessRowAsync(currentRow.GetCell(0)?.ToString(), currentRow.GetCell(1)?.ToString(), connection);
+                }
+            }
+        }
+
+        private async Task ProcessCsvFileAsync(Stream excelStream, MySqlConnection connection)
+        {
+            using (var reader = new StreamReader(excelStream))
+            {
+                bool isFirstRow = true;
+                string line;
+                while ((line = await reader.ReadLineAsync()) != null)
+                {
+                    if (isFirstRow) { isFirstRow = false; continue; }
+                    var values = line.Split(',');
+                    if (values.Length < 3) continue;
+
+                    await ProcessRowAsync(values[0], values[1], connection);
+                }
+            }
+        }
+
+        private async Task ProcessRowAsync(string terminalSeq, string version, MySqlConnection connection)
+        {
+            if (!string.IsNullOrEmpty(version))
+            {
+                var (parsedVersion, policy) = ParseVersion(version);
+                terminalSeq = terminalSeq?.Trim().Trim('"');
+                await InsertOrUpdateRecord(connection, terminalSeq, parsedVersion, policy);
+            }
+        }
+
+        private (string version, string policy) ParseVersion(string version)
+        {
+            string[] parts = version.Split('_');
+            if (parts.Length == 3)
+            {
+                return (parts[1].Trim(), parts[2].Trim().Trim('"'));
+            }
+            return (version.Trim(), string.Empty);
+        }
+        private async Task InsertOrUpdateRecord(MySqlConnection connection, string terminalSeq, string version, string policy)
+        {
+            var query = @"INSERT INTO secureageversion_record 
+                     (Term_Seq, SecureAge_Version, Policy, Update_Date, Update_By, Remark) 
+                     VALUES 
+                     (@TermSeq, @SecureAgeVersion, @Policy, NOW(), 'System', 'Imported From File')
+                     ON DUPLICATE KEY UPDATE 
+                     SecureAge_Version = @SecureAgeVersion,
+                     Policy = @Policy,
+                     Update_Date = NOW(),
+                     Update_By = 'System';";
+
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@TermSeq", terminalSeq);
+                command.Parameters.AddWithValue("@SecureAgeVersion", version);
+                command.Parameters.AddWithValue("@Policy", policy);
+
+                await command.ExecuteNonQueryAsync();
             }
         }
         #endregion

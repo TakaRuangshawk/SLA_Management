@@ -112,7 +112,7 @@
                         </div>
                     </div>
                     <div class="col-md-1">
-                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" class="btn btn-search" style="padding:0px;">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                         </button>                            
                     </div>    
@@ -203,7 +203,7 @@
                     <div class="row">
                         <div class="col" id="before-submit">
                             <div id="submit">
-                                <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                                    <button type="submit" title="ค้นหาข้อมูล" class="btn btn-search" style="padding:0px;">
                                     <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                                 </button>
 
@@ -620,7 +620,7 @@ $(document).ready(function () {
 
 <script>
 
-    $("#btnsearch").click(function (e) 
+    $(".btn-search").click(function (e) 
     {
          e.preventDefault();
 
