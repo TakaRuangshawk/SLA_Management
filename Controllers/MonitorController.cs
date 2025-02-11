@@ -598,7 +598,7 @@ namespace SLA_Management.Controllers
         public IActionResult CardRetain()
         {
             ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _myConfiguration);
-            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);
+            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);          
             //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
             //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
             // For now, just return the empty view

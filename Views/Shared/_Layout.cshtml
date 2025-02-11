@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -144,84 +148,81 @@
 <img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
 <body class="bg_main bg_home" style="background-image: url('/non-outsource-operation/images/Pic_Page.png');background-size:100% auto">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light  box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-light box-shadow mb-3">
             <div class="container-fluid">
-                <div>
-                     <img src="~/images/2.png" width="127" height="53" alt="Logo" align="left" style="padding-right:30px;" >
-                </div>
-                
-                @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SLA Management</a>*@
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" href="#">
+                    <img src="~/images/2.png" width="127" height="53" alt="Logo" class="me-3">                  
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item nav-home">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Monitor
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="HealthCheck">Health Check</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LogAnalysis">Log Analysis Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Encryption">Encryption Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">CardRetain</a>
-                               @*  <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LastTransaction">Last Transaction Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">Card Retain Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Monitor</a> *@
-                            </div>
-                        </li>
 
-                       @* <li class="nav-item dropdown nav-report">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Report
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Maintenance History</a> 
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="WhitelistReport">Whitelist Report</a>
-                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="AuditingReport" asp-action="AuditingReportAction">Auditing Report</a>
-                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="HardwareReport">Hardware Report</a>
-                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report Daily(POC)</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report Monthly(POC)</a>
-                                
-                                
-                            </div>
-                        </li>   *@   
-                          <li class="nav-item dropdown nav-report">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Maintenance
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown nav-report">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-                                Management
-                            </a>
-                            <div class="dropdown-menu">
-
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a> 
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="TicketManagement">Ticket Management</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="ReportCases">Report Cases(BAAC)</a>                              
-                            </div>
-                        </li>   
-
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        @if (Context.Session.GetString("Role") != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="monitorDropdown" role="button" data-bs-toggle="dropdown">
+                                    Monitor
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="HealthCheck">Health Check</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="LogAnalysis">Log Analysis Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="Encryption">Encryption Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="CardRetain">CardRetain</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="maintenanceDropdown" role="button" data-bs-toggle="dropdown">
+                                    Maintenance
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown">
+                                    Management
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="TicketManagement">Ticket Management</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="ReportCases">Report Cases(BAAC)</a></li>
+                                </ul>
+                            </li>
+                        }
                     </ul>
+
+                  
+                    @if (Context.Session.GetString("Username") != null)
+                    {
+                        <div class="dropdown ms-auto">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                👤 @Context.Session.GetString("Username")
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="#">Management</a></li>
+                                <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="Logout">Logout</a></li>
+                            </ul>
+                        </div>
+                    }
                 </div>
             </div>
-        </nav>  
+        </nav>
     </header>
+
+
+
+
+
     <div class="container-fluid">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -280,4 +281,8 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
+
+
+
 </html>

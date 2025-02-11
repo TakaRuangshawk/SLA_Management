@@ -234,18 +234,21 @@
 
                 </div>
 
-
-
-                <div class="row justify-content-md-center" style="padding: 50px 50px 0px 50px;">
-                    <div id="dropArea" class="border p-5 text-center">
-                        <p>Drag and drop your Excel files here</p>
-                        <p>or</p>
-                        <input type="file" id="fileInput" multiple hidden />
-                        <button type="button" class="btn btn-primary" onclick="triggerFileInput()">Browse Files</button>
+                @if (Context.Session.GetString("Role") != "User")
+                {
+                    <div class="row justify-content-md-center" style="padding: 50px 50px 0px 50px;">
+                        <div id="dropArea" class="border p-5 text-center">
+                            <p>Drag and drop your Excel files here</p>
+                            <p>or</p>
+                            <input type="file" id="fileInput" multiple hidden />
+                            <button type="button" class="btn btn-primary" onclick="triggerFileInput()">Browse Files</button>
+                        </div>
+                        <div id="progressBars" class="mt-3"></div>
+                        <div id="message" class="mt-3"></div>
                     </div>
-                    <div id="progressBars" class="mt-3"></div>
-                    <div id="message" class="mt-3"></div>
-                </div>
+                }
+
+               
                 <div class="row justify-content-md-center" style="">
 
 
