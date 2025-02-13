@@ -8,8 +8,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Operation</title>
-       <!-- Style -->
-   @* <link rel="stylesheet" href="~/css/style.css">
+    <!-- Style -->
+    @* <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -61,75 +61,75 @@
 }
 <style>
     li:hover{
-        border-radius: 0px 0px 30px 0px;
-        background-color: rgba(30,30,30,0.14);
+    border-radius: 0px 0px 30px 0px;
+    background-color: rgba(30,30,30,0.14);
     }
     .navbar {
-            padding-top: 0px;
-            padding-bottom: 0px;
-            border: 0;
-            border-radius: 0;
-            margin-bottom: 0;
-            font-size: 1rem;
-            letter-spacing: 1px;
-        background: rgb(238,168,73);
-        background: linear-gradient(90deg, rgba(238,168,73,1) 0%, rgba(244,107,69,1) 100%);
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    background: rgb(238,168,73);
+    background: linear-gradient(90deg, rgba(238,168,73,1) 0%, rgba(244,107,69,1) 100%);
     }
     .navbar a:hover, .dropdown:hover .dropbtn {
-            background-color: rgba(244,107,69,1) 100%);
+    background-color: rgba(244,107,69,1) 100%);
     }
     .nav-link{
-            padding: 1rem 1rem;
+    padding: 1rem 1rem;
     }
 
     .bg_home {
-        background-image: url('/non-outsource-operation/images/Pic_Home.png');
-        background-size: 100% 100%;
-        background-position: top;
-        background-repeat: no-repeat;
+    background-image: url('/non-outsource-operation/images/Pic_Home.png');
+    background-size: 100% 100%;
+    background-position: top;
+    background-repeat: no-repeat;
     }
     .bg_main{
     }
     .nav-item{
-        width: auto;    
-        text-align: center;
-        padding: 0px 15px 0px 15px;
+    width: auto;    
+    text-align: center;
+    padding: 0px 15px 0px 15px;
     }
     .nav-@forcss_header{
-        border-radius: 0px 0px 30px 0px;
-        background-color: rgba(30,30,30,0.14);
+    border-radius: 0px 0px 30px 0px;
+    background-color: rgba(30,30,30,0.14);
     }
     .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-}
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    }
     @@media (max-width: 1199px) {
-        .footer-left {
-            justify-content: center;
-            padding: 0;
-        }
-        .footer-right{
-            justify-content: center;
-            padding: 0;
-        }
-        footer{
-            line-height: 20px;
-        }
+    .footer-left {
+    justify-content: center;
+    padding: 0;
+    }
+    .footer-right{
+    justify-content: center;
+    padding: 0;
+    }
+    footer{
+    line-height: 20px;
+    }
     }
     @@media (min-width: 1200px) { 
-        .footer-left {
-            justify-content: flex-end;
-            padding: 0px 40px 0px 0px;
-        }
-        .footer-right{
-            justify-content: flex-start;
-            padding: 0px 0px 0px 40px;
-        }
-        footer{
-            line-height: 40px;
-        }
+    .footer-left {
+    justify-content: flex-end;
+    padding: 0px 40px 0px 0px;
+    }
+    .footer-right{
+    justify-content: flex-start;
+    padding: 0px 0px 0px 40px;
+    }
+    footer{
+    line-height: 40px;
+    }
     }
 </style>
 @{
@@ -155,7 +155,7 @@
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -201,7 +201,7 @@
                         }
                     </ul>
 
-                  
+
                     @if (Context.Session.GetString("Username") != null)
                     {
                         <div class="dropdown ms-auto">
@@ -209,7 +209,11 @@
                                 👤 @Context.Session.GetString("Username")
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="#">Management</a></li>
+                                @if (Context.Session.GetString("Role") == "ADMIN")
+                                {
+                                    <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="AddUser">AddUser</a></li>
+                                }
+                                <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="EditUser">EditUser</a></li>
                                 <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="Logout">Logout</a></li>
                             </ul>
                         </div>
@@ -263,7 +267,14 @@
         </div>
         </div>
     </footer>
+
+   
+
+   
     <script>
+   
+
+
         if("@ViewData["Title"]"==="Home Page"){
             document.addEventListener('DOMContentLoaded', function () {
                 // Get the element with the class 'example-class'

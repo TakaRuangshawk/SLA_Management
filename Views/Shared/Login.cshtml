@@ -19,8 +19,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: calc(100vh - 120px); /* ปรับให้พอดีกับ header & footer */
-            padding: 60px 0; /* กำหนดระยะห่างข้างบน-ล่าง */
+            min-height: calc(100vh - 120px); 
+            padding: 60px 0;
         }
 
         .login-container {
@@ -34,7 +34,7 @@
             overflow: hidden;
         }
 
-        /* ด้านซ้าย (รูปภาพ) */
+       
         .login-left {
             flex: 1;
             display: flex;
@@ -58,7 +58,7 @@
         }
 
 
-        /* ด้านขวา (ฟอร์ม) */
+       
         .login-right {
             flex: 1;
             padding: 50px;
@@ -90,7 +90,7 @@
 
 <div class="login-wrapper">
     <div class="login-container">
-        <!-- ซ้าย (รูปภาพ) -->
+        <!-- left -->
         <div class="login-left">
             <div id="row-pic-welcome" class="row">
                 <div class="col-12">
@@ -105,12 +105,13 @@
         </div>
 
 
-        <!-- ขวา (ฟอร์ม Login) -->
+        <!-- right -->
         <div class="login-right">
             <h2>Operation Management</h2>
             @using (Html.BeginForm("Login", "LoginMain", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
+               
 
                 <div class="form-group">
                     @Html.LabelFor(m => m.Username, new { @class = "form-label" })
@@ -128,6 +129,8 @@
                     <button type="submit" class="btn btn-warning">Login</button>
                     <a href="@Url.Action("Login", "LoginMain")" class="btn btn-secondary">Cancel</a>
                 </div>
+
+                @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
             }
         </div>
     </div>

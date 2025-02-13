@@ -4,10 +4,10 @@ using SLA_Management.Commons.SignalR;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddDistributedMemoryCache(); // ใช้ Memory Cache สำหรับ Session
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // อายุ Session 30 นาที
+    options.IdleTimeout = TimeSpan.FromMinutes(30); 
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -35,7 +35,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseSession(); // เปิดใช้งาน Session
+app.UseSession(); 
 app.UseRouting();
 
 app.UseAuthorization();
