@@ -142,21 +142,18 @@
     {
         urlBG = "bg_main";
     }
+
+
 }
 
-@{
-    var username = Context.Session.GetString("Username");
-    if (string.IsNullOrEmpty(username))
-    {
-        <script type="text/javascript">
-            window.location.href = '@Url.Action("Login", "LoginMain")';
-        </script>
-    }
-}
+
+
+
 
 @*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
 <img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
 <body class="bg_main bg_home" style="background-image: url('/non-outsource-operation/images/Pic_Page.png');background-size:100% auto">
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-light box-shadow mb-3">
             <div class="container-fluid">
