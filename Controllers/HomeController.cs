@@ -10,6 +10,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using SLA_Management.Models.Dashboard;
 
 namespace SLA_Management.Controllers
 {
@@ -31,6 +32,71 @@ namespace SLA_Management.Controllers
             _myConfiguration = myConfiguration;
             dBService = new DBService(_myConfiguration);
             con = new ConnectSQL_Server(_myConfiguration["ConnectionStrings:DefaultConnection"]);
+        }
+
+        [HttpGet]
+        public IActionResult GetDashboardData(string fromDate, string toDate)
+        {
+            List<DashboradViewModel> dashboardDataList = new List<DashboradViewModel>();
+            List<PieChartModel> pieDataList = new List<PieChartModel>();
+            string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                var query = "SELECT D.TERM_SEQ,D.TERM_ID,D.TERM_NAME,D.COUNTER_CODE,COUNT(*) AS Total_Cases FROM reportcases R JOIN device_info D ON D.TERM_ID = R.Terminal_ID WHERE 1=1 " +
+                    "AND R.Date_Inform BETWEEN @fromDate AND @toDate " +
+                    "GROUP BY D.TERM_NAME,D.TERM_SEQ,D.TERM_ID, D.COUNTER_CODE ORDER BY COUNT(*) DESC LIMIT 5";
+                using (var cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@fromDate", fromDate);
+                    cmd.Parameters.AddWithValue("@toDate", toDate);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            dashboardDataList.Add(new DashboradViewModel()
+                            {
+                                Serial_No = reader["TERM_SEQ"].ToString(),
+                                Terminal_Id = reader["TERM_ID"].ToString(),
+                                Terminal_Name = reader["TERM_NAME"].ToString(),
+                                Counter_Code = reader["COUNTER_CODE"].ToString(),
+                                Total_Cases = Convert.ToInt32(reader["Total_Cases"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            //mysql
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Main_Problem,COUNT(Main_Problem) as Count FROM t_tsd_jobdetail WHERE 1=1 AND Main_Problem IS NOT NULL AND Open_Date BETWEEN @fromDate AND @toDate GROUP BY Main_Problem ORDER BY Main_Problem ASC";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@fromDate", fromDate + " 00:00:00");
+                    cmd.Parameters.AddWithValue("@toDate", toDate + " 23:59:59");
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            pieDataList.Add(new PieChartModel()
+                            {
+                                name = reader["Main_Problem"].ToString(),
+                                value = Convert.ToInt32(reader["Count"])
+                            });
+                        }
+                    }
+                }
+            }
+            return Json(new
+            {
+                success = true,
+                data = dashboardDataList,
+                pieDataList = pieDataList
+            });
         }
         public IActionResult Index()
         {

@@ -1,4 +1,5 @@
-﻿@model List<SLA_Management.Models.OperationModel.slatracking>
+﻿@using System.Globalization;
+@model List<SLA_Management.Models.OperationModel.slatracking>
 @{
     ViewData["Title"] = "Home Page";
 
@@ -87,13 +88,71 @@
             padding-left:130px;
         }
     }
+
+    .left-row{
+        height: 60px;
+        margin-top: 30px;
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        padding: 0vw 3vw 0vw 1vw;
+        white-space: nowrap;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        background-color: white;
+    }
+    .bottom-section{
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        margin-bottom: 35px;
+        background-color: white;
+        margin-left: 47px;
+        max-width: 1396px !important;
+        margin-top:35px;
+    }
+    .custom-table thead tr, .custom-table thead th {
+        background-color:orange !important;
+    }
+
+    .custom-table tbody th, .custom-table tbody td {
+        padding-bottom: 10px;
+        padding-top: 10px;
+        font-weight: 300;
+        font-size:12px;
+    }
 </style>
 
 <div class="text-center" id="bg">
 
     <div class="container-fluid">
-        
-        <div class="row" style="">
+        <div class="col-md-12 left-row col-xl-6">
+            <div class="col-2" style="">
+                <h>From Date : </h>
+            </div>
+            @{
+                var today = DateTime.Today;
+                var fromDate = today.AddDays(-30);
+                var toDate = today;
+
+            }
+            <div class="col-3 " style="padding:0; ">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    @Html.TextBox("fromDate", fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @onchange = "CheckDate()", @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
+                </div>
+            </div>
+            <div class="col-2" style="">
+                <h>To Date : </h>
+            </div>
+            <div class="col-3" style="padding:0;">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    @Html.TextBox("toDate", toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @onchange = "CheckDate()", @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 col-xl-6">
+        </div>
+        @* <div class="row" style="">
             <div class="col-md-12 col-xl-6" id="main-left">
 
             </div>
@@ -109,93 +168,260 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> *@
 
+    </div>
+    <div class="container-fluid bottom-section">
+        <div class="row">
+            <h1 style="text-align: left;padding-top: 15px !important;color:green;padding-left:33px;">
+                BAAC-ATM
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div id="myChart" style="width: 600px; height: 400px;"></div>
+
+            </div>
+            <div class="col-md-8">
+                <div class="table-responsive" style="overflow-x: hidden;">
+                    <table id="table-recurringCase" class="table table-striped custom-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Serial No</th>
+                                <th>Terminal ID</th>
+                                <th>Terminal Name</th>
+                                <th>Counter Code</th>
+                                <th>Total Recurring Cases</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
  
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
 <script>
-
-    function updateDateTime() {
-      var now = new Date();
-      var datetimeElement = document.getElementById('datetime');
-      var dateElement = document.getElementById('date');
-      var timeElement = document.getElementById('time');
-      var year = now.getFullYear();
-      var month = String(now.getMonth() + 1).padStart(2, '0');
-      var day = String(now.getDate()).padStart(2, '0');
-      var hours = String(now.getHours()).padStart(2, '0');
-      var minutes = String(now.getMinutes()).padStart(2, '0');
-      var seconds = String(now.getSeconds()).padStart(2, '0');
-
-        //var formattedDateTime = day + '-' + month + '-' + year + '      ' + hours + ':' + minutes + ':' + seconds;
-        var formatDate = day + '-' + month + '-' + year;
-        var formatTime = hours + ':' + minutes + ':' + seconds;
-      //datetimeElement.textContent = formattedDateTime;
-        dateElement.textContent = formatDate;
-        timeElement.textContent = formatTime;
-        }
-
-    // Update datetime initially
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-    // Update datetime every second
-    let refreshTimer;
-    function handleRefreshTimeChange() {
-        var selectedValue = document.getElementById("refreshTime").value;
-        localStorage.setItem("refreshTime", selectedValue);
-        clearTimeout(refreshTimer);
-        console.log(refreshTimer);
-        //schedulePageRefresh(selectedValue);
-    }
-  
- 
-        const refreshCheckbox = document.getElementById("refreshCheckbox");
-        const refreshTimeSelect = document.getElementById("refreshTime");
-
-        // Load checkbox state and time from localStorage if available
-        const savedCheckboxState = localStorage.getItem("checkboxState");
-        const savedRefreshTime = localStorage.getItem("refreshTime");
-
-        if (savedCheckboxState === "checked") {
-            refreshCheckbox.checked = true;
-        }
-
-        if (savedRefreshTime) {
-            refreshTimeSelect.value = savedRefreshTime;
-        }
-       
-        if (refreshCheckbox.checked){
-            schedulePageRefresh(refreshTimeSelect.value);
-        }
-    
-        refreshCheckbox.addEventListener("change", function () {
-            if (refreshCheckbox.checked) {
-                localStorage.setItem("checkboxState", "checked");
-                const selectedTime = refreshTimeSelect.value;
-                localStorage.setItem("refreshTime", selectedTime);
-                schedulePageRefresh(selectedTime);
-            } else {
-                localStorage.removeItem("checkboxState");
-                localStorage.removeItem("refreshTime");
-                clearTimeout(refreshTimer);
+    fetchData();
+    function fetchData(){
+        var fromdate = $("#fromDate").val();
+        var todate = $("#toDate").val();
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("GetDashboardData", "Home")',
+            data: {
+                fromDate: fromdate,
+                toDate: todate
+            },
+            dataType: "json",
+            success: function (response) {
+                var data = response.data;
+                var pieData = response.pieDataList;
+                updateDashboardTable(data);
+                
+                updatePieChartData(pieData);
+               
+            },
+            complete: function () {
             }
         });
-        refreshTimeSelect.addEventListener("change", function () {
-            var selectedValue = document.getElementById("refreshTime").value;
-            console.log(selectedValue);
-            localStorage.setItem("refreshTime", selectedValue);
-            clearTimeout(refreshTimer);
-            schedulePageRefresh(selectedValue);
-        });
+    }
         
 
-        function schedulePageRefresh(timeInSeconds) {
-            const milliseconds = timeInSeconds * 1000;
-            refreshTimer = setTimeout(function () {
-                location.reload();
-            }, milliseconds);
+    function updateDashboardTable(data) {
+        // Clear existing rows in the table
+        const tbody = document.getElementById("table-recurringCase").querySelector("tbody");
+        tbody.innerHTML = "";
+        if (data.length > 0) {
+            let count = 1;
+            data.forEach(item => {
+               const row = `<tr>
+                                <td>${count}</td>
+                                <td>${item.serial_No}</td>
+                                <td>${item.terminal_Id}</td>
+                                <td>${item.terminal_Name}</td>
+                                <td>${item.counter_Code}</td>
+                                <td>${item.total_Cases}</td>
+                            </tr>`;
+                tbody.innerHTML += row;
+                count++;
+            });
+        }else{
+            const row = '<tr><td colspan="12" style="text-align: center;">NO DATA AVAILABLE</td></tr>';
+            tbody.innerHTML += row;
         }
+    }
+
+    function updatePieChartData(pieData) {
+        var chartContainer = document.getElementById('myChart');
+       
+        echarts.dispose(chartContainer);
+        var chart = echarts.init(chartContainer);
+
+        let colors = ['rgba(126, 217, 86, 1)', 'rgba(44, 139, 185, 1)', 'rgba(46, 95, 153, 1)', 'rgba(255, 222, 89, 1)'];
+        const hasData = pieData.length > 0;
+        let seriesData = hasData ? pieData.map((item, index) => ({
+            value: item.value,
+            name: item.name,
+            itemStyle: {
+                color: colors[index] // Assign color based on index or any custom logic
+            }
+        })) : [{
+            value: 1,
+            name: "No Data",
+            itemStyle: {
+                color: '#e0e0e0' // A default color
+            }
+        }];
+
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b} : {c}'
+            },
+            legend: {
+                bottom: 10,
+                top: '1.5%', 
+                left: '4%',
+                itemGap: 10,
+                itemWidth: 14, 
+                itemHeight: 10,
+                textStyle: {
+                    fontSize: 10,
+                    color: '#000' 
+                }
+            },
+            series: [
+                {
+                    type: 'pie',
+                    radius: '65%',
+                    center: ['32%', '50%'],
+                    selectedMode: 'single',
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}\n    {c}', 
+                        fontSize: 12
+                    },
+                    labelLine: { length: 20, length2: 10 },
+                    data: seriesData, // Handle empty case
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option,true);
+    }  
+ 
+    
+    function CheckDate() {
+        const fromDate = document.getElementById("fromDate");
+        const toDate = document.getElementById("toDate");
+
+        const frDateVal = new Date(fromDate.value);
+        const toDateVal = new Date(toDate.value);
+
+        if (frDateVal > toDateVal) {
+            alert("From Date should not greater than To Date.");
+            fromDate.focus();
+        }
+        else if (toDateVal < frDateVal) {
+            alert("To Date should not smaller than From Date.");
+            toDate.focus();
+        }
+        else {
+            fetchData();
+        }
+    }
+    // function updateDateTime() {
+    //   var now = new Date();
+    //   var datetimeElement = document.getElementById('datetime');
+    //   var dateElement = document.getElementById('date');
+    //   var timeElement = document.getElementById('time');
+    //   var year = now.getFullYear();
+    //   var month = String(now.getMonth() + 1).padStart(2, '0');
+    //   var day = String(now.getDate()).padStart(2, '0');
+    //   var hours = String(now.getHours()).padStart(2, '0');
+    //   var minutes = String(now.getMinutes()).padStart(2, '0');
+    //   var seconds = String(now.getSeconds()).padStart(2, '0');
+
+    //     //var formattedDateTime = day + '-' + month + '-' + year + '      ' + hours + ':' + minutes + ':' + seconds;
+    //     var formatDate = day + '-' + month + '-' + year;
+    //     var formatTime = hours + ':' + minutes + ':' + seconds;
+    //   //datetimeElement.textContent = formattedDateTime;
+    //     dateElement.textContent = formatDate;
+    //     timeElement.textContent = formatTime;
+    //     }
+
+    // // Update datetime initially
+    // updateDateTime();
+    // setInterval(updateDateTime, 1000);
+    // // Update datetime every second
+    // let refreshTimer;
+    // function handleRefreshTimeChange() {
+    //     var selectedValue = document.getElementById("refreshTime").value;
+    //     localStorage.setItem("refreshTime", selectedValue);
+    //     clearTimeout(refreshTimer);
+    //     console.log(refreshTimer);
+    //     //schedulePageRefresh(selectedValue);
+    // }
+  
+ 
+    //     const refreshCheckbox = document.getElementById("refreshCheckbox");
+    //     const refreshTimeSelect = document.getElementById("refreshTime");
+
+    //     // Load checkbox state and time from localStorage if available
+    //     const savedCheckboxState = localStorage.getItem("checkboxState");
+    //     const savedRefreshTime = localStorage.getItem("refreshTime");
+
+    //     if (savedCheckboxState === "checked") {
+    //         refreshCheckbox.checked = true;
+    //     }
+
+    //     if (savedRefreshTime) {
+    //         refreshTimeSelect.value = savedRefreshTime;
+    //     }
+       
+    //     if (refreshCheckbox.checked){
+    //         schedulePageRefresh(refreshTimeSelect.value);
+    //     }
+    
+    //     refreshCheckbox.addEventListener("change", function () {
+    //         if (refreshCheckbox.checked) {
+    //             localStorage.setItem("checkboxState", "checked");
+    //             const selectedTime = refreshTimeSelect.value;
+    //             localStorage.setItem("refreshTime", selectedTime);
+    //             schedulePageRefresh(selectedTime);
+    //         } else {
+    //             localStorage.removeItem("checkboxState");
+    //             localStorage.removeItem("refreshTime");
+    //             clearTimeout(refreshTimer);
+    //         }
+    //     });
+    //     refreshTimeSelect.addEventListener("change", function () {
+    //         var selectedValue = document.getElementById("refreshTime").value;
+    //         console.log(selectedValue);
+    //         localStorage.setItem("refreshTime", selectedValue);
+    //         clearTimeout(refreshTimer);
+    //         schedulePageRefresh(selectedValue);
+    //     });
+        
+
+    //     function schedulePageRefresh(timeInSeconds) {
+    //         const milliseconds = timeInSeconds * 1000;
+    //         refreshTimer = setTimeout(function () {
+    //             location.reload();
+    //         }, milliseconds);
+    //     }
 
 </script>
