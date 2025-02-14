@@ -5,9 +5,13 @@
 
         public string Location { get; set; }
 
+        public string SerialNo { get; set; }
+
         public string TerminalID { get; set; }
 
         public string TerminalName { get; set; }
+
+        public string CounterCode { get; set; }
 
         public string CardNo { get; set; }
 

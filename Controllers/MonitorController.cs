@@ -611,74 +611,89 @@ namespace SLA_Management.Controllers
             List<CardRetain> cardRetain = new List<CardRetain>();
             int totalCases = 0;
             int totalPages = 0;
-            using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+
+            try
             {
-                conn.Open();
-
-                string query = "SELECT * " +
-                               "FROM cardretain WHERE 1=1";
-
-                if (!string.IsNullOrEmpty(terminalID))
+                using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
                 {
-                    query += " AND TerminalID = @TerminalID";
-                }
+                    conn.Open();
 
-                if (fromdate.HasValue)
-                {
-                    query += " AND DATE >= @FromDate";
-                }
-                if (todate.HasValue)
-                {
-                    query += " AND DATE <= @ToDate";
-                }
+                    string query = "SELECT * " +
+                                    "FROM cardretain WHERE 1=1";
 
-                if (!string.IsNullOrEmpty(reason))
-                {
-                    query += " AND REASON = @Reason";
-                }
-
-
-                query += " ORDER BY Date DESC ";
-
-                MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@TerminalID", terminalID);
-                cmd.Parameters.AddWithValue("@FromDate", fromdate);
-                cmd.Parameters.AddWithValue("@ToDate", todate);
-                cmd.Parameters.AddWithValue("@Reason", reason);
-                cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                    if (!string.IsNullOrEmpty(terminalID))
                     {
-                        cardRetain.Add(new CardRetain
-                        {
-                            Location = reader["Location"] != DBNull.Value ? reader.GetString("Location") : string.Empty,
-                            TerminalID = reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty,
-                            TerminalName = reader["TerminalName"] != DBNull.Value ? reader.GetString("TerminalName") : string.Empty,
-                            CardNo = reader["CardNo"] != DBNull.Value ? reader.GetString("CardNo") : string.Empty,
-                            Date = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : string.Empty,
-                            Reason = reader["Reason"] != DBNull.Value ? reader.GetString("Reason") : string.Empty,
-                            Vendor = reader["Vendor"] != DBNull.Value ? reader.GetString("Vendor") : string.Empty,
-                            ErrorCode = reader["ErrorCode"] != DBNull.Value ? reader.GetString("ErrorCode") : string.Empty,
-                            InBankFlag = reader["InBankFlag"] != DBNull.Value ? reader.GetString("InBankFlag") : string.Empty,
-                            CardStatus = reader["CardStatus"] != DBNull.Value ? reader.GetString("CardStatus") : string.Empty,
-                            Telephone = reader["Telephone"] != DBNull.Value ? reader.GetString("Telephone") : string.Empty,
-                            UpdateDate = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy") : string.Empty,
-
-                        });
-
+                        query += " AND TerminalID = @TerminalID";
                     }
-                    if (reader.NextResult() && reader.Read())
+
+                    if (fromdate.HasValue)
                     {
-                        totalCases = reader.GetInt32(0);
+                        query += " AND DATE >= @FromDate";
+                    }
+                    if (todate.HasValue)
+                    {
+                        query += " AND DATE <= @ToDate";
+                    }
+
+                    if (!string.IsNullOrEmpty(reason))
+                    {
+                        query += " AND REASON = @Reason";
+                    }
+
+                   
+                    query += " ORDER BY Date DESC  ";//LIMIT @Row OFFSET @Offset
+
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@TerminalID", terminalID ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@FromDate", fromdate.HasValue ? fromdate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", todate.HasValue ? todate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Reason", reason ?? string.Empty);
+                   // cmd.Parameters.AddWithValue("@Row", row);
+                    cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var result = GetDeviceInfo(reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty);
+
+                            cardRetain.Add(new CardRetain
+                            {
+                                Location = reader["Location"] != DBNull.Value ? reader.GetString("Location") : string.Empty,
+                                SerialNo = string.IsNullOrEmpty(result.TERM_SEQ) ? string.Empty : result.TERM_SEQ,
+                                CounterCode = string.IsNullOrEmpty(result.COUNTER_CODE) ? string.Empty : result.COUNTER_CODE,
+                                TerminalID = reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty,
+                                TerminalName = reader["TerminalName"] != DBNull.Value ? reader.GetString("TerminalName") : string.Empty,
+                                CardNo = reader["CardNo"] != DBNull.Value ? reader.GetString("CardNo") : string.Empty,
+                                Date = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : string.Empty,
+                                Reason = reader["Reason"] != DBNull.Value ? reader.GetString("Reason") : string.Empty,
+                                Vendor = reader["Vendor"] != DBNull.Value ? reader.GetString("Vendor") : string.Empty,
+                                ErrorCode = reader["ErrorCode"] != DBNull.Value ? reader.GetString("ErrorCode") : string.Empty,
+                                InBankFlag = reader["InBankFlag"] != DBNull.Value ? reader.GetString("InBankFlag") : string.Empty,
+                                CardStatus = reader["CardStatus"] != DBNull.Value ? reader.GetString("CardStatus") : string.Empty,
+                                Telephone = reader["Telephone"] != DBNull.Value ? reader.GetString("Telephone") : string.Empty,
+                                UpdateDate = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy") : string.Empty,
+                            });
+                        }
+
+                      
+                        if (reader.NextResult() && reader.Read())
+                        {
+                            totalCases = reader.GetInt32(0);
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error occurred: " + ex.Message);
+            }
 
-            totalPages = (int)Math.Ceiling((double)totalCases / row);
-
-
+          
+            if (totalCases > 0)
+            {
+                totalPages = (int)Math.Ceiling((double)totalCases / row);
+            }
 
             return Json(new
             {
@@ -688,6 +703,57 @@ namespace SLA_Management.Controllers
                 totalCases = totalCases
             });
         }
+
+
+
+        public (string TERM_SEQ, string COUNTER_CODE) GetDeviceInfo(string terminalID)
+        {
+            string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
+            string query = @"
+            SELECT 
+                cr.TerminalID, 
+                di.TERM_SEQ, 
+                di.COUNTER_CODE
+            FROM 
+                baac_logview.cardretain cr
+            JOIN 
+                baac_logview.device_info di
+            ON 
+                cr.TerminalID = di.Term_ID
+            WHERE
+                cr.TerminalID = @TerminalID";  
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TerminalID", terminalID);  
+
+                try
+                {
+                    conn.Open();
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string termSeq = reader["TERM_SEQ"].ToString();
+                            string counterCode = reader["COUNTER_CODE"].ToString();
+                            return (termSeq, counterCode); 
+                        }
+                        else
+                        {
+                            return (null, null);  
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                    return (null, null);  
+                }
+            }
+        }
+
+
 
         public IActionResult ExportCardRetainToExcel(string terminalID, string reason, DateTime? fromdate, DateTime? todate)
         {
@@ -715,24 +781,31 @@ namespace SLA_Management.Controllers
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                     using (var reader = command.ExecuteReader())
                     {
+
+                       
+
                         using (var package = new ExcelPackage())
                         {
-                            var worksheet = package.Workbook.Worksheets.Add("ReportCases");
+                            var worksheet = package.Workbook.Worksheets.Add("CardRetain");
 
                             // Add headers
                             worksheet.Cells[1, 1].Value = "CardRetainID";
                             worksheet.Cells[1, 2].Value = "Location";
                             worksheet.Cells[1, 3].Value = "TerminalID";
                             worksheet.Cells[1, 4].Value = "TerminalName";
-                            worksheet.Cells[1, 5].Value = "CardNo";
-                            worksheet.Cells[1, 6].Value = "Date";
-                            worksheet.Cells[1, 7].Value = "Reason";
-                            worksheet.Cells[1, 8].Value = "Vendor";
-                            worksheet.Cells[1, 9].Value = "ErrorCode";
-                            worksheet.Cells[1, 10].Value = "InBankFlag";
-                            worksheet.Cells[1, 11].Value = "CardStatus";
-                            worksheet.Cells[1, 12].Value = "Telephone";
-                            worksheet.Cells[1, 13].Value = "UpdateDate";
+
+                            worksheet.Cells[1, 5].Value = "Serial No";
+                            worksheet.Cells[1, 6].Value = "Counter Code";
+
+                            worksheet.Cells[1, 7].Value = "CardNo";
+                            worksheet.Cells[1, 8].Value = "Date";
+                            worksheet.Cells[1, 9].Value = "Reason";
+                            worksheet.Cells[1, 10].Value = "Vendor";
+                            worksheet.Cells[1, 11].Value = "ErrorCode";
+                            worksheet.Cells[1, 12].Value = "InBankFlag";
+                            worksheet.Cells[1, 13].Value = "CardStatus";
+                            worksheet.Cells[1, 14].Value = "Telephone";
+                            worksheet.Cells[1, 15].Value = "UpdateDate";
 
                             using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
                             {
@@ -746,19 +819,26 @@ namespace SLA_Management.Controllers
                             int row = 2;
                             while (reader.Read())
                             {
+
+                                var result = GetDeviceInfo(reader["TerminalID"] != DBNull.Value ? reader.GetString("TerminalID") : string.Empty);
+
                                 worksheet.Cells[row, 1].Value = reader["CardRetainID"] != DBNull.Value ? Convert.ToInt32(reader["CardRetainID"]) : null;
                                 worksheet.Cells[row, 2].Value = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : null;
                                 worksheet.Cells[row, 3].Value = reader["TerminalID"] != DBNull.Value ? reader["TerminalID"].ToString() : null;
                                 worksheet.Cells[row, 4].Value = reader["TerminalName"] != DBNull.Value ? reader["TerminalName"].ToString() : null;
-                                worksheet.Cells[row, 5].Value = reader["CardNo"] != DBNull.Value ? reader["CardNo"].ToString() : null;
-                                worksheet.Cells[row, 6].Value = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : null;
-                                worksheet.Cells[row, 7].Value = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : null;
-                                worksheet.Cells[row, 8].Value = reader["Vendor"] != DBNull.Value ? reader["Vendor"].ToString() : null;
-                                worksheet.Cells[row, 9].Value = reader["ErrorCode"] != DBNull.Value ? reader["ErrorCode"].ToString() : null;
-                                worksheet.Cells[row, 10].Value = reader["InBankFlag"] != DBNull.Value ? reader["InBankFlag"].ToString() : null;
-                                worksheet.Cells[row, 11].Value = reader["CardStatus"] != DBNull.Value ? reader["CardStatus"].ToString() : null;
-                                worksheet.Cells[row, 12].Value = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : null;
-                                worksheet.Cells[row, 13].Value = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy HH:mm") : null;
+
+                                worksheet.Cells[row, 5].Value = string.IsNullOrEmpty(result.TERM_SEQ) ? string.Empty : result.TERM_SEQ;
+                                worksheet.Cells[row, 6].Value = string.IsNullOrEmpty(result.COUNTER_CODE) ? string.Empty : result.COUNTER_CODE;
+
+                                worksheet.Cells[row, 7].Value = reader["CardNo"] != DBNull.Value ? reader["CardNo"].ToString() : null;
+                                worksheet.Cells[row, 8].Value = reader["Date"] != DBNull.Value ? reader.GetDateTime("Date").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 9].Value = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : null;
+                                worksheet.Cells[row, 10].Value = reader["Vendor"] != DBNull.Value ? reader["Vendor"].ToString() : null;
+                                worksheet.Cells[row, 11].Value = reader["ErrorCode"] != DBNull.Value ? reader["ErrorCode"].ToString() : null;
+                                worksheet.Cells[row, 12].Value = reader["InBankFlag"] != DBNull.Value ? reader["InBankFlag"].ToString() : null;
+                                worksheet.Cells[row, 13].Value = reader["CardStatus"] != DBNull.Value ? reader["CardStatus"].ToString() : null;
+                                worksheet.Cells[row, 14].Value = reader["Telephone"] != DBNull.Value ? reader["Telephone"].ToString() : null;
+                                worksheet.Cells[row, 15].Value = reader["UpdateDate"] != DBNull.Value ? reader.GetDateTime("UpdateDate").ToString("dd/MM/yyyy HH:mm") : null;
 
 
 

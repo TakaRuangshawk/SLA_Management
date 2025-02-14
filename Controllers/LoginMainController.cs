@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using X.PagedList;
 using SLA_Management.Data;
 using SLA_Management.Models;
 using System.Security.Cryptography;
 using System.Text;
+using X.PagedList.Extensions;
 
 namespace SLA_Management.Controllers
 {
@@ -43,13 +45,13 @@ namespace SLA_Management.Controllers
                 {
                     conn.Open();
 
-                    
+
                     string hashedPassword = HashPassword(model.Password);
 
                     string query = "SELECT Role, Name FROM loginmain WHERE username = @Username AND password = @Password";
                     MySqlCommand cmd = new MySqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@Username", model.Username);
-                    cmd.Parameters.AddWithValue("@Password", hashedPassword); 
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword);
 
                     using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
@@ -60,7 +62,7 @@ namespace SLA_Management.Controllers
 
                             HttpContext.Session.SetString("Username", model.Username);
                             HttpContext.Session.SetString("UserId", Guid.NewGuid().ToString());
-                            HttpContext.Session.SetString("Password", model.Password); 
+                            HttpContext.Session.SetString("Password", model.Password);
                             HttpContext.Session.SetString("Name", name);
                             HttpContext.Session.SetString("Role", role);
 
@@ -81,7 +83,7 @@ namespace SLA_Management.Controllers
 
         public IActionResult Logout()
         {
-           
+
             HttpContext.Session.Remove("Username");
             HttpContext.Session.Remove("Role");
             HttpContext.Session.Remove("Password");
@@ -103,7 +105,7 @@ namespace SLA_Management.Controllers
 
             if (username == null || role == null)
             {
-                return RedirectToAction("Login");  
+                return RedirectToAction("Login");
             }
 
             var model = new LoginModel
@@ -125,17 +127,17 @@ namespace SLA_Management.Controllers
         {
             if (ModelState.IsValid)
             {
-               
+
                 HttpContext.Session.SetString("Username", model.Username);
                 HttpContext.Session.SetString("Name", model.Name);
                 HttpContext.Session.SetString("Role", model.Role);
 
-               
-                string hashedPassword = HashPassword(model.Password); 
 
-                HttpContext.Session.SetString("Password", model.Password); 
+                string hashedPassword = HashPassword(model.Password);
 
-                
+                HttpContext.Session.SetString("Password", model.Password);
+
+
                 string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
@@ -143,7 +145,7 @@ namespace SLA_Management.Controllers
                     string query = "UPDATE loginmain SET password = @Password, name = @Name, role = @Role WHERE username = @Username";
                     MySqlCommand cmd = new MySqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@Username", model.Username);
-                    cmd.Parameters.AddWithValue("@Password", hashedPassword); 
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword);
                     cmd.Parameters.AddWithValue("@Name", model.Name);
                     cmd.Parameters.AddWithValue("@Role", model.Role);
 
@@ -176,21 +178,21 @@ namespace SLA_Management.Controllers
                 {
                     conn.Open();
 
-                   
+
                     string checkQuery = "SELECT COUNT(*) FROM loginmain WHERE username = @Username";
                     MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn);
                     checkCmd.Parameters.AddWithValue("@Username", model.Username);
 
-                    int userCount = Convert.ToInt32(checkCmd.ExecuteScalar()); 
+                    int userCount = Convert.ToInt32(checkCmd.ExecuteScalar());
 
                     if (userCount > 0)
                     {
-                        
+
                         ModelState.AddModelError("Username", "Username already exists. Please choose another.");
                         return View(model);
                     }
 
-                   
+
                     string hashedPassword = HashPassword(model.Password);
 
 
@@ -212,7 +214,67 @@ namespace SLA_Management.Controllers
             return View(model);
         }
 
-        
+
+        public IActionResult ManageUser(int? page, int pageSize = 10)
+        {
+            List<LoginModel> users = new List<LoginModel>();
+
+            string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT ID, Username, Name, Role FROM loginmain";
+
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new LoginModel
+                        {
+                            ID = reader["ID"].ToString(),
+                            Username = reader["Username"].ToString(),
+                            Name = reader["Name"]?.ToString(),
+                            Role = reader["Role"]?.ToString()
+                        });
+                    }
+                }
+            }
+
+            int pageNumber = page ?? 1;
+            ViewBag.PageSize = pageSize;
+
+            IPagedList<LoginModel> pagedUsers = users.ToPagedList(pageNumber, pageSize);
+
+            return View(pagedUsers);
+        }
+
+        [HttpPost]
+        public IActionResult EditUser_ManageUser(LoginModel model)
+        {
+
+            string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "UPDATE loginmain SET Username=@Username, Name=@Name, Role=@Role WHERE ID=@ID";
+
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", model.ID);
+                    cmd.Parameters.AddWithValue("@Username", model.Username);
+                    cmd.Parameters.AddWithValue("@Name", model.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Role", model.Role ?? (object)DBNull.Value);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            return RedirectToAction("ManageUser");
+
+        }
+
+
         private string HashPassword(string password)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -223,7 +285,7 @@ namespace SLA_Management.Controllers
                 {
                     hashString.Append(b.ToString("x2"));
                 }
-                return hashString.ToString(); 
+                return hashString.ToString();
             }
         }
 

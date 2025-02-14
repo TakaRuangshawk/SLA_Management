@@ -223,6 +223,10 @@
                                 {
                                     <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="AddUser">AddUser</a></li>
                                 }
+                                 @if (Context.Session.GetString("Role") == "ADMIN")
+                                {
+                                    <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="ManageUser">ManageUser</a></li>
+                                }
                                 <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="EditUser">EditUser</a></li>
                                 <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="Logout">Logout</a></li>
                             </ul>
