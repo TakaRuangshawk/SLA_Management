@@ -14,7 +14,7 @@
   
 
     <div class="row justify-content-center">
-          <!-- Dropdown สำหรับเลือกจำนวนที่จะแสดง -->
+         
     <div class="col-lg-8 col-md-10" style="margin-bottom: 20px;" >
         <div class="col-md-3">
             <label for="pageSize" class="form-label">Show:</label>
@@ -35,9 +35,9 @@
                     <thead class="table-dark">
                         <tr>
                             <th>Username</th>
-                            <th>Name</th>
-                            <th>Password</th>
+                            <th>Name</th>                          
                             <th>Role</th>
+                            <th>Password</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -47,10 +47,13 @@
                             <tr>
                                 <td>@user.Username</td>
                                 <td>@user.Name</td>
-                                <td>@user.Password</td>
-                                <td>
+                                 <td>
                                     <span class="badge bg-primary">@user.Role</span>
                                 </td>
+                                <td> <button class="btn btn-sm btn-outline-danger" onclick="resetPassword('@user.ID')">
+                                🔄 Reset Password
+                            </button></td>
+                               
                                 <td>
                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('@user.ID', '@user.Username', '@user.Name', '@user.Role')">
     ✏️ View
@@ -79,7 +82,7 @@
     </div>
 </div>
 
-<!-- Modal for Edit User -->
+
 <!-- Modal for Edit User -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -91,7 +94,6 @@
             <div class="modal-body">
                 <form id="editUserForm" method="post" asp-action="EditUser_ManageUser">
                     <input type="hidden" id="editUserId" name="ID" />
-                    <!-- No password input field here -->
 
                     <div class="mb-3">
                         <label class="form-label">Username</label>
@@ -137,5 +139,27 @@
     function changePageSize() {
         var pageSize = document.getElementById("pageSize").value;
         window.location.href = '@Url.Action("ManageUser", "LoginMain")' + '?page=1&pageSize=' + pageSize;
+    }
+
+    function resetPassword(userId) {
+        if (confirm('Are you sure you want to reset the password for this user?')) {
+            // Send AJAX request to reset password
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ResetPassword", "LoginMain")', // Action that handles password reset
+                data: { id: userId }, // Send the user's ID
+                success: function(response) {
+                    if (response.success) {
+                        alert('Password has been reset to "11111".');
+                        location.reload(); // Refresh the page to see the changes
+                    } else {
+                        alert('Failed to reset password. Please try again.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again later.');
+                }
+            });
+        }
     }
 </script>

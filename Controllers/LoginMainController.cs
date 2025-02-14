@@ -254,6 +254,12 @@ namespace SLA_Management.Controllers
         public IActionResult EditUser_ManageUser(LoginModel model)
         {
 
+            if (string.IsNullOrEmpty(model.Username))
+            {
+                ModelState.AddModelError("Username", "Username is required.");
+                return View("ManageUser");
+            }
+
             string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
 
             using (MySqlConnection conn = new MySqlConnection(connectionString))
@@ -273,6 +279,45 @@ namespace SLA_Management.Controllers
             return RedirectToAction("ManageUser");
 
         }
+
+        [HttpPost]
+        public IActionResult ResetPassword(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return Json(new { success = false, message = "Invalid ID" });
+            }
+
+            // You can either use your model or fetch the user directly by ID
+            string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC");
+
+            string hashedPassword = HashPassword("11111");
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+
+                // Update query to set the password to "11111"
+                string query = "UPDATE loginmain SET Password=@Password WHERE ID=@ID";
+
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword); // Default password
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                    {
+                        return Json(new { success = true });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to reset password" });
+                    }
+                }
+            }
+        }
+
 
 
         private string HashPassword(string password)
