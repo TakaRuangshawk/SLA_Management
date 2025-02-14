@@ -219,7 +219,7 @@
                                 👤 @Context.Session.GetString("Username")
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                @if (Context.Session.GetString("Role") == "ADMIN")
+                                @if (Context.Session.GetString("Role") != "User")
                                 {
                                     <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="AddUser">AddUser</a></li>
                                 }

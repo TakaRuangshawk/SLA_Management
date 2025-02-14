@@ -44,15 +44,32 @@
                 </div>
 
                 <!-- Role -->
-                <div class="form-group">                 
+                @if (Context.Session.GetString("Role") == "ADMIN")
+                {
                     <div class="form-group">
-                        @Html.LabelFor(model => model.Role, new { @class = "form-label" })
-                        @Html.DropDownListFor(model => model.Role,
-                                 new SelectList(new List<string> { "ADMIN", "User" , "Monitor" }, "User"),                              
-                                 new { @class = "form-control" })
-                        @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Role, new { @class = "form-label" })
+                            @Html.DropDownListFor(model => model.Role,
+                                     new SelectList(new List<string> { "ADMIN", "User", "Monitor" }, "User"),
+                                     new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
+                        </div>
                     </div>
-                </div>
+
+                }
+                else if (Context.Session.GetString("Role") == "Monitor")
+                {
+                    <div class="form-group">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Role, new { @class = "form-label" })
+                            @Html.DropDownListFor(model => model.Role,
+                                     new SelectList(new List<string> {  "User", "Monitor" }, "User"),
+                                     new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                }
+               
 
                 <div class="text-center" style="margin-top: 30px;">
                     <button type="submit" class="btn btn-success">Add User</button>
