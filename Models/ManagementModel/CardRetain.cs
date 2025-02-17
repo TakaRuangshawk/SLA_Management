@@ -30,10 +30,12 @@
         public string Telephone { get; set; }
 
         public string UpdateDate { get; set; }
+        public string UpdateBy { get; set; }
 
-
-
-
-
+    }
+    public class LatestUpdateDate_record
+    {
+        public DateTime UpdateDate { get; set; }
+        public string UpdateBy { get; set; }
     }
 }

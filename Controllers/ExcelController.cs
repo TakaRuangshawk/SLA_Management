@@ -25,6 +25,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadExcel(IFormFile file)
         {
+            string userName = HttpContext.Session.GetString("Username");
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Please upload a valid Excel file.");
@@ -37,7 +38,7 @@ namespace SLA_Management.Controllers
 
                 try
                 {
-                    await _excelService.ImportExcelDataAsync(stream);
+                    await _excelService.ImportExcelDataAsync(stream, userName);
                     return Ok("Data imported successfully.");
                 }
                 catch (Exception ex)
@@ -78,6 +79,7 @@ namespace SLA_Management.Controllers
 
         public async Task<IActionResult> UploadXlsFile(IFormFile file)
         {
+            string userName = HttpContext.Session.GetString("Username");
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Please upload a valid Excel file.");
@@ -92,7 +94,7 @@ namespace SLA_Management.Controllers
                 var xlsxStream = ConvertXlsToXlsx(stream);
 
                 // ส่งไฟล์ .xlsx ไปยังเซอร์วิส
-                await _excelService.ImportExcelDataAsync_CardRetain(xlsxStream);
+                await _excelService.ImportExcelDataAsync_CardRetain(xlsxStream, userName);
 
                 return Ok("Data imported successfully.");
             }
@@ -162,6 +164,7 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadEncryptionExcel(IFormFile file)
         {
+            string userName = HttpContext.Session.GetString("Username");
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Please upload a valid Excel file.");
@@ -174,7 +177,7 @@ namespace SLA_Management.Controllers
 
                 try
                 {
-                    await _excelService.ImportEncryptionExcelDataAsync(stream, file.FileName);
+                    await _excelService.ImportEncryptionExcelDataAsync(stream, file.FileName, userName);
                     return Ok("Data imported successfully.");
                 }
                 catch (Exception ex)
@@ -186,23 +189,9 @@ namespace SLA_Management.Controllers
         }
         #endregion
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         public async Task<IActionResult> UploadXlsxFile(IFormFile file)
         {
+            string userName = HttpContext.Session.GetString("Username");
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Please upload a valid Excel file.");
@@ -214,7 +203,7 @@ namespace SLA_Management.Controllers
                 stream.Position = 0; // รีเซ็ตตำแหน่งเพื่อใช้งานในลำดับถัดไป
 
                 // ส่งไฟล์ที่เป็น .xlsx ไปยังเซอร์วิส
-                await _excelService.ImportExcelDataAsync_CardRetain(stream);
+                await _excelService.ImportExcelDataAsync_CardRetain(stream, userName);
             }
 
             return Ok("Data imported successfully.");

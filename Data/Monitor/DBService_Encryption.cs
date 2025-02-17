@@ -26,69 +26,7 @@ namespace SLA_Management.Data.Monitor
             ConnectString_MySQL = myConfiguration;
             FullNameConnection = fullNameConnection;
             _objDb = new ConnectMySQL(FullNameConnection);
-        }
-        //public List<LogAnalysisModel> FetchAllData(string TermID, string fromDateTime, string toDateTime,string categoryType, string counterCode)
-        //{
-        //    List<LogAnalysisModel> _result = new List<LogAnalysisModel>();
-        //    DataTable _dt = new DataTable();
-
-        //    try
-        //    {
-        //        _dt = FetchAllData_MySQL((TermID == null) ? "%" : TermID, fromDateTime, toDateTime, (categoryType == null || categoryType == "ALL") ? "%" : categoryType, (counterCode == null || counterCode == "ALL") ? "%" : counterCode);
-        //        foreach (DataRow _dr in _dt.Rows)
-        //        {
-        //            LogAnalysisModel obj = new LogAnalysisModel();
-        //            obj.Incident_No = _dr["incident_no"].ToString() ?? "";
-        //            obj.Terminal_SEQ = _dr["TERM_SEQ"].ToString() ?? "";
-        //            obj.Terminal_ID = _dr["TERM_ID"].ToString() ?? "";
-        //            obj.Terminal_NAME = _dr["TERM_NAME"].ToString() ?? "";
-        //            obj.Incident_Date = Convert.ToDateTime(_dr["incident_date"]).ToString("yyyy-MM-dd");                    
-        //            obj.Category = _dr["incident_name"].ToString() ?? "";
-        //            obj.SubCategory = _dr["analyst_01"].ToString() ?? "";
-        //            obj.Analyst_Info = _dr["analyst_02"].ToString() ?? "";
-        //            obj.Inform_By = _dr["inform_by"].ToString() ?? "";
-        //            obj.Counter_Code = _dr["COUNTER_CODE"].ToString() ?? "";
-        //            _result.Add(obj);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new ApplicationException("An error occurred while fetching all data.", ex);
-        //    }
-        //    return _result;
-        //}
-        //public DataTable FetchAllData_MySQL(string TermID, string fromDateTime, string toDateTime, string categoryType, string counterCode)
-        //{
-        //    DataTable _dt = new DataTable();
-        //    string _sql = string.Empty;
-        //    var incidentName = string.Empty;
-
-        //    if (fromDateTime == null || toDateTime == null)
-        //    {
-        //        fromDateTime = DateTime.Now.ToString("yyyy-MM-dd HHmmss", _cultureEnInfo);
-        //        toDateTime = DateTime.Now.ToString("yyyy-MM-dd HHmmss", _cultureEnInfo);
-        //    }
-
-        //    try
-        //    {
-        //        _sql = @"SELECT b.TERM_SEQ,a.incident_no,a.TERM_ID,b.TERM_NAME,a.incident_date, 
-        //        a.incident_name,a.analyst_01,a.analyst_02,a.inform_by,b.COUNTER_CODE
-        //        FROM sisbu_analysis a
-        //        Inner JOIN device_info b
-        //        ON a.TERM_ID = b.TERM_ID 
-        //        WHERE a.TERM_ID LIKE '" + TermID + "' " +
-        //        @"AND a.incident_date BETWEEN '" + fromDateTime + "' AND '" + toDateTime + "' " +
-        //        @"AND a.incident_name LIKE '" + categoryType + "' " +
-        //        @"AND b.COUNTER_CODE LIKE '" + counterCode + "' " +
-        //        @"ORDER BY a.incident_date ASC;";
-        //        _dt = _objDb.GetDatatableNotParam(_sql);
-        //        return _dt;
-        //    }
-        //    catch (Exception ex)
-        //    { 
-        //        throw new ApplicationException("An error occurred while getting data.", ex);
-        //    }
-        //}       
+        }              
         public List<Device_info_record> GetDeviceInfo()
         {
 
@@ -111,6 +49,16 @@ namespace SLA_Management.Data.Monitor
             List<Version_info_record> result = ConvertDataTableToModel.ConvertDataTable<Version_info_record>(dt);
 
             return result;
+        }
+        public LatestUpdate_record GetLatestUpdate()
+        {
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT Update_Date, Update_By FROM secureageversion_record ORDER BY Update_Date DESC LIMIT 1;";
+            DataTable dt = _objDb.GetDatatable(com);
+
+            // Convert the result to a single record
+            List<LatestUpdate_record> result = ConvertDataTableToModel.ConvertDataTable<LatestUpdate_record>(dt);
+            return result.FirstOrDefault(); // Return only the first record or null if no data
         }
         public List<EncryptionModel> FetchAllData(string terminalId, string counterCode, string version, string policy)
         {

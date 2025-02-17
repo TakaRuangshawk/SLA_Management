@@ -17,4 +17,9 @@
         public string Policy { get; set; }
 
     }
+    public class LatestUpdate_record
+    {
+        public DateTime Update_Date { get; set; }
+        public string Update_By { get; set; }
+    }
 }

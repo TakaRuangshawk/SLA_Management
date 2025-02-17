@@ -17,7 +17,7 @@ namespace SLA_Management.Commons
             _connectionString = connectionString;
         }
 
-        public async Task ImportExcelDataAsync(Stream excelStream)
+        public async Task ImportExcelDataAsync(Stream excelStream, string userName)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(excelStream))
@@ -73,7 +73,8 @@ namespace SLA_Management.Commons
                         var statusName = worksheet.Cells[row, 14].Value?.ToString();
                         var typeProject = worksheet.Cells[row, 15].Value?.ToString();
                         var updateDate = DateTime.Now;
-                        var updateBy = "System";
+                        //var updateBy = "System";
+                        var updateBy = userName;
                         var remark = "Imported from Excel";
 
                         var query = @"
@@ -127,7 +128,7 @@ namespace SLA_Management.Commons
         }
 
         #region EncryptionMonitor
-        public async Task ImportEncryptionExcelDataAsync(Stream excelStream, string fileName)
+        public async Task ImportEncryptionExcelDataAsync(Stream excelStream, string fileName, string userName)
         {
             var fileExtension = Path.GetExtension(fileName)?.ToLower();
             using (var connection = new MySqlConnection(_connectionString))
@@ -136,15 +137,15 @@ namespace SLA_Management.Commons
                 switch (fileExtension)
                 {
                     case ".xlsx":
-                        await ProcessXlsxFileAsync(excelStream, connection);
+                        await ProcessXlsxFileAsync(excelStream, connection, userName);
                         break;
 
                     case ".xls":
-                        await ProcessXlsFileAsync(excelStream, connection);
+                        await ProcessXlsFileAsync(excelStream, connection, userName);
                         break;
 
                     case ".csv":
-                        await ProcessCsvFileAsync(excelStream, connection);
+                        await ProcessCsvFileAsync(excelStream, connection, userName);
                         break;
 
                     default:
@@ -152,7 +153,7 @@ namespace SLA_Management.Commons
                 }
             }
         }
-        private async Task ProcessXlsxFileAsync(Stream excelStream, MySqlConnection connection)
+        private async Task ProcessXlsxFileAsync(Stream excelStream, MySqlConnection connection, string userName)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(excelStream))
@@ -160,12 +161,12 @@ namespace SLA_Management.Commons
                 var worksheet = package.Workbook.Worksheets[0];
                 for (int row = 2; row <= worksheet.Dimension.Rows; row++)
                 {
-                    await ProcessRowAsync(worksheet.Cells[row, 1].Value?.ToString(), worksheet.Cells[row, 2].Value?.ToString(), connection);
+                    await ProcessRowAsync(worksheet.Cells[row, 1].Value?.ToString(), worksheet.Cells[row, 2].Value?.ToString(), connection, userName);
                 }
             }
         }
 
-        private async Task ProcessXlsFileAsync(Stream excelStream, MySqlConnection connection)
+        private async Task ProcessXlsFileAsync(Stream excelStream, MySqlConnection connection, string userName)
         {
             var workbook = new HSSFWorkbook(excelStream);
             var sheet = workbook.GetSheetAt(0);
@@ -174,12 +175,12 @@ namespace SLA_Management.Commons
                 var currentRow = sheet.GetRow(row);
                 if (currentRow != null)
                 {
-                    await ProcessRowAsync(currentRow.GetCell(0)?.ToString(), currentRow.GetCell(1)?.ToString(), connection);
+                    await ProcessRowAsync(currentRow.GetCell(0)?.ToString(), currentRow.GetCell(1)?.ToString(), connection, userName);
                 }
             }
         }
 
-        private async Task ProcessCsvFileAsync(Stream excelStream, MySqlConnection connection)
+        private async Task ProcessCsvFileAsync(Stream excelStream, MySqlConnection connection, string userName)
         {
             using (var reader = new StreamReader(excelStream))
             {
@@ -191,12 +192,12 @@ namespace SLA_Management.Commons
                     var values = line.Split(',');
                     if (values.Length < 3) continue;
 
-                    await ProcessRowAsync(values[0], values[1], connection);
+                    await ProcessRowAsync(values[0], values[1], connection, userName);
                 }
             }
         }
 
-        private async Task ProcessRowAsync(string terminalSeq, string version, MySqlConnection connection)
+        private async Task ProcessRowAsync(string terminalSeq, string version, MySqlConnection connection, string userName)
         {
             if (!string.IsNullOrEmpty(version))
             {
@@ -211,7 +212,7 @@ namespace SLA_Management.Commons
                 var (parsedVersion, policy) = parsedData.Value;
 
                 terminalSeq = terminalSeq?.Trim().Trim('"');
-                await InsertOrUpdateRecord(connection, terminalSeq, parsedVersion, policy);
+                await InsertOrUpdateRecord(connection, terminalSeq, parsedVersion, policy, userName);
             }
         }
 
@@ -230,30 +231,31 @@ namespace SLA_Management.Commons
 
             return (version.Trim(), string.Empty);
         }
-        private async Task InsertOrUpdateRecord(MySqlConnection connection, string terminalSeq, string version, string policy)
+        private async Task InsertOrUpdateRecord(MySqlConnection connection, string terminalSeq, string version, string policy, string userName)
         {
             var query = @"INSERT INTO secureageversion_record 
                      (Term_Seq, SecureAge_Version, Policy, Update_Date, Update_By, Remark) 
                      VALUES 
-                     (@TermSeq, @SecureAgeVersion, @Policy, NOW(), 'System', 'Imported From File')
+                     (@TermSeq, @SecureAgeVersion, @Policy, NOW(), @UserName, 'Imported From File')
                      ON DUPLICATE KEY UPDATE 
                      SecureAge_Version = @SecureAgeVersion,
                      Policy = @Policy,
                      Update_Date = NOW(),
-                     Update_By = 'System';";
+                     Update_By = @UserName;";
 
             using (var command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@TermSeq", terminalSeq);
                 command.Parameters.AddWithValue("@SecureAgeVersion", version);
                 command.Parameters.AddWithValue("@Policy", policy);
+                command.Parameters.AddWithValue("@UserName", userName);
 
                 await command.ExecuteNonQueryAsync();
             }
         }
         #endregion
 
-        public async Task ImportExcelDataAsync_CardRetain(Stream excelStream)
+        public async Task ImportExcelDataAsync_CardRetain(Stream excelStream, string userName)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage(excelStream))
@@ -286,6 +288,7 @@ namespace SLA_Management.Commons
                                     CardStatus = worksheet.Cells[row, 10].Value?.ToString(),
                                     Telephone = worksheet.Cells[row, 11].Value?.ToString(),
                                     UpdateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                    UpdateBy = userName,
                                 };
 
 
@@ -309,9 +312,9 @@ namespace SLA_Management.Commons
 
                                         var queryInsert = @"
                                     INSERT INTO cardretain 
-                                    (Location, TerminalID, TerminalName, CardNo, Date, Reason, Vendor, ErrorCode, InBankFlag, CardStatus, Telephone, UpdateDate) 
+                                    (Location, TerminalID, TerminalName, CardNo, Date, Reason, Vendor, ErrorCode, InBankFlag, CardStatus, Telephone, UpdateDate, UpdateBy) 
                                     VALUES 
-                                    (@Location, @TerminalID, @TerminalName, @CardNo, @Date, @Reason, @Vendor, @ErrorCode, @InBankFlag, @CardStatus, @Telephone, @UpdateDate);";
+                                    (@Location, @TerminalID, @TerminalName, @CardNo, @Date, @Reason, @Vendor, @ErrorCode, @InBankFlag, @CardStatus, @Telephone, @UpdateDate, @UpdateBy);";
 
                                         using (var commandInsert = new MySqlCommand(queryInsert, connection, (MySqlTransaction)transaction))
                                         {
@@ -328,6 +331,7 @@ namespace SLA_Management.Commons
                                             commandInsert.Parameters.AddWithValue("@CardStatus", cardRetain.CardStatus);
                                             commandInsert.Parameters.AddWithValue("@Telephone", cardRetain.Telephone);
                                             commandInsert.Parameters.AddWithValue("@UpdateDate", cardRetain.UpdateDate);
+                                            commandInsert.Parameters.AddWithValue("@UpdateBy", cardRetain.UpdateBy);
 
                                             await commandInsert.ExecuteNonQueryAsync();
                                         }

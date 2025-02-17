@@ -220,6 +220,7 @@ namespace SLA_Management.Controllers
             ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
             ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
             ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+            SetLatestUpdateViewBag();
             // For now, just return the empty view
             return View();
         }
@@ -309,13 +310,16 @@ namespace SLA_Management.Controllers
 
             totalPages = (int)Math.Ceiling((double)totalCases / row);
 
-           
+            SetLatestUpdateViewBag();
+
             return Json(new
             {
                 jsonData = reportCases,
                 currentPage = page,
                 totalPages = totalPages,
-                totalCases = totalCases
+                totalCases = totalCases,
+                latestUpdateDate = ViewBag.LatestUpdateDate,
+                updatedBy = ViewBag.UpdatedBy
             });
         }
         public IActionResult ExportReportCasesToExcel(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName)
@@ -531,7 +535,35 @@ namespace SLA_Management.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+        private void SetLatestUpdateViewBag()
+        {
+            try
+            {
+                ConnectMySQL db_mysql = new ConnectMySQL(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC"));
+                MySqlCommand com = new MySqlCommand();
+                com.CommandText = "SELECT Update_Date, Update_By FROM reportcases ORDER BY Update_Date DESC LIMIT 1;";
+                DataTable dt = db_mysql.GetDatatable(com);
+                List<LatestUpdateData_record> result = ConvertDataTableToModel.ConvertDataTable<LatestUpdateData_record>(dt);
+                LatestUpdateData_record latestUpdate = result.FirstOrDefault();
 
+                if (latestUpdate != null)
+                {
+                    ViewBag.LatestUpdateDate = latestUpdate.Update_Date.ToString("dd/MM/yyyy HH:mm");
+                    ViewBag.UpdatedBy = latestUpdate.Update_By;
+                }
+                else
+                {
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching latest update: {ex.Message}");
+                ViewBag.LatestUpdateDate = "-";
+                ViewBag.UpdatedBy = "-";
+            }
+        }
         #endregion
 
         #region ticket

@@ -163,8 +163,31 @@
                         <div id="progressBars" class="mt-3"></div>
                         <div id="message" class="mt-3"></div>
                     </div>
+                    <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                        <div class="col-12" style="color: red; padding-left: 5px">
+                            <h>Latest Update Date : @ViewBag.LatestUpdateDate</h>
+                        </div>
+                    </div>
+                    <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                        <div class="col-12" style="color: red; padding-left: 5px;">
+                            <h>Latest Update By : @ViewBag.UpdatedBy</h>
+                        </div>
+                    </div> 
                 }
-                
+                @if (Context.Session.GetString("Role") == "User")
+                {
+                   <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                        <div class="col-12" style="color: red; padding-top: 30px;">
+                            <h>Latest Update Date : @ViewBag.LatestUpdateDate</h>
+                        </div>
+                   </div> 
+                   <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                        <div class="col-12" style="color: red;">
+                            <h>Latest Update By : @ViewBag.UpdatedBy</h>
+                        </div>
+                    </div>
+                }
+
                 <div class="row">
                     <div class="col" id="before-submit">
                         <div id="submit">

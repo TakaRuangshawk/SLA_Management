@@ -598,7 +598,8 @@ namespace SLA_Management.Controllers
         public IActionResult CardRetain()
         {
             ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _myConfiguration);
-            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);          
+            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);
+            SetLatestUpdateViewBag();
             //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
             //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
             // For now, just return the empty view
@@ -695,12 +696,16 @@ namespace SLA_Management.Controllers
                 totalPages = (int)Math.Ceiling((double)totalCases / row);
             }
 
+            SetLatestUpdateViewBag();
+
             return Json(new
             {
                 jsonData = cardRetain,
                 currentPage = page,
                 totalPages = totalPages,
-                totalCases = totalCases
+                totalCases = totalCases,
+                latestUpdateDate = ViewBag.LatestUpdateDate,
+                updatedBy = ViewBag.UpdatedBy
             });
         }
 
@@ -889,7 +894,35 @@ namespace SLA_Management.Controllers
 
             return test;
         }
+        private void SetLatestUpdateViewBag()
+        {
+            try
+            {
+                ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC"));
+                MySqlCommand com = new MySqlCommand();
+                com.CommandText = "SELECT UpdateDate, UpdateBy FROM cardretain ORDER BY UpdateDate DESC LIMIT 1;";
+                DataTable dt = db_mysql.GetDatatable(com);
+                List<LatestUpdateDate_record> result = ConvertDataTableToModel.ConvertDataTable<LatestUpdateDate_record>(dt);
+                LatestUpdateDate_record latestUpdate = result.FirstOrDefault();
 
+                if (latestUpdate != null)
+                {
+                    ViewBag.LatestUpdateDate = latestUpdate.UpdateDate.ToString("dd/MM/yyyy HH:mm");
+                    ViewBag.UpdatedBy = latestUpdate.UpdateBy;
+                }
+                else
+                {
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching latest update: {ex.Message}");
+                ViewBag.LatestUpdateDate = "-";
+                ViewBag.UpdatedBy = "-";
+            }
+        }
         #endregion
 
         #region Excel TransactionSummary
@@ -3200,6 +3233,20 @@ namespace SLA_Management.Controllers
                 var SApolicy = version_Info_Records.Select(x => x.Policy).Where(x => !string.IsNullOrEmpty(x)).Distinct();
                 var policyList = new List<string> { "ALL" }.Concat(SApolicy).ToList();
                 ViewBag.policy = new SelectList(policyList.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                LatestUpdate_record latestUpdate = dBService.GetLatestUpdate();
+
+                // Pass the single value to ViewBag
+                if (latestUpdate != null)
+                {
+                    ViewBag.LatestUpdateDate = latestUpdate.Update_Date.ToString("dd/MM/yyyy HH:mm"); // Format DateTime to string
+                    ViewBag.UpdatedBy = latestUpdate.Update_By;
+                }
+                else
+                {
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                }
 
                 if (null != lstPageSize || null != currPageSize)
                 {
