@@ -610,6 +610,7 @@ namespace SLA_Management.Controllers
         public JsonResult FetchCardRetain(string terminalID, string reason, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
         {
             List<CardRetain> cardRetain = new List<CardRetain>();
+            List<object> totalCasesData = new List<object>();
             int totalCases = 0;
             int totalPages = 0;
 
@@ -683,6 +684,50 @@ namespace SLA_Management.Controllers
                             totalCases = reader.GetInt32(0);
                         }
                     }
+                    // Query for the summary table
+                    string totalCasesQuery = @"SELECT DISTINCT a.Reason, COUNT(a.Reason) AS TotalCount " +
+                                             "FROM cardretain a INNER JOIN device_info b ON a.TerminalID = b.TERM_ID " +
+                                             "WHERE 1=1";
+
+                    if (!string.IsNullOrEmpty(terminalID))
+                    {
+                        totalCasesQuery += " AND a.TerminalID = @TerminalID";
+                    }
+
+                    if (fromdate.HasValue)
+                    {
+                        totalCasesQuery += " AND a.Date >= @FromDate";
+                    }
+
+                    if (todate.HasValue)
+                    {
+                        totalCasesQuery += " AND a.Date <= @ToDate";
+                    }
+
+                    if (!string.IsNullOrEmpty(reason))
+                    {
+                        totalCasesQuery += " AND a.REASON = @Reason";
+                    }
+
+                    totalCasesQuery += " GROUP BY a.Reason";
+
+                    MySqlCommand totalCasesCmd = new MySqlCommand(totalCasesQuery, conn);
+                    totalCasesCmd.Parameters.AddWithValue("@TerminalID", terminalID ?? string.Empty);
+                    totalCasesCmd.Parameters.AddWithValue("@FromDate", fromdate.HasValue ? fromdate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    totalCasesCmd.Parameters.AddWithValue("@ToDate", todate.HasValue ? todate.Value.ToString("yyyy-MM-dd") : DBNull.Value);
+                    totalCasesCmd.Parameters.AddWithValue("@Reason", reason ?? string.Empty);
+
+                    using (MySqlDataReader totalCasesReader = totalCasesCmd.ExecuteReader())
+                    {
+                        while (totalCasesReader.Read())
+                        {
+                            totalCasesData.Add(new
+                            {
+                                Reason = totalCasesReader["Reason"] != DBNull.Value ? totalCasesReader.GetString("Reason") : string.Empty,
+                                TotalCount = totalCasesReader["TotalCount"] != DBNull.Value ? totalCasesReader.GetInt32("TotalCount") : 0
+                            });
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -705,7 +750,8 @@ namespace SLA_Management.Controllers
                 totalPages = totalPages,
                 totalCases = totalCases,
                 latestUpdateDate = ViewBag.LatestUpdateDate,
-                updatedBy = ViewBag.UpdatedBy
+                updatedBy = ViewBag.UpdatedBy,
+                totalCasesData = totalCasesData
             });
         }
 

@@ -1,5 +1,9 @@
 ﻿@{
     ViewData["Title"] = "Card Retain";
+    string[] summaryTable = new string[]{
+    "Reason",
+    "Total Cases"
+    };
     string[] tableHeaders = new string[]
     {
     "No.",
@@ -295,6 +299,29 @@
         </div>
     </div>
 </div>
+<div class="container-fluid d-flex justify-content-center">
+       <div class="table-container" style="overflow-y: auto; max-height: 400px;"> 
+            <div class="table-responsive" style="overflow-x: hidden;">
+                <table id="total-cases-table" class="table table-striped custom-table">
+                    <thead>
+                        <tr>
+                            @{
+                                foreach (var head in summaryTable)
+                                {
+                                    <th scope="col" style="text-align:center; width:150px;"> @head </th>
+                                }
+                            }
+                        </tr>
+                    </thead>                        
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: center; width:150px;"> NO DATA </td>
+                        </tr>
+                    </tbody>
+            </table>
+        </div> 
+    </div>
+</div>
 <div class="container">
 
     <div class="table-responsive" style="overflow-x: hidden;">
@@ -579,11 +606,11 @@
         var pages = data.page;
         var totalPages = data.totalPages;
         var currentPage = data.currentPage;
-
+        var totalCasesData = data.totalCasesData;
 
           if (!jsondata || jsondata.length === 0) {
     console.log("No data available");
-    var noDataRow = $("<tr>").append($("<td colspan='7' style='text-align:center;'>").text("No data"));
+    var noDataRow = $("<tr>").append($("<td colspan='8' style='text-align:center;'>").text("NO DATA"));
     $("#table-id tbody").empty().append(noDataRow);
 } else {
     console.log("jsondata:", jsondata);
@@ -644,6 +671,23 @@
                 $("#UpdateDate").val($(this).data("update-date"));
             });
 
+            // Show summary table
+            if (!totalCasesData || totalCasesData.length === 0) {
+                var noTotalCasesRow = $("<tr>").append(
+                    $("<td colspan='2' style='text-align:center'>").text("NO DATA")
+                );
+                $("#total-cases-table tbody").empty().append(noTotalCasesRow);
+            } else {
+                $("#total-cases-table tbody").empty();
+
+                $.each(totalCasesData, function (index, item) {
+                    var row = $("<tr>");
+                    row.append($("<td>").css("text-align", "center").text(item.reason || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.totalCount || ""));
+
+                    $("#total-cases-table tbody").append(row);
+                });
+            }
         },
         error: function (error) {
             console.log("Error: " + JSON.stringify(error));
