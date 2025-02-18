@@ -1,5 +1,6 @@
 ﻿
 using OfficeOpenXml;
+using SLA_Management.Models.Information;
 using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.RecurringCasesMonitor;
@@ -1618,6 +1619,64 @@ namespace SLA_Management.Data.ExcelUtilitie
         }
 
         #endregion
+    }
+    public class ExcelUtilities_SoftwareVersion
+    {
+        #region  Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+        #region Property
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+        #region Function
+        public void GatewayOutput(List<SoftwareDataTable> softwareVersion)
+        {
+            int nStartRowData = 0;
+            int nSeq = 1;
+            try
+            {
+                nStartRowData = 2;
+
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                FileInfo oTemplate = new FileInfo(Path.Combine(PathDefaultTemplate, "wwwroot\\RegulatorExcel\\InputTemplate\\SoftwareVersion.xlsx"));
+                using (var oPackage = new ExcelPackage(oTemplate))
+                {
+                    //ExcelWorksheet excelWorksheet = oPackage.Workbook.Worksheets.First<ExcelWorksheet>();
+
+                    var oWorkbook = oPackage.Workbook;
+                    var excelWorksheet = oWorkbook.Worksheets["Sheet1"];
+
+                    foreach (var item in softwareVersion)
+                    {
+                        excelWorksheet.Cells[nStartRowData, 1].Value = item.Serial_No;
+                        excelWorksheet.Cells[nStartRowData, 2].Value = item.Term_ID;
+                        excelWorksheet.Cells[nStartRowData, 3].Value = item.Term_Name;
+                        excelWorksheet.Cells[nStartRowData, 4].Value = item.ATMC_Ver;
+                        excelWorksheet.Cells[nStartRowData, 5].Value = item.SP_Ver;
+                        excelWorksheet.Cells[nStartRowData, 6].Value = item.Agent_Ver;
+                        nStartRowData++;
+                        nSeq++;
+
+                    }
+                    excelWorksheet.Cells.AutoFitColumns();
+                    oPackage.SaveAs(new FileInfo(Path.Combine(Path.Combine(PathDefaultTemplate.Replace("InputTemplate", "tempfiles"), "SoftwareVersion.xlsx"))));
+                    FileSaveAsXlsxFormat = "SoftwareVersion.xlsx";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+
     }
 
 }

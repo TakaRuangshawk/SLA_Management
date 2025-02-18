@@ -186,7 +186,6 @@
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a></li>
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="LogAnalysis">Log Analysis Monitor</a></li>
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Monitor</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="Encryption">Encryption Monitor</a></li>
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="CardRetain">CardRetain</a></li>
                                 </ul>
                             </li>
@@ -203,9 +202,18 @@
                                     Management
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a></li>
                                     <li><a class="dropdown-item" asp-controller="Management" asp-action="TicketManagement">Ticket Management</a></li>
                                     <li><a class="dropdown-item" asp-controller="Management" asp-action="ReportCases">Report Cases(BAAC)</a></li>
+                                </ul>
+                            </li>
+                             <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="informationDropdown" role="button" data-bs-toggle="dropdown">
+                                    Information
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Information</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Information" asp-action="SoftwareVersion">Software Version</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="Encryption">Encryption Version</a></li>
                                 </ul>
                             </li>
                         }

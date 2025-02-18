@@ -1,0 +1,486 @@
+﻿
+@model SLA_Management.Models.Information.SoftwareVersionViewModel
+@{
+    ViewData["Title"] = "Software Version";
+    string[] tableHeaders = new string[]
+           {
+        "No",        
+        "Serial No",
+        "Terminal No",
+        "Terminal Name",
+        "ATMC Version",
+        "SP Version",
+        "Feelview Agent Version",
+    };
+}
+<style>
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 3vw 30px 3vw;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
+        width: 526px;
+        margin-left: -2px;
+    }
+
+    .bootstrap-select > .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+    }
+    select.form-control {
+        -webkit-appearance: button;
+    }
+    #submit {
+        position: relative;
+        top: 65px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+    .disabled {
+        color: gray !important;
+        cursor: not-allowed;
+        pointer-events: none;
+        text-decoration: none;
+        opacity: 0.6;
+    }
+
+    .pagination li.active {
+        background-color: #ffc107;
+        font-weight: bold;
+        border-color: #ffc107;
+    }
+</style>
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">Software Version</a>
+            </div>
+        </div>
+        <div id="main_search">
+            @using (Html.BeginForm("SoftwareVersion", "Information", FormMethod.Get, new { id = "softwareVersion" }))
+            {
+                <input type="hidden" id="bank" name="bank" value="@Model.selectedBank" />
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC",Selected = Model.selectedBank == "BAAC" },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" ,Selected = Model.selectedBank == "ICBC" }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state",
+                                            @onchange = "fetchFormData(this.value)"
+                                        })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="fetchData(1)">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Terminal : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="termID" name="termID" data-live-search="true">
+                            @if (Model.Device_Info_Records.Count == 0)
+                            {
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                foreach (var item in Model.Device_Info_Records)
+                                {
+                                    if (item.TERM_ID == Model.selectedTerminal)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-2" style="">
+                    </div>
+                    <div class="col-2" style="">
+                        <h>Serial No : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="serialVal" name="serialVal" data-live-search="true">
+                            @if (Model.SerialList.Count == 0)
+                            {
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                foreach (var item in Model.SerialList)
+                                {
+                                    if (item.Serial_No == Model.selectedSerial_No)
+                                    {
+                                        <option value="@item.Serial_No" data-tokens="@item.Serial_No" selected>@item.Serial_No</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Serial_No" data-tokens="@item.Serial_No">@item.Serial_No</option>
+                                    }
+                                }
+                            }
+
+                        </select>
+                    </div>
+
+
+                    <div class="col-2" style="padding:0;">
+                    </div>
+                </div>
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Software Version : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="softwareVal" name="softwareVal" data-live-search="true">
+                            @if (Model.SoftwareList.Count == 0)
+                            {
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                foreach (var item in Model.SoftwareList)
+                                {
+                                    if (item.Software_Ver == Model.selectedSoftware_Ver)
+                                    {
+                                        <option value="@item.Software_Ver" data-tokens="@item.Software_Ver" selected>@item.Software_Ver</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Software_Ver" data-tokens="@item.Software_Ver">@item.Software_Ver</option>
+                                    }
+                                }
+                            }
+                           
+                        </select>
+                    </div>
+                    <div class="col-2" style="">
+                    </div>
+                    <div class="col-2" style="">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50" },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="500", Value = "500"  },
+                        new SelectListItem(){ Text="1000", Value = "1000"  }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+                                        })
+                        </div>
+                    </div>
+                    <div class="col-2" style="padding:0px;">                      
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;" onclick="fetchData(1)">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;" onclick="clearData()">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }            
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a id="totalRecords" style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@Model.TotalRecords</a>
+            </div>
+        </div>
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="softwareTable" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in tableHeaders)
+                            {
+                                            <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                                }, new
+                                {
+                                    @class = "form-control DropDown",
+                                    @onchange = "fetchDataFromDropdown(this);",
+                                })
+                </p>
+            </div>
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination" id="pagination">
+                        <li data-page="prev" id="prev">
+                            <a style="color: #7a7a7a;"> < </a>
+                        </li>
+                        <!--	Here the JS Function Will Add the Rows -->
+                        <li data-page="next" id="next">
+                            <a style="color: #7a7a7a;"> > </a>
+                        </li>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+        var bank = $("#bankName").val();
+        var termId = $('#termID').val();
+        var serialNo = $('#serialVal').val();
+        var softwareVal = $('#softwareVal').val();
+        var rptType = "xlsx";
+        if (bank == "") {
+            alert("Please select a bank");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify({
+                bank_Name: bank,
+                term_ID: termId,
+                serial_Val: serialNo,
+                software_Val: softwareVal,
+            }),
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("SoftwareVersion_ExportXlsx", "Information")',
+            success: function (result) {
+                if (result.success == 'S') {
+                    var url = '@Url.Action("SoftwareVersion_DownloadExportFile", "Information")'
+                    window.location = '@Url.Action("SoftwareVersion_DownloadExportFile", "Information")/?rpttype=' + rptType;
+                }
+                else { alert(result.errstr); }
+            },
+            error: function (err) {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+
+    function fetchFormData(selectedValue) {
+
+        var form = document.getElementById("softwareVersion");
+        var selectedBank = document.getElementById("bank");
+        selectedBank.value = selectedValue;
+        form.submit();
+    }
+
+    function fetchData(page) {
+        var bank = $("#bankName").val();
+        var termId = $('#termID').val();
+        var serialNo = $('#serialVal').val();
+        var softwareVal = $('#softwareVal').val();
+        var maxRow = $('#maxRows').val();
+        if(bank == ""){
+            alert("Please select a bank");
+            return;
+        }
+        $.ajax({
+            type: "POST",            
+            dataType: "json",
+            data: JSON.stringify({
+                bank_Name: bank,
+                term_ID: termId,
+                serial_Val: serialNo,
+                software_Val: softwareVal,
+                maxRows: maxRow,
+                page: page
+            }),
+            contentType: 'application/json; charset=utf-8',
+            url: '@Url.Action("GetSoftwareVesion", "Information")',
+            success: function (response) {
+                var data = response.data;
+                var currentPage = response.currentPage;
+                var pageSize = response.pageSize;
+                var totalPages = response.totalPages;
+                var totalRecords = response.totalRecords;
+                $('#totalRecords').text(totalRecords);
+                addDatatoDropdown(totalPages, currentPage);
+                updateTableData(data);
+                updatePagination(currentPage, totalPages);
+            },
+            complete: function () {
+
+            }
+        });
+    }
+    function updateTableData(data){
+        const tbody = document.getElementById("softwareTable").querySelector("tbody");
+        tbody.innerHTML = "";
+        if (data.length > 0) {
+            data.forEach(item => {
+                const row = `<tr>
+                                <td>${item.no}</td>
+                                <td>${item.serial_No}</td>
+                                <td>${item.term_ID}</td>
+                                <td style="text-align:center;display:table-cell;max-width: 200px;overflow: hidden; white-space:nowrap;text-overflow:ellipsis;" scope="col">${item.term_Name}</td>
+                                <td>${item.atmC_Ver}</td>
+                                <td style="text-align:center;display:table-cell;max-width: 200px;overflow: hidden; white-space:nowrap;text-overflow:ellipsis;" scope="col">${item.sP_Ver}</td>
+                                <td style="text-align:center;display:table-cell;max-width: 200px;overflow: hidden; white-space:nowrap;text-overflow:ellipsis;" scope="col">${item.agent_Ver}</td>
+                            </tr>`;
+                tbody.innerHTML += row;
+            });
+        }else{
+            const row = '<tr><td colspan="12" style="text-align: center;"> NO DATA </td></tr>';
+            tbody.innerHTML += row;
+        }
+    }
+    function updatePagination(currentPage, totalPages) {
+        var pagination = $("#pagination");
+        pagination.empty();
+
+        var maxPageShow = 5;        
+
+        var startPage = ((currentPage - 1) / maxPageShow) * maxPageShow + 1;
+        var endPage = Math.min(startPage + maxPageShow - 1, totalPages);
+
+        var prevClass = (currentPage === 1) ? "disabled" : "";  
+        pagination.append('<li data-page="prev" id="prev" class="' + prevClass + '"><a style="color: #7a7a7a;"> < </a></li>');
+
+        for (var i = startPage; i <= endPage; i++) {
+            var activeClass = (i === currentPage) ? "active" : "";
+            pagination.append('<li data-page="' + i + '" id="page-link" class="' + activeClass + '"><a style="color: #7a7a7a;">' + i + '</a></li>');
+        }
+        var nextClass = (currentPage === totalPages) ? "disabled" : "";
+        pagination.append('<li data-page="next" id="next" class="' + nextClass + '"><a style="color: #7a7a7a;"> > </a></li>');
+        $("#pagination li").on("click", function () {
+            var page = $(this).data("page");
+            if (page === "prev" && currentPage > 1) {
+                fetchData(currentPage - 1);
+            } else if (page === "next" && currentPage < totalPages) {
+                fetchData(currentPage + 1);
+            } else if (page !== "prev" && page !== "next") {
+                fetchData(page);
+            }
+        });
+    }
+
+    function addDatatoDropdown(totalPages, currentPage) {
+
+        const selectList = document.getElementById("seletePageNow");
+
+        selectList.innerHTML = "";
+
+        for (let i = 1; i <= totalPages; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `${i}`;
+
+            if (i === currentPage) {
+                option.selected = true;
+            }
+
+            selectList.appendChild(option);
+        }
+    }
+    function fetchDataFromDropdown(dropdown) {
+        var selectPage = parseInt(dropdown.value);
+        fetchData(selectPage);
+    }
+    function clearData() {
+        document.querySelector('[name="bankName"]').value = "";
+        document.querySelector('[name="bank"]').value = "";
+
+        document.getElementById('softwareVersion').submit();
+    }
+</script>
