@@ -121,11 +121,11 @@
 
     .boxDownload {
         /*  background-color: rgba(255, 255, 255, 0.5);
-                    position: fixed;
-                    top: 250px;
-                    right: 550px;
-                    pointer-events: none;
-                    z-index: 10; */
+                        position: fixed;
+                        top: 250px;
+                        right: 550px;
+                        pointer-events: none;
+                        z-index: 10; */
         background-color: rgba(255, 255, 255, 0.5);
         position: fixed;
         top: 0px;
@@ -268,14 +268,14 @@
                         <div class="col-12" style="color: red; padding: 30px 0px 0px 20px;">
                             <label>Latest Update Date : @ViewBag.LatestUpdateDate</label>
                         </div>
-                    </div> 
+                    </div>
                     <div class="row" style="padding:0vw 3vw 0vw 3vw;">
                         <div class="col-12" style="color: red; padding-left: 20px;">
                             <label>Latest Update By : @ViewBag.UpdatedBy</label>
                         </div>
                     </div>
                 }
-               
+
                 <div class="row justify-content-md-center" style="">
 
 
@@ -300,26 +300,26 @@
     </div>
 </div>
 <div class="container-fluid d-flex justify-content-center">
-       <div class="table-container" style="overflow-y: auto; max-height: 400px;"> 
-            <div class="table-responsive" style="overflow-x: hidden;">
-                <table id="total-cases-table" class="table table-striped custom-table">
-                    <thead>
-                        <tr>
-                            @{
-                                foreach (var head in summaryTable)
-                                {
-                                    <th scope="col" style="text-align:center; width:150px;"> @head </th>
-                                }
+    <div class="table-container" style="overflow-y: auto; max-height: 400px;">
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="total-cases-table" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in summaryTable)
+                            {
+                                <th scope="col" style="text-align:center; width:150px;"> @head </th>
                             }
-                        </tr>
-                    </thead>                        
-                    <tbody>
-                        <tr>
-                            <td colspan="2" style="text-align: center; width:150px;"> NO DATA </td>
-                        </tr>
-                    </tbody>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="2" style="text-align: center; width:150px;"> NO DATA </td>
+                    </tr>
+                </tbody>
             </table>
-        </div> 
+        </div>
     </div>
 </div>
 <div class="container">
@@ -464,212 +464,216 @@
 
 <script>
 
-    $("#btnclear").click(function (e) {
-        e.preventDefault();
+        $("#btnclear").click(function (e) {
+            e.preventDefault();
 
-            $("#boxDownload").show();
+                $("#boxDownload").show();
 
 
-            setTimeout(function() {
-        $("#boxDownload").hide();
-    }, 1000);
+                setTimeout(function() {
+            $("#boxDownload").hide();
+        }, 1000);
 
-    });
+        });
 
-    var dropArea = document.getElementById('dropArea');
-    var fileInput = document.getElementById('fileInput');
+        var dropArea = document.getElementById('dropArea');
+        var fileInput = document.getElementById('fileInput');
 
-    // Prevent default behavior (Prevent file from being opened)
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
+        // Prevent default behavior (Prevent file from being opened)
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Highlight drop area when file is dragged over it
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-light'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-light'), false);
-    });
-
-    // Handle dropped files
-    dropArea.addEventListener('drop', handleDrop, false);
-
-    function triggerFileInput() {
-        // Trigger file input click
-        fileInput.click();
-    }
-
-    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-    function handleDrop(e) {
-        var dt = e.dataTransfer;
-        var files = dt.files;
-        handleFiles(files);
-    }
-
-    function handleFiles(files) {
-        for (var i = 0; i < files.length; i++) {
-            uploadFile(files[i], i);
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
-    }
 
-    function uploadFile(file, index) {
-        var formData = new FormData();
-        formData.append('file', file);
+        // Highlight drop area when file is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-light'), false);
+        });
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '@Url.Action("UploadExcel_CardRetain", "Excel")', true);
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-light'), false);
+        });
 
-        var progressBarContainer = document.createElement('div');
-        progressBarContainer.className = 'progress mb-3';
-        var progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.role = 'progressbar';
-        progressBar.style.width = '0%';
-        progressBar.setAttribute('aria-valuenow', '0');
-        progressBar.setAttribute('aria-valuemin', '0');
-        progressBar.setAttribute('aria-valuemax', '100');
-        progressBar.innerHTML = '0%';
-        progressBarContainer.appendChild(progressBar);
-        document.getElementById('progressBars').appendChild(progressBarContainer);
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
 
-        xhr.upload.onprogress = function (event) {
-            if (event.lengthComputable) {
-                var percentComplete = Math.round((event.loaded / event.total) * 100);
-                progressBar.style.width = percentComplete + '%';
-                progressBar.setAttribute('aria-valuenow', percentComplete);
-                progressBar.innerHTML = percentComplete + '%';
+        function triggerFileInput() {
+            // Trigger file input click
+            fileInput.click();
+        }
+
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+        function handleDrop(e) {
+            var dt = e.dataTransfer;
+            var files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            for (var i = 0; i < files.length; i++) {
+                uploadFile(files[i], i);
             }
-        };
+        }
 
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                progressBar.innerHTML = 'Upload complete';
-                progressBar.classList.add('bg-success');
-                displayMessage('File uploaded successfully', 'alert-success');
-            } else {
-                progressBar.innerHTML = 'Upload failed';
+        function uploadFile(file, index) {
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '@Url.Action("UploadExcel_CardRetain", "Excel")', true);
+
+            var progressBarContainer = document.createElement('div');
+            progressBarContainer.className = 'progress mb-3';
+            var progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.role = 'progressbar';
+            progressBar.style.width = '0%';
+            progressBar.setAttribute('aria-valuenow', '0');
+            progressBar.setAttribute('aria-valuemin', '0');
+            progressBar.setAttribute('aria-valuemax', '100');
+            progressBar.innerHTML = '0%';
+            progressBarContainer.appendChild(progressBar);
+            document.getElementById('progressBars').appendChild(progressBarContainer);
+
+            xhr.upload.onprogress = function (event) {
+                if (event.lengthComputable) {
+                    var percentComplete = Math.round((event.loaded / event.total) * 100);
+                    progressBar.style.width = percentComplete + '%';
+                    progressBar.setAttribute('aria-valuenow', percentComplete);
+                    progressBar.innerHTML = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    progressBar.innerHTML = 'Upload complete';
+                    progressBar.classList.add('bg-success');
+                    displayMessage('File uploaded successfully', 'alert-success');
+                } else {
+                    progressBar.innerHTML = 'Upload failed';
+                    progressBar.classList.add('bg-danger');
+                    displayMessage('File upload failed. Please try again.', 'alert-danger');
+                }
+            };
+
+            xhr.onerror = function () {
+                progressBar.innerHTML = 'Upload error';
                 progressBar.classList.add('bg-danger');
-                displayMessage('File upload failed. Please try again.', 'alert-danger');
-            }
-        };
+                displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
+            };
 
-        xhr.onerror = function () {
-            progressBar.innerHTML = 'Upload error';
-            progressBar.classList.add('bg-danger');
-            displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
-        };
+            xhr.send(formData);
+        }
 
-        xhr.send(formData);
+        function displayMessage(message, alertClass) {
+            var messageContainer = document.getElementById('message');
+            messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
+        }
+
+        async function fetchData(terminalID, fromdate, todate, reason) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("FetchCardRetain", "Monitor")',
+                data: {
+                    terminalID: terminalID,
+                    fromdate: fromdate,
+                    todate: todate,
+                    reason: reason
+                },
+                dataType: "json",
+                success: function (data) {
+                    resolve(data); // ส่งข้อมูลกลับเมื่อสำเร็จ
+                },
+                error: function (xhr, status, error) {
+                    reject(error); // ส่งข้อผิดพลาดกลับหากเกิดข้อผิดพลาด
+                }
+            });
+        });
     }
 
-    function displayMessage(message, alertClass) {
-        var messageContainer = document.getElementById('message');
-        messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
-    }
 
-
-    function updateReportCasesTable() {
+        async function updateReportCasesTable() {
         var terminalID = $("#TerminalID").val();
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
-         var reason = $("#reason").val();
+        var reason = $("#reason").val();
 
-          $("#boxDownload").show();
+        $("#boxDownload").show(); // แสดง download box
 
-           $.ajax({
-        type: "GET",
-        url: '@Url.Action("FetchCardRetain", "Monitor")',
-        data: {
-            terminalID: terminalID,
-            fromdate: fromdate,
-            todate: todate,
-            reason: reason
-        },
-        dataType: "json",
-       success: function (data) {
-        var latestUpdateDate = data.latestUpdateDate || "-";
-        var latestUpdatedBy = data.updatedBy || "-";
+        try {
+            // รอให้ข้อมูลถูกโหลดเสร็จจาก fetchData()
+            const data = await fetchData(terminalID, fromdate, todate, reason);
 
-        $("#updateDateLabel").text(`Latest Update Date : ${latestUpdateDate}`);
-        $("#updatedByLabel").text(`Latest Update By : ${latestUpdatedBy}`);
+            var latestUpdateDate = data.latestUpdateDate || "-";
+            var latestUpdatedBy = data.updatedBy || "-";
 
-        var jsondata = data.jsonData;
-        var pages = data.page;
-        var totalPages = data.totalPages;
-        var currentPage = data.currentPage;
-        var totalCasesData = data.totalCasesData;
+            // แสดงข้อมูลที่อัปเดตล่าสุด
+            $("#updateDateLabel").text(`Latest Update Date : ${latestUpdateDate}`);
+            $("#updatedByLabel").text(`Latest Update By : ${latestUpdatedBy}`);
 
-          if (!jsondata || jsondata.length === 0) {
-    console.log("No data available");
-    var noDataRow = $("<tr>").append($("<td colspan='8' style='text-align:center;'>").text("NO DATA"));
-    $("#table-id tbody").empty().append(noDataRow);
-} else {
-    console.log("jsondata:", jsondata);
-    $("#table-id tbody").empty();
+            var jsondata = data.jsonData;
+            var pages = data.page;
+            var totalPages = data.totalPages;
+            var currentPage = data.currentPage;
+            var totalCasesData = data.totalCasesData;
 
-    $.each(jsondata, function (index, item) {
-        var noColumn = index + 1;
-        
-        var editButton = $("<td>").css("text-align", "center").append(
-            $("<img>").addClass("btn text-dark edit-btn").attr({
-                src: "/non-outsource-operation/images/button_view.png",
-                style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
-                "data-location": item.location || "", 
-                "data-terminal-id": item.terminalID || "",  
-                "data-terminal-name": item.terminalName || "", 
-                "data-card-no": item.cardNo || "",
-                "data-date": item.date || "",  
-                "data-reason": item.reason || "",  
-                "data-vendor": item.vendor || "",  
-                "data-error-code": item.errorCode || "",  
-                "data-in-bank-flag": item.inBankFlag || "",  
-                "data-card-status": item.cardStatus || "", 
-                "data-telephone": item.telephone || "",  
-                "data-update-date": item.updateDate || "", 
-                "data-toggle": "modal",
-                "data-target": "#cardRetainModal"
-            })
-        );
+            // เช็คว่าไม่มีข้อมูล
+            if (!jsondata || jsondata.length === 0) {
+                console.log("No data available");
+                var noDataRow = $("<tr>").append($("<td colspan='8' style='text-align:center;'>").text("NO DATA"));
+                $("#table-id tbody").empty().append(noDataRow);
+            } else {
+                console.log("jsondata:", jsondata);
+                $("#table-id tbody").empty(); // ลบข้อมูลเก่าออกจากตาราง
 
-        var row = $("<tr>");
-        row.append($("<td>").css("text-align", "center").text(noColumn));
-        row.append(editButton);
-        row.append($("<td>").css("text-align", "center").text(item.serialNo || ""));
-        row.append($("<td>").css("text-align", "center").text(item.terminalID || ""));
-        row.append($("<td>").css("text-align", "center").text(item.terminalName || ""));
-        row.append($("<td>").css("text-align", "center").text(item.counterCode || ""));
-        row.append($("<td>").css("text-align", "center").text(item.date || ""));
-        row.append($("<td>").css("text-align", "center").text(item.reason || ""));
+                // ทำการเพิ่มข้อมูลใหม่ลงในตาราง
+                $.each(jsondata, function (index, item) {
+                    var noColumn = index + 1;
 
-        $("#table-id tbody").append(row);
-    });
-}
+                    // สร้างปุ่มแก้ไข
+                    var editButton = $("<td>").css("text-align", "center").append(
+                        $("<img>").addClass("btn text-dark edit-btn").attr({
+                            src: "/non-outsource-operation/images/button_view.png",
+                            style: "height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;",
+                            "data-location": item.location || "",
+                            "data-terminal-id": item.terminalID || "",
+                            "data-terminal-name": item.terminalName || "",
+                            "data-card-no": item.cardNo || "",
+                            "data-date": item.date || "",
+                            "data-reason": item.reason || "",
+                            "data-vendor": item.vendor || "",
+                            "data-error-code": item.errorCode || "",
+                            "data-in-bank-flag": item.inBankFlag || "",
+                            "data-card-status": item.cardStatus || "",
+                            "data-telephone": item.telephone || "",
+                            "data-update-date": item.updateDate || "",
+                            "data-toggle": "modal",
+                            "data-target": "#cardRetainModal"
+                        })
+                    );
 
+                    // สร้างแถวข้อมูลในตาราง
+                    var row = $("<tr>");
+                    row.append($("<td>").css("text-align", "center").text(noColumn));
+                    row.append(editButton);
+                    row.append($("<td>").css("text-align", "center").text(item.serialNo || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.terminalID || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.terminalName || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.counterCode || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.date || ""));
+                    row.append($("<td>").css("text-align", "center").text(item.reason || ""));
 
-             // Bind the click event after the rows have been added
-            $(".edit-btn").click(function () {
-                $("#Location").val($(this).data("location"));
-                $("#TerminalID").val($(this).data("terminal-id"));
-                $("#TerminalName").val($(this).data("terminal-name"));
-                $("#CardNo").val($(this).data("card-no"));
-                $("#Date").val($(this).data("date"));
-                $("#Reason").val($(this).data("reason"));
-                $("#Vendor").val($(this).data("vendor"));
-                $("#ErrorCode").val($(this).data("error-code"));
-                $("#InBankFlag").val($(this).data("in-bank-flag"));
-                $("#CardStatus").val($(this).data("card-status"));
-                $("#Telephone").val($(this).data("telephone"));
-                $("#UpdateDate").val($(this).data("update-date"));
-            });
+                    // เพิ่มแถวลงใน tbody
+                    $("#table-id tbody").append(row);
+                });
+            }
 
             // Show summary table
             if (!totalCasesData || totalCasesData.length === 0) {
@@ -688,98 +692,119 @@
                     $("#total-cases-table tbody").append(row);
                 });
             }
-        },
-        error: function (error) {
-            console.log("Error: " + JSON.stringify(error));
+
+            // หลังจากข้อมูลโหลดเสร็จแล้ว ซ่อน boxDownload และเปิด pointer events
+            $('#boxDownload').hide();
+            $('body').css('pointer-events', 'auto');
+
+            // Bind the click event after the rows have been added
+            $(".edit-btn").click(function () {
+                $("#Location").val($(this).data("location"));
+                $("#TerminalID").val($(this).data("terminal-id"));
+                $("#TerminalName").val($(this).data("terminal-name"));
+                $("#CardNo").val($(this).data("card-no"));
+                $("#Date").val($(this).data("date"));
+                $("#Reason").val($(this).data("reason"));
+                $("#Vendor").val($(this).data("vendor"));
+                $("#ErrorCode").val($(this).data("error-code"));
+                $("#InBankFlag").val($(this).data("in-bank-flag"));
+                $("#CardStatus").val($(this).data("card-status"));
+                $("#Telephone").val($(this).data("telephone"));
+                $("#UpdateDate").val($(this).data("update-date"));
+            });
+
+        } catch (error) {
+            console.log("Error: " + error);
+
+            // หากมีข้อผิดพลาดให้ซ่อน boxDownload และเปิด pointer events
+            $('#boxDownload').hide();
+            $('body').css('pointer-events', 'auto');
         }
-    });
-
-        setTimeout(function() {
-        $("#boxDownload").hide();
-    }, 1000);
-
     }
 
-    $(document).ready(function () {
-        $("#btnSEExp").click(function () {
-            var terminalID = $("#TerminalID").val();
-            var fromdate = $("#fromdate").val();
-            var todate = $("#todate").val();
-             var reason = $("#reason").val();
-              $("#boxDownload").show();
+        $(document).ready(function () {
+            $("#btnSEExp").click(function () {
+                var terminalID = $("#TerminalID").val();
+                var fromdate = $("#fromdate").val();
+                var todate = $("#todate").val();
+                 var reason = $("#reason").val();
+                  $("#boxDownload").show();
 
-            $.ajax({
-                type: "GET",
-                url: '@Url.Action("ExportCardRetainToExcel", "Monitor")',
-                data: {
-                    terminalID: terminalID,
-                    fromdate: fromdate,
-                    todate: todate  ,
-                    reason: reason
-                },
-                xhrFields: {
-                    responseType: 'blob'
-                },
-                success: function (blob, status, xhr) {
-                    var filename = "";
-                    var disposition = xhr.getResponseHeader('Content-Disposition');
-                    if (disposition && disposition.indexOf('attachment') !== -1) {
-                        var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                        var matches = filenameRegex.exec(disposition);
-                        if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("ExportCardRetainToExcel", "Monitor")',
+                    data: {
+                        terminalID: terminalID,
+                        fromdate: fromdate,
+                        todate: todate  ,
+                        reason: reason
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function (blob, status, xhr) {
+                        var filename = "";
+                        var disposition = xhr.getResponseHeader('Content-Disposition');
+                        if (disposition && disposition.indexOf('attachment') !== -1) {
+                            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                            var matches = filenameRegex.exec(disposition);
+                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                        }
+
+                        var link = document.createElement('a');
+                        var url = window.URL.createObjectURL(blob);
+                        link.href = url;
+                        link.download = filename || 'CardRetain.xlsx';
+                        document.body.appendChild(link);
+                        link.click();
+
+                        setTimeout(function () {
+                            window.URL.revokeObjectURL(url);
+                            link.remove();
+                        }, 100);
+                    },
+                    error: function (error) {
+                        console.log("Error: " + JSON.stringify(error));
                     }
+                });
 
-                    var link = document.createElement('a');
-                    var url = window.URL.createObjectURL(blob);
-                    link.href = url;
-                    link.download = filename || 'CardRetain.xlsx';
-                    document.body.appendChild(link);
-                    link.click();
-
-                    setTimeout(function () {
-                        window.URL.revokeObjectURL(url);
-                        link.remove();
-                    }, 100);
-                },
-                error: function (error) {
-                    console.log("Error: " + JSON.stringify(error));
-                }
+                 setTimeout(function() {
+            $("#boxDownload").hide();
+        }, 1000);
             });
 
-             setTimeout(function() {
-        $("#boxDownload").hide();
-    }, 1000);
         });
 
-    });
 
 
+        $(document).ready(function () {
+            // Handle update button click
+            $("#updateRemarkBtn").click(function () {
+                var caseErrorNo = $("#CaseErrorNo").val();  // Get case number to identify the row in the database
+                var remark = $("#Remark").val();  // Get the new remark
 
-    $(document).ready(function () {
-        // Handle update button click
-        $("#updateRemarkBtn").click(function () {
-            var caseErrorNo = $("#CaseErrorNo").val();  // Get case number to identify the row in the database
-            var remark = $("#Remark").val();  // Get the new remark
-
-            // Send AJAX request to update the remark in the database
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("UpdateRemark", "Monitor")',   // Change to your actual backend URL
-                data: {
-                    caseErrorNo: caseErrorNo,
-                    remark: remark
-                },
-                success: function (response) {
-                    alert('Remark updated successfully!');
-                    $('#reportCaseModal').modal('hide');  // Close the modal
-                    updateReportCasesTable();
-                },
-                error: function (error) {
-                    alert('Error updating remark: ' + error.responseText);
-                }
+                // Send AJAX request to update the remark in the database
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("UpdateRemark", "Monitor")',   // Change to your actual backend URL
+                    data: {
+                        caseErrorNo: caseErrorNo,
+                        remark: remark
+                    },
+                    success: function (response) {
+                        alert('Remark updated successfully!');
+                        $('#reportCaseModal').modal('hide');  // Close the modal
+                        updateReportCasesTable();
+                    },
+                    error: function (error) {
+                        alert('Error updating remark: ' + error.responseText);
+                    }
+                });
             });
         });
-    });
+
+
+
 
 </script>
 
