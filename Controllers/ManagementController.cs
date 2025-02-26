@@ -261,11 +261,23 @@ namespace SLA_Management.Controllers
                     connectionDB = "ConnectString_NonOutsource:FullNameConnection_boct";
                     break;
                 default:
-                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    connectionDB = "";
                     break;
             }
 
 
+            if(connectionDB == "")
+            {
+                return Json(new
+                {
+                    jsonData = reportCases,
+                    currentPage = page,
+                    totalPages = totalPages,
+                    totalCases = totalCases,
+                    latestUpdateDate = ViewBag.LatestUpdateDate,
+                    updatedBy = ViewBag.UpdatedBy
+                });
+            }
 
             using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>(connectionDB)))
             {

@@ -15,6 +15,7 @@ using SLA_Management.Data.Monitor;
 using SLA_Management.Data.RecurringCasesMonitor;
 using SLA_Management.Data.TermProb;
 using SLA_Management.Models;
+using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.RecurringCasesMonitor;
@@ -611,7 +612,7 @@ namespace SLA_Management.Controllers
                 ViewBag.Reason = GetReasonCardRetain(bankName.ToLower(), _myConfiguration) ?? reesonTemp;
 
             }
-
+            //
 
             ViewBag.bankName = bankName;
             //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
@@ -645,12 +646,25 @@ namespace SLA_Management.Controllers
                     connectionDB = "ConnectString_NonOutsource:FullNameConnection_boct";                   
                     break;
                 default:
-                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    connectionDB = "";
                     break;
             }
 
-           
-           
+            if (connectionDB == "")
+            {
+                return Json(new
+                {
+                    jsonData = cardRetain,
+                    currentPage = page,
+                    totalPages = totalPages,
+                    totalCases = totalCases,
+                    latestUpdateDate = ViewBag.LatestUpdateDate,
+                    updatedBy = ViewBag.UpdatedBy,
+                    totalCasesData = totalCasesData,
+                    bankName = bankName
+                });
+            }
+
 
             try
             {
