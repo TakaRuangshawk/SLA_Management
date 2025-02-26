@@ -263,7 +263,8 @@ namespace SLA_Management.Controllers
                     query += " AND Status_Name = @StatusName";
                 }
 
-                query += " ORDER BY Date_Inform ASC ";
+                //query += " ORDER BY Date_Inform ASC ";
+                query += " ORDER BY Date_Inform ASC, Case_Error_No ASC ";
 
                 MySqlCommand cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TerminalID", terminalID);
@@ -342,6 +343,8 @@ namespace SLA_Management.Controllers
                     query += " AND Date_Inform <= @ToDate";
                 if (!string.IsNullOrEmpty(statusName))
                     query += " AND Status_Name = @StatusName";
+
+                query += " ORDER BY Date_Inform ASC, Case_Error_No ASC ";
 
                 using (var command = new MySqlCommand(query, connection))
                 {
