@@ -109,6 +109,23 @@
     .pagination li a {
         color: black !important;
     }
+
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 </style>
 
 <div class="content contentHeader">
@@ -469,7 +486,9 @@
         </div>
     </div>
 </div>
-
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
 
 <script>
     var dropArea = document.getElementById('dropArea');
@@ -584,7 +603,7 @@
         var todate = $("#todate").val();
         var statusName = $("#Status_Name").val();
 
-
+        $("#boxDownload").show();
 
         $.ajax({
             type: "GET",
@@ -658,6 +677,8 @@
                         window.scrollTo(0, 0);
                     });
                 }
+                $("#boxDownload").hide();
+
                 // Bind the click event after the rows have been added
                 $(".edit-btn").click(function () {
                     $("#CaseErrorNo").val($(this).data("case-error-no"));
