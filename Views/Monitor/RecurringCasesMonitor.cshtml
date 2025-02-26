@@ -152,8 +152,9 @@
                     <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
                         <div class="form-group">
                             @Html.DropDownList("bankName", new SelectListItem[] {
-                                new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
-                                new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
                                 }, new{
                                     @class = "form-control dropdown",
                                     @style = " border-radius: 10px;",

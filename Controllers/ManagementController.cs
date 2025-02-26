@@ -215,23 +215,59 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region ReportCases
-        public IActionResult ReportCases()
+        public IActionResult ReportCases(string bankName)
         {
-            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _configuration);
-            ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
-            ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
+
+            if (bankName != null)
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
+                ViewBag.Issue_Name = GetIssue_Name(bankName.ToLower(), _configuration);
+                ViewBag.Status_Name = GetStatus_Name(bankName.ToLower(), _configuration);
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+                ViewBag.Issue_Name = new List<IssueName>();
+                ViewBag.Status_Name = new List<StatusName>();
+            }
+
+            ViewBag.bankName = bankName;
+            
             SetLatestUpdateViewBag();
             // For now, just return the empty view
             return View();
         }
 
         [HttpGet]
-        public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName, int row = 50, int page = 1)
+        public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName,string bankName, int row = 50, int page = 1)
         {
             List<ReportCase> reportCases = new List<ReportCase>();
             int totalCases = 0;
             int totalPages = 0;
-            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+
+
+            string connectionDB = "";
+
+            switch (bankName)
+            {
+                case "BAAC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    break;
+                case "ICBC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_icbc";
+
+                    break;
+                case "BOC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_boct";
+                    break;
+                default:
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    break;
+            }
+
+
+
+            using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>(connectionDB)))
             {
                 conn.Open();
 

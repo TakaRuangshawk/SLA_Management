@@ -1435,7 +1435,7 @@ namespace SLA_Management.Controllers
                 var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
 
 
-                var item = new List<string> { "All" };
+                var item = new List<string> {  };
 
 
                 ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());

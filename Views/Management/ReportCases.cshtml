@@ -141,6 +141,38 @@
             @using (Html.BeginForm("ReportCases", "Management", FormMethod.Get, new { id = "myForm" }))
     {
 
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-md-1" style="margin-right: 70px;">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state",
+                                            // @onchange = "submitForm()"
+
+                                        })
+
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateReportCasesTable()">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                    </div>
+
+                </div>
+
         <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
             <div class="col-md-1" style="">
@@ -490,111 +522,9 @@
     <img class="imgDownload" src="~/images/loading.gif">
 </div>
 
+
 <script>
-    var dropArea = document.getElementById('dropArea');
-    var fileInput = document.getElementById('fileInput');
-
-    // Prevent default behavior (Prevent file from being opened)
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Highlight drop area when file is dragged over it
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-light'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-light'), false);
-    });
-
-    // Handle dropped files
-    dropArea.addEventListener('drop', handleDrop, false);
-
-    function triggerFileInput() {
-        // Trigger file input click
-        fileInput.click();
-    }
-
-    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-    function handleDrop(e) {
-        var dt = e.dataTransfer;
-        var files = dt.files;
-        handleFiles(files);
-    }
-
-    function handleFiles(files) {
-        for (var i = 0; i < files.length; i++) {
-            uploadFile(files[i], i);
-        }
-    }
-
-    function uploadFile(file, index) {
-        if (!file.name.endsWith('.xlsx')) 
-        {
-            alert('Invalid file type. Only .xlsx files are supported.');
-            return; 
-        }
-        var formData = new FormData();
-        formData.append('file', file);
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '@Url.Action("UploadExcel", "Excel")', true);
-
-        var progressBarContainer = document.createElement('div');
-        progressBarContainer.className = 'progress mb-3';
-        var progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.role = 'progressbar';
-        progressBar.style.width = '0%';
-        progressBar.setAttribute('aria-valuenow', '0');
-        progressBar.setAttribute('aria-valuemin', '0');
-        progressBar.setAttribute('aria-valuemax', '100');
-        progressBar.innerHTML = '0%';
-        progressBarContainer.appendChild(progressBar);
-        document.getElementById('progressBars').appendChild(progressBarContainer);
-
-        xhr.upload.onprogress = function (event) {
-            if (event.lengthComputable) {
-                var percentComplete = Math.round((event.loaded / event.total) * 100);
-                progressBar.style.width = percentComplete + '%';
-                progressBar.setAttribute('aria-valuenow', percentComplete);
-                progressBar.innerHTML = percentComplete + '%';
-            }
-        };
-
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                progressBar.innerHTML = 'Upload complete';
-                progressBar.classList.add('bg-success');
-                displayMessage('File uploaded successfully', 'alert-success');
-            } else {
-                progressBar.innerHTML = 'Upload failed';
-                progressBar.classList.add('bg-danger');
-                displayMessage('File upload failed. Please try again.', 'alert-danger');
-            }
-        };
-
-        xhr.onerror = function () {
-            progressBar.innerHTML = 'Upload error';
-            progressBar.classList.add('bg-danger');
-            displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
-        };
-
-        xhr.send(formData);
-    }
-
-    function displayMessage(message, alertClass) {
-        var messageContainer = document.getElementById('message');
-        messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
-    }
+   
     function updateReportCasesTable() {
         var terminalID = $("#Terminal_ID").val();
         var placeInstall = $("#Place_Install").val();
@@ -602,6 +532,7 @@
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
         var statusName = $("#Status_Name").val();
+        var bankName = $("#bankName").val();
 
         $("#boxDownload").show();
 
@@ -615,6 +546,7 @@
                 fromdate: fromdate,
                 todate: todate,
                 statusName: statusName,
+                bankName: bankName,
             },
             dataType: "json",
             success: function (data) {
@@ -807,3 +739,111 @@
     });
 
 </script>
+
+<script>
+     var dropArea = document.getElementById('dropArea');
+    var fileInput = document.getElementById('fileInput');
+
+    // Prevent default behavior (Prevent file from being opened)
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop area when file is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-light'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-light'), false);
+    });
+
+    // Handle dropped files
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function triggerFileInput() {
+        // Trigger file input click
+        fileInput.click();
+    }
+
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleDrop(e) {
+        var dt = e.dataTransfer;
+        var files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        for (var i = 0; i < files.length; i++) {
+            uploadFile(files[i], i);
+        }
+    }
+
+    function uploadFile(file, index) {
+        if (!file.name.endsWith('.xlsx'))
+        {
+            alert('Invalid file type. Only .xlsx files are supported.');
+            return;
+        }
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '@Url.Action("UploadExcel", "Excel")', true);
+
+        var progressBarContainer = document.createElement('div');
+        progressBarContainer.className = 'progress mb-3';
+        var progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.role = 'progressbar';
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressBar.setAttribute('aria-valuemin', '0');
+        progressBar.setAttribute('aria-valuemax', '100');
+        progressBar.innerHTML = '0%';
+        progressBarContainer.appendChild(progressBar);
+        document.getElementById('progressBars').appendChild(progressBarContainer);
+
+        xhr.upload.onprogress = function (event) {
+            if (event.lengthComputable) {
+                var percentComplete = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+                progressBar.innerHTML = percentComplete + '%';
+            }
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                progressBar.innerHTML = 'Upload complete';
+                progressBar.classList.add('bg-success');
+                displayMessage('File uploaded successfully', 'alert-success');
+            } else {
+                progressBar.innerHTML = 'Upload failed';
+                progressBar.classList.add('bg-danger');
+                displayMessage('File upload failed. Please try again.', 'alert-danger');
+            }
+        };
+
+        xhr.onerror = function () {
+            progressBar.innerHTML = 'Upload error';
+            progressBar.classList.add('bg-danger');
+            displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
+        };
+
+        xhr.send(formData);
+    }
+
+    function displayMessage(message, alertClass) {
+        var messageContainer = document.getElementById('message');
+        messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
+    }
+</script>
+

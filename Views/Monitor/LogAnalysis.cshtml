@@ -20,67 +20,67 @@
     "Analysis Information 02",
     "Inform By"
     };    
-  }
+}
 
-  <style>
-      #header_search {
-        top: 20px;
-        position: relative;
-        background-color: orange;
-        border: solid;
-        padding: 8px 40px 8px 40px;
-        border-radius: 12px;
-        font-weight: 700;
+<style>
+    #header_search {
+    top: 20px;
+    position: relative;
+    background-color: orange;
+    border: solid;
+    padding: 8px 40px 8px 40px;
+    border-radius: 12px;
+    font-weight: 700;
     }
-      #main_search {
-        margin-bottom: 50px;
-        padding: 30px 3vw 30px 3vw;
-        margin-left: 50px;
-        margin-right: 50px;
-        border: 3px solid #888888;
-        background-color: white;
-        border-radius: 50px;
+    #main_search {
+    margin-bottom: 50px;
+    padding: 30px 3vw 30px 3vw;
+    margin-left: 50px;
+    margin-right: 50px;
+    border: 3px solid #888888;
+    background-color: white;
+    border-radius: 50px;
     }
-    
+
     .item {
-        padding: 0px;
+    padding: 0px;
     }
 
     select.form-control {
-        -webkit-appearance: button;
+    -webkit-appearance: button;
     }
     #before-submit {
-        display: flex;
-        justify-content: center;
+    display: flex;
+    justify-content: center;
     }
     #submit {
-        position: relative;
-        top: 50px;
-        background: lightgray;
-        border: 10px double white;
-        border-radius: 20px;
-        padding: 0px 10px 0px 10px;
+    position: relative;
+    top: 50px;
+    background: lightgray;
+    border: 10px double white;
+    border-radius: 20px;
+    padding: 0px 10px 0px 10px;
     }
     .boxDownload {
-        background-color: rgba(255, 255, 255, 0.5);
-        position: fixed;
-        top: 0px;
-        right: 0px;
-        bottom: 0px;
-        left: 0px;
-        pointer-events: none;
-        z-index: 10;
+    background-color: rgba(255, 255, 255, 0.5);
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    pointer-events: none;
+    z-index: 10;
     }
     .imgDownload {
-        position: sticky;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    position: sticky;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     }
 
-  </style>
-  
-  <div class="content contentHeader">
+</style>
+
+<div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
         <div class="row">
             <div class="col col-md-1">
@@ -101,130 +101,133 @@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <div class="form-group">
                             @Html.DropDownList("bankName", new SelectListItem[] {
-                            new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
-                            new SelectListItem(){ Text="ICBC", Value = "ICBC" }
-                            }, 
-                            new{
-                                @class = "form-control dropdown",
-                                @style = " border-radius: 10px;",
-                                @name = "state",
-                            })
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                                            }, 
+                                     new{
+                                         @class = "form-control dropdown",
+                                         @style = " border-radius: 10px;",
+                                         @name = "state",
+                                     })
                         </div>
                     </div>
                     <div class="col-md-1">
                         <button type="submit" data-toggle="modal" data-target="#WaitingModal" class="btn btn-search" style="padding:0px;">
-                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                         </button>                            
                     </div>    
 
-                 </div>
-                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                        <div class="col-2" style="">
-                            <h>Terminal : </h>
-                        </div>
+                    <div class="col-2" style="">
+                        <h>Terminal : </h>
+                    </div>
 
-                        <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                            <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
-                                <option data-tokens="" value="">--</option>
-                                @foreach (var item in ViewBag.CurrentTID)
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TermID)
                                 {
-                                    if (@item.TERM_ID != @ViewBag.TermID)
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
-                                    else
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
-                            </select>
-                        </div>
-                        <div class="col-2" style="">
-                            <h>From Date : </h>
-                        </div>
-                        <div class="col-2 " style="padding:0; ">
-                            <div class="input-group">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>From Date : </h>
+                    </div>
+                    <div class="col-2 " style="padding:0; ">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
-                            </div>
                         </div>
-                        <div class="col-2" style="">
-                            <h>To Date : </h>
-                        </div>
-                        <div class="col-2" style="padding:0;">
-                            <div class="input-group">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-2" style="padding:0;">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
-                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row " style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Category : </h>
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("categoryType", ViewBag.category as SelectList, "--", new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>Counter Code : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
                         </div>
                     </div>
 
-                    <div class="row " style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                        <div class="col-2" style="">
-                            <h>Category : </h>
-                        </div>
-                        <div class="col-2" style="padding:0px;">
-                            <div class="form-group">
-                            @Html.DropDownList("categoryType", ViewBag.category as SelectList, "--", new { @class = "form-control" })
-                            </div>
-                        </div>
-                        <div class="col-2" style="">
-                            <h>Counter Code : </h>
-                        </div>
+                    <div class="col-2" style="">
+                        <h>Rows : </h>
+                    </div>
 
-                        <div class="col-2" style="padding:0px;">
-                            <div class="form-group">
-                            @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
-                            </div>
-                        </div>
-
-                        <div class="col-2" style="">
-                            <h>Rows : </h>
-                        </div>
-
-                        <div class="col-2" style="padding:0px;">
-                            <div class="form-group">
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
                             @Html.DropDownList("maxRows", new SelectListItem[] {
                             new SelectListItem(){ Text="50", Value = "50" },
                             new SelectListItem(){ Text="100", Value = "100"  },
                             new SelectListItem(){ Text="500", Value = "500"  },
                             new SelectListItem(){ Text="1000", Value = "1000"  }
-                            }, 
-                            new{
-                                @class = "form-control dropdown",
-                                @style = " border-radius: 10px;",
-                                @name = "state"
-                                })
-                         </div>
-                      </div>
-                    </div>   
+                                            }, 
+                                     new{
+                                         @class = "form-control dropdown",
+                                         @style = " border-radius: 10px;",
+                                         @name = "state"
+                                     })
+                        </div>
+                    </div>
+                </div>   
 
-                    <div class="row">
-                        <div class="col" id="before-submit">
-                            <div id="submit">
-                                    <button type="submit" title="ค้นหาข้อมูล" class="btn btn-search" style="padding:0px;">
-                                    <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                                </button>
+                <div class="row">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" title="ค้นหาข้อมูล" class="btn btn-search" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
 
-                                    <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="clearButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
-                                    <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
-                                </button>
-                                <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                                    <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                                </a>
-
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="clearButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                            </a>
+                            @if (Context.Session.GetString("Role") != "User")
+                            {
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
                                     Add Ticket Information
                                 </button>
-                            </div>
+                            }
                         </div>
                     </div>
+                </div>
             }
         </div>
     </div>
     <div class="container-fluid d-flex justify-content-center">
-       <div class="table-container" style="overflow-y: auto; max-height: 400px;"> 
+        <div class="table-container" style="overflow-y: auto; max-height: 400px;"> 
             <div class="table-responsive" style="overflow-x: hidden;">
                 <table id="headertable-id" class="table table-striped custom-table">
                     <thead>
@@ -237,9 +240,9 @@
                             }
                         </tr>
                     </thead>
-                        @{
-                            var totalCaseData = ViewBag.TotalCaseData as List<SLA_Management.Models.Monitor.TotalCase_record>;
-                        }
+                    @{
+                        var totalCaseData = ViewBag.TotalCaseData as List<SLA_Management.Models.Monitor.TotalCase_record>;
+                    }
                     <tbody>
                         @if (totalCaseData != null && totalCaseData.Any())
                         {
@@ -258,12 +261,12 @@
                                 <td colspan="3" style="text-align: center;"> NO DATA </td>
                             </tr>
                         }
-                </tbody>
-          </table>
-      </div> 
-    </div>        
+                    </tbody>
+                </table>
+            </div> 
+        </div>        
 
-  </div>
+    </div>
     <div class="container-fluid">
         <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
@@ -295,10 +298,10 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                   <td style="text-align: center;">
-                                         <img class="btn text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.Incident_No','@Data.Terminal_ID','@Data.Terminal_SEQ','@Data.Terminal_NAME','@Data.Category','@Data.Incident_Date','@Data.SubCategory','@Data.Analyst_Info','@Data.Inform_By')"
+                                    <td style="text-align: center;">
+                                        <img class="btn text-dark" id="btnEdit" data-toggle="modal" data-target="#myModal" onclick="EditButton('@Data.Incident_No','@Data.Terminal_ID','@Data.Terminal_SEQ','@Data.Terminal_NAME','@Data.Category','@Data.Incident_Date','@Data.SubCategory','@Data.Analyst_Info','@Data.Inform_By')"
                                         data-toggle="tooltip" name="cmdButton" title="ดูข้อมูล" value="View" style="height: 35px;width: auto;cursor: pointer;border-radius: 40px; letter-spacing: 2px;" src="~/images/button_view.png" />
-                                   </td>
+                                    </td>
                                     <td style="text-align:center;"> @Data.Terminal_SEQ </td>
                                     <td style="text-align:center;"> @Data.Terminal_ID </td>
                                     <td style="text-align:center;"> @Data.Terminal_NAME </td>
@@ -326,7 +329,7 @@
                             <li data-page="prev" id="back" style="background-color:transparent;">
                                 <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
                             </li>
-                            
+
                             <li data-page="next" id="prev" style="background-color:transparent;">
                                 <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
                             </li>
@@ -337,12 +340,12 @@
                     <p style="font-size:16px;font-weight:bolder;">
                         Select page :
                         @Html.DropDownList("seletePageNow", new SelectListItem[] {
-                        }, 
-                        new
-                        {
-                            @class = "form-control"
-                        })
-                                                        
+                                        }, 
+                                 new
+                                 {
+                                     @class = "form-control"
+                                 })
+
                     </p>
                 </div>
             </div>
@@ -370,17 +373,17 @@
                     <div class="col-md-3 modelTextbox">
                         <select class="selectpicker form-control subsearch" id="TermIDModal" name="TermIDModal" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                                @foreach (var item in ViewBag.CurrentTID)
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TermID)
                                 {
-                                    if (@item.TERM_ID != @ViewBag.TermID)
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
-                                    else
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                                 }
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
@@ -388,7 +391,7 @@
                     <div class="col-md-1">
                     </div>
                     <div class="col-md-2 modelTopic">
-                    <label for="addCategory">Category </label>&nbsp;:&nbsp;
+                        <label for="addCategory">Category </label>&nbsp;:&nbsp;
                     </div>
                     <div class="col-md-8 modelTextbox">
                         @Html.TextBox("addCategory", null, new { @class = "w-100 form-control", })
@@ -403,7 +406,7 @@
                         @Html.TextBox("addIncidentDate", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), new { @class = "w-100 form-control", @type = "date" })
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-1">
                     </div>
@@ -411,7 +414,7 @@
                         <label for="addSubCategory">Analysis Information 01 </label>&nbsp;:&nbsp;
                     </div>
                     <div class="col-md-8 modelTextbox">
-                         @Html.TextBox("addSubCategory", null, new { @class = "w-100 form-control" })
+                        @Html.TextBox("addSubCategory", null, new { @class = "w-100 form-control" })
                     </div>
                 </div>
                 <div class="row">
@@ -421,7 +424,7 @@
                         <label for="addAnalystInfo2">Analysis Information 02 </label>&nbsp;:&nbsp;
                     </div>
                     <div class="col-md-8 modelTextbox">
-                         @Html.TextBox("addAnalystInfo2", null, new { @class = "w-100 form-control" })
+                        @Html.TextBox("addAnalystInfo2", null, new { @class = "w-100 form-control" })
                     </div>
                 </div>
                 <div class="row">
@@ -431,18 +434,21 @@
                         <label for="addInform">Inform By </label>&nbsp;:&nbsp;
                     </div>
                     <div class="col-md-8 modelTextbox">
-                         @Html.TextBox("addInform", null, new { @class = "w-100 form-control editable" })
+                        @Html.TextBox("addInform", null, new { @class = "w-100 form-control editable" })
                     </div>
                 </div>
                 <div class="row" style="margin: 15px;">
                     <div class="col-6"></div>
-                    <div class="col-6" style="display: flex;justify-content: flex-start;">
-                        <img id="saveTicket" src="~/images/save.png" style="width: 100px;height: auto;">
-                    </div>
+                    @if (Context.Session.GetString("Role") != "User")
+                    {
+                        <div class="col-6" style="display: flex;justify-content: flex-start;">
+                            <img id="saveTicket" src="~/images/save.png" style="width: 100px;height: auto;">
+                        </div>
+                    }
                 </div>
             </div>
         </div>
-   </div>
+    </div>
 </div>
 @using (Html.BeginForm("LogAnalysis", "Monitor", FormMethod.Get, new { id = "UpdateData" }))
 {
@@ -460,90 +466,93 @@
                     <input type="hidden" name="BankCode" id="BankCode" value="@ViewBag.BankCode" />
                     <div class="row" style="padding-top:15px;">
                         <div class="col-md-1"></div>
-                                <div class="col-md-3 modelTextbox" id="incidentNoField">
-                                    @Html.TextBox("Incident_No", ViewBag.Incident_No as string, new { @class = "w-100 form-control", @readonly = "true" })
-                                </div>
+                        <div class="col-md-3 modelTextbox" id="incidentNoField">
+                            @Html.TextBox("Incident_No", ViewBag.Incident_No as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
 
-                            <div class="col-md-2 modelTopic">
-                                <label for="Terminal_ID">Terminal ID </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
+                        <div class="col-md-2 modelTopic">
+                            <label for="Terminal_ID">Terminal ID </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
                             @Html.TextBox("Terminal_ID", ViewBag.Terminal_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Terminal_SEQ">Serial No </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("Terminal_SEQ", ViewBag.Terminal_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Terminal_SEQ">Serial No </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-3 modelTextbox">
+                            @Html.TextBox("Terminal_SEQ", ViewBag.Terminal_SEQ as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
                     </div>
                     <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Terminal_NAME">Terminal Name </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-8 modelTextbox">
-                                @Html.TextBox("Terminal_NAME", ViewBag.Terminal_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
-                            </div>
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Terminal_NAME">Terminal Name </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("Terminal_NAME", ViewBag.Terminal_NAME as string, new { @class = "w-100 form-control", @readonly = "true" })
+                        </div>
                     </div>                    
                     <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Category">Category </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-8 modelTextbox">
-                                @Html.TextBox("Category", ViewBag.Category as string, new { @class = "w-100 form-control editable", @readonly = "true" })
-                            </div>
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Category">Category </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("Category", ViewBag.Category as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-1"></div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Incident_Date">Incident Date </label>&nbsp;:&nbsp;
-                            </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Incident_Date">Incident Date </label>&nbsp;:&nbsp;
+                        </div>
                         <div class="col-md-3 modelTextbox">                                                 
                             @Html.TextBox("Incident_Date", ViewBag.Incident_Date as String, new { @class = "w-100 form-control editable", @readonly = "true", @type = "date" })
                         </div>                           
                     </div>
                     <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="SubCategory">Analysis Information 01 </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-8 modelTextbox">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="SubCategory">Analysis Information 01 </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
                             @Html.TextBox("SubCategory", ViewBag.SubCategory as string, new { @class = "w-100 form-control editable", @readonly = "true" })
-                            </div>
+                        </div>
                     </div>
                     <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Analyst_Info">Analysis Information 02 </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-8 modelTextbox">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Analyst_Info">Analysis Information 02 </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
                             @Html.TextBox("Analyst_Info", ViewBag.Analyst_Info as string, new { @class = "w-100 form-control editable", @readonly = "true" })
-                            </div>
+                        </div>
                     </div>
                     <div class="row">
-                            <div class="col-md-1">
-                            </div>
-                            <div class="col-md-2 modelTopic">
-                                <label for="Inform_By">Inform By </label>&nbsp;:&nbsp;
-                            </div>
-                            <div class="col-md-8 modelTextbox">
-                                @Html.TextBox("Inform_By", ViewBag.Inform_By as string, new { @class = "w-100 form-control editable", @readonly = "true" })
-                            </div>
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-2 modelTopic">
+                            <label for="Inform_By">Inform By </label>&nbsp;:&nbsp;
+                        </div>
+                        <div class="col-md-8 modelTextbox">
+                            @Html.TextBox("Inform_By", ViewBag.Inform_By as string, new { @class = "w-100 form-control editable", @readonly = "true" })
+                        </div>
                     </div>
-                    <div class="row" style="margin: 15px;">
+                    @if (Context.Session.GetString("Role") != "User")
+                    {
+                        <div class="row" style="margin: 15px;">
                             <div class="col-6" style="display: flex;justify-content: flex-end;">
                                 <img src="~/images/edit.png" style="width: 100px;height: auto;">
                             </div>
                             <div class="col-6" style="display: flex;justify-content: flex-start;">
                                 <img id="saveButton" src="~/images/save.png" style="width: 100px;height: auto;">
                             </div>
-                    </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

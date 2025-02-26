@@ -595,11 +595,25 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region CardRetain by boom
-        public IActionResult CardRetain()
+        public IActionResult CardRetain(string bankName)
         {
-            ViewBag.CurrentTID = GetDeviceInfoFeelview("BAAC", _myConfiguration);
-            ViewBag.Reason = GetReasonCardRetain("BAAC", _myConfiguration);
+            List<Device_info_record> device_Info_Records = new List<Device_info_record>();
+            List<string> reesonTemp = new List<string> { };
+
+            ViewBag.CurrentTID =  device_Info_Records;
+            ViewBag.Reason =  reesonTemp;
             SetLatestUpdateViewBag();
+        
+
+            if(bankName != null)
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration) ?? device_Info_Records;
+                ViewBag.Reason = GetReasonCardRetain(bankName.ToLower(), _myConfiguration) ?? reesonTemp;
+
+            }
+
+
+            ViewBag.bankName = bankName;
             //ViewBag.Issue_Name = GetIssue_Name("BAAC", _configuration);
             //ViewBag.Status_Name = GetStatus_Name("BAAC", _configuration);
             // For now, just return the empty view
@@ -607,16 +621,40 @@ namespace SLA_Management.Controllers
         }
 
         [HttpGet]
-        public JsonResult FetchCardRetain(string terminalID, string reason, DateTime? fromdate, DateTime? todate, int row = 50, int page = 1)
+        public JsonResult FetchCardRetain(string terminalID, string reason, DateTime? fromdate, DateTime? todate, string bankName , int row = 50, int page = 1)
         {
             List<CardRetain> cardRetain = new List<CardRetain>();
             List<object> totalCasesData = new List<object>();
             int totalCases = 0;
             int totalPages = 0;
 
+
+
+            string connectionDB = "";
+
+            switch (bankName)
+            {
+                case "BAAC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    break;
+                case "ICBC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_icbc";
+                 
+                    break;
+                case "BOC":
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_boct";                   
+                    break;
+                default:
+                    connectionDB = "ConnectString_NonOutsource:FullNameConnection_baac";
+                    break;
+            }
+
+           
+           
+
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
+                using (MySqlConnection conn = new MySqlConnection(_myConfiguration.GetValue<string>(connectionDB)))
                 {
                     conn.Open();
 
@@ -751,7 +789,8 @@ namespace SLA_Management.Controllers
                 totalCases = totalCases,
                 latestUpdateDate = ViewBag.LatestUpdateDate,
                 updatedBy = ViewBag.UpdatedBy,
-                totalCasesData = totalCasesData
+                totalCasesData = totalCasesData,
+                bankName = bankName
             });
         }
 
@@ -833,7 +872,12 @@ namespace SLA_Management.Controllers
                     using (var reader = command.ExecuteReader())
                     {
 
-                       
+                        // Check if there are no rows returned
+                        if (!reader.HasRows)
+                        {
+                            // Return a response indicating no data found (you can customize this as needed)
+                            return null; // Or return a new Empty Response or any other indicator like NotFound
+                        }
 
                         using (var package = new ExcelPackage())
                         {
