@@ -131,7 +131,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-2" style="">
                         <h>Terminal : </h>
                     </div>
@@ -160,10 +160,10 @@
                     </div>
                     <div class="col-2" style="">
                     </div>
-                    <div class="col-2" style="">
+                    <div class="col-2" style="" hidden>
                         <h>Serial No : </h>
                     </div>
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;" hidden>
                         <select class="selectpicker form-control subsearch" id="serialVal" name="serialVal" data-live-search="true">
                             @if (Model.SerialList.Count == 0)
                             {
@@ -197,7 +197,7 @@
                         <h>Software Version : </h>
                     </div>
 
-                    <div class="col-2" style="padding:0px;">
+                    <div class="col-2" style="padding:0px;" >
                         <select class="selectpicker form-control subsearch" id="softwareVal" name="softwareVal" data-live-search="true">
                             @if (Model.SoftwareList.Count == 0)
                             {
