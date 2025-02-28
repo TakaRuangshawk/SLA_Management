@@ -2,6 +2,7 @@
 {
     public class EncryptionModel
     {
+        public string BankCode { get; set; }
         public string Terminal_SEQ { get; set; }
         public string Terminal_ID { get; set; }
         public string Terminal_NAME { get; set; }

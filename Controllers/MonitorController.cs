@@ -2607,27 +2607,25 @@ namespace SLA_Management.Controllers
             int? page, string currFr, string currTo, string currFrTime, string currToTime, string categoryType, string lstPageSize, string currPageSize, string maxRows)
         {
             List<LogAnalysisModel> recordset = new List<LogAnalysisModel>();
-            DBService_LogAnalysis dBService;
-            if (bankName == null) bankName = "BAAC";
 
-            switch (bankName)
+            int pageNum = 1;
+            ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+            ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+
+            if (string.IsNullOrEmpty(bankName))
             {
-                case "BAAC":
-                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac") ?? "");
-                    break;
-                case "ICBC":
-                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc") ?? "");
-                    break;
-                case "BOC":
-                    dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct") ?? "");
-                    break;
-                default:
-                    dBService = new DBService_LogAnalysis(_myConfiguration);
-                    break;
+                ViewBag.CurrentTID = null;
+                ViewBag.counterCode = null;
+                ViewBag.category = null;
+                ViewBag.maxRows = 50;
+                ViewBag.Records = "0";
+                return View(recordset.ToPagedList(pageNum, 1));
             }
 
+            DBService_LogAnalysis dBService;
+            dBService = new DBService_LogAnalysis(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankName) ?? "");
+
             logAnalysis_dataList.Clear();
-            int pageNum = 1;
 
             try
             {
@@ -2663,9 +2661,7 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentTID = device_Info_Records;
 
 
-                ViewBag.TermID = TermID;
-                ViewBag.CurrentFr = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
-                ViewBag.CurrentTo = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                ViewBag.TermID = TermID;                
                 ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
                 ViewBag.BankCode = bankName;
 
@@ -2724,21 +2720,6 @@ namespace SLA_Management.Controllers
 
                 if (recordset.Count > 0)
                 {
-                    if (bankName == "BAAC")
-                    {
-                        switch (counterCode)
-                        {
-                            case "LOT572":
-                                recordset.RemoveAll(item => item.Counter_Code == "LOT587");
-                                break;
-                            case "LOT587":
-                                recordset.RemoveAll(item => item.Counter_Code == "LOT572");
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-
                     if (TermID != null)
                     {
                         recordset.RemoveAll(item => item.Terminal_ID != TermID);
@@ -2991,7 +2972,7 @@ namespace SLA_Management.Controllers
                         cmd.Parameters.AddWithValue("@Inform_By", model.Inform_By ?? "");
                         cmd.Parameters.AddWithValue("@Terminal_ID", model.Terminal_ID ?? "");
                         cmd.Parameters.AddWithValue("@Update_date", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@Update_by", "System");
+                        cmd.Parameters.AddWithValue("@Update_by", HttpContext.Session.GetString("Username"));
                         cmd.Parameters.AddWithValue("@Incident_No", model.Incident_No ?? "");
                         int rowsAffected = cmd.ExecuteNonQuery();
 
@@ -3045,7 +3026,7 @@ namespace SLA_Management.Controllers
                         cmd.Parameters.AddWithValue("@addAnalystInfo2", addAnalystInfo2);
                         cmd.Parameters.AddWithValue("@addInform", addInform);
                         cmd.Parameters.AddWithValue("@updateDate", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@updateBy", "System");
+                        cmd.Parameters.AddWithValue("@updateBy", HttpContext.Session.GetString("Username"));
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -3306,14 +3287,24 @@ namespace SLA_Management.Controllers
         #region EncryptionMonitor
         [HttpGet]
 
-        public IActionResult Encryption(string terminalId, string counterCode, string version, string policy, string lstPageSize, string currPageSize, int? page, string maxRows)
+        public IActionResult Encryption(string bankName, string terminalId, string counterCode, string version, string policy, string lstPageSize, string currPageSize, int? page, string maxRows)
         {
             List<EncryptionModel> recordset = new List<EncryptionModel>();
-            DBService_Encryption dBService;
-
-            dBService = new DBService_Encryption(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac") ?? "");
 
             int pageNum = 1;
+            if (string.IsNullOrEmpty(bankName))
+            {
+                ViewBag.CurrentTID = null;
+                ViewBag.counterCode = null;
+                ViewBag.version = null;
+                ViewBag.policy = null;
+                ViewBag.maxRows = 50;
+                ViewBag.Records = "0";
+                return View(recordset.ToPagedList(pageNum, 1));
+            }
+
+            DBService_Encryption dBService;
+            dBService = new DBService_Encryption(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankName) ?? "");
 
             try
             {
@@ -3432,6 +3423,7 @@ namespace SLA_Management.Controllers
 
             try
             {
+                string bankName = model.BankCode;
                 string terminalId = model.Terminal_ID;
                 string countercode = model.Counter_Code;
                 string version = model.Version;
@@ -3456,7 +3448,7 @@ namespace SLA_Management.Controllers
 
 
                 List<EncryptionModel> jsonData = new List<EncryptionModel>();
-                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac")))
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankName)))
                 {
                     connection.Open();
 

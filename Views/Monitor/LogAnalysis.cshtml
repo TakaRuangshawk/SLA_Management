@@ -104,12 +104,12 @@
                         new SelectListItem(){ Text="--", Value = ""  },
                         new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
                         new SelectListItem(){ Text="ICBC", Value = "ICBC" }
-                                            }, 
-                                     new{
-                                         @class = "form-control dropdown",
-                                         @style = " border-radius: 10px;",
-                                         @name = "state",
-                                     })
+                        }, 
+                        new{
+                            @class = "form-control dropdown",
+                            @style = " border-radius: 10px;",
+                            @name = "state",
+                        })
                         </div>
                     </div>
                     <div class="col-md-1">
@@ -128,17 +128,20 @@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
+                            @if (ViewBag.CurrentTID != null)
                             {
-                                if (@item.TERM_ID != @ViewBag.TermID)
+                                @foreach (var item in ViewBag.CurrentTID)
                                 {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
                                 }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                            }
+                            }                            
                         </select>
                     </div>
                     <div class="col-2" style="">
@@ -167,7 +170,22 @@
                     </div>
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
-                            @Html.DropDownList("categoryType", ViewBag.category as SelectList, "--", new { @class = "form-control" })
+                            @if (ViewBag.category != null)
+                            {
+                                @Html.DropDownList("categoryType", ViewBag.category as SelectList, "--", new { @class = "form-control" })
+                            }
+                            else
+                            {
+                                var options = new List<SelectListItem>
+                                {
+                                    new SelectListItem
+                                    {
+                                        Text = "--",
+                                        Value = ""
+                                    }
+                                };
+                                @Html.DropDownList("categoryType", options, new { @class = "form-control" })
+                            }
                         </div>
                     </div>
                     <div class="col-2" style="">
@@ -176,7 +194,22 @@
 
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
-                            @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
+                            @if (ViewBag.counterCode != null)
+                            {
+                                @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
+                            }
+                            else
+                            {
+                                var options = new List<SelectListItem>
+                                {
+                                    new SelectListItem
+                                    {
+                                        Text = "--",
+                                        Value = ""
+                                    }
+                                };
+                                @Html.DropDownList("counterCode", options, new { @class = "form-control" })
+                            }
                         </div>
                     </div>
 
@@ -373,17 +406,20 @@
                     <div class="col-md-3 modelTextbox">
                         <select class="selectpicker form-control subsearch" id="TermIDModal" name="TermIDModal" data-live-search="true">
                             <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
+                            @if (ViewBag.CurrentTID != null)
                             {
-                                if (@item.TERM_ID != @ViewBag.TermID)
+                                @foreach (var item in ViewBag.CurrentTID)
                                 {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    if (@item.TERM_ID != @ViewBag.TermID)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
                                 }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                            }
+                            }                            
                         </select>
                     </div>
                 </div>
@@ -632,13 +668,18 @@ $(document).ready(function () {
     $(".btn-search").click(function (e) 
     {
          e.preventDefault();
+         var bankName = $("#bankName").val();
 
-             $("#boxDownload").show();
+        if (bankName === "") {
+            alert('Please select a bank.');    
+        }
 
-             setTimeout(function () 
-             {
-                 $("#CheckDate").submit();
-             }, 100); // Use 0 milliseconds for minimal delay
+        $("#boxDownload").show();
+
+        setTimeout(function () 
+        {
+            $("#CheckDate").submit();
+        }, 100); // Use 0 milliseconds for minimal delay
 
      });
 
@@ -664,11 +705,11 @@ $(document).ready(function () {
 
       $("#btnclear").click(function (e) {
         e.preventDefault();
-        document.querySelector('[name="TermID"]').value = "--";
-        document.querySelector('[name="categoryType"]').value = "--";
-        document.querySelector('[name="counterCode"]').value = "--";
-        document.querySelector('[name="FrDate"]').value = getFormattedDate();
-        document.querySelector('[name="ToDate"]').value = getFormattedDate();
+
+        $('[name="bankName"], [name="TermID"], [name="categoryType"], [name="counterCode"]').val("");
+
+        var today = new Date().toISOString().split('T')[0];
+        $('[name="FrDate"], [name="ToDate"]').val(today);
 
         $("#boxDownload").show();
 
@@ -754,6 +795,12 @@ $(document).ready(function () {
         var category = $("#categoryType").val();
         var countercode = $("#counterCode").val(); 
         var rptType = "xlsx";
+
+        if (!bankCode) 
+        {
+            alert('Please select a bank.');
+            return;
+        }
         $.ajax({
             type: "POST",
             dataType: "json",

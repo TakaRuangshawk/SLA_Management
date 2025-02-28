@@ -79,8 +79,33 @@
         </div>
 
         <div id="main_search">
-            @using (Html.BeginForm("Encryption", "Monitor", FormMethod.Get, new { id = "CheckDate" }))
-            {                   
+            @using (Html.BeginForm("Encryption", "Monitor", FormMethod.Get, new { id = "CheckData" }))
+            {   
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                            new SelectListItem(){ Text="--", Value = ""  },
+                            new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                            new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                            }, 
+                            new{
+                            @class = "form-control dropdown",
+                            @style = " border-radius: 10px;",
+                            @name = "state",
+                            })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" class="btn btn-search" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>                            
+                    </div>    
+
+                </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
                         <div class="col-2" style="">
@@ -90,17 +115,20 @@
                         <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                             <select class="selectpicker form-control subsearch" id="terminalId" name="terminalId" data-live-search="true">
                                 <option data-tokens="" value="">--</option>
-                                @foreach (var item in ViewBag.CurrentTID)
+                                @if (ViewBag.CurrentTID != null)
                                 {
-                                    if (@item.TERM_ID != @ViewBag.terminalId)
+                                    @foreach (var item in ViewBag.CurrentTID)
                                     {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        if (@item.TERM_ID != @ViewBag.terminalId)
+                                        {
+                                            <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        }
+                                        else
+                                        {
+                                            <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        }
                                     }
-                                    else
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
-                                }
+                                }                                
                             </select>
                         </div>
                         <div class="col-2" style="">
@@ -108,7 +136,22 @@
                         </div>
                         <div class="col-2" style="padding:0px;">
                             <div class="form-group">
-                                @Html.DropDownList("policy", ViewBag.policy as SelectList, "--", new { @class = "form-control" })
+                                @if (ViewBag.policy != null)
+                                {
+                                    @Html.DropDownList("policy", ViewBag.policy as SelectList, "--", new { @class = "form-control" })
+                                }
+                                else
+                                {
+                                    var options = new List<SelectListItem>
+                                    {
+                                        new SelectListItem
+                                        {
+                                            Text = "--",
+                                            Value = ""
+                                        }
+                                    };
+                                    @Html.DropDownList("policy", options, new { @class = "form-control" })
+                                }
                             </div>
                         </div>  
                         <div class="col-4"></div>
@@ -120,7 +163,22 @@
 
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
-                            @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
+                            @if (ViewBag.counterCode != null)
+                            {
+                                @Html.DropDownList("counterCode", ViewBag.counterCode as SelectList, "--", new { @class = "form-control" })
+                            }
+                            else
+                            {
+                                var options = new List<SelectListItem>
+                                {
+                                    new SelectListItem
+                                    {
+                                        Text = "--",
+                                        Value = ""
+                                    }
+                                };
+                                    @Html.DropDownList("counterCode", options, new { @class = "form-control" })
+                            }     
                         </div>
                     </div>
                     <div class="col-2" style="">
@@ -128,7 +186,22 @@
                     </div>
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
-                            @Html.DropDownList("version", ViewBag.version as SelectList, "--", new { @class = "form-control" })
+                            @if (ViewBag.version != null)
+                            {
+                                @Html.DropDownList("version", ViewBag.version as SelectList, "--", new { @class = "form-control" })
+                            }
+                            else
+                            {
+                                var options = new List<SelectListItem>
+                                {
+                                    new SelectListItem
+                                    {
+                                        Text = "--",
+                                        Value = ""
+                                    }
+                                };
+                                @Html.DropDownList("version", options, new { @class = "form-control" })
+                            }
                         </div>
                     </div>   
                     <div class="col-2" style="">
@@ -191,7 +264,7 @@
                 <div class="row">
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                            <button type="submit" title="ค้นหาข้อมูล" class="btn btn-search" style="padding:0px;">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="clearButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
@@ -392,30 +465,32 @@
 <script>
 
     // document.getElementById("boxDownload").style.display = "none";
-    $("#btnsearch").click(function (e) 
+    $(".btn-search").click(function (e) 
     {
-         e.preventDefault();
+        e.preventDefault();
+        var bankName = $("#bankName").val();
+        if (bankName === "") 
+        {
+            alert('Please select a bank.');    
+        }
 
-             $("#boxDownload").show();
+        $("#boxDownload").show();
 
-             setTimeout(function () 
-             {
-                 $("#CheckDate").submit();
-             }, 100); // Use 0 milliseconds for minimal delay
+        setTimeout(function () 
+        {
+            $("#CheckData").submit();
+        }, 100); // Use 0 milliseconds for minimal delay
 
      });
      $("#btnclear").click(function (e) {
         e.preventDefault();
 
-        document.querySelector('[name="terminalId"]').value = "--";
-        document.querySelector('[name="policy"]').value = "--";
-        document.querySelector('[name="counterCode"]').value = "--";
-        document.querySelector('[name="version"]').value = "--";
+        $('[name="bankName"], [name="terminalId"], [name="policy"], [name="counterCode"], [name="version"]').val("");
 
         $("#boxDownload").show();
 
         setTimeout(function () {
-            $("#CheckDate").submit();
+            $("#CheckData").submit();
         }, 100);
        });      
          
@@ -423,16 +498,24 @@
 <script> 
      $("#btnSEExp").click(function (e) {
         e.preventDefault();
+        var bankName = $("#bankName").val();
         var terminalId = $("#terminalId").val();
         var countercode = $("#counterCode").val();
         var version = $("#version").val(); 
-        var policy = $("#policy").val(); 
-
+        var policy = $("#policy").val();
         var rptType = "xlsx";
+
+        if (!bankName) 
+        {
+            alert('Please select a bank.');
+            return;
+        }
+
         $.ajax({
             type: "POST",
             dataType: "json",
             data: {
+                BankCode : bankName,
                 Terminal_ID: terminalId,
                 Counter_Code : countercode,
                 Version : version,
