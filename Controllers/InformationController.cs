@@ -9,6 +9,7 @@ using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using System.Composition;
 using System.Globalization;
+using static NPOI.HSSF.Util.HSSFColor;
 
 namespace SLA_Management.Controllers 
 {
@@ -27,7 +28,9 @@ namespace SLA_Management.Controllers
             SoftwareVersionViewModel model = new SoftwareVersionViewModel();
             List<Device_info_record> device_Info_Records = new List<Device_info_record>();
             List<Software_VersionList> software_VersionLists = new List<Software_VersionList>();
-            List<Terminal_SerialList> serialLists = new List<Terminal_SerialList>();
+            List<SP_VersionList> sp_VersionLists = new List<SP_VersionList>();
+            List<Feelview_VersionList> feelview_VersionLists = new List<Feelview_VersionList>();
+            //List<Terminal_SerialList> serialLists = new List<Terminal_SerialList>();
             if (bank == null)
             {
                 return View(model);
@@ -37,25 +40,25 @@ namespace SLA_Management.Controllers
                 connString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bank);
             }
             #region getSerial No
-            using (var conn = new MySqlConnection(connString))
-            {
-                conn.Open();
-                string query = @"SELECT TERM_SEQ FROM device_info order by TERM_SEQ";
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            serialLists.Add(new Terminal_SerialList()
-                            {
-                                Serial_No = reader["TERM_SEQ"].ToString()
-                            });
-                        }
-                    }
-                }
-            }
-            model.SerialList = serialLists;
+            //using (var conn = new MySqlConnection(connString))
+            //{
+            //    conn.Open();
+            //    string query = @"SELECT TERM_SEQ FROM device_info order by TERM_SEQ";
+            //    using (var cmd = new MySqlCommand(query, conn))
+            //    {
+            //        using (var reader = cmd.ExecuteReader())
+            //        {
+            //            while (reader.Read())
+            //            {
+            //                serialLists.Add(new Terminal_SerialList()
+            //                {
+            //                    Serial_No = reader["TERM_SEQ"].ToString()
+            //                });
+            //            }
+            //        }
+            //    }
+            //}
+            //model.SerialList = serialLists;
             #endregion
             #region getTerminal No            
             using (var connection = new MySqlConnection(connString))
@@ -104,6 +107,50 @@ namespace SLA_Management.Controllers
             }
             model.SoftwareList = software_VersionLists;
             #endregion
+            #region getSP Version
+
+            using (var conn = new MySqlConnection(connString))
+            {
+                conn.Open();
+                string query = @"SELECT DISTINCT VERSION_SP FROM device_info Where VERSION_SP is not null order by VERSION_SP";
+                using (var cmd = new MySqlCommand(query, conn))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            sp_VersionLists.Add(new SP_VersionList()
+                            {
+                                SP_Ver = reader["VERSION_SP"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            model.SPVersionList = sp_VersionLists;
+            #endregion
+            #region getFeelView Version
+
+            using (var conn = new MySqlConnection(connString))
+            {
+                conn.Open();
+                string query = @"SELECT DISTINCT VERSION_AGENT FROM device_info Where VERSION_AGENT is not null order by VERSION_AGENT";
+                using (var cmd = new MySqlCommand(query, conn))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            feelview_VersionLists.Add(new Feelview_VersionList()
+                            {
+                                Feelview_Ver = reader["VERSION_AGENT"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            model.FeelviewVersionList = feelview_VersionLists;
+            #endregion
 
 
             model.selectedBank = bank;
@@ -123,8 +170,10 @@ namespace SLA_Management.Controllers
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
                     cmd.Parameters.AddWithValue("@terminal", req.term_ID);
-                    cmd.Parameters.AddWithValue("@serial_No", req.serial_Val);
                     cmd.Parameters.AddWithValue("@software_Ver", req.software_Val);
+                    cmd.Parameters.AddWithValue("@sp_Ver", req.sp_Val);
+                    cmd.Parameters.AddWithValue("@feelview_Ver", req.feelview_Val);
+
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -192,8 +241,10 @@ namespace SLA_Management.Controllers
                         cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
                         cmd.Parameters.AddWithValue("@terminal", exp.term_ID);
-                        cmd.Parameters.AddWithValue("@serial_No", exp.serial_Val);
                         cmd.Parameters.AddWithValue("@software_Ver", exp.software_Val);
+                        cmd.Parameters.AddWithValue("@sp_Ver", exp.sp_Val);
+                        cmd.Parameters.AddWithValue("@feelview_Ver", exp.feelview_Val);
+
 
                         using (var reader = cmd.ExecuteReader())
                         {

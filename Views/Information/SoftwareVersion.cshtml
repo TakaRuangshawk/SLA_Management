@@ -160,28 +160,21 @@
                     </div>
                     <div class="col-2" style="">
                     </div>
-                    <div class="col-2" style="" hidden>
-                        <h>Serial No : </h>
+                    <div class="col-2" style="">
+                        <h>SP Version : </h>
                     </div>
-                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;" hidden>
-                        <select class="selectpicker form-control subsearch" id="serialVal" name="serialVal" data-live-search="true">
-                            @if (Model.SerialList.Count == 0)
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="spVersion" name="spVersion" data-live-search="true">
+                            @if (Model.SPVersionList.Count == 0)
                             {
                                 <option data-tokens="" value="">--</option>
                             }
                             else
                             {
                                 <option data-tokens="" value="">--</option>
-                                foreach (var item in Model.SerialList)
+                                foreach (var item in Model.SPVersionList)
                                 {
-                                    if (item.Serial_No == Model.selectedSerial_No)
-                                    {
-                                        <option value="@item.Serial_No" data-tokens="@item.Serial_No" selected>@item.Serial_No</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@item.Serial_No" data-tokens="@item.Serial_No">@item.Serial_No</option>
-                                    }
+                                    <option value="@item.SP_Ver" data-tokens="@item.SP_Ver">@item.SP_Ver</option>
                                 }
                             }
 
@@ -224,6 +217,30 @@
                     <div class="col-2" style="">
                     </div>
                     <div class="col-2" style="">
+                        <h>Feelview Version : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="feelviewVersion" name="feelviewVersion" data-live-search="true">
+                            @if (Model.FeelviewVersionList.Count == 0)
+                            {
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                foreach (var item in Model.FeelviewVersionList)
+                                {
+                                    <option value="@item.Feelview_Ver" data-tokens="@item.Feelview_Ver">@item.Feelview_Ver</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                    </div>                   
+                </div>
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
 
@@ -242,7 +259,14 @@
                                         })
                         </div>
                     </div>
-                    <div class="col-2" style="padding:0px;">                      
+                    <div class="col-2" style="">
+                    </div>
+
+                    <div class="col-2" style="">
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                    </div>
+                    <div class="col-2" style="padding:0px;">
                     </div>
                 </div>
                 <div class="row">
@@ -288,7 +312,9 @@
 
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <tr><td colspan="12" style="text-align: center;"> NO DATA </td></tr>
+                </tbody>
             </table>
         </div>
         <div class="row">
@@ -326,8 +352,9 @@
         e.preventDefault();
         var bank = $("#bankName").val();
         var termId = $('#termID').val();
-        var serialNo = $('#serialVal').val();
         var softwareVal = $('#softwareVal').val();
+        var spVal = $('#spVersion').val();
+        var feelviewVal = $('#feelviewVersion').val();
         var rptType = "xlsx";
         if (bank == "") {
             alert("Please select a bank");
@@ -339,8 +366,9 @@
             data: JSON.stringify({
                 bank_Name: bank,
                 term_ID: termId,
-                serial_Val: serialNo,
                 software_Val: softwareVal,
+                sp_Val: spVal,
+                feelview_Val: feelviewVal
             }),
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("SoftwareVersion_ExportXlsx", "Information")',
@@ -368,8 +396,9 @@
     function fetchData(page) {
         var bank = $("#bankName").val();
         var termId = $('#termID').val();
-        var serialNo = $('#serialVal').val();
         var softwareVal = $('#softwareVal').val();
+        var spVal = $('#spVersion').val();
+        var feelviewVal = $('#feelviewVersion').val();
         var maxRow = $('#maxRows').val();
         if(bank == ""){
             alert("Please select a bank");
@@ -381,8 +410,9 @@
             data: JSON.stringify({
                 bank_Name: bank,
                 term_ID: termId,
-                serial_Val: serialNo,
                 software_Val: softwareVal,
+                sp_Val: spVal,
+                feelview_Val: feelviewVal,
                 maxRows: maxRow,
                 page: page
             }),
