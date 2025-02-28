@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using SLA_Management.Data.TermProb;
 using System.Linq;
+using SLA_Management.Models.Information;
 
 namespace SLA_Management.Controllers
 {
@@ -287,6 +288,367 @@ namespace SLA_Management.Controllers
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
         }
+        #region textfile upload
+        [HttpPost]
+        public async Task<IActionResult> UploadTerminal(IFormFile file, string bank)
+        {
+            List<TerminalInformationModel> terminals = new List<TerminalInformationModel>();
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid text file.");
+            }
+
+            try
+            {
+                // Reading file content
+                using (var reader = new StreamReader(file.OpenReadStream()))
+                {
+                    var firstLine = await reader.ReadLineAsync(); // detect delimeter 
+                    char delimiter = DetectDelimiter(firstLine);
+
+                    var connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bank);
+
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync();
+
+                        while (!reader.EndOfStream)
+                        {
+                            var line = await reader.ReadLineAsync();
+                            if (string.IsNullOrWhiteSpace(line))
+                            {
+                                continue;
+                            }
+                            var txtFileData = line?.Split(delimiter);
+
+                            if (txtFileData.Length == 0 || txtFileData == null)
+                            {
+                                continue;
+                            }
+                            string counterCode = "";
+                            if (file.FileName.Contains("587"))
+                            {
+                                counterCode = "LOT587";
+                            }
+                            else if (file.FileName.Contains("572"))
+                            {
+                                counterCode = "LOT572";
+                            }
+                            else
+                            {
+                                counterCode = "LOT362";
+                            }
+                            var terminal = new TerminalInformationModel
+                            {
+                                DEVICE_ID = txtFileData.Length > 0 ? txtFileData[0].Trim() : null,
+                                TERM_ID = txtFileData.Length > 1 ? txtFileData[1].Trim() : null,
+                                DEPT_ID = txtFileData.Length > 2 ? txtFileData[2].Trim() : null,
+                                TYPE_ID = txtFileData.Length > 3 ? txtFileData[3].Trim() : null,
+                                BRAND_ID = txtFileData.Length > 4 ? txtFileData[4].Trim() : null,
+                                MODEL_ID = txtFileData.Length > 5 ? txtFileData[5].Trim() : null,
+                                TERM_SEQ = txtFileData.Length > 6 ? txtFileData[6].Trim() : null,
+                                COUNTER_CODE = txtFileData.Length > 7 ? counterCode : null,//Counter Code
+                                TERM_IP = txtFileData.Length > 8 ? txtFileData[8].Trim() : null,
+                                STATUS = txtFileData.Length > 9 ? txtFileData[9].Trim() : null,
+                                TERM_NAME = txtFileData.Length > 10 ? txtFileData[10].Trim() : null,
+                                TERM_ADDR = txtFileData.Length > 11 ? txtFileData[11].Trim() : null,
+                                TERM_LOCATION = txtFileData.Length > 12 ? txtFileData[12].Trim() : null,
+                                TERM_ZONE = txtFileData.Length > 13 ? txtFileData[13].Trim() : null,
+                                CONTROL_BY = txtFileData.Length > 14 ? txtFileData[14].Trim() : null,
+                                REPLENISH_BY = txtFileData.Length > 15 ? txtFileData[15].Trim() : null,
+                                POST = txtFileData.Length > 16 ? txtFileData[16].Trim() : null,
+                                INSTALL_DATE = txtFileData.Length > 17 ? txtFileData[17].Trim() : null,
+                                ACTIVE_DATE = txtFileData.Length > 18 ? txtFileData[18].Trim() : null,
+                                SERVICE_TYPE = txtFileData.Length > 19 ? txtFileData[19].Trim() : null,
+                                INSTALL_TYPE = txtFileData.Length > 20 ? txtFileData[20].Trim() : null,
+                                LAYOUT_TYPE = txtFileData.Length > 21 ? txtFileData[21].Trim() : null,
+                                MAN_ID = txtFileData.Length > 22 ? txtFileData[22].Trim() : null,
+                                SERVICEMAN_ID = txtFileData.Length > 23 ? txtFileData[23].Trim() : null,
+                                COMPANY_ID = txtFileData.Length > 24 ? txtFileData[24].Trim() : null,
+                                COMPANY_NAME = txtFileData.Length > 25 ? txtFileData[25].Trim() : null,
+                                SERVICE_BEGINDATE = txtFileData.Length > 26 ? txtFileData[26].Trim() : null,
+                                SERVICE_ENDDATE = txtFileData.Length > 27 ? txtFileData[27].Trim() : null,
+                                SERVICE_YEARS = txtFileData.Length > 28 ? txtFileData[28].Trim() : null,
+                                IS_CCTV = txtFileData.Length > 29 ? txtFileData[29].Trim() : null,
+                                IS_UPS = txtFileData.Length > 30 ? txtFileData[30].Trim() : null,
+                                IS_INTERNATIONAL = txtFileData.Length > 31 ? txtFileData[31].Trim() : null,
+                                BUSINESS_BEGINTIME = txtFileData.Length > 32 ? txtFileData[32].Trim() : null,
+                                BUSINESS_ENDTIME = txtFileData.Length > 33 ? txtFileData[33].Trim() : null,
+                                IS_VIP = txtFileData.Length > 34 ? txtFileData[34].Trim() : null,
+                                AREA_ID = txtFileData.Length > 35 ? txtFileData[35].Trim() : null,
+                                AREA_ADDR = txtFileData.Length > 36 ? txtFileData[36].Trim() : null,
+                                FUNCTION_TYPE = txtFileData.Length > 37 ? txtFileData[37].Trim() : null,
+                                LONGITUDE = txtFileData.Length > 38 ? txtFileData[38].Trim() : null,
+                                LATITUDE = txtFileData.Length > 39 ? txtFileData[39].Trim() : null,
+                                PROVINCE = txtFileData.Length > 40 ? txtFileData[40].Trim() : null,
+                                LOT_TYPE = txtFileData.Length > 41 ? txtFileData[41].Trim() : null,
+                                AUDITING = txtFileData.Length > 42 ? txtFileData[42].Trim() : null,
+                                CURRENT_IP = txtFileData.Length > 43 ? txtFileData[43].Trim() : null,
+                                VERSION_ATMC = txtFileData.Length > 44 ? txtFileData[44].Trim() : null,
+                                VERSION_SP = txtFileData.Length > 45 ? txtFileData[45].Trim() : null,
+                                VERSION_AGENT = txtFileData.Length > 46 ? txtFileData[46].Trim() : null,
+                                VERSION_MB = txtFileData.Length > 47 ? txtFileData[47].Trim() : null,
+                                FLAG_XFS = txtFileData.Length > 48 ? txtFileData[48].Trim() : null,
+                                FLAG_EJ = txtFileData.Length > 49 ? txtFileData[49].Trim() : null,
+                                FLAG_FSN = txtFileData.Length > 50 ? txtFileData[50].Trim() : null,
+                                EJ_FILES = txtFileData.Length > 51 ? txtFileData[51].Trim() : null,
+                                FSN_PATH = txtFileData.Length > 52 ? txtFileData[52].Trim() : null,
+                                TASK_PARA = txtFileData.Length > 53 ? txtFileData[53].Trim() : null,
+                                VERSION_AD = txtFileData.Length > 54 ? txtFileData[54].Trim() : null,
+                                MODIFY_USERID = txtFileData.Length > 55 ? txtFileData[55].Trim() : null,
+                                MODIFY_DATE = txtFileData.Length > 56 ? txtFileData[56].Trim() : null,
+                                ADD_USERID = txtFileData.Length > 57 ? txtFileData[57].Trim() : null,
+                                ADD_DATE = txtFileData.Length > 58 ? txtFileData[58].Trim() : null,
+                                ASSET_NO = txtFileData.Length > 59 ? txtFileData[59].Trim() : null,
+                                CASH_BOX_NUM = txtFileData.Length > 60 ? txtFileData[60].Trim() : null,
+                                SERVICE_SMS_TYPE = txtFileData.Length > 61 ? txtFileData[61].Trim() : null,
+                                EJ_OPEN_DATE = txtFileData.Length > 62 ? txtFileData[62].Trim() : null,
+                                ATMC_UPDATE_TIME = txtFileData.Length > 63 ? txtFileData[63].Trim() : null,
+                                SP_UPDATE_TIME = txtFileData.Length > 64 ? txtFileData[64].Trim() : null,
+                                AGENT_UPDATE_TIME = txtFileData.Length > 65 ? txtFileData[65].Trim() : null,
+                                VERSION_NV = txtFileData.Length > 66 ? txtFileData[66].Trim() : null,
+                                NV_UPDATE_TIME = txtFileData.Length > 67 ? txtFileData[67].Trim() : null,
+                                VERSION_MAIN = txtFileData.Length > 68 ? txtFileData[68].Trim() : null,
+                                MAIN_UPDATE_TIME = txtFileData.Length > 69 ? txtFileData[69].Trim() : null,
+                            };
+
+                            await InsertTextDatatoDB(connection, terminal);
+
+                        }
+                        //return StatusCode(500, $"An error occurred:");
+                    }
+                    return Ok("File processed and data inserted successfully.");
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+        private async Task InsertTextDatatoDB(MySqlConnection conn, TerminalInformationModel terminals)
+        {
+
+            try
+            {
+                using (var cmd = new MySqlCommand())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandText = @"INSERT INTO device_info
+                                                (`DEVICE_ID`,`TERM_ID`,`DEPT_ID`,`TYPE_ID`,`BRAND_ID`,`MODEL_ID`,`TERM_SEQ`,`COUNTER_CODE`,`TERM_IP`,
+                                                `STATUS`,`TERM_NAME`,`TERM_ADDR`,`TERM_LOCATION`,`TERM_ZONE`,`CONTROL_BY`,`REPLENISH_BY`,`POST`,
+                                                `INSTALL_DATE`,`ACTIVE_DATE`,`SERVICE_TYPE`,`INSTALL_TYPE`,`LAYOUT_TYPE`,`MAN_ID`,`SERVICEMAN_ID`,
+                                                `COMPANY_ID`,`COMPANY_NAME`,`SERVICE_BEGINDATE`,`SERVICE_ENDDATE`,`SERVICE_YEARS`,`IS_CCTV`,`IS_UPS`,
+                                                `IS_INTERNATIONAL`,`BUSINESS_BEGINTIME`,`BUSINESS_ENDTIME`,`IS_VIP`,`AREA_ID`,`AREA_ADDR`,`FUNCTION_TYPE`,
+                                                `LONGITUDE`,`LATITUDE`,`PROVINCE`,`LOT_TYPE`,`AUDITING`,`CURRENT_IP`,`VERSION_ATMC`,`VERSION_SP`,`VERSION_AGENT`,
+                                                `VERSION_MB`,`FLAG_XFS`,`FLAG_EJ`,`FLAG_FSN`,`EJ_FILES`,`FSN_PATH`,`TASK_PARA`,`VERSION_AD`,`MODIFY_USERID`,
+                                                `MODIFY_DATE`,`ADD_USERID`,`ADD_DATE`,`ASSET_NO`,`CASH_BOX_NUM`,`SERVICE_SMS_TYPE`,`EJ_OPEN_DATE`,
+                                                `ATMC_UPDATE_TIME`,`SP_UPDATE_TIME`,`AGENT_UPDATE_TIME`,`VERSION_NV`,`NV_UPDATE_TIME`,`VERSION_MAIN`,`MAIN_UPDATE_TIME`)
+                                                VALUES
+                                                (@deviceid,@termid,@deptid,@typeid,@brandid,@modelid,@termseq,@countercode,@termip,@status,@termname,@termaddr,@termloc,
+                                                @termzone,@controlby,@replishby,@post,@install,@active,@servicetype,@installtype,@layouttype,@manid,@serviceman,
+                                                @company,@companyname,@sevicebdate,@serviceedate,@serviceyrs,@iscctv,@isups,
+                                                @isinter,@businesstime,@bussinessendtime,@isvip,@areaid,@areaaddr,@function,@long,@lati,@prov,@lottype,@audit,@currentip,
+                                                @veratmc,@versp,@veragent,@vermb,@flagxfs,@flagej,@flagfsn,@ejfile,@fsnpath,@task,@verad,@modifyid,@modifydate,@adduser,@adddate,
+                                                @assetno,@cashbox,@servicesms,@ejopendate,@atmcupdatetime,@spupdatetime,@agentuptime,@vernv,@nvupdatetime,@vermain,@mainuptime)
+                                                ON DUPLICATE KEY UPDATE 
+                                                TERM_ID = @termid,DEPT_ID = @deptid,TYPE_ID = @typeid,BRAND_ID = @brandid,MODEL_ID = @modelid,TERM_SEQ = @termseq,
+                                                COUNTER_CODE = @countercode,TERM_IP = @termip,STATUS = @status,TERM_NAME = @termname,TERM_ADDR = @termaddr,TERM_LOCATION = @termloc,
+                                                TERM_ZONE = @termzone,CONTROL_BY = @controlby,REPLENISH_BY = @replishby,POST = @post,INSTALL_DATE = @install,ACTIVE_DATE = @active,
+                                                SERVICE_TYPE = @servicetype,INSTALL_TYPE = @installtype,LAYOUT_TYPE = @layouttype,MAN_ID = @manid,SERVICEMAN_ID = @serviceman,
+                                                COMPANY_ID = @company,COMPANY_NAME = @companyname,SERVICE_BEGINDATE = @sevicebdate,SERVICE_ENDDATE = @serviceedate,SERVICE_YEARS = @serviceyrs,
+                                                IS_CCTV = @iscctv,IS_UPS = @isups,IS_INTERNATIONAL = @isinter,BUSINESS_BEGINTIME = @businesstime,BUSINESS_ENDTIME = @bussinessendtime,
+                                                IS_VIP = @isvip,AREA_ID = @areaid,AREA_ADDR = @areaaddr,FUNCTION_TYPE = @function,LONGITUDE = @long,LATITUDE = @lati,
+                                                PROVINCE = @prov,LOT_TYPE = @lottype,AUDITING = @audit,CURRENT_IP = @currentip,VERSION_ATMC = @veratmc,VERSION_SP = @versp,
+                                                VERSION_AGENT = @veragent,VERSION_MB = @vermb,FLAG_XFS = @flagxfs,FLAG_EJ = @flagej,FLAG_FSN = @flagfsn,EJ_FILES = @ejfile,
+                                                FSN_PATH = @fsnpath,TASK_PARA = @task,VERSION_AD = @verad,MODIFY_USERID = @modifyid,MODIFY_DATE = @modifydate,ADD_USERID = @adduser,
+                                                ADD_DATE = @adddate,ASSET_NO = @assetno,CASH_BOX_NUM = @cashbox,SERVICE_SMS_TYPE = @servicesms,EJ_OPEN_DATE = @ejopendate,
+                                                ATMC_UPDATE_TIME = @atmcupdatetime,SP_UPDATE_TIME = @spupdatetime,AGENT_UPDATE_TIME = @agentuptime,VERSION_NV = @vernv,
+                                                NV_UPDATE_TIME = @nvupdatetime, VERSION_MAIN = @vermain,MAIN_UPDATE_TIME = @mainuptime";
+
+                    #region
+                    cmd.Parameters.AddWithValue("@deviceid", terminals.DEVICE_ID != "null" ? terminals.DEVICE_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termid", terminals.TERM_ID != "null" ? terminals.TERM_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@deptid", terminals.DEPT_ID != "null" ? terminals.DEPT_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@typeid", terminals.TYPE_ID != "null" ? terminals.TYPE_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@brandid", terminals.BRAND_ID != "null" ? terminals.BRAND_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@modelid", terminals.MODEL_ID != "null" ? terminals.MODEL_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termseq", terminals.TERM_SEQ != "null" ? terminals.TERM_SEQ : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@countercode", terminals.COUNTER_CODE != "null" ? terminals.COUNTER_CODE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termip", terminals.TERM_IP != "null" ? terminals.TERM_IP : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@status", terminals.STATUS != "null" ? terminals.STATUS : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termname", terminals.TERM_NAME != "null" ? terminals.TERM_NAME : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termaddr", terminals.TERM_ADDR != "null" ? terminals.TERM_ADDR : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termloc", terminals.TERM_LOCATION != "null" ? terminals.TERM_LOCATION : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@termzone", terminals.TERM_ZONE != "null" ? terminals.TERM_ZONE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@controlby", terminals.CONTROL_BY != "null" ? terminals.CONTROL_BY : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@replishby", terminals.REPLENISH_BY != "null" ? terminals.REPLENISH_BY : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@post", terminals.POST != "null" ? terminals.POST : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@install", terminals.INSTALL_DATE != "null" ? terminals.INSTALL_DATE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@active", terminals.ACTIVE_DATE != "null" ? terminals.ACTIVE_DATE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@servicetype", terminals.SERVICE_TYPE != "null" ? terminals.SERVICE_TYPE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@installtype", terminals.INSTALL_TYPE != "null" ? terminals.INSTALL_TYPE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@layouttype", terminals.LAYOUT_TYPE != "null" ? terminals.LAYOUT_TYPE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@manid", terminals.MAN_ID != "null" ? terminals.MAN_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@serviceman", terminals.SERVICEMAN_ID != "null" ? terminals.SERVICEMAN_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@company", terminals.COMPANY_ID != "null" ? terminals.COMPANY_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@companyname", terminals.COMPANY_NAME != "null" ? terminals.COMPANY_NAME : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@sevicebdate", terminals.SERVICE_BEGINDATE != "null" ? terminals.SERVICE_BEGINDATE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@serviceedate", terminals.SERVICE_ENDDATE != "null" ? terminals.SERVICE_ENDDATE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@serviceyrs", terminals.SERVICE_YEARS != "null" ? terminals.SERVICE_YEARS : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@iscctv", terminals.IS_CCTV != "null" ? terminals.IS_CCTV : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@isups", terminals.IS_UPS != "null" ? terminals.IS_UPS : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@isinter", terminals.IS_INTERNATIONAL != "null" ? terminals.IS_INTERNATIONAL : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@businesstime", terminals.BUSINESS_BEGINTIME != "null" ? terminals.BUSINESS_BEGINTIME : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@bussinessendtime", terminals.BUSINESS_ENDTIME != "null" ? terminals.BUSINESS_ENDTIME : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@isvip", terminals.IS_VIP != "null" ? terminals.IS_VIP : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@areaid", terminals.AREA_ID != "null" ? terminals.AREA_ID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@areaaddr", terminals.AREA_ADDR != "null" ? terminals.AREA_ADDR : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@function", terminals.FUNCTION_TYPE != "null" ? terminals.FUNCTION_TYPE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@long", terminals.LONGITUDE != "null" ? terminals.LONGITUDE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lati", terminals.LATITUDE != "null" ? terminals.LATITUDE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@prov", terminals.PROVINCE != "null" ? terminals.PROVINCE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lottype", terminals.LOT_TYPE != "null" ? terminals.LOT_TYPE : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@audit", terminals.AUDITING != "null" ? terminals.AUDITING : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@currentip", terminals.CURRENT_IP != "null" ? terminals.CURRENT_IP : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@veratmc", terminals.VERSION_ATMC != "null" ? terminals.VERSION_ATMC : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@versp", terminals.VERSION_SP != "null" ? terminals.VERSION_SP : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@veragent", terminals.VERSION_AGENT != "null" ? terminals.VERSION_AGENT : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@vermb", terminals.VERSION_MB != "null" ? terminals.VERSION_MB : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@flagxfs", terminals.FLAG_XFS != "null" ? terminals.FLAG_XFS : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@flagej", terminals.FLAG_EJ != "null" ? terminals.FLAG_EJ : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@flagfsn", terminals.FLAG_FSN != "null" ? terminals.FLAG_FSN : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ejfile", terminals.EJ_FILES != "null" ? terminals.EJ_FILES : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@fsnpath", terminals.FSN_PATH != "null" ? terminals.FSN_PATH : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@task", terminals.TASK_PARA != "null" ? terminals.TASK_PARA : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@verad", terminals.VERSION_AD != "null" ? terminals.VERSION_AD : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@modifyid", terminals.MODIFY_USERID != "null" ? terminals.MODIFY_USERID : DBNull.Value);
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.MODIFY_DATE, out var modifyDate))
+                    {
+                        cmd.Parameters.AddWithValue("@modifydate", modifyDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@modifydate", DBNull.Value); // Handle invalid or null dates
+                    }
+                    //cmd.Parameters.AddWithValue("@modifydate",terminals.MODIFY_DATE);
+                    cmd.Parameters.AddWithValue("@adduser", terminals.ADD_USERID != "null" ? terminals.ADD_USERID : DBNull.Value);
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.ADD_DATE, out var addDate))
+                    {
+                        cmd.Parameters.AddWithValue("@adddate", addDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@adddate", DBNull.Value); // Handle invalid or null dates
+                    }
+
+                    cmd.Parameters.AddWithValue("@assetno", terminals.ASSET_NO != "null" ? terminals.ASSET_NO : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@cashbox", terminals.CASH_BOX_NUM != "null" ? terminals.CASH_BOX_NUM : DBNull.Value);
+                    if (terminals.SERVICE_SMS_TYPE == "null")
+                    {
+                        cmd.Parameters.AddWithValue("@servicesms", DBNull.Value);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@servicesms", terminals.SERVICE_SMS_TYPE);
+                    }
+
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.EJ_OPEN_DATE, out var ejOpenDate))
+                    {
+                        cmd.Parameters.AddWithValue("@ejopendate", ejOpenDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@ejopendate", DBNull.Value); // Handle invalid or null dates
+                    }
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.ATMC_UPDATE_TIME, out var atmcUDate))
+                    {
+                        cmd.Parameters.AddWithValue("@atmcupdatetime", atmcUDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@atmcupdatetime", DBNull.Value); // Handle invalid or null dates
+                    }
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.SP_UPDATE_TIME, out var spUDate))
+                    {
+                        cmd.Parameters.AddWithValue("@spupdatetime", spUDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@spupdatetime", DBNull.Value); // Handle invalid or null dates
+                    }
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.AGENT_UPDATE_TIME, out var agentUDate))
+                    {
+                        cmd.Parameters.AddWithValue("@agentuptime", agentUDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@agentuptime", DBNull.Value); // Handle invalid or null dates
+                    }
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.NV_UPDATE_TIME, out var nvUDate))
+                    {
+                        cmd.Parameters.AddWithValue("@nvupdatetime", nvUDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@nvupdatetime", DBNull.Value); // Handle invalid or null dates
+                    }
+                    // Parse datetime or set to NULL
+                    if (DateTime.TryParse(terminals.MAIN_UPDATE_TIME, out var mainUDate))
+                    {
+                        cmd.Parameters.AddWithValue("@mainuptime", mainUDate);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@mainuptime", DBNull.Value); // Handle invalid or null dates
+                    }
+
+
+
+                    cmd.Parameters.AddWithValue("@vernv", terminals.VERSION_NV != "null" ? terminals.VERSION_NV : DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@vermain", terminals.VERSION_MAIN != "null" ? terminals.VERSION_MAIN : DBNull.Value);
+
+                    #endregion
+                    await cmd.ExecuteNonQueryAsync();
+
+
+                }
+            }
+            catch (Exception ex) { }
+
+
+        }
+        private char DetectDelimiter(string firstLine)
+        {
+            if (string.IsNullOrEmpty(firstLine))
+            {
+                return '\0'; // No delimiter found
+            }
+
+            // List of possible delimiters
+            char[] possibleDelimiters = { '|', ' ', '\t', ',', ';' };
+
+            foreach (var delimiter in possibleDelimiters)
+            {
+                if (firstLine.Contains(delimiter))
+                {
+                    return delimiter;
+                }
+            }
+
+            return '\0';
+        }
+
+        #endregion
         #endregion
         #region WhitelistFilterTemplate
 

@@ -391,7 +391,10 @@
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
                 </div>
-
+                <div class="row justify-content-md-center" style="padding: 15px 50px 0px 50px;">
+                    <div id="progressBars" class="mt-3"></div>
+                    <div id="message" class="mt-3"></div>
+                </div>
                 <div class="row justify-content-md-center" style="">
 
 
@@ -409,9 +412,15 @@
                             <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+@*                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+                                Create a Terminal
+                            </button> *@
+                             <button type="button" class="btn btn-primary" onclick="triggerUpload();">
                                 Create a Terminal
                             </button>
+
+                            <!-- Hidden file input -->
+                            <input type="file" id="fileInput" style="display:none" accept=".txt" onchange="handleFileUpload(event)">
                         </div>
                     </div>
 
@@ -682,7 +691,7 @@
     </div>
 
 }
-<div class="modal fade" id="myModal2" role="dialog">
+@* <div class="modal fade" id="myModal2" role="dialog">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="container" style="padding: 0;">
@@ -884,7 +893,7 @@
         </div>
     </div>
 
-</div>
+</div> *@
 <script>
     $(document).ready(function () {
         $('#saveButton').click(function () {
@@ -1257,6 +1266,76 @@
     });
     if ($("#bankcode").val() != "") {
         updateTable("search");
+    }
+    function triggerUpload(){
+        var bank = $("#bankcode").val();
+        if (bank == "") {
+            alert("Please select a bank!");            
+        }
+        else{
+            document.getElementById('fileInput').click();
+        }
+
+    }
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        var bank = $("#bankcode").val();
+        uploadFile(file,bank);
+    }
+    function uploadFile(file,bank) {
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('bank', bank);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '@Url.Action("UploadTerminal", "Maintenance")', true);
+
+        var progressBarContainer = document.createElement('div');
+        progressBarContainer.className = 'progress mb-3';
+        var progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.role = 'progressbar';
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressBar.setAttribute('aria-valuemin', '0');
+        progressBar.setAttribute('aria-valuemax', '100');
+        progressBar.innerHTML = '0%';
+        progressBarContainer.appendChild(progressBar);
+        document.getElementById('progressBars').appendChild(progressBarContainer);
+
+        xhr.upload.onprogress = function (event) {
+            if (event.lengthComputable) {
+                var percentComplete = Math.round((event.loaded / event.total) * 99);
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+                progressBar.innerHTML = percentComplete + '%';
+            }
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                progressBar.style.width = '100%';
+                progressBar.innerHTML = 'Upload complete';
+                progressBar.classList.add('bg-success');
+                displayMessage('File uploaded and Data imported successfully', 'alert-success');
+            } else {
+                progressBar.innerHTML = 'Upload failed';
+                progressBar.classList.add('bg-danger');
+                displayMessage('File upload failed. Please try again.', 'alert-danger');
+            }
+        };
+
+        xhr.onerror = function () {
+            progressBar.innerHTML = 'Upload error';
+            progressBar.classList.add('bg-danger');
+            displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
+        };
+
+        xhr.send(formData);
+    }
+    function displayMessage(message, alertClass) {
+        var messageContainer = document.getElementById('message');
+        messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
     }
 </script>
 
