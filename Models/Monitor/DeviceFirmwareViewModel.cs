@@ -34,6 +34,7 @@ namespace SLA_Management.Models.Monitor
     }
     public class DeviceFirmwareExport
     {
+        public string? bankName { get; set; }
         public string? termID { get; set; }
         public string? terminalType { get; set; }
         public string? sort { get; set; }

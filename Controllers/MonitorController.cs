@@ -3063,7 +3063,7 @@ namespace SLA_Management.Controllers
 
         #region Device Fireware
         [HttpGet]
-        public IActionResult DeviceFirmware(string termID, string terminalType, string sort, int page, int maxRows)
+        public IActionResult DeviceFirmware(string bankName,string termID, string terminalType, string sort, int page, int maxRows)
         {
             if (maxRows == 0)
             {
@@ -3071,7 +3071,11 @@ namespace SLA_Management.Controllers
             }
             DeviceFirmwareViewModel viewModel = new DeviceFirmwareViewModel();
             List<DeviceFirmware> devices = new List<DeviceFirmware>();
-            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
+            if (bankName == null)
+            {
+                return View(viewModel);
+            }
+            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankName);
             dbContext = new RecurringCasesDataContext(conn);
 
             viewModel.Device_Info_Records = dbContext.GetDeviceInfoFeelview();
@@ -3147,7 +3151,7 @@ namespace SLA_Management.Controllers
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
-            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
+            string conn = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" +export.bankName);
             DeviceFirmwareViewModel viewModel = new DeviceFirmwareViewModel();
             List<DeviceFirmware> devices = new List<DeviceFirmware>();
             try

@@ -128,54 +128,95 @@
                 <input type="hidden" id="page" name="page" value="@Model.CurrentPage" />
                 <input type="hidden" id="totalPage" name="totalPage" value="@Model.TotalPages" />
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state",
+                                        })
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="validateSelection()">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="col-md-2"></div>
+                    <div class="col-md-1"></div>
+                    <div class="col-md-2"></div>
+                </div>
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                    <div class="col-md-1" style="">
+                    <div class="col-2" style="">
                         <h>Terminal : </h>
                     </div>
 
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
                         <div class="form-group">
                             <select class="selectpicker form-control subsearch" id="termID" name="termID" data-live-search="true">
 
-                                <option data-tokens="" value="">--</option>
-                                @foreach (var item in Model.Device_Info_Records)
+                                @if (Model.Device_Info_Records == null)
                                 {
-                                    if (item.TERM_ID == Model.selectedTerminal)
+                                    <option data-tokens="" value="">--</option>
+                                }
+                                else
+                                {
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in Model.Device_Info_Records)
                                     {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                    }
-                                    else
-                                    {
-                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        if (item.TERM_ID == Model.selectedTerminal)
+                                        {
+                                            <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        }
+                                        else
+                                        {
+                                            <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                        }
                                     }
                                 }
                             </select>
                         </div>
                     </div>
-                    <div class="col col-md-1" style="">
+                    <div class="col-2" style="">
                         <h style="display:flex;justify-content:center;">Terminal Type : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="terminalType" name="terminalType" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @if (Model.selectedTerminalType == "ALL")
+                            @if (Model.TerminalTypes == null)
                             {
-                                <option data-tokens="ALL" value="ALL" selected>ALL</option>
+                                <option data-tokens="" value="">--</option>
                             }
                             else
                             {
-                                <option data-tokens="ALL" value="ALL">ALL</option>
-                            }
-                            @foreach (var item in Model.TerminalTypes)
-                            {
-                                if (item.Terminal_Type == Model.selectedTerminalType)
+                                @if (Model.selectedTerminalType == "ALL")
                                 {
-                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type" selected>@item.Terminal_Type</option>
+                                    <option data-tokens="ALL" value="ALL" selected>ALL</option>
                                 }
                                 else
                                 {
-                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type">@item.Terminal_Type</option>
+                                    <option data-tokens="ALL" value="ALL">ALL</option>
+                                }
+                                @foreach (var item in Model.TerminalTypes)
+                                {
+                                    if (item.Terminal_Type == Model.selectedTerminalType)
+                                    {
+                                        <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type" selected>@item.Terminal_Type</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type">@item.Terminal_Type</option>
+                                    }
                                 }
                             }
                         </select>
@@ -203,13 +244,13 @@
                     </div>
 
                 </div>
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                    <div class="col col-md-1" style="">
+                    <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
 
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                             @Html.DropDownList("maxRows", new SelectListItem[] {
@@ -225,7 +266,7 @@
 
                         </div>
                     </div>
-                    <div class="col col-md-1" style="">
+                    <div class="col-2" style="">
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -248,7 +289,7 @@
 
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                            <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="validateSelection()">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
 
@@ -310,11 +351,20 @@
                                 </tr>
                             }
                         }
-                        if (Model.DeviceFirmwareList.Count == 0)
+                        if (Model.DeviceFirmwareList == null)
                         {
                             <tr>
                                 <td colspan="10" style="text-align: center;"> NO DATA </td>
                             </tr>
+                        }
+                        else
+                        {
+                            if (Model.DeviceFirmwareList.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="10" style="text-align: center;"> NO DATA </td>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -367,16 +417,22 @@
 <script>
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
+        var bank = $('#bankName').val();
         var termId = $('#termID').val();
         var terminalType = $('#terminalType').val();
         var sort = $('#sort').val();
         var page = $('#page').val();
         var maxRow = $('#maxRows').val();
         var rptType = "xlsx";
+        if (bank == "") {
+            alert("Please select a bank");
+            return;
+        }
         $.ajax({
             type: "POST",
             dataType: "json",
             data: JSON.stringify({
+                bankName: bank,
                 termID: termId,
                 terminalType: terminalType,
                 sort: sort             
@@ -397,6 +453,7 @@
     });
     function clearData() {
         // Clear the value of the Fields
+        document.querySelector('[name="bankName"]').value = "";
         document.querySelector('[name="termID"]').value = "";
         document.querySelector('[name="terminalType"]').value = "";
 
@@ -472,5 +529,13 @@
     function fetchData(dropdown) {
         var selectPage = parseInt(dropdown.value);
         resubmitPage(selectPage);
+    }
+    function validateSelection() {
+        var selectedValue = document.getElementById("bankName").value;
+        if (selectedValue === "") {
+            alert("Please select a bank.");
+        } else {
+            document.getElementById("DeviceFirmware").submit();
+        }
     }
 </script>
