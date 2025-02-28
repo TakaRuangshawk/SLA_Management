@@ -163,7 +163,7 @@
                         </div>
                     </div>
                     <div class="col-md-1">
-                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="validateSelection()">
                             <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                         </button>
                     </div>
@@ -174,17 +174,24 @@
                     </div>
                     <div class="col-md-2" style="border-color:#ced4da; background-color: transparent;padding:0px;">
                         <select class="selectpicker form-control subsearch" id="termID" name="termID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (var item in Model.Device_Info_Records)
+                            @if (Model.Device_Info_Records == null)
                             {
-                                if(item.TERM_ID == Model.selectedTerminal)
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                @foreach (var item in Model.Device_Info_Records)
                                 {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    if (item.TERM_ID == Model.selectedTerminal)
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                    }
                                 }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }                               
                             }
                         </select>
                     </div>
@@ -221,25 +228,31 @@
 
                     <div class="col-2" style="padding:0px;">
                         <select class="selectpicker form-control subsearch" id="terminalType" name="terminalType" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @if (Model.selectedTerminalType == "ALL")
+                            @if (Model.TerminalTypes == null)
                             {
-                                <option data-tokens="ALL" value="ALL" selected>ALL</option>
+                                <option data-tokens="" value="">--</option>
                             }
                             else
                             {
-                                <option data-tokens="ALL" value="ALL">ALL</option>
-                            }
-                            @foreach (var item in Model.TerminalTypes)
-                            {
-                                if (item.Terminal_Type == Model.selectedTerminalType)
-                                {                                    
-                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type" selected>@item.Terminal_Type</option>
+                                @if (Model.selectedTerminalType == "ALL")
+                                {
+                                    <option data-tokens="ALL" value="ALL" selected>ALL</option>
                                 }
                                 else
-                                {                                    
-                                    <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type">@item.Terminal_Type</option>
-                                }                                
+                                {
+                                    <option data-tokens="ALL" value="ALL">ALL</option>
+                                }
+                                @foreach (var item in Model.TerminalTypes)
+                                {
+                                    if (item.Terminal_Type == Model.selectedTerminalType)
+                                    {
+                                        <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type" selected>@item.Terminal_Type</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Terminal_Type" data-tokens="@item.Terminal_Type">@item.Terminal_Type</option>
+                                    }
+                                }
                             }
                         </select>
                     </div>
@@ -283,7 +296,7 @@
 
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;" onclick="validateSelection()">
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                             </button>
 
@@ -354,11 +367,20 @@
                             }
 
                         }
-                        if (Model.RecurringCases.Count == 0)
+                        if (Model.RecurringCases == null)
                         {
-                                                    <tr>
-                                                        <td colspan="7" style="text-align: center;"> NO DATA </td>
-                                                    </tr>                           
+                            <tr>
+                                <td colspan="10" style="text-align: center;"> NO DATA </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            if (Model.RecurringCases.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7" style="text-align: center;"> NO DATA </td>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -566,6 +588,15 @@
         });
     }
 
+    function validateSelection() {
+        var selectedValue = document.getElementById("bankName").value;
+        if (selectedValue === "") {
+            alert("Please select a bank.");
+        } else {
+            document.getElementById("RecurringCasesMonitor").submit();
+        }
+    }
+
     $("#btnSEExp").click(function (e) {
         e.preventDefault();
         var fromdate = $("#frDate").val();
@@ -573,6 +604,10 @@
         var page = $('#page').val();
         var order = $('#orderBy').val();
         var rptType = "xlsx";
+        if (selectBank.value == "") {
+            alert("Please select a bank");
+            return;
+        }
         $.ajax({
             type: "POST",
             dataType: "json",

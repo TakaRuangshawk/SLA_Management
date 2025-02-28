@@ -2369,8 +2369,11 @@ namespace SLA_Management.Controllers
         [HttpGet]
         public IActionResult RecurringCasesMonitor(string bankName,string termID, string frDate,string toDate,string terminalType,int page, int maxRows,string orderBy)
         {
-            
-            if (bankName == null) bankName = "BAAC";
+
+            if (bankName == null)
+            {
+                return View(vm);
+            }
 
             switch (bankName.ToUpper())
             {
