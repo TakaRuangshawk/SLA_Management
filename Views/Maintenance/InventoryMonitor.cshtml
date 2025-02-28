@@ -114,13 +114,14 @@
         text-align: center;
         vertical-align: middle;
     }
-    td{
-        padding: 0.5em!important;
+
+    td {
+        padding: 0.5em !important;
         vertical-align: middle;
     }
 
     .pagination li a {
-        color:black!important;
+        color: black !important;
     }
 </style>
 
@@ -174,22 +175,22 @@
                         </select>
                     </div>
                     <div class="col-md-1">
-                    <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
-                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                    </button>
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
-                    <div class="col-md-1"> 
+                    <div class="col-md-1">
                     </div>
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                     </div>
-                    </div>
+                </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
                         <h>Serial No : </h>
                     </div>
-                    
+
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
                         <select class="selectpicker form-control subsearch" id="terminalseq" name="TermID" data-live-search="true">
 
@@ -363,9 +364,9 @@
                     </div>
                 </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-         
+
                     <div class="col-md-1">
-                          <h>Rows : </h>
+                        <h>Rows : </h>
                     </div>
 
                     <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
@@ -412,12 +413,17 @@
                             <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                             </a>
-@*                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
+                            @*                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal2">
                                 Create a Terminal
                             </button> *@
-                             <button type="button" class="btn btn-primary" onclick="triggerUpload();">
-                                Create a Terminal
-                            </button>
+
+                            @if (Context.Session.GetString("Role") != "User")
+                            {
+                                <button type="button" class="btn btn-primary" onclick="triggerUpload();">
+                                    Create a Terminal
+                                </button>
+                            }
+
 
                             <!-- Hidden file input -->
                             <input type="file" id="fileInput" style="display:none" accept=".txt" onchange="handleFileUpload(event)">
@@ -497,10 +503,11 @@
                     Select page :
                     @Html.DropDownList("page", new SelectListItem[] {
 
-                    }, new
-                    {
-                    @class = "form-control",onchange = "updateTable()"
-                    })
+                                }, new
+                                {
+                                    @class = "form-control",
+                                    onchange = "updateTable()"
+                                })
                 </p>
             </div>
         </div>
@@ -545,10 +552,8 @@
                                 @Html.TextBox("DEVICE_ID", ViewBag.devicE_ID as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
                             <div class="col-md-2 modelTopic">
-
                             </div>
                             <div class="col-md-3 modelTextbox">
-                              
                             </div>
                         </div>
                         <div class="row">
@@ -663,13 +668,13 @@
                                 <label for="SERVICE_BEGINDATE">SERVICE BEGINDATE </label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("SERVICE_BEGINDATE", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
+                                @Html.TextBox("SERVICE_BEGINDATE", ViewBag.SERVICE_BEGINDATE as string, new { @class = "w-100 form-control editable", @readonly = "true", @type = "date" })
                             </div>
                             <div class="col-md-2 modelTopic">
                                 <label for="SERVICE_ENDDATE">SERVICE ENDDATE</label>&nbsp;:&nbsp;
                             </div>
                             <div class="col-md-3 modelTextbox">
-                                @Html.TextBox("SERVICE_ENDDATE", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control editable", @readonly = "true",@type = "date" })
+                                @Html.TextBox("SERVICE_ENDDATE", ViewBag.SERVICE_ENDDATE as string, new { @class = "w-100 form-control editable", @readonly = "true", @type = "date" })
                             </div>
                         </div>
 
@@ -940,13 +945,13 @@
                     // Handle success response
                     alert('Update Status : ' + response);
                     updateTable("search");
-                   
+
                 },
                 error: function (xhr, status, error) {
                     // Handle error response
                     alert('Error updating data:', error);
                 }
-                
+
             });
             }
         });
@@ -957,7 +962,7 @@
         });
     });
     function updateTable(search) {
-       
+
         var terminalno = $("#TermID").val();
         var terminalseq = $("#terminalseq").val();
         var terminaltype = $("#TYPE_ID").val();
@@ -1048,12 +1053,12 @@
                         row.append($("<td>").css("text-align", "center").text(item.typE_ID));
                         row.append($("<td>").css("text-align", "center").text(item.terM_ID));
                         row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
-                        @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
+    @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
                         row.append($("<td>").css("text-align", "center").text(item.status));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_ENDDATE));
 
-                        
+
                         $("#table-id tbody").append(row);
                         window.scrollTo(0, 0);
                     });
@@ -1167,7 +1172,7 @@
                 ToDate: todate_ex,
                 BankCode: bankcode_ex,
                 CurrentlyInUse: currentlyinuse_ex
-            },  
+            },
             url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
             success: function (result) {
                 if (result.success == 'S') {
@@ -1181,7 +1186,7 @@
                 alert('@ViewBag.ErrorMsg');
             }
         });
-        
+
     });
     document.getElementById('myForm').addEventListener('submit', function (event) {
         console.log('Form submitted');
@@ -1245,8 +1250,8 @@
                 alert('Please select a bank.');
                 return;
             }
-            
-            
+
+
             // Send AJAX request to ASP.NET Core controller
             $.ajax({
                 url: '@Url.Action("InsertData", "Maintenance")', // Adjust the URL to match your controller endpoint
@@ -1270,7 +1275,7 @@
     function triggerUpload(){
         var bank = $("#bankcode").val();
         if (bank == "") {
-            alert("Please select a bank!");            
+            alert("Please select a bank!");
         }
         else{
             document.getElementById('fileInput').click();
@@ -1339,4 +1344,3 @@
     }
 </script>
 
-            
