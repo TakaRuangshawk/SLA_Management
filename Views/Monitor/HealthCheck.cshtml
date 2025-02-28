@@ -167,6 +167,7 @@
                                      ,
                                             @style = " border-radius: 10px;",
                                             @name = "state",
+                                            @id = "bankNameDropdown"
                                             // @onchange = "submitForm()"
 
                                         })
@@ -510,6 +511,14 @@
 
      $("#HealthCheckRecheckDate").submit(async function (e) {
          e.preventDefault();
+          $("#boxDownload").show();
+          var bankname = $("#bankNameDropdown").val();
+
+                 if (!bankname) {
+        alert("Please select a bank.");
+         $("#boxDownload").hide();
+        return; // หยุดการทำงานของฟังก์ชันนี้
+    }
 
          var FrDateTemp = new Date($('#FrDate').val());
          var ToDateTemp = new Date($('#ToDate').val());

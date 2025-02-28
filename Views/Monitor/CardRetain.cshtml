@@ -175,6 +175,7 @@
                                      ,
                                             @style = " border-radius: 10px;",
                                             @name = "state",
+                                            @id = "bankNameDropdown"
                                             // @onchange = "submitForm()"
 
                                         })
@@ -492,6 +493,7 @@
 </div>
 
 
+
 <script>
 
         $("#btnclear").click(function (e) {
@@ -537,7 +539,14 @@
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
         var reason = $("#reason").val();
-        var bankname = $("#bankName").val();
+        var bankname = $("#bankNameDropdown").val();
+
+        
+
+                 if (!bankname) {
+        alert("Please select a bank.");
+        return; // หยุดการทำงานของฟังก์ชันนี้
+    }
 
         $("#boxDownload").show(); // แสดง download box
 
@@ -662,6 +671,8 @@
                 var fromdate = $("#fromdate").val();
                 var todate = $("#todate").val();
                  var reason = $("#reason").val();
+                 
+
                   $("#boxDownload").show();
 
                 $.ajax({
@@ -737,7 +748,7 @@
             });
         });
 
-
+       
 
 
 </script>
@@ -842,4 +853,6 @@
            var messageContainer = document.getElementById('message');
            messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
        }
+
+      
 </script>
