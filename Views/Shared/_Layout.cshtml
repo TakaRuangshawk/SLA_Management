@@ -174,17 +174,17 @@
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="maintenanceDropdown" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Maintenance
                             </a>
-                            <ul class="dropdown-menu">
-                                <li>
+                            <div class="dropdown-menu">
+                               
                                     <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a>
                                     <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions</a>
                                     <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary</a>
-                                </li>
+                               
 
-                            </ul>
+                            </div>
                         </li>
                        @*  <li class="nav-item dropdown nav-log">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
