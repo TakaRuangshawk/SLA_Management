@@ -1,0 +1,825 @@
+﻿@using Newtonsoft.Json
+@model PagedList.IPagedList<SLA_Management.Models.EJournalModel>
+@{
+    ViewData["Title"] = "EJournalMenu";
+    string[] tableHeaders = new string[]
+                                                                                                    {
+    "Serial No.",
+    "Terminal ID",
+    "Terminal Name",
+    "FileName",
+    "Update Date",
+    "File Length",
+
+
+                                                                                                    };
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Table #6</title>
+</head>
+
+<style>
+
+    .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
+        width: 526px;
+        margin-left: -2px;
+    }
+
+    .bootstrap-select > .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 3vw 30px 3vw;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    .show-tick {
+        width: -webkit-fill-available !important;
+    }
+
+    th {
+        text-align: center;
+    }
+
+    .boxDownload {
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                    position: fixed;
+                    top: 250px;
+                    right: 550px;
+                    pointer-events: none;
+                    z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+</style>
+
+<style>
+   
+    .modal-dialog {
+        max-width: 80%; 
+    }
+
+    .modal-content {
+        max-height: 80vh; 
+        overflow-y: auto; 
+    }
+
+    .modal-body {
+        max-height: 60vh; 
+        overflow-y: auto; 
+    }
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-4">
+                <a class="text-white fs-4" id="header_search">EJournal</a>
+            </div>
+        </div>
+
+
+        <div id="main_search">
+            @using (Html.BeginForm("EJournalMenu", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
+            {
+               @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                    <div class="col-2" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            @Html.DropDownList("bankName", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = ""  },
+                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
+                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state",
+                                            // @onchange = "submitForm()"
+
+                                        })
+
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+                    </div>
+
+                </div> *@
+                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                    <div class="col-2" style="">
+                        <h>Terminal : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TermID)
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>From Date : </h>
+                    </div>
+                    <div class="col-2 " style="padding:0; ">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
+                        </div>
+                    </div>
+                    <div class="col-2" style="">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="col-2" style="padding:0;">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                   @*  <div class="col-2" >
+                        <h>TerminalType : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+
+                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+
+
+                        </div>
+                    </div> *@
+                    <div class="col-2" style="">
+                        <h>Rows : </h>
+                    </div>
+
+                    <div class="col-2" style="padding:0px;">
+                        <div class="form-group">
+                            <!--		Show Numbers Of Rows 		-->
+                            @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem(){ Text="50", Value = "50" },
+                        new SelectListItem(){ Text="100", Value = "100"  },
+                        new SelectListItem(){ Text="500", Value = "500"  },
+                        new SelectListItem(){ Text="1000", Value = "1000"  }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+
+                                        })
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="row">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="submit" id="btnsearch" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                            </button>
+
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            }
+
+        </div>
+
+
+    </div>
+    <div class="container-fluid">
+        <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+            </div>
+            <div class="col" style="display: flex;justify-content: center;">
+                <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">@ViewBag.Records</a>
+            </div>
+        </div>
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table id="table-id" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        @{
+                            foreach (var head in tableHeaders)
+                            {
+                                <th scope="col" style="text-align:center"> @head </th>
+                            }
+                        }
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        if (Model != null)
+                        {
+                            foreach (var Data in Model)
+                            {
+                                <tr>
+                                    <td style="text-align:center;"> @Data.SerialNo</td>
+                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;"> @Data.TerminalName</td>
+                                    <td style="text-align:center;">
+                                        <a style="color: #007bff;" href="javascript:void(0);" onclick="openModal('@Data.pathOfFile')">
+                                            @Data.FileName
+                                        </a>
+                                    </td>
+                                    <td style="text-align:center;"> @Data.UpdateDate </td>                                   
+                                    <td style="text-align:center;"> @Data.FileLength </td>                                   
+                                </tr>
+                            }
+
+                        }
+                        if (Model.Count == 0)
+                        {
+
+                        <td colspan="7" style="text-align: center;"> NO DATA </td>
+                        }
+                    }
+                </tbody>
+
+
+            </table>
+
+
+            <div class="row">
+                <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                    <nav>
+                        <div class="pagination">
+                            <li data-page="prev" id="back" style="background-color:transparent;">
+
+                                <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
+                            </li>
+                            <!--	Here the JS Function Will Add the Rows -->
+                            <li data-page="next" id="prev" style="background-color:transparent;">
+                                <img style="height:40px;width:auto;margin-left:10px;transform:scaleX(-1)" src="~/images/arrow.png" />
+                            </li>
+
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-md-2" style="z-index:2;">
+                    <p style="font-size:16px;font-weight:bolder;">
+                        Select page :
+                        @Html.DropDownList("seletePageNow", new SelectListItem[] {
+
+                                        }, new
+                                        {
+                                            @class = "form-control"
+                                        })
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileModalLabel">File Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- ข้อมูลจะถูกโหลดมาแสดงที่นี่ -->
+                <p>Loading...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="boxDownload" id="boxDownload" style="display: block;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
+
+
+<script>
+                function openModal(pathOfFile) {
+        console.log("pathOfFile ที่ได้รับ: " + pathOfFile);
+
+        var modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = "<p>Loading...</p>";
+        
+
+        @* 'http://localhost:7059/non-outsource-operation/Maintenance/GetFileContent' *@
+
+        fetch('https://admreport.svoa.co.th:8443/operation/Maintenance/GetFileContent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pathOfFile) // ส่ง pathOfFile เป็น JSON
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text(); // รับข้อมูลจาก backend
+        })
+        .then(data => {
+            console.log('File content received:', data);
+            modalBody.innerHTML = `<pre>${data}</pre>`;
+            $('#fileModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = "<p>Error loading file content.</p>";
+        });
+    }
+
+
+</script>
+
+<script>
+    async function AJAXSubmit(oFormElement) {
+
+        var resultElement = oFormElement.elements.namedItem("result");
+        const formData = new FormData(oFormElement);
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                var res = response.json();
+
+                res.then((data) => {
+
+                    resultElement.value = 'Result succeed : result is ' + data.result + ';
+                    resultElement.style.color = 'LightGreen';
+                });
+
+            }
+
+        } catch (error) {
+            resultElement.value = 'Result error : ' + error;
+            resultElement.style.color = 'red';
+        }
+    }
+
+</script>
+
+
+<script>
+
+    @*  function submitForm() {
+
+         $("#boxDownload").show();
+
+        document.getElementById("EJAddTranProbTermRecheckDate").submit();
+    } *@
+    @* $(document).ready(function () {
+        $(function () {
+
+        $('#FrDate').datepicker({
+        format: "yyyy-mm-dd",
+        maxViewMode: 3,
+        daysOfWeekHighlighted: "0,6",
+        autoclose: true,
+        todayHighlight: true
+        });
+
+        $('#ToDate').datepicker({
+        format: "yyyy-mm-dd",
+        maxViewMode: 3,
+        daysOfWeekHighlighted: "0,6",
+        autoclose: true,
+        todayHighlight: true
+        });
+        });
+        });*@
+
+          $("#btnsearch").click(function (e) {
+         e.preventDefault();
+
+             $("#boxDownload").show();
+
+
+             setTimeout(function () {
+                 $("#EJournalMenuRecheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
+
+         });
+
+
+     $("#btnclear").click(function (e) {
+         e.preventDefault();
+
+             $("#boxDownload").show();
+
+
+             setTimeout(function () {
+                 $("#EJournalMenuRecheckDate").submit();
+             }, 100); // Use 0 milliseconds for minimal delay
+
+         });
+
+         $("#btnSEExp").click(function (e) {
+         e.preventDefault();
+
+         $("#boxDownload").show();
+
+
+         setTimeout(function () {
+             $("#EJournalMenuRecheckDate").submit();
+         }, 100); // Use 0 milliseconds for minimal delay
+
+     });
+
+
+
+
+     function delay(ms) {
+         return new Promise(resolve => setTimeout(resolve, ms));
+     }
+
+
+     $("#EJournalMenuRecheckDate").submit(async function (e) {
+         e.preventDefault();
+
+
+         var FrDateTemp = new Date($('#FrDate').val());
+         var ToDateTemp = new Date($('#ToDate').val());
+
+           var TermID = $("#TermID").val();
+
+               
+    @*  } else if(!TermID){
+             alert("Please select a terminal.");
+              $("#boxDownload").hide(); *@
+
+
+         if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
+             alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
+            
+
+       
+         }else{
+             this.submit();
+         }
+
+     });
+
+     getPagination('#table-id', @ViewBag.maxRows);
+
+
+     function getPagination(table, row) {
+         var lastPage = 1;
+
+         $('#maxRows')
+             .on('change', function (evt) {
+                 $('.paginationprev').html('');
+
+                 lastPage = 1;
+                 $('.pagination')
+                     .find('li')
+                     .slice(1, -1)
+                     .remove();
+                 var trnum = 0;
+                 var maxRows = parseInt($(this).val());
+
+                 if (maxRows == 5000) {
+                     $('.pagination').hide();
+                 } else {
+                     $('.pagination').show();
+                 }
+
+                 var totalRows = $(table + ' tbody tr').length; // numbers of rows
+                 $(table + ' tr:gt(0)').each(function () {
+                     // each TR in  table and not the header
+                     trnum++; // Start Counter
+                     if (trnum > maxRows) {
+                         // if tr number gt maxRows
+
+                         $(this).hide(); // fade it out
+                     }
+                     if (trnum <= maxRows) {
+                         $(this).show();
+                     } // else fade in Important in case if it ..
+                 }); //  was fade out to fade it in
+                 if (totalRows > maxRows) {
+                     // if tr total rows gt max rows option
+                     var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+                     //	numbers of pages
+
+                     for (var i = 1; i <= pagenum;) {
+                         // for each page append pagination li
+                         $('.pagination #prev')
+                             .before(
+                                 '<li data-page="' +
+                                 i +
+                                 '">\
+                                                                            <a style="color: #333333;">' +
+                                 i++ +
+                                 '\
+                                                                                     </li>'
+                             )
+                             .show();
+                     } // end for i
+                     $('#back').show();
+
+
+
+                 } else {
+                     $('#back').hide();
+                     $('#prev').hide();
+                 }
+
+                 // end if row count > max rows
+                 $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+                 $('.pagination li').on('click', function (evt) {
+                     // on click each page
+                     evt.stopImmediatePropagation();
+                     evt.preventDefault();
+                     var pageNum = $(this).attr('data-page'); // get it's number
+
+                     var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+
+
+                     if (pageNum == 'prev') {
+                         if (lastPage == 1) {
+                             return;
+                         }
+                         pageNum = --lastPage;
+                     }
+                     if (maxRows < totalRows) {
+                         if (pageNum == 'next') {
+                             if (lastPage == $('.pagination li').length - 2) {
+                                 return;
+                             }
+                             pageNum = ++lastPage;
+                         }
+                     }
+
+
+                     lastPage = pageNum;
+                     var trIndex = 0; // reset tr counter
+                     $('.pagination li').removeClass('active'); // remove active class from all li
+                     $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                     // $(this).addClass('active');					// add active class to the clicked
+                     limitPagging();
+                     $(table + ' tr:gt(0)').each(function () {
+                         // each tr in table not the header
+                         trIndex++; // tr index counter
+                         // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                         if (
+                             trIndex > maxRows * pageNum ||
+                             trIndex <= maxRows * pageNum - maxRows
+                         ) {
+                             $(this).hide();
+                         } else {
+                             $(this).show();
+                         } //else fade in
+                     }); // end of for each tr in table
+
+
+                     $('#seletePageNow').val(lastPage);
+
+
+
+
+                 }); // end of on click pagination list
+
+                 limitPagging();
+    @*Set value in seletePage box*@
+                     $('#seletePageNow')
+                         .find('option')
+                         .remove()
+                         .end();
+
+
+                 var pagenum = Math.ceil(@Model.Count / parseInt($('#maxRows').val()));
+
+
+                 var select = document.getElementById("seletePageNow");
+                 for (var i = parseInt(pagenum); i > 0; i--) {
+                     var option = document.createElement('option');
+                     option.text = option.value = i;
+                     select.add(option, 0);
+                 }
+
+                 $('#seletePageNow').val(lastPage);
+
+             })
+             .val(row)
+             .change();
+
+
+
+         $('#seletePageNow')
+             .on('change', function (evt) {
+                 // on click each page
+                 evt.stopImmediatePropagation();
+                 evt.preventDefault();
+                 var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+                 var pageNum = $(this).val();
+
+                 if (pageNum == null) pageNum = 1;
+
+
+
+
+
+                 lastPage = pageNum;
+                 var trIndex = 0; // reset tr counter
+                 $('.pagination li').removeClass('active'); // remove active class from all li
+                 $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+                 // $(this).addClass('active');					// add active class to the clicked
+                 limitPagging();
+                 $(table + ' tr:gt(0)').each(function () {
+                     // each tr in table not the header
+                     trIndex++; // tr index counter
+                     // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+                     if (
+                         trIndex > maxRows * pageNum ||
+                         trIndex <= maxRows * pageNum - maxRows
+                     ) {
+                         $(this).hide();
+                     } else {
+                         $(this).show();
+                     } //else fade in
+                 }); // end of for each tr in table
+             }).change();
+
+
+
+         // end of on select change
+          document.getElementById("boxDownload").style.display = "none";
+         // END OF PAGINATION
+     }
+
+
+     function limitPagging() {
+         // alert($('.pagination li').length)
+
+         if ($('.pagination li').length > 7) {
+             if ($('.pagination li.active').attr('data-page') <= 3) {
+                 $('.pagination li:gt(5)').hide();
+                 $('.pagination li:lt(5)').show();
+                 $('.pagination [data-page="next"]').show();
+             } if ($('.pagination li.active').attr('data-page') > 3) {
+                 $('.pagination li:gt(0)').hide();
+                 $('.pagination [data-page="next"]').show();
+                 for (let i = (parseInt($('.pagination li.active').attr('data-page')) - 2); i <= (parseInt($('.pagination li.active').attr('data-page')) + 2); i++) {
+                     $('.pagination [data-page="' + i + '"]').show();
+
+                 }
+
+             }
+         }
+     }
+
+
+
+     $(function () {
+         // Just to append id number for each row
+         $('table tr:eq(0)').prepend('<th> No </th>');
+
+         var id = 0;
+         var count = @Model.Count;
+
+         $('table tr:gt(0)').each(function () {
+             id++;
+             if (count != 0) {
+                $(this).prepend('<td style="text-align:center;">' + id + '</td>');
+             }
+
+         });
+     });
+
+     //  Developed By Yasser Mas
+     // yasser.mas2@gmail.com
+
+
+
+</script>
+
+

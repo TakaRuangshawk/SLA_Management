@@ -19,6 +19,17 @@ namespace SLA_Management.Data.TermProb
 
             _objDb = new ConnectMySQL(FullNameConnection);
         }
+
+        public DBService_TermProb(IConfiguration myConfiguration, string fullNameConnection) : base(myConfiguration)
+        {
+            ConnectString_MySQL = myConfiguration;
+
+            FullNameConnection = fullNameConnection;
+            //ConnectString_MySQL.GetValue<string>("ConnectString_MySQL:FullNameConnection");
+
+            _objDb = new ConnectMySQL(FullNameConnection);
+        }
+
         #endregion
 
         #region Public Functions     

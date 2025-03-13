@@ -5,15 +5,28 @@ using SLA_Management.Commons;
 using SLA_Management.Models.OperationModel;
 using System.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using PagedList;
+using Renci.SshNet;
+using SLA_Management.Data.TermProb;
+using SLA_Management.Models;
+using SLA_Management.Models.TermProbModel;
+using System.Globalization;
+using static System.Net.WebRequestMethods;
+using System.Collections.Concurrent;
+using System.Configuration;
 
 namespace SLA_Management.Controllers
 {
     public class MaintenanceController : Controller
     {
         private IConfiguration _myConfiguration;
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
         private static ConnectMySQL db_fv;
         private static List<InventoryMaintenanceModel> Inventory_dataList = new List<InventoryMaintenanceModel>();
         private static List<WhitelistFilterTemplateModel> WhitelistFilterTemplates_datalist = new List<WhitelistFilterTemplateModel>();
+
+        private static ej_trandada_seek param = new ej_trandada_seek();
         public MaintenanceController(IConfiguration myConfiguration)
         {
 
@@ -191,7 +204,7 @@ namespace SLA_Management.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult InventoryFetchData(string terminalseq,string terminalno,string terminaltype, string connencted,string servicetype,string countertype,string status, string row, string page, string search,string fromdate,string todate,string currentlyinuse)
+        public IActionResult InventoryFetchData(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string row, string page, string search, string fromdate, string todate, string currentlyinuse)
         {
             int _page;
             string filterquery = string.Empty;
@@ -237,10 +250,10 @@ namespace SLA_Management.Controllers
             }
             if (terminalseq != "")
             {
-                filterquery += " and di.TERM_SEQ = '"+ terminalseq +"' ";
+                filterquery += " and di.TERM_SEQ = '" + terminalseq + "' ";
 
             }
-            if(terminaltype != "")
+            if (terminaltype != "")
             {
                 filterquery += " and di.TYPE_ID = '" + terminaltype + "' ";
             }
@@ -248,11 +261,11 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and (di.STATUS = 'use' or di.STATUS ='roustop') ";
             }
-            else if(status == "notuse")
+            else if (status == "notuse")
             {
                 filterquery += " and di.STATUS = 'no' ";
-            }        
-            if(connencted == "0")
+            }
+            if (connencted == "0")
             {
                 filterquery += " and die.CONN_STATUS_ID = '0' ";
             }
@@ -264,29 +277,30 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and die.CONN_STATUS_ID is null and di.STATUS = 'no' ";
             }
-          
-            if(servicetype != "")
+
+            if (servicetype != "")
             {
-                filterquery += " and CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) = '"+ servicetype +"' ";
+                filterquery += " and CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) = '" + servicetype + "' ";
             }
-            if (countertype != ""){
-                filterquery += " and di.COUNTER_CODE = '"+ countertype +"' ";
+            if (countertype != "")
+            {
+                filterquery += " and di.COUNTER_CODE = '" + countertype + "' ";
             }
-            if(fromdate != "" && todate != "")
+            if (fromdate != "" && todate != "")
             {
                 filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '" + fromdate + "' and '" + todate + "'";
-                filterquery +=  "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
+                filterquery += "or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "'))";
             }
             else
             {
-                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '"+ DateTime.Now.ToString("yyyy-MM-dd") +"'";
+                filterquery += " and (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') between '2020-05-01' and '" + DateTime.Now.ToString("yyyy-MM-dd") + "'";
                 filterquery += " or(LENGTH(di.SERVICE_ENDDATE) = 0 and STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + DateTime.Now.ToString("yyyy-MM-dd") + "')) ";
             }
-           if(currentlyinuse == "no")
+            if (currentlyinuse == "no")
             {
                 filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
             }
-           else if (currentlyinuse == "yes")
+            else if (currentlyinuse == "yes")
             {
                 filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
             }
@@ -828,7 +842,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GatewayOutput(Inventory_dataList, fromdate,todate);
+                obj.GatewayOutput(Inventory_dataList, fromdate, todate);
 
 
 
@@ -929,7 +943,7 @@ namespace SLA_Management.Controllers
         }
 
 
-        #endregion
+        #endregion  
         public class TerminalUpdateModel
         {
             public string DeviceID { get; set; }
@@ -1007,5 +1021,741 @@ namespace SLA_Management.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+        private static List<string> ListFilesRecursively(SftpClient sftpClient, string path)
+        {
+            List<string> directories = new List<string>();
+
+            // List the files in the current directory
+            var files = sftpClient.ListDirectory(path);
+
+            // Use a ConcurrentBag to ensure thread-safety when adding to the result list
+            ConcurrentBag<string> result = new ConcurrentBag<string>();
+
+            // Process files in parallel
+            Parallel.ForEach(files, (file) =>
+            {
+                if (file.Name != "." && file.Name != "..")
+                {
+                    if (file.IsDirectory)
+                    {
+                        // Recursively list files in subdirectories (in parallel as well)
+                        var subDirectoryFiles = ListFilesRecursively(sftpClient, file.FullName);
+                        foreach (var subFile in subDirectoryFiles)
+                        {
+                            result.Add(subFile);
+                        }
+                    }
+                    else
+                    {
+                        result.Add(file.FullName);
+                    }
+                }
+            });
+
+            // Convert the ConcurrentBag to a List and return it
+            return result.ToList();
+        }
+
+        //private static List<string> ListFilesRecursively(SftpClient sftpClient, string path)
+        //{
+        //    List<string> directories = new List<string>();
+
+        //    foreach (var file in sftpClient.ListDirectory(path))
+        //    {
+        //        if (file.Name != "." && file.Name != "..")
+        //        {
+        //            if (file.IsDirectory)
+        //            {
+        //                directories.AddRange(ListFilesRecursively(sftpClient, file.FullName));
+        //            }
+        //            else
+        //            {
+        //                directories.Add(file.FullName);
+        //            }
+        //        }
+        //    }
+
+        //    return directories;
+        //}
+
+
+
+        public async Task<IActionResult> EJournalMenu(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
+    , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
+    , string currPageSize, int? page, string maxRows, string terminalType, string startDate, string bankName)
+        {
+
+            string host = _myConfiguration.GetValue<string>("FileServer:IP");
+            string username = _myConfiguration.GetValue<string>("FileServer:Username");
+            string password = _myConfiguration.GetValue<string>("FileServer:Password");
+            string remoteFilePath = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileBackUp");
+
+
+            List<string> terminals = new List<string>();
+
+            List<EJournalModel> journalListResult = new List<EJournalModel>();
+
+
+            List<Device_info_record> device_Info_Records = new List<Device_info_record>();
+
+            DBService_TermProb dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+
+            device_Info_Records = dBService.GetDeviceInfoFeelview();
+
+
+
+            if (startDate == null || startDate == "")
+                startDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            ViewBag.startDate = startDate;
+
+            int pageNum = 1;
+
+            try
+            {
+
+
+                if (cmdButton == "Clear")
+                    return RedirectToAction("EJournalMenu");
+
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    FrTime = (FrTime ?? currFrTime);
+                    ToTime = (ToTime ?? currToTime);
+                    TermID = (TermID ?? currTID);
+
+                }
+
+
+
+
+
+                ViewBag.CurrentFr = (FrDate ?? currFr);
+                ViewBag.CurrentTo = (ToDate ?? currTo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+
+                #region Set param
+                bool chk_date = false;
+                if (null == TermID)
+                    param.TERMID = currTID == null ? "" : currTID;
+                else
+                    param.TERMID = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
+                }
+                else
+                {
+                    if ((FrTime == "" && currFrTime == "") || (FrTime == null && currFrTime == null) ||
+                        (FrTime == null && currFrTime == "") || (FrTime == "" && currFrTime == null))
+                        param.FRDATE = FrDate + " 00:00:00";
+                    else
+                        param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    if ((ToTime == "" && currToTime == "") || (ToTime == null && currToTime == null) ||
+                        (ToTime == null && currToTime == "") || (ToTime == "" && currToTime == null))
+                        param.TODATE = ToDate + " 23:59:59";
+                    else
+                        param.TODATE = ToDate + " " + ToTime;
+                }
+
+
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+
+                param.MONTHPERIOD = "";
+                param.YEARPERIOD = "";
+                param.TRXTYPE = "";
+
+                #endregion
+
+
+
+                DateTime startDateTemp = DateTime.Parse(FrDate);
+                DateTime endDateTemp = DateTime.Parse(ToDate);
+
+                DateTime checkDate;
+
+                #region Get EJlog operation
+
+                //(terminals, journalListResult) = await ExecuteSftpProcessAsync(
+                //host, username, password, remoteFilePath, TermID, startDateTemp, endDateTemp
+                // );
+
+                try
+                {
+
+                    using (var sftpClient = new SftpClient(host, username, password))
+                    {
+
+                        sftpClient.Connect();
+
+
+                        if (sftpClient.Exists(remoteFilePath))
+                        {
+
+                            var files = sftpClient.ListDirectory(remoteFilePath);
+
+
+
+
+
+
+                            #region Loop add terminal name from file server
+
+                            foreach (var file in files)
+                            {
+
+                                if (file.IsDirectory && file.Name != "." && file.Name != "..")
+                                {
+
+                                    terminals.Add(file.Name.Replace('.', ' '));
+                                }
+
+                            }
+
+
+                            #endregion
+
+                            #region #region Loop folder of Terminal -> /opt/FileServerBAAC/EJ/T021B034B992P001
+
+                            Parallel.ForEach(terminals, terminal =>
+                            {
+                                if (TermID != null)
+                                {
+                                    if (terminal != TermID) return; // Skip if terminal does not match TermID
+
+                                    string termianlPath = Path.Combine(remoteFilePath, terminal);
+
+                                    // Get the directories in parallel as well
+                                    var directories = ListFilesRecursively(sftpClient, termianlPath);
+
+                                    // Use Parallel.ForEach for processing each directory
+                                    Parallel.ForEach(directories, directory =>
+                                    {
+                                        var fileInfo = sftpClient.Get(directory);
+                                        try
+                                        {
+                                            string dateFromFile = fileInfo.Name.Substring(2, 8);
+                                            DateTime checkDateTemp;
+
+                                            if (DateTime.TryParseExact(dateFromFile, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out checkDateTemp))
+                                            {
+                                                if (checkDateTemp < startDateTemp || checkDateTemp > endDateTemp)
+                                                {
+                                                    return; // Skip if the date is out of range
+                                                }
+
+                                                if (fileInfo.Name.EndsWith(".txt"))
+                                                {
+                                                    Device_info_record filteredRecordsTemp = device_Info_Records
+                                                        .FirstOrDefault(device => device.TERM_ID == terminal);
+
+                                                    var journal = new EJournalModel
+                                                    {
+                                                        ID = GenerateUniqueID(),
+                                                        SerialNo = filteredRecordsTemp.TERM_SEQ,
+                                                        TerminalName = filteredRecordsTemp.TERM_NAME,
+                                                        TerminalType = filteredRecordsTemp.COUNTER_CODE,
+                                                        FileName = fileInfo.Name,
+                                                        FileContent = "",  // If you want to read file content, do it here
+                                                        TerminalID = terminal,
+                                                        UpdateDate = fileInfo.LastWriteTime.ToString("yyyy-MM-dd"),
+                                                        LastUploadingTime = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                        pathOfFile = fileInfo.FullName,
+                                                        FileLength = FormatFileLength(fileInfo.Length),
+                                                        UploadStatus = "Success"
+                                                    };
+
+                                                    journalListResult.Add(journal); // Add to thread-safe collection
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Error while processing file {fileInfo.Name} in directory {directory}: {ex.Message}");
+                                        }
+                                    });
+                                }
+                            });
+
+                            #region Can be use 
+                            //foreach (var terminal in terminals) //Terminal
+                            //{
+
+                            //    if (TermID != null)
+                            //    {
+                            //        if (terminal != TermID) continue;
+
+                            //        string termianlPath = Path.Combine(remoteFilePath, terminal);
+
+                            //        List<string> directories = ListFilesRecursively(sftpClient, termianlPath);
+
+
+                            //        foreach (var directory in directories)
+                            //        {
+
+                            //            var fileInfo = sftpClient.Get(directory);
+                            //            try
+                            //            {
+
+                            //                string dateFromFile = fileInfo.Name.Substring(2, 8);
+                            //                DateTime checkDateTemp;
+
+
+                            //                if (DateTime.TryParseExact(dateFromFile, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out checkDateTemp))
+                            //                {
+
+                            //                    if (checkDateTemp < startDateTemp || checkDateTemp > endDateTemp)
+                            //                    {
+                            //                        continue; 
+                            //                    }
+
+
+                            //                    if (fileInfo.Name.EndsWith(".txt"))
+                            //                    {
+
+
+
+                            //                        Device_info_record filteredRecordsTemp = device_Info_Records
+                            //                            .FirstOrDefault(device => device.TERM_ID == terminal);
+
+
+                            //                        var journal = new EJournalModel
+                            //                        {
+                            //                            ID = GenerateUniqueID(),
+                            //                            SerialNo = filteredRecordsTemp.TERM_SEQ,
+                            //                            TerminalName = filteredRecordsTemp.TERM_NAME,
+                            //                            TerminalType = filteredRecordsTemp.COUNTER_CODE,
+                            //                            FileName = fileInfo.Name,
+                            //                            FileContent = "",  // ถ้าต้องการอ่านเนื้อหาของไฟล์ สามารถทำได้ที่นี่
+                            //                            TerminalID = terminal,
+                            //                            UpdateDate = fileInfo.LastWriteTime.ToString("yyyy-MM-dd"),
+                            //                            LastUploadingTime = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                            //                            pathOfFile = fileInfo.FullName,
+                            //                            FileLength = FormatFileLength(fileInfo.Length),
+                            //                            UploadStatus = "Success"
+                            //                        };
+
+
+                            //                        journalListResult.Add(journal);
+                            //                    }
+                            //                }
+                            //            }
+                            //            catch (Exception ex)
+                            //            {
+                            //                Console.WriteLine($"Error while processing file {fileInfo.Name} in directory {directory}: {ex.Message}");
+                            //            }
+
+
+                            //        }
+
+
+                            //        #region parallel
+                            //        //List<string> directories = ListFilesRecursively(sftpClient, termianlPath);
+
+                            //        //Parallel.ForEach(directories, (directory) =>
+                            //        //{
+                            //        //    try
+                            //        //    {
+                            //        //        try
+                            //        //        {
+                            //        //            var files = sftpClient.ListDirectory(directory).Where(file => !file.Name.StartsWith(".")).ToList();
+                            //        //        }
+                            //        //        catch (Exception ex)
+                            //        //        {
+                            //        //            Console.WriteLine($"Error while listing directory {directory}: {ex.Message}");
+                            //        //        }
+                            //        //        foreach (var file in files)
+                            //        //        {
+
+                            //        //            string dateFromFile = file.Name.Substring(2, 8);
+                            //        //            DateTime checkDate;
+
+                            //        //            if (DateTime.TryParseExact(dateFromFile, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out checkDate))
+                            //        //            {
+                            //        //                if (checkDate < startDateTemp || checkDate > endDateTemp)
+                            //        //                {
+                            //        //                    continue;
+                            //        //                }
+
+                            //        //                if (file.Name.EndsWith(".txt"))
+                            //        //                {
+
+                            //        //                    var fileInfo = file;
+
+
+                            //        //                    Device_info_record filteredRecordsTemp = device_Info_Records
+                            //        //                        .FirstOrDefault(device => device.TERM_ID == terminal);
+
+                            //        //                    var journal = new EJournalModel
+                            //        //                    {
+                            //        //                        ID = GenerateUniqueID(),
+                            //        //                        SerialNo = filteredRecordsTemp.TERM_SEQ,
+                            //        //                        TerminalName = filteredRecordsTemp.TERM_NAME,
+                            //        //                        TerminalType = filteredRecordsTemp.COUNTER_CODE,
+                            //        //                        FileName = file.Name,
+                            //        //                        FileContent = "",
+                            //        //                        TerminalID = terminal,
+                            //        //                        UpdateDate = file.LastWriteTime.ToString("yyyy-MM-dd"),
+                            //        //                        LastUploadingTime = file.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                            //        //                        pathOfFile = file.FullName,
+                            //        //                        FileLength = FormatFileLength(file.Length),
+                            //        //                        UploadStatus = "Success"
+                            //        //                    };
+
+                            //        //                    journalListResult.Add(journal);
+                            //        //                }
+                            //        //            }
+                            //        //        }
+
+                            //        //    }
+                            //        //    catch (Exception ex)
+                            //        //    {
+
+                            //        //    }
+
+                            //        //});
+                            //        #endregion
+
+                            //        #region Get file EJYYYYMMDD.txt
+
+                            //        //foreach (var fileDay in dayPath)
+                            //        //{
+                            //        //    if (!fileDay.IsDirectory && fileDay.Name != "." && fileDay.Name != "..")
+                            //        //    {
+
+
+
+                            //        //        string dateFromFile = fileDay.Name.Substring(2, 8);
+
+                            //        //        checkDate = DateTime.ParseExact(dateFromFile, "yyyyMMdd", null);
+
+
+                            //        //        if (checkDate < startDateTemp || checkDate > endDateTemp)
+                            //        //        {
+                            //        //            continue;
+                            //        //        }
+
+                            //        //        string dayPathStr = termianlPath + "/" + fileDay.Name;
+
+                            //        //        Console.WriteLine("Reading from path: " + termianlPath);
+
+
+                            //        //        if (fileDay.Name.EndsWith(".txt"))
+                            //        //        {
+
+
+                            //        //            //string content = reader.ReadToEnd();
+                            //        //            Device_info_record filteredRecordsTemp = device_Info_Records
+                            //        //             .FirstOrDefault(device => device.TERM_ID == terminal);
+
+
+                            //        //            var journal = new EJournalModel
+                            //        //            {
+                            //        //                ID = GenerateUniqueID(),
+                            //        //                SerialNo = filteredRecordsTemp.TERM_SEQ,
+                            //        //                TerminalName = filteredRecordsTemp.TERM_NAME,
+                            //        //                TerminalType = filteredRecordsTemp.COUNTER_CODE,
+                            //        //                FileName = fileDay.Name,
+                            //        //                FileContent = "",
+                            //        //                TerminalID = terminal,
+                            //        //                UpdateDate = fileDay.LastWriteTime.ToString("yyyy-MM-dd"),
+                            //        //                LastUploadingTime = fileDay.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                            //        //                pathOfFile = fileDay.FullName,
+                            //        //                FileLength = FormatFileLength(fileDay.Length),
+                            //        //                UploadStatus = "Success"
+
+                            //        //            };
+
+
+                            //        //            journalListResult.Add(journal);
+
+
+                            //        //        }
+
+                            //        //    }
+
+                            //        //}
+
+                            //        #endregion
+                            //    }
+
+
+
+
+
+
+
+                            //}
+
+                            #endregion
+
+
+                        }
+                        else
+                        {
+
+                        }
+
+                        sftpClient.Disconnect();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"EJournalMenu error : {ex.Message}");
+                }
+
+
+                #endregion
+
+
+                #endregion
+
+
+                var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
+
+
+                var item = new List<string> { };
+
+
+                ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
+
+
+
+                List<Device_info_record> filteredRecords = device_Info_Records
+                        .Where(device => terminals.Contains(device.TERM_ID))
+                        .ToList();
+
+                ViewBag.CurrentTID = filteredRecords;
+                ViewBag.TermID = TermID;
+
+
+
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+                //if (journalList.Count > 0)
+                //{
+                //    if (bankName == "BAAC")
+                //    {
+                //        switch (terminalType)
+                //        {
+                //            case "LOT572":
+                //                journalList.RemoveAll(item => item.Terminal_Type == "LOT587");
+                //                break;
+                //            case "LOT587":
+                //                journalList.RemoveAll(item => item.Terminal_Type == "LOT572");
+                //                break;
+                //            default:
+                //                break;
+                //        }
+                //    }
+
+
+                //    if (TermID != null)
+                //    {
+                //        journalList.RemoveAll(item => item.Terminal_ID != TermID);
+                //    }
+
+
+
+
+                //}
+
+                if (journalListResult.Count > 0)
+                {
+
+                    if (terminalType != null)
+                    {
+                        journalListResult = journalListResult.Where(z => z.TerminalType.Contains(terminalType)).OrderBy(x => x.FileName).ToList();
+                    }
+                    else
+                    {
+                        journalListResult = journalListResult.OrderBy(x => x.FileName).ToList();
+                    }
+
+
+                }
+
+
+
+                if (null == journalListResult || journalListResult.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = journalListResult.Count;
+
+                    param.PAGESIZE = journalListResult.Count;
+                }
+
+
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = journalListResult.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    journalListResult.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+
+
+
+
+            }
+            catch (Exception)
+            {
+
+            }
+
+
+
+
+            return View(journalListResult.ToPagedList(pageNum, (int)param.PAGESIZE));
+
+        }
+
+
+
+
+
+
+        [HttpPost]
+        public ActionResult GetFileContent([FromBody] string pathOfFile)
+        {
+            if (!string.IsNullOrEmpty(pathOfFile))
+            {
+                // ดึงข้อมูลไฟล์จาก SFTP โดยใช้ pathOfFile
+                var fileContent = GetFileContentFromSFTP(pathOfFile);
+
+                if (!string.IsNullOrEmpty(fileContent))
+                {
+                    return Content(fileContent); // ส่งเนื้อหาของไฟล์กลับไป
+                }
+                else
+                {
+                    return Content("Error: Unable to read file.");
+                }
+            }
+            else
+            {
+                return Content("Invalid file path.");
+            }
+        }
+
+
+        private static string GetFileContentFromSFTP(string path)
+        {
+
+            string host = "10.98.10.31";
+            string username = "root";
+            string password = "P@ssw0rd";
+
+            using (var sftp = new SftpClient(host, username, password))
+            {
+                try
+                {
+                    sftp.Connect();
+                    if (!sftp.Exists(path))
+                    {
+                        return $"Error: File '{path}' not found on the server.";
+                    }
+
+                    var fileContent = string.Empty;
+
+
+                    using (var fileStream = new MemoryStream())
+                    {
+                        sftp.DownloadFile(path, fileStream);
+                        fileStream.Position = 0;
+
+                        using (var reader = new StreamReader(fileStream))
+                        {
+                            fileContent = reader.ReadToEnd();
+                        }
+                    }
+
+                    return fileContent;
+                }
+                catch (Exception ex)
+                {
+                    return $"Error: {ex.Message}";
+                }
+                finally
+                {
+                    sftp.Disconnect();
+                }
+            }
+        }
+
+        private static string GenerateUniqueID()
+        {
+            return Guid.NewGuid().ToString();
+        }
+
+        private static string FormatFileLength(long lengthInBytes)
+        {
+            double length = lengthInBytes;
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+
+            int unitIndex = 0;
+            while (length >= 1024 && unitIndex < units.Length - 1)
+            {
+                length /= 1024;
+                unitIndex++;
+            }
+
+            return $"{Math.Round(length, 2)} {units[unitIndex]}"; // แสดงขนาดไฟล์ในหน่วยที่เข้าใจง่าย
+        }
+
     }
 }

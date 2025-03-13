@@ -160,55 +160,92 @@
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="EJLogMonitor">EJLog Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="LastTransaction">Last Transaction Monitor</a>
+                             
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="EJLogMonitor">EJLog Monitor</a>
+                                
+                               
                                 @*<a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">Card Retain Monitor</a>*@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain2">Card Retain Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Monitor</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Monitor</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Monitor</a>
+                              
+                             
                                @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
                             </div>
                         </li>
-                        <li class="nav-item dropdown nav-log">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="maintenanceDropdown" role="button" data-bs-toggle="dropdown">
+                                Maintenance
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a>
+                                    <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions</a>
+                                    <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary</a>
+                                </li>
+
+                            </ul>
+                        </li>
+                       @*  <li class="nav-item dropdown nav-log">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Log File Uploading
                             </a>
                             <div class="dropdown-menu">
-                                @*<a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">InsertFileCOMLog</a>*@
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">InsertFileCOMLog</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="CheckEJLastUpdate">EJ Log</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">COM Log</a>
                             </div>
-                        </li>
+                        </li> *@
                         <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Report
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="Regulator">Cash Report</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Maintenance History</a> 
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitorHistory">Inventory Report</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="WhitelistReport">Whitelist Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="AuditingReport" asp-action="AuditingReportAction">Auditing Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="HardwareReport">Hardware Report</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report Daily</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report Monthly</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Management</a>
+                               
+                                
                                 
                             </div>
-                        </li>      
+                        </li>
+                        <li class="nav-item dropdown nav-report">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                SLA Management
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="Holiday">Holiday</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">SLA Log Management</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report (Daily)</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report (Monthly)</a>
+                            
+                            </div>
+                        </li>
+
                         <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Management
                             </a>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Management" asp-action="Holiday">Holiday</a>       
+                                   
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="ServiceTracking">Service Tracking</a>
-                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a> 
+                               
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="WhitelistFilterTemplate">Whitelist Filter Template</a> 
                             </div>
-                        </li>   
+                        </li>
+                        <li class="nav-item dropdown nav-report">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                Information
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Information</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Monitor</a>
+                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Version</a>
+                            </div>
+                        </li>
                  @*       <li class="nav-item dropdown nav-report">
                             <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                                 Maintenance
