@@ -385,7 +385,7 @@ namespace SLA_Management.Controllers
             string strErr = string.Empty;
             try
             {
-
+                List<ej_trandeviceprob> ejLog_dataListTemp = ejLog_dataList.ToList();
                 if (ejLog_dataList == null || ejLog_dataList.Count == 0) return Json(new { success = "F", filename = "", errstr = "Data not found!" });
 
                 string strPath = Environment.CurrentDirectory;
@@ -404,7 +404,7 @@ namespace SLA_Management.Controllers
 
                 obj.PathDefaultTemplate = folder_name;
 
-                obj.GenExcelFileDeviceTermPorb(ejLog_dataList);
+                obj.GenExcelFileDeviceTermPorb(ejLog_dataListTemp);
 
 
 

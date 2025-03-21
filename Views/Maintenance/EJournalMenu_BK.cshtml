@@ -1,7 +1,7 @@
 ﻿@using Newtonsoft.Json
 @model PagedList.IPagedList<SLA_Management.Models.EJournalModel>
 @{
-    ViewData["Title"] = "EJournalMenu(backUp)";
+    ViewData["Title"] = "EJournalMenu(BackUp)";
     string[] tableHeaders = new string[]
                                                                                                     {
     "Serial No.",
@@ -156,13 +156,13 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-4">
-                <a class="text-white fs-4" id="header_search">EJournal (backUp)</a>
+                <a class="text-white fs-4" id="header_search">EJournal (BackUp)</a>
             </div>
         </div>
 
 
         <div id="main_search">
-            @using (Html.BeginForm("EJournalMenu", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
+            @using (Html.BeginForm("EJournalMenu_BK", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
                @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-2" style="">
