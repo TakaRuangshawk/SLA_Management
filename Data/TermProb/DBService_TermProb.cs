@@ -1,6 +1,7 @@
 ﻿using K4os.Compression.LZ4.Internal;
 using MySql.Data.MySqlClient;
 using SLA_Management.Commons;
+using SLA_Management.Models;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
 using System.Data;
@@ -64,6 +65,80 @@ namespace SLA_Management.Data.TermProb
             { throw ex; }
             return result;
         }
+
+        public bool InsertDataToJobEJ(string jobId ,string uploadBy,int countFile)
+        {
+            bool result = false;
+
+          
+            string _sqlInsert = string.Empty;
+
+            try
+            {
+                // ใช้คำสั่ง SQL ใหม่ที่คุณให้มา
+                _sqlInsert = "INSERT INTO `gsb_logview`.`ejjob` (`Job_ID`, `UploadDate`, `UploadBy`, `Status`,`CountFile`) " +
+                             "VALUES ('" + jobId + "', '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + uploadBy + "', 'open'," + countFile + ");";
+
+                // ใช้ ExecuteQueryNoneParam สำหรับการเพิ่มข้อมูล (ไม่มีพารามิเตอร์ที่ต้องใช้)
+                result = _objDb.ExecuteQueryNoneParam(_sqlInsert);
+
+                if (!result)
+                {
+                    if (_objDb.ErrorMessDB != null)
+                    {
+                        ErrorMessage = _objDb.ErrorMessDB;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return result;
+        }
+        public List<EJ_Job> SelectDataFromJobEJ(string startDate, string endDate)
+        {
+            List<EJ_Job> jobList = new List<EJ_Job>();
+
+            
+            string _sqlSelect = "SELECT `Job_ID`, `UploadDate`, `UploadBy`, `Status` ,`CountFile` FROM `gsb_logview`.`ejjob` " +
+                                "WHERE `UploadDate` BETWEEN '" + startDate + " 00:00:00' AND '" + endDate + " 23:59:59'";
+
+            try
+            {
+
+                var data = _objDb.GetDatatableNotParam(_sqlSelect);
+
+                if (data != null && data.Rows.Count > 0)
+                {
+                    // วนลูปแปลงข้อมูลจาก DataTable เป็น List<JobModel>
+                    foreach (DataRow row in data.Rows)
+                    {
+                        EJ_Job job = new EJ_Job
+                        {
+                            Job_ID = row["Job_ID"].ToString(),
+                            CountFile = (int)row["CountFile"],
+                            UploadDate = Convert.ToDateTime(row["UploadDate"]),
+                            UploadBy = row["UploadBy"].ToString(),
+                            Status = row["Status"].ToString()
+                        };
+
+                        jobList.Add(job);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // หากเกิดข้อผิดพลาดในการดึงข้อมูล
+                throw ex;
+            }
+
+            return jobList;
+        }
+
+
+
 
         public bool AddJobTaskDeviceTermProb(string startDate,string probCode,string atmType)
         {

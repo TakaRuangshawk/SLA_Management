@@ -3,9 +3,18 @@ using SLA_Management.Commons.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<FormOptions>(option =>
 {
     option.MultipartBodyLengthLimit = 2028 * 1024 * 1024;
@@ -25,12 +34,12 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 app.MapHub<RPTHub>("/JobRPTHub");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=LoginMain}/{action=Login}/{id?}");
 
 app.Run();

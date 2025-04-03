@@ -1,0 +1,306 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Operation</title>
+    <!-- Style -->
+    @* <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SLA_Management.styles.css" asp-append-version="true" />
+    <link rel="shortcut icon" href="~/images/favicon.ico" type="image/x-icon"/>
+    <script src="~/js/jquery-3.3.1.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>*@
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/MainCSS_gateway.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="shortcut icon" href="~/images/favicon.ico" type="image/x-icon" />
+
+    <link href="~/lib/bootstrap-select.1.13.18/content/content/bootstrap-select.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap-select.1.13.18/content/content/bootstrap-select.min.css" rel="stylesheet" />
+
+    <link href="~/lib/bootstrap-select.1.13.18/css/bootstrap-select.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SLA_Management.styles.css" asp-append-version="true" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+
+    <script src="~/lib/popper.js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/lib/bootstrap-select.1.13.18/js/bootstrap-select.js"></script>
+</head>
+@{
+    string selectHeader = "";
+    string forcss_header = "";
+    selectHeader = @ViewData["Title"].ToString();
+    switch (selectHeader)
+    {
+        case "Home Page":
+            forcss_header = "home";
+            break;
+        case "Cash Report":
+            forcss_header = "report";
+            break;
+        case "Log File Monitor":
+            forcss_header = "log";
+            break;
+        case "Problem Management":
+            forcss_header = "monitor";
+            break;
+        default:
+            break;
+    }
+}
+<style>
+    li:hover{
+    border-radius: 0px 0px 30px 0px;
+    background-color: rgba(30,30,30,0.14);
+    }
+    .navbar {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    background: rgb(238,168,73);
+    background: linear-gradient(90deg, rgba(238,168,73,1) 0%, rgba(244,107,69,1) 100%);
+    }
+    .navbar a:hover, .dropdown:hover .dropbtn {
+    background-color: rgba(244,107,69,1) 100%);
+    }
+    .nav-link{
+    padding: 1rem 1rem;
+    }
+
+    .bg_home {
+    background-image: url('/non-outsource-operation/images/Pic_Home.png');
+    background-size: 100% 100%;
+    background-position: top;
+    background-repeat: no-repeat;
+    }
+    .bg_main{
+    }
+    .nav-item{
+    width: auto;    
+    text-align: center;
+    padding: 0px 15px 0px 15px;
+    }
+    .nav-@forcss_header{
+    border-radius: 0px 0px 30px 0px;
+    background-color: rgba(30,30,30,0.14);
+    }
+    .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    }
+    @@media (max-width: 1199px) {
+    .footer-left {
+    justify-content: center;
+    padding: 0;
+    }
+    .footer-right{
+    justify-content: center;
+    padding: 0;
+    }
+    footer{
+    line-height: 20px;
+    }
+    }
+    @@media (min-width: 1200px) { 
+    .footer-left {
+    justify-content: flex-end;
+    padding: 0px 40px 0px 0px;
+    }
+    .footer-right{
+    justify-content: flex-start;
+    padding: 0px 0px 0px 40px;
+    }
+    footer{
+    line-height: 40px;
+    }
+    }
+</style>
+@{
+    string urlBG = "";
+    if (ViewData["Title"] == "Home Page")
+    {
+        urlBG = "bg_home";
+    }
+    else
+    {
+        urlBG = "bg_main";
+    }
+
+
+}
+
+
+
+
+
+@*<img src="~/images/Pic_Home.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">
+<img src="~/images/Pic_Page.png" alt="Logo" align="right" style="height:auto;width:100%;max-width:790px; display:none;">*@
+<body class="bg_main bg_home" style="background-image: url('/non-outsource-operation/images/Pic_Page.png');background-size:100% auto">
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-light box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="~/images/2.png" width="127" height="53" alt="Logo" class="me-3">                  
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        @if (Context.Session.GetString("Role") != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="monitorDropdown" role="button" data-bs-toggle="dropdown">
+                                    Monitor
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="EJAddTranProbTerm" asp-action="EJAddTranProbTermAction">Problem Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="HealthCheck">Health Check</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="LogAnalysis">Log Analysis Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="Encryption">Encryption Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Monitor" asp-action="CardRetain">CardRetain</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="maintenanceDropdown" role="button" data-bs-toggle="dropdown">
+                                    Maintenance
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown">
+                                    Management
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Management</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="TicketManagement">Ticket Management</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="ReportCases">Report Cases(BAAC)</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+
+                    @if (Context.Session.GetString("Username") != null)
+                    {
+                        <div class="dropdown ms-auto">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                👤 @Context.Session.GetString("Username")
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                @if (Context.Session.GetString("Role") == "ADMIN")
+                                {
+                                    <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="AddUser">AddUser</a></li>
+                                }
+                                <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="EditUser">EditUser</a></li>
+                                <li><a class="dropdown-item" asp-controller="LoginMain" asp-action="Logout">Logout</a></li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+
+
+
+    <div class="container-fluid">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted" style="background-color:orange;">
+        <div class="container-fluid">
+        <div class="row fs-6" style="color:whitesmoke;">
+            <div class="col-12 col-xl-4">
+                <div class="row">
+                        
+                    <div class="footer-left" style="margin: 0px;display: flex;height: 2vh;">1023 MS Siam Tower, 30th Floor, Rama 3 Rd,</div>
+                </div>
+                <div class="row">
+                    <div class="footer-left" style="margin: 0px;display: flex;">Chongnonsi, Yannawa, Bangkok, 10120 Thailand</div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="row">
+                      <div class="footer-center" style="padding: 0px 0px 0px 0px;margin: 0px;display: flex;justify-content: center;height: 2vh;">Copyright© 2023 - Dataone Asia Co., Ltd</div>
+                </div>
+                <div class="row">
+                      <div class="footer-center"  style="padding: 0px 0px 0px 0px;margin: 0px;display: flex;justify-content: center;height: 2vh;">Government Savings Bank</div>
+                </div>
+                <div class="row">
+                      <div class="footer-center"  style="padding: 0px 0px 0px 0px;margin: 0px;display: flex;justify-content: center;">Version 0.2.0</div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="row">
+                    <div class="footer-right" style="margin: 0px;display: flex;height: 2vh;">Tel: +66 2686 3000</div>
+                </div>
+                <div class="row">
+                    <div class="footer-right" style="margin: 0px;display: flex;">Fax: +66 2682 6322, +66 2686 6468</div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </footer>
+
+   
+
+   
+    <script>
+   
+
+
+        if("@ViewData["Title"]"==="Home Page"){
+            document.addEventListener('DOMContentLoaded', function () {
+                // Get the element with the class 'example-class'
+                const element = document.querySelector('.bg_main');
+                if (element) {
+                    element.style.removeProperty('background-image');
+                    element.style.removeProperty('background-size');
+                }
+            });
+        }
+        
+    </script>
+    @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+
+
+
+</html>

@@ -15,6 +15,7 @@ using System.Globalization;
 using static System.Net.WebRequestMethods;
 using System.Collections.Concurrent;
 using System.Configuration;
+using System.Security.AccessControl;
 
 namespace SLA_Management.Controllers
 {
@@ -1079,6 +1080,295 @@ namespace SLA_Management.Controllers
 
         //    return directories;
         //}
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> UploadFiles(List<IFormFile> files , string Job)
+        {
+            string uploadPath = @"C:\Temp";
+
+            try
+            {
+                string dateTime = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                // ตรวจสอบว่าโฟลเดอร์มีอยู่แล้วหรือไม่ หากไม่มีให้สร้าง
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                // ตรวจสอบว่ามีไฟล์หรือไม่
+                if (files == null || files.Count == 0)
+                {
+                    return BadRequest("No files were uploaded.");
+                }
+
+                int countFile = files.Count();
+
+                foreach (var file in files)
+                {
+                    // ตรวจสอบประเภทของไฟล์ก่อนการอัปโหลด (เฉพาะ .txt)
+                    if (file.ContentType != "text/plain")
+                    {
+                        return BadRequest("Only .txt files are allowed.");
+                    }
+
+                    // ตรวจสอบชื่อไฟล์ให้ตรงตามรูปแบบ EJyyyyMMdd.txt
+                    string fileName = Path.GetFileName(file.FileName);
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+                    if (!fileNameWithoutExtension.StartsWith("EJ") || fileNameWithoutExtension.Length != 10 || !DateTime.TryParseExact(fileNameWithoutExtension.Substring(2), "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out _))
+                    {
+                        return BadRequest("File name must start with 'EJ' followed by a valid date in 'yyyyMMdd' format.");
+                    }
+
+                    // ตรวจสอบขนาดของไฟล์ (เช่น ไม่เกิน 10MB)
+                    if (file.Length > 10 * 1024 * 1024) // 10MB
+                    {
+                        return BadRequest("File size exceeds the limit of 10MB.");
+                    }
+
+                    string jobId = Job;
+                    uploadPath = @"D:\logs\" + jobId;  // โฟลเดอร์ที่จะใช้เก็บไฟล์
+
+                    // ตรวจสอบว่าโฟลเดอร์มีอยู่หรือไม่ ถ้ายังไม่มีให้สร้าง
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath); // สร้างโฟลเดอร์ใหม่
+                    }
+
+                    // ใช้ชื่อไฟล์เดิมจากการอัปโหลด
+                    string filePath = Path.Combine(uploadPath, file.FileName);  // ใช้ชื่อไฟล์เดิมจากการอัปโหลด
+
+                    // ถ้ามีไฟล์เก่าอยู่แล้วในเส้นทางเดียวกัน, ให้ทับไฟล์เก่านั้น
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);  // คัดลอกข้อมูลไฟล์ไปยังที่จัดเก็บ
+                    }
+
+                }
+
+                DBService_TermProb dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+                dBService.InsertDataToJobEJ(Job, HttpContext.Session.GetString("Username"), countFile);
+
+                return Ok("Files uploaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                // ส่งข้อผิดพลาดกลับหากเกิดปัญหาการอัปโหลด
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
+
+        public async Task<IActionResult> EJournalMenu_Fail(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
+  , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize
+  , string currPageSize, int? page, string maxRows, string terminalType, string startDate, string bankName)
+        {
+
+            string host = _myConfiguration.GetValue<string>("FileServer:IP");
+            string username = _myConfiguration.GetValue<string>("FileServer:Username");
+            string password = _myConfiguration.GetValue<string>("FileServer:Password");
+            string remoteFilePath = _myConfiguration.GetValue<string>("FileServer:partLinuxUploadFileBackUp_BK");
+
+
+            List<string> terminals = new List<string>();
+
+            List<EJ_Job> ej_Job = new List<EJ_Job>();
+
+
+
+            List<Device_info_record> device_Info_Records = new List<Device_info_record>();
+
+            DBService_TermProb dBService = new DBService_TermProb(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+
+
+
+            device_Info_Records = dBService.GetDeviceInfoFeelview();
+
+
+
+            if (startDate == null || startDate == "")
+                startDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            ViewBag.startDate = startDate;
+
+            int pageNum = 1;
+
+            try
+            {
+
+
+                if (cmdButton == "Clear")
+                    return RedirectToAction("EJournalMenu_Fail");
+
+                if (null == TermID && null == FrDate && null == ToDate && null == page)
+                {
+
+                    FrDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+                    ToDate = DateTime.Now.ToString("yyyy-MM-dd", _cultureEnInfo);
+
+                    page = 1;
+                }
+                else
+                {
+                    // Return temp value back to it own variable
+                    FrDate = (FrDate ?? currFr);
+                    ToDate = (ToDate ?? currTo);
+                    FrTime = (FrTime ?? currFrTime);
+                    ToTime = (ToTime ?? currToTime);
+                    TermID = (TermID ?? currTID);
+
+                }
+
+
+
+
+
+                ViewBag.CurrentFr = (FrDate ?? currFr);
+                ViewBag.CurrentTo = (ToDate ?? currTo);
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+
+                #region Set param
+                bool chk_date = false;
+                if (null == TermID)
+                    param.TERMID = currTID == null ? "" : currTID;
+                else
+                    param.TERMID = TermID == null ? "" : TermID;
+
+                if ((FrDate == null && currFr == null) && (FrDate == "" && currFr == ""))
+                {
+                    param.FRDATE = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    chk_date = false;
+                }
+                else
+                {
+                    if ((FrTime == "" && currFrTime == "") || (FrTime == null && currFrTime == null) ||
+                        (FrTime == null && currFrTime == "") || (FrTime == "" && currFrTime == null))
+                        param.FRDATE = FrDate + " 00:00:00";
+                    else
+                        param.FRDATE = FrDate + " " + FrTime;
+                    chk_date = true;
+                }
+
+                if ((ToDate == null && currTo == null) && (ToDate == "" && currTo == ""))
+                {
+                    param.TODATE = DateTime.Now.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    if ((ToTime == "" && currToTime == "") || (ToTime == null && currToTime == null) ||
+                        (ToTime == null && currToTime == "") || (ToTime == "" && currToTime == null))
+                        param.TODATE = ToDate + " 23:59:59";
+                    else
+                        param.TODATE = ToDate + " " + ToTime;
+                }
+
+
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+
+                param.MONTHPERIOD = "";
+                param.YEARPERIOD = "";
+                param.TRXTYPE = "";
+
+                #endregion
+
+
+
+                DateTime startDateTemp = DateTime.Parse(FrDate);
+                DateTime endDateTemp = DateTime.Parse(ToDate);
+
+                DateTime checkDate;
+
+                ej_Job = dBService.SelectDataFromJobEJ(FrDate, ToDate);
+
+                 var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
+
+
+                var item = new List<string> { };
+
+
+                ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
+
+
+
+                List<Device_info_record> filteredRecords = device_Info_Records
+                        .Where(device => terminals.Contains(device.TERM_ID))
+                        .ToList();
+
+                ViewBag.CurrentTID = filteredRecords;
+                ViewBag.TermID = TermID;
+
+
+
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+  
+                if (null == ej_Job || ej_Job.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = ej_Job.Count;
+
+                    param.PAGESIZE = ej_Job.Count;
+                }
+
+
+
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = ej_Job.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    ej_Job.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+
+
+
+
+            }
+            catch (Exception)
+            {
+
+            }
+
+
+
+
+            return View(ej_Job.ToPagedList(pageNum, (int)param.PAGESIZE));
+
+        }
+
 
         public async Task<IActionResult> EJournalMenu_BK(string cmdButton, string TermID, string FrDate, string ToDate, string FrTime, string ToTime
    , string currTID, string currFr, string currTo, string currFrTime, string currToTime, string lstPageSize

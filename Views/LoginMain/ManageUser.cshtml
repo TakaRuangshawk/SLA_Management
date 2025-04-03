@@ -1,0 +1,167 @@
+﻿
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@model IPagedList<SLA_Management.Models.LoginModel>
+
+@{
+    ViewBag.Title = "Manage User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="text-center" style="color: black">Manage User</h2>
+<div class="container mt-4">
+   
+
+  
+
+    <div class="row justify-content-center">
+         
+    <div class="col-lg-8 col-md-10" style="margin-bottom: 20px;" >
+        <div class="col-md-3">
+            <label for="pageSize" class="form-label">Show:</label>
+            <select id="pageSize" class="form-select" onchange="changePageSize()">
+              @{
+        int pageSize = ViewBag.PageSize ?? 10;
+    }
+    <option value="10" selected="@(pageSize == 10)">10</option>
+    <option value="25" selected="@(pageSize == 25)">25</option>
+    <option value="50" selected="@(pageSize == 50)">50</option>
+    <option value="100" selected="@(pageSize == 100)">100</option>
+            </select>
+        </div>
+    </div>
+        <div class="col-lg-8 col-md-10">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-center align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>                          
+                            <th>Role</th>
+                            <th>Password</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.Username</td>
+                                <td>@user.Name</td>
+                                 <td>
+                                    <span class="badge bg-primary">@user.Role</span>
+                                </td>
+                                <td> <button class="btn btn-sm btn-outline-danger" onclick="resetPassword('@user.ID')">
+                                🔄 Reset Password
+                            </button></td>
+                               
+                                <td>
+                                   <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('@user.ID', '@user.Username', '@user.Name', '@user.Role')">
+    ✏️ View
+</button>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center">
+    @Html.PagedListPager(Model, page => Url.Action("ManageUser", "LoginMain", new { page, pageSize = ViewBag.PageSize }),
+        new PagedListRenderOptions
+        {
+            Display = PagedListDisplayMode.IfNeeded,
+            UlElementClasses = new string[] { "pagination", "justify-content-center" },
+            LiElementClasses = new string[] { "page-item" },
+            PageClasses = new string[] { "page-link" }
+        })
+</div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for Edit User -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm" method="post" asp-action="EditUser_ManageUser">
+                    <input type="hidden" id="editUserId" name="ID" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="editUsername" name="Username" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="editName" name="Name" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select id="editRole" name="Role" class="form-select">
+                            <option value="ADMIN">Admin</option>
+                            <option value="User">User</option>
+                            <option value="Monitor">Monitor</option>
+                        </select>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- JavaScript for Modal & Page Size -->
+<script>
+  function openEditModal(id, username, name, role) {
+    document.getElementById("editUserId").value = id;
+    document.getElementById("editUsername").value = username;
+    document.getElementById("editName").value = name;
+    const normalizedRole = (role.toLowerCase() === "admin") ? "ADMIN" : role;
+    document.getElementById("editRole").value = normalizedRole;
+    $("#editUserModal").modal("show");
+}
+
+
+    function changePageSize() {
+        var pageSize = document.getElementById("pageSize").value;
+        window.location.href = '@Url.Action("ManageUser", "LoginMain")' + '?page=1&pageSize=' + pageSize;
+    }
+
+    function resetPassword(userId) {
+        if (confirm('Are you sure you want to reset the password for this user?')) {
+            // Send AJAX request to reset password
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ResetPassword", "LoginMain")', // Action that handles password reset
+                data: { id: userId }, // Send the user's ID
+                success: function(response) {
+                    if (response.success) {
+                        alert('Password has been reset to "11111".');
+                        location.reload(); // Refresh the page to see the changes
+                    } else {
+                        alert('Failed to reset password. Please try again.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again later.');
+                }
+            });
+        }
+    }
+</script>

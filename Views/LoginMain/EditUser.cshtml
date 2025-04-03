@@ -1,0 +1,62 @@
+﻿@model SLA_Management.Models.LoginModel
+
+@{
+    ViewBag.Title = "Edit User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-success">
+        @ViewBag.Message
+    </div>
+}
+
+
+<h2 class="text-center" style="color: black">Edit User</h2>
+<div class="d-flex justify-content-center">
+    <div class="card" style="max-width: 600px; width: 100%;">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- Username -->
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Username, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.Username, new { @class = "form-control", placeholder = "Enter your username", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Password, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.Password, new { @class = "form-control", placeholder = "Enter your password" })
+                    @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                </div>
+
+                <!-- Name -->
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Name, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.Name, new { @class = "form-control", placeholder = "Enter your full name" })
+                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.Role, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.Role, new { @class = "form-control", @readonly = "readonly" })
+                        @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+                <div class="text-center" style="margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

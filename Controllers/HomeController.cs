@@ -34,8 +34,18 @@ namespace SLA_Management.Controllers
         }
         public IActionResult Index()
         {
+            Stopwatch stopwatch = new Stopwatch(); // เริ่มจับเวลา
+            stopwatch.Start(); // เริ่มจับเวลา
+
+            // จับเวลาแต่ละส่วน
+            Stopwatch getHomeStatusStopwatch = new Stopwatch();
+            getHomeStatusStopwatch.Start();
             recordset_homeshowstatus = GetHomeStatus();
-            if(recordset_homeshowstatus != null)
+            getHomeStatusStopwatch.Stop(); // หยุดจับเวลา
+
+            Console.WriteLine($"GetHomeStatus time: {getHomeStatusStopwatch.ElapsedMilliseconds} ms");
+
+            if (recordset_homeshowstatus != null)
             {
                 foreach (var Data in recordset_homeshowstatus)
                 {
@@ -55,34 +65,32 @@ namespace SLA_Management.Controllers
                 ViewBag.offlineATM = "-";
                 ViewBag.offlineADM = "-";
             }
+
+            // จับเวลา GetComlogRecordFromSqlServer
+            Stopwatch getComlogRecordStopwatch = new Stopwatch();
+            getComlogRecordStopwatch.Start();
             recordset_comlogrecord = GetComlogRecordFromSqlServer();
+            getComlogRecordStopwatch.Stop(); // หยุดจับเวลา
+
+            Console.WriteLine($"GetComlogRecordFromSqlServer time: {getComlogRecordStopwatch.ElapsedMilliseconds} ms");
+
+            // จับเวลา GetSlatrackingFromSqlServer
+            Stopwatch getSlatrackingStopwatch = new Stopwatch();
+            getSlatrackingStopwatch.Start();
             recordset_slatracking = GetSlatrackingFromSqlServer();
-            if(recordset_comlogrecord != null)
-            {
-                foreach (var Data in recordset_comlogrecord)
-                {
-                    if(Data.comlogADM != "" || Data.comlogATM != "")
-                    {
-                        ViewBag.comlogADM = Data.comlogADM;
-                        ViewBag.comlogATM = Data.comlogATM;
-                        ViewBag.comlogTotal = (Convert.ToInt32(Data.comlogADM) + Convert.ToInt32(Data.comlogATM)).ToString();
-                    }
-                    else
-                    {
-                        ViewBag.comlogATM = "-";
-                        ViewBag.comlogADM = "-";
-                        ViewBag.comlogTotal = "-";
-                    }
-                    
-                }
-            }
-            else
-            {
-                ViewBag.comlogATM = "-";
-                ViewBag.comlogADM = "-";
-            }
+            getSlatrackingStopwatch.Stop(); // หยุดจับเวลา
+
+            Console.WriteLine($"GetSlatrackingFromSqlServer time: {getSlatrackingStopwatch.ElapsedMilliseconds} ms");
+
+            // จับเวลา GetSECOneStatus
+            Stopwatch getSECOneStopwatch = new Stopwatch();
+            getSECOneStopwatch.Start();
             recordset_secone = GetSECOneStatus();
-            if(recordset_secone != null)
+            getSECOneStopwatch.Stop(); // หยุดจับเวลา
+
+            Console.WriteLine($"GetSECOneStatus time: {getSECOneStopwatch.ElapsedMilliseconds} ms");
+
+            if (recordset_secone != null)
             {
                 foreach (var data in recordset_secone)
                 {
@@ -95,8 +103,16 @@ namespace SLA_Management.Controllers
                 ViewBag.secone_online = "-";
                 ViewBag.secone_offline = "-";
             }
+
+            // จับเวลา GetSECOneADMStatus
+            Stopwatch getSECOneADMStopwatch = new Stopwatch();
+            getSECOneADMStopwatch.Start();
             recordset_secone_adm = GetSECOneADMStatus();
-            if(recordset_secone_adm != null)
+            getSECOneADMStopwatch.Stop(); // หยุดจับเวลา
+
+            Console.WriteLine($"GetSECOneADMStatus time: {getSECOneADMStopwatch.ElapsedMilliseconds} ms");
+
+            if (recordset_secone_adm != null)
             {
                 foreach (var data in recordset_secone_adm)
                 {
@@ -109,15 +125,23 @@ namespace SLA_Management.Controllers
                 ViewBag.secone_adm_online = "-";
                 ViewBag.secone_adm_offline = "-";
             }
-            if(recordset_secone != null && recordset_secone_adm != null)
+
+            if (recordset_secone != null && recordset_secone_adm != null)
             {
-                ViewBag.TotalSECONE_online = (Convert.ToInt32(ViewBag.secone_adm_online)+Convert.ToInt32(ViewBag.secone_online)).ToString();
+                ViewBag.TotalSECONE_online = (Convert.ToInt32(ViewBag.secone_adm_online) + Convert.ToInt32(ViewBag.secone_online)).ToString();
                 ViewBag.TotalSECONE_offine = (Convert.ToInt32(ViewBag.secone_adm_offline) + Convert.ToInt32(ViewBag.secone_offline)).ToString();
                 ViewBag.TotalSECONE = (Convert.ToInt32(ViewBag.TotalSECONE_online) + Convert.ToInt32(ViewBag.TotalSECONE_offine)).ToString();
             }
-            ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy",usaCulture);
+
+            ViewBag.DateNow = DateTime.Now.AddDays(-1).ToString("dd - MM - yyyy", usaCulture);
+
+            // หยุดจับเวลาทั้งหมด
+            stopwatch.Stop();
+            Console.WriteLine($"Total time for Index action: {stopwatch.ElapsedMilliseconds} ms");
+
             return View(recordset_slatracking);
         }
+
         public List<comlogrecord> GetComlogRecordFromSqlServer()
         {
             List<comlogrecord> dataList = new List<comlogrecord>();
