@@ -4,11 +4,12 @@
     ViewData["Title"] = "Rerun-EJournal";
     string[] tableHeaders = new string[]
                                                                                                     {
-    "Job_ID",
-    "CountFile",
+    "Job_ID",  
     "UploadDate",
+    "Close Job Date",
     "UploadBy",
     "Status",
+    "CountFile",
                                                                                            };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -171,7 +172,7 @@
 
 
         <div id="main_search">
-            @using (Html.BeginForm("EJournalMenu_Fail", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
+            @using (Html.BeginForm("EJournalMenu_Rerun", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
                 @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-2" style="">
@@ -251,23 +252,35 @@
                         </div>
                 </div>
 
-               @*  <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;"> *@
+                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                    @*  <div class="col-2" >
-                        <h>TerminalType : </h>
+                     <div class="col-2" >
+                        <h>Status : </h>
                     </div>
 
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
 
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+                            @Html.DropDownList("status", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = "" , Selected = true},
+                        new SelectListItem(){ Text="close", Value = "close" },
+                        new SelectListItem(){ Text="open", Value = "open"  }
+                   
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+
+                                        })
 
 
                         </div>
-                    </div> *@
+                    </div>
                   
 
-                @* </div> *@
+                </div>
 
 
                 <div class="row">
@@ -318,6 +331,9 @@
                     </tr>
                 </thead>
 
+
+               
+
                 <tbody>
                     @{
                         if (Model != null)
@@ -325,17 +341,18 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                    <td style="text-align:center;"> @Data.Job_ID</td>
-                                    <td style="text-align:center;"> @Data.CountFile.ToString() </td>
+                                    <td style="text-align:center;"> @Data.Job_ID</td>                                  
                                     <td style="text-align:center;"> @Data.UploadDate</td>
+                                    <td style="text-align:center;"> @Data.CloseJobDate</td>
                                     <td style="text-align:center;"> @Data.UploadBy</td>
                                     <td style="text-align:center;"> @Data.Status </td>
+                                    <td style="text-align:center;"> @Data.CountFile.ToString() </td>
                                 </tr>
                             }
                         }
                         if (Model.Count == 0)
                         {
-                        <td colspan="6" style="text-align: center;"> NO DATA </td>
+                        <td colspan="7" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
@@ -788,13 +805,13 @@
 
          if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
              alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
-
+              $("#boxDownload").hide();
 
 
          }else{
              this.submit();
          }
-          $("#boxDownload").hide();
+         
      });
 
      getPagination('#table-id', @ViewBag.maxRows);

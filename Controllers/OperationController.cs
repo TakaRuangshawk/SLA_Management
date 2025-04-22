@@ -1020,7 +1020,7 @@ namespace SLA_Management.Controllers
                     }
                     DateTime _fromdate = (DateTime)fromdate;
                     DateTime _todate = (DateTime)todate;
-                    recordset_ticketManagement = GetTicketManagementFromSqlServer(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
+                    recordset_ticketManagement = GetTicketManagementFromMySql(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
                     ticket_dataList = recordset_ticketManagement;
                 }
             }
@@ -1059,6 +1059,96 @@ namespace SLA_Management.Controllers
             }
             return View(recordset_ticketManagement);
         }
+
+
+        public List<TicketManagement> GetTicketManagementFromMySql(string fromdate, string todate, string termid, string mainproblem, string jobno, string terminaltype)
+        {
+            List<TicketManagement> dataList = new List<TicketManagement>();
+
+            DateTime fromdateTimeValue = DateTime.ParseExact(fromdate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string fordb_fromdate = fromdateTimeValue.ToString("yyyyMM");
+
+            DateTime todateTimeValue = DateTime.ParseExact(todate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string fordb_todate = todateTimeValue.ToString("yyyyMM");
+
+            static List<string> GenerateMonthList(string fromDate, string toDate)
+            {
+                List<string> monthList = new List<string>();
+                DateTime fromDateDT = DateTime.ParseExact(fromDate, "yyyyMM", null);
+                DateTime toDateDT = DateTime.ParseExact(toDate, "yyyyMM", null);
+                while (fromDateDT <= toDateDT)
+                {
+                    monthList.Add(fromDateDT.ToString("yyyyMM"));
+                    fromDateDT = fromDateDT.AddMonths(1);
+                }
+                return monthList;
+            }
+
+            // ✅ MySQL ใช้ backtick (`) สำหรับชื่อ column และ table (ไม่บังคับถ้าไม่มี space/reserved words)
+            string sqlQuery = @"
+        SELECT 
+            a.Open_Date, a.Appointment_Date, a.Closed_Repair_Date, a.Down_Time,
+            a.Actual_Open_Date, a.Actual_Appointment_Date, a.Actual_Closed_Repair_Date, a.Actual_Down_Time,
+            a.Status, a.TERM_ID, b.TERM_SEQ, b.TERM_NAME, b.MODEL_NAME, b.PROVINCE,
+            a.Problem_Detail, a.Solving_Program, a.Service_Team, a.Contact_Name_Branch_CIT,
+            a.Open_By, a.Remark, a.Job_No, a.Aservice_Status, a.Service_Type,
+            a.Open_Name, a.Assign_By, a.Zone_Area, a.Main_Problem, a.Sub_Problem,
+            a.Main_Solution, a.Sub_Solution, a.Part_of_use, a.TechSupport, a.CIT_Request,
+            a.Terminal_Status
+        FROM t_tsd_JobDetail a
+        LEFT JOIN device_info_record b ON a.TERM_ID = b.TERM_ID
+        WHERE a.Open_Date BETWEEN @FromDate AND @ToDate
+    ";
+
+            if (!string.IsNullOrEmpty(termid))
+                sqlQuery += " AND a.TERM_ID = @TermId ";
+            if (!string.IsNullOrEmpty(jobno))
+                sqlQuery += " AND a.Job_No = @JobNo ";
+            if (!string.IsNullOrEmpty(mainproblem))
+                sqlQuery += " AND a.Main_Problem LIKE @MainProblem ";
+            if (!string.IsNullOrEmpty(terminaltype))
+                sqlQuery += " AND b.TERM_ID LIKE @TerminalType ";
+
+            sqlQuery += " ORDER BY a.Open_Date ASC";
+
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:MySqlConnection")))
+                {
+                    using (MySqlCommand command = new MySqlCommand(sqlQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@FromDate", fromdateTimeValue.ToString("yyyy-MM-dd") + " 00:00:00");
+                        command.Parameters.AddWithValue("@ToDate", todateTimeValue.ToString("yyyy-MM-dd") + " 23:59:59");
+
+                        if (!string.IsNullOrEmpty(termid))
+                            command.Parameters.AddWithValue("@TermId", termid);
+                        if (!string.IsNullOrEmpty(jobno))
+                            command.Parameters.AddWithValue("@JobNo", jobno);
+                        if (!string.IsNullOrEmpty(mainproblem))
+                            command.Parameters.AddWithValue("@MainProblem", "%" + mainproblem + "%");
+                        if (!string.IsNullOrEmpty(terminaltype))
+                            command.Parameters.AddWithValue("@TerminalType", "%" + terminaltype + "%");
+
+                        connection.Open();
+
+                        using (MySqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                dataList.Add(GetTicketManagementFromReader(reader));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Logging หรือตรวจสอบ error ที่นี่
+            }
+
+            return dataList;
+        }
+
         public List<TicketManagement> GetTicketManagementFromSqlServer(string fromdate, string todate, string termid, string mainproblem, string jobno, string terminaltype)
         {
             List<TicketManagement> dataList = new List<TicketManagement>();
@@ -1133,6 +1223,8 @@ namespace SLA_Management.Controllers
             }
             return dataList;
         }
+
+
         protected virtual TicketManagement GetTicketManagementFromReader(IDataReader reader)
         {
             TicketManagement record = new TicketManagement();

@@ -30,6 +30,30 @@
         display: flex;
         justify-content: center;
     }
+
+    .boxDownload {
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                            position: fixed;
+                            top: 250px;
+                            right: 550px;
+                            pointer-events: none;
+                            z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 </style>
 
 
@@ -45,7 +69,7 @@
 
 
         <div id="main_search" style="">
-            @using (Html.BeginForm("LastTransaction", "Monitor", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+            @using (Html.BeginForm("LastTransaction", "Monitor", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
@@ -259,9 +283,19 @@
     </div>
 </div>
 
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
 <script>
 
-    function updateTable(search) {
+
+     function delay(ms) {
+         return new Promise(resolve => setTimeout(resolve, ms));
+     }
+
+
+    async function updateTable(search) {
         var terminalno = $("#TermID").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
@@ -269,6 +303,10 @@
         var terminaltype = $("#terminaltype").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
+
+         $("#boxDownload").show();
+        await delay(500);
+
         $.ajax({
             type: "GET",
             url: '@Url.Action("LastTransactionFetchData", "Monitor")',
@@ -359,6 +397,9 @@
                 console.log("Error: " + JSON.stringify(error));
             }
         });
+
+
+         $("#boxDownload").hide();
     }
     function generatePageButtons(pages, currentpage) {
         var pageButtonsContainer = $("#pageButtonsContainer");

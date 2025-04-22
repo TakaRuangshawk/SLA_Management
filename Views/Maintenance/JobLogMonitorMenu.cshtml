@@ -1,18 +1,17 @@
 ﻿@using Newtonsoft.Json
-@model PagedList.IPagedList<SLA_Management.Models.EJournalModel>
+@model PagedList.IPagedList<SLA_Management.Models.LogMonitorModel.logmonitorjob>
 @{
-    ViewData["Title"] = "EJournalMenu(BackUp)";
+    ViewData["Title"] = "Job Terminal Log Monitor";
     string[] tableHeaders = new string[]
                                                                                                     {
-    "Serial No.",
-    "Terminal ID",
-    "Terminal Name",
-    "FileName",
-    "Update Date",
-    "File Length",
+    "JobID",
+    "UploadDate",
+    "CloseJobDate",
+    "UploadBy",
+    "Status",
+    "CountFile",
 
-
-                                                                                                    };
+                                                                                           };
 
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -109,11 +108,11 @@
 
     .boxDownload {
         /*  background-color: rgba(255, 255, 255, 0.5);
-                    position: fixed;
-                    top: 250px;
-                    right: 550px;
-                    pointer-events: none;
-                    z-index: 10; */
+                                position: fixed;
+                                top: 250px;
+                                right: 550px;
+                                pointer-events: none;
+                                z-index: 10; */
         background-color: rgba(255, 255, 255, 0.5);
         position: fixed;
         top: 0px;
@@ -134,21 +133,61 @@
 </style>
 
 <style>
-   
+
     .modal-dialog {
-        max-width: 80%; 
+        max-width: 80%;
     }
 
     .modal-content {
-        max-height: 80vh; 
-        overflow-y: auto; 
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
     .modal-body {
-        max-height: 60vh; 
-        overflow-y: auto; 
+        max-height: 60vh;
+        overflow-y: auto;
     }
+
+    /* การออกแบบ Spinner */
+    .spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+    }
+
+    /* เพิ่มความสวยงามให้ตาราง */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table thead {
+            background-color: #f8f9fa;
+        }
+
+    .table-striped tbody tr:nth-child(odd) {
+        background-color: #f2f2f2;
+    }
+
+    .table th {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
 </style>
+
+
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
@@ -156,68 +195,18 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-4">
-                <a class="text-white fs-4" id="header_search">EJournal (BackUp)</a>
+                <a class="text-white fs-4" id="header_search">Job Terminal Log Monitor</a>
             </div>
         </div>
 
 
         <div id="main_search">
-            @using (Html.BeginForm("EJournalMenu_BK", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
+            @using (Html.BeginForm("JobLogMonitorMenu", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
-               @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-                    <div class="col-2" style="">
-                        <h>Bank : </h>
-                    </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                            @Html.DropDownList("bankName", new SelectListItem[] {
-                        new SelectListItem(){ Text="--", Value = ""  },
-                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
-                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
 
-                                        }, new
-                                        {
-                                            @class = "form-control dropdown"
-                                     ,
-                                            @style = " border-radius: 10px;",
-                                            @name = "state",
-                                            // @onchange = "submitForm()"
 
-                                        })
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                        </div>
-                    </div>
-                    <div class="col-md-1">
-                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
-                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                        </button>
-                    </div>
-
-                </div> *@
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-
-                    <div class="col-2" style="">
-                        <h>Terminal : </h>
-                    </div>
-
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
-                            {
-                                if (@item.TERM_ID != @ViewBag.TermID)
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-
-                                }
-                            }
-                        </select>
-                    </div>
                     <div class="col-2" style="">
                         <h>From Date : </h>
                     </div>
@@ -227,7 +216,7 @@
                             @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
                         </div>
                     </div>
-                    <div class="col-2" style="">
+                    <div class="col-2">
                         <h>To Date : </h>
                     </div>
                     <div class="col-2" style="padding:0;">
@@ -236,22 +225,34 @@
                             @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
                         </div>
                     </div>
+
+                  
                 </div>
 
-                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="row" style="margin-top: 45px;align-items:center;display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                   @*  <div class="col-2" >
-                        <h>TerminalType : </h>
+                    <div class="col-2" style="">
+                        <h>Status : </h>
                     </div>
 
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
-
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
-
-
+                            <!-- Show Numbers Of Rows -->
+                            @Html.DropDownList("status", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = "" }, 
+                        new SelectListItem(){ Text="open", Value = "open" },
+                        new SelectListItem(){ Text="close", Value = "close" }
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown",
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+                                        })
                         </div>
-                    </div> *@
+                    </div>
+
+
+
                     <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
@@ -279,6 +280,9 @@
                 </div>
 
 
+
+
+
                 <div class="row">
                     <div class="col" id="before-submit">
                         <div id="submit">
@@ -288,6 +292,10 @@
 
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
                                 <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#jobModal">
+                                Open Job Modal
                             </button>
                         </div>
                     </div>
@@ -330,30 +338,44 @@
                             foreach (var Data in Model)
                             {
                                 <tr>
-                                    <td style="text-align:center;"> @Data.SerialNo</td>
-                                    <td style="text-align:center;"> @Data.TerminalID</td>
-                                    <td style="text-align:center;"> @Data.TerminalName</td>
+                                    <td style="text-align:center;"> @Data.Job_ID</td>
                                     <td style="text-align:center;">
-                                        <a style="color: #007bff;" href="javascript:void(0);" onclick="openModal('@Data.pathOfFile')">
-                                            @Data.FileName
-                                        </a>
+                                        @if (Data.UploadDate.HasValue)
+                                        {
+                                            @Data.UploadDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                                        }
+                                        else
+                                        {
+                                            @:N/A
+                                        }
                                     </td>
-                                    <td style="text-align:center;"> @Data.UpdateDate </td>                                   
-                                    <td style="text-align:center;"> @Data.FileLength </td>                                   
+                                    <td style="text-align:center;">
+                                        @if (Data.CloseJobDate.HasValue)
+                                        {
+                                            @Data.CloseJobDate.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                                        }
+                                        else
+                                        {
+                                            @:N/A
+                                        }
+                                    </td>
+                                    <td style="text-align:center;"> @Data.UploadBy </td>
+                                    <td style="text-align:center;"> @Data.Status</td>
+                                    <td style="text-align:center;"> @Data.CountFile </td>
+
+
                                 </tr>
                             }
-
                         }
                         if (Model.Count == 0)
                         {
-
                         <td colspan="7" style="text-align: center;"> NO DATA </td>
                         }
                     }
                 </tbody>
-
-
             </table>
+
+
 
 
             <div class="row">
@@ -392,6 +414,75 @@
 
 </div>
 
+<!-- Select Terminal ID -->
+<div class="item col-md-2 mb-3" style="border-color:#ced4da; background-color: transparent;" hidden>
+    <label for="TermID" class="form-label" hidden>Select Terminal ID</label>
+    <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true" hidden>
+        <option data-tokens="" value="" hidden>--</option>
+
+        @*   @foreach (var item in ViewBag.CurrentTID)
+                            {
+                                if (@item.TERM_ID != @ViewBag.TermID)
+                                {
+                                    <option value="@item.TERM_ID" data-tokens="@item.TERM_ID">@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.TERM_ID" data-tokens="@item.TERM_ID" selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                            } *@
+    </select>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="jobModal" tabindex="-1" aria-labelledby="jobModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobModalLabel">Create Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="jobForm">
+                    <div class="mb-3">
+                        <label for="jobId" class="form-label">Job ID</label>
+                        <input type="text" class="form-control" id="jobId" value="" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="updateById" class="form-label">Update By</label>
+                        <input type="text" class="form-control" id="UpdateById" value="@Context.Session.GetString("Username")" readonly>
+                    </div>
+
+
+                    <!-- Content for file upload -->
+                    <div id="loadingSpinner" style="display:none; text-align: center;">
+                        <div class="spinner"></div>
+                        <p>กำลังอัปโหลด...</p>
+                    </div>
+
+                    <p>สามารถอัพโหลดไฟล์ได้สูงสุด <strong>10</strong> ไฟล์ต่อ Job</p>
+
+                    <!-- เพิ่มปุ่มสำหรับเลือกไฟล์ -->
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="fileInput" multiple accept=".txt" onchange="handleFileSelection(event)">
+                    </div>
+
+                    <!-- แสดงรายการไฟล์ที่เลือก -->
+                    <ul id="fileList" class="mt-2"></ul>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveJob()">Create Job</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <!-- Modal -->
 <div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -411,12 +502,191 @@
     </div>
 </div>
 
-
 <div class="boxDownload" id="boxDownload" style="display: block;">
     <img class="imgDownload" src="~/images/loading.gif">
 </div>
 
 
+
+
+
+<script>
+    $(document).ready(function () {
+        // เมื่อคลิกที่ปุ่ม View
+        $('.viewBtn').click(function () {
+            var terminalId = $(this).data('terminal');
+            var date = $(this).data('date');
+            var ejLog = $(this).data('ejlog');
+            var eCatLog = $(this).data('ecatlog');
+            var comLog = $(this).data('comlog');
+            var imageLog = $(this).data('imagelog');
+            var status = $(this).data('status');
+
+            // กำหนดค่าที่ Modal
+            $('#modal-terminal_id').text(terminalId);
+            $('#modal-date').text(date);
+            $('#modal-ejLog').text(ejLog);
+            $('#modal-eCatLog').text(eCatLog);
+            $('#modal-comLog').text(comLog);
+            $('#modal-imageLog').text(imageLog);
+            $('#modal-status').text(status);
+
+            // แสดง Modal
+            $('#viewModal').modal('show');
+        });
+    });
+</script>
+
+
+
+
+<script>
+    // ฟังก์ชันเพื่อสร้าง Job ID
+    function generateJobId() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        const jobId = `Job${year}${month}${day}_${hours}${minutes}${seconds}`;
+        return jobId;
+    }
+
+    // ตั้งค่า jobId ใน input field เมื่อหน้าโหลด
+    document.addEventListener('DOMContentLoaded', function () {
+        const jobIdField = document.getElementById('jobId');
+        jobIdField.value = generateJobId();
+    });
+
+    // ฟังก์ชันเลือกโฟลเดอร์
+    async function selectFolder() {
+        try {
+            const directoryHandle = await window.showDirectoryPicker();
+            document.getElementById('path').value = directoryHandle.name;
+        } catch (err) {
+            console.error("Folder selection was cancelled or failed:", err);
+        }
+    }
+
+      // ฟังก์ชันจัดการไฟล์ที่ถูกเลือกจาก input[type="file"]
+    let selectedFiles = [];
+
+    function handleFileSelection(event) {
+        const fileList = document.getElementById("fileList");
+        const fileInput = event.target;
+        fileList.innerHTML = ""; // เคลียร์รายการไฟล์เก่า
+
+        const files = fileInput.files; // ดึงไฟล์จาก input[type="file"]
+
+        // ตรวจสอบจำนวนไฟล์
+        if (files.length > 10) {
+            alert("อัพโหลดได้สูงสุด 10 ไฟล์ต่อ Job");
+            fileInput.value = "";  // เคลียร์ไฟล์ที่เลือก
+            return;
+        }
+
+        // รูปแบบชื่อไฟล์ที่ต้องการ
+        const fileNamePattern = /^[A-Za-z0-9]+_\d{8}_FileViewer\.txt$/; // รูปแบบ terminalNo_yyyyMMdd_FileViewer.txt
+        let isValid = true; // ใช้ตัวแปรตรวจสอบว่าไฟล์ที่เลือกทั้งหมดถูกต้องหรือไม่
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // ตรวจสอบชื่อไฟล์
+            if (!fileNamePattern.test(file.name)) {
+                isValid = false;
+                alert(`ไฟล์ ${file.name} ไม่ตรงตามรูปแบบชื่อ terminalNo_yyyyMMdd_FileViewer.txt`);
+                break; // ออกจากลูป
+            }
+
+            // ตรวจสอบขนาดไฟล์ (ไม่เกิน 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                isValid = false;
+                alert(`ไฟล์ ${file.name} ขนาดเกิน 10MB`);
+                break; // ออกจากลูป
+            }
+
+            // ตรวจสอบว่าไฟล์เป็น .txt
+            if (file.type === "text/plain") { // รับเฉพาะไฟล์ .txt
+                let listItem = document.createElement("li");
+                listItem.textContent = file.name;
+                fileList.appendChild(listItem);
+                selectedFiles.push(file); // เพิ่มไฟล์ลงใน selectedFiles
+            } else {
+                isValid = false;
+                alert(`ไฟล์ ${file.name} ต้องเป็นไฟล์ .txt`);
+                break; // ออกจากลูป
+            }
+        }
+
+        // ถ้ามีไฟล์ที่ไม่ตรงเงื่อนไข
+        if (!isValid) {
+            fileInput.value = "";  // เคลียร์ไฟล์ที่เลือก
+        }
+    }
+
+
+
+       // ฟังก์ชัน saveJob ที่มีการส่งข้อมูลไปยัง server
+    function saveJob() {
+        if (selectedFiles.length === 0) {
+            alert("กรุณาเลือกไฟล์ก่อนการบันทึก");
+            return;
+        }
+
+        const jobId = document.getElementById('jobId').value;  // รับค่า Job ID
+        const formData = new FormData();
+
+        // เพิ่มไฟล์ทั้งหมดที่เลือกใน FormData
+        selectedFiles.forEach(file => {
+            formData.append("files", file);
+        });
+
+        
+
+        // เพิ่มข้อมูลอื่น ๆ ที่เกี่ยวข้อง
+        formData.append("Job", jobId);  // เพิ่ม Job ID ใน FormData     
+
+
+        // แสดงข้อความหรือ Spinner บอกสถานะการโหลด
+        document.getElementById('loadingSpinner').style.display = 'block';  // แสดง spinner
+
+        // เริ่มหมุน spinner
+        rotateSpinner();
+
+    @* fetch("https://admreport.svoa.co.th:8443/operation/Maintenance/UploadFiles" *@
+    @* fetch("https://localhost:7059/Maintenance/UploadFiles", *@
+
+        // ส่งข้อมูลไปยังเซิร์ฟเวอร์
+        fetch("https://admreport.svoa.co.th:8443/operation/Maintenance/UploadFilesText", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            console.log("Upload result:", result);
+            alert("Upload result: " + result);
+
+            // ซ่อน Spinner หลังจากอัปโหลดเสร็จ
+            document.getElementById('loadingSpinner').style.display = 'none';  // ซ่อน spinner
+
+            // ล้างไฟล์ที่เลือกหลังจากอัปโหลดเสร็จ
+            selectedFiles = [];
+            document.getElementById("fileList").innerHTML = "";
+        })
+        .catch(error => {
+            console.error("Upload Error:", error);
+            alert("เกิดข้อผิดพลาดในการอัปโหลดไฟล์");
+
+            // ซ่อน Spinner ในกรณีที่เกิดข้อผิดพลาด
+            document.getElementById('loadingSpinner').style.display = 'none';  // ซ่อน spinner
+        });
+    }
+
+</script>
 
 <script>
                 function openModal(pathOfFile) {
@@ -424,10 +694,11 @@
 
         var modalBody = document.getElementById('modalBody');
         modalBody.innerHTML = "<p>Loading...</p>";
-        
 
-        @* 'http://localhost:7059/non-outsource-operation/Maintenance/GetFileContent' *@
 
+    @* 'http://localhost:7059/non-outsource-operation/Maintenance/GetFileContent' *@
+
+        fetch('https://admreport.svoa.co.th:8443/operation/Maintenance/GetFileContent', {
         fetch('https://admreport.svoa.co.th:8443/operation/Maintenance/GetFileContent', {
             method: 'POST',
             headers: {
@@ -483,10 +754,24 @@
         }
     }
 
+
+
+
 </script>
 
 
 <script>
+     // ฟังก์ชันหมุน spinner ด้วย setInterval
+    function rotateSpinner() {
+        let angle = 0;
+        const spinner = document.querySelector('.spinner');
+
+        setInterval(() => {
+            angle += 6;  // หมุน 6 องศาทุกๆ รอบ
+            spinner.style.transform = `rotate(${angle}deg)`;
+        }, 50);  // ทุกๆ 50 มิลลิวินาทีจะหมุนเพิ่ม 6 องศา
+    }
+
 
     @*  function submitForm() {
 
@@ -569,7 +854,7 @@
 
            var TermID = $("#TermID").val();
 
-               
+
     @*  } else if(!TermID){
              alert("Please select a terminal.");
               $("#boxDownload").hide(); *@
@@ -577,9 +862,9 @@
 
          if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
              alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
-             $("#boxDownload").hide();
+              $("#boxDownload").hide();
 
-       
+
          }else{
              this.submit();
          }

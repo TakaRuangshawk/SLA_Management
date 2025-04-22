@@ -31,6 +31,30 @@
         display:flex;
         justify-content:center;
     }
+
+    .boxDownload {
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                        position: fixed;
+                        top: 250px;
+                        right: 550px;
+                        pointer-events: none;
+                        z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 </style>
 
 
@@ -280,9 +304,17 @@
     </div>
 </div>
 
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
 <script>
 
-    function updateTable(search) {
+     function delay(ms) {
+         return new Promise(resolve => setTimeout(resolve, ms));
+     }
+
+     async  function updateTable(search) {
         var terminalno = $("#TermID").val();
         var row = $("#maxRows").val();
         var page = $("#page").val();
@@ -292,6 +324,11 @@
         var status = $("#status").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
+
+        $("#boxDownload").show();
+        await delay(500);
+
+
 
         $.ajax({
             type: "GET",
@@ -373,7 +410,10 @@
             error: function (error) {
                 console.log("Error: " + JSON.stringify(error));
             }
+
+            
         });
+         $("#boxDownload").hide();
     }
 
     function generatePageButtons(pages, currentpage) {

@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using Org.BouncyCastle.Bcpg.OpenPgp;
+using SLA_Management.Models.LogMonitorModel;
 using SLA_Management.Models.TermProbModel;
 using System;
 using System.Collections.Generic;
@@ -100,6 +101,7 @@ namespace SLA_Management.Data
         }
 
        
+
 
         #endregion
 

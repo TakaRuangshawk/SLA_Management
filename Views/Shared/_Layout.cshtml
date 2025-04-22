@@ -178,6 +178,8 @@
                                 @*<a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain">Card Retain Monitor</a>*@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="CardRetain2">Card Retain Monitor</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Monitor</a>
+                                <a class="dropdown-item" asp-controller="Maintenance" asp-action="LogMonitorMenu">Terminal Log Monitor</a>
+                                <a class="dropdown-item" asp-controller="Maintenance" asp-action="JobLogMonitorMenu">Job Terminal Log Monitor</a>
 
 
                                 @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
@@ -191,10 +193,10 @@
 
                                 <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a>
                                 <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu_BK">EJournal(BackUp)</a>
-                              
-                                    <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu_Fail">Rerun-EJournal</a>
-                                
-                              
+
+                                <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu_Rerun">Rerun-EJournal</a>
+
+                                <a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu_Compare">EJournal(Compare)</a>
 
                                     <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="Transactions">Transactions</a>
                                     <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="TransactionSummary">Transaction Summary</a>

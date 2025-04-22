@@ -1,7 +1,7 @@
 ﻿@using Newtonsoft.Json
-@model PagedList.IPagedList<SLA_Management.Models.EJournalModel>
+@model PagedList.IPagedList<SLA_Management.Models.LogMonitorModel.ejlog_compare>
 @{
-    ViewData["Title"] = "EJournalMenu(BackUp)";
+    ViewData["Title"] = "EJournalMenu(Compare)";
     string[] tableHeaders = new string[]
                                                                                                     {
     "Serial No.",
@@ -9,7 +9,7 @@
     "Terminal Name",
     "FileName",
     "Update Date",
-    "File Length",
+    "Status",
 
 
                                                                                                     };
@@ -156,13 +156,13 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-4">
-                <a class="text-white fs-4" id="header_search">EJournal (BackUp)</a>
+                <a class="text-white fs-4" id="header_search">EJournal (Compare)</a>
             </div>
         </div>
 
 
         <div id="main_search">
-            @using (Html.BeginForm("EJournalMenu_BK", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
+            @using (Html.BeginForm("EJournalMenu_Compare", "Maintenance", FormMethod.Get, new { id = "EJournalMenuRecheckDate" }))
             {
                @*  <div class="row" style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-2" style="">
@@ -240,18 +240,30 @@
 
                 <div class="row " style="margin-top: 45px;align-items:center;    display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                   @*  <div class="col-2" >
-                        <h>TerminalType : </h>
+                    <div class="col-2">
+                        <h>Status : </h>
                     </div>
 
                     <div class="col-2" style="padding:0px;">
                         <div class="form-group">
 
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+                            @Html.DropDownList("status", new SelectListItem[] {
+                        new SelectListItem(){ Text="--", Value = "" , Selected = true},
+                        new SelectListItem(){ Text="true", Value = "true" },
+                        new SelectListItem(){ Text="false", Value = "false"  }
+
+                                        }, new
+                                        {
+                                            @class = "form-control dropdown"
+                                     ,
+                                            @style = " border-radius: 10px;",
+                                            @name = "state"
+
+                                        })
 
 
                         </div>
-                    </div> *@
+                    </div>
                     <div class="col-2" style="">
                         <h>Rows : </h>
                     </div>
@@ -331,15 +343,11 @@
                             {
                                 <tr>
                                     <td style="text-align:center;"> @Data.SerialNo</td>
-                                    <td style="text-align:center;"> @Data.TerminalID</td>
+                                    <td style="text-align:center;"> @Data.terminalid</td>
                                     <td style="text-align:center;"> @Data.TerminalName</td>
-                                    <td style="text-align:center;">
-                                        <a style="color: #007bff;" href="javascript:void(0);" onclick="openModal('@Data.pathOfFile')">
-                                            @Data.FileName
-                                        </a>
-                                    </td>
-                                    <td style="text-align:center;"> @Data.UpdateDate </td>                                   
-                                    <td style="text-align:center;"> @Data.FileLength </td>                                   
+                                    <td style="text-align:center;"> @Data.ejlog_name</td>
+                                    <td style="text-align:center;"> @Data.updatedate </td>                                   
+                                    <td style="text-align:center;"> @Data.status </td>                                   
                                 </tr>
                             }
 

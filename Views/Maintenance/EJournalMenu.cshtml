@@ -578,12 +578,12 @@
          if (Date.parse($('#FrDate').val()) > Date.parse($('#ToDate').val())) {
              alert("'From date'( " + FrDateTemp.toISOString().split('T')[0] + " ) should be less than 'To date' ( " + ToDateTemp.toISOString().split('T')[0] + " ) . Please check again!");
             
-
+              $("#boxDownload").hide();
        
          }else{
              this.submit();
          }
-          $("#boxDownload").hide();
+          
      });
 
      getPagination('#table-id', @ViewBag.maxRows);

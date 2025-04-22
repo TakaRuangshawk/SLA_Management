@@ -111,6 +111,8 @@ namespace SLA_Management.Data
             return dt;
 
         }
+
+
         public bool ExecuteQueryNoneParam(string sql)
         {
             bool _return = false;
