@@ -635,6 +635,83 @@ namespace SLA_Management.Data.ExcelUtilitie
 
     }
 
+    public class ExcelUtilities_SLALogMonitor
+    {
+        #region Local Variable
+
+        CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Constructor
+
+        public ExcelUtilities_SLALogMonitor()
+        {
+        }
+
+        #endregion
+
+        #region Function
+
+        public void ExportToExcel(List<Dictionary<string, object>> objData, string outputFilePath)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+            FileInfo templateFile = new FileInfo(Path.Combine(PathDefaultTemplate, "SLALogMonitorTemplate.xlsx"));
+            using (var package = new ExcelPackage(templateFile))
+            {
+                var worksheet = package.Workbook.Worksheets["Sheet1"];
+
+                // เขียน Header (ถ้าต้องการเขียน หรือจะใช้ template)
+                int col = 1;
+                foreach (var header in objData[0].Keys)
+                {
+                    var cell = worksheet.Cells[1, col];
+                    cell.Value = header;
+                    // style header เช่นตัวอย่างก่อนหน้า
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Orange);
+                    cell.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
+                    col++;
+                }
+
+                // เขียนข้อมูล
+                int row = 2;
+                foreach (var rowData in objData)
+                {
+                    col = 1;
+                    foreach (var value in rowData.Values)
+                    {
+                        worksheet.Cells[row, col].Value = value;
+                        col++;
+                    }
+                    row++;
+                }
+
+                // Auto fit columns
+                for (int i = 1; i <= objData[0].Count; i++)
+                {
+                    worksheet.Column(i).AutoFit();
+                }
+
+                // Save file ที่พาธที่กำหนด
+                package.SaveAs(new FileInfo(outputFilePath));
+                FileSaveAsXlsxFormat = Path.GetFileName(outputFilePath);
+            }
+        }
+        #endregion
+    }
+
+
     public class ExcelUtilities_Inventory
     {
         #region  Local Variable

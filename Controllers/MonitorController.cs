@@ -1,18 +1,16 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using OfficeOpenXml;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Models.LogMonitorModel;
 using SLA_Management.Models.OperationModel;
-using System;
 using System.Data;
-using System.Drawing;
+using System.Data.SqlClient;
 using System.Globalization;
-using System.IO;
+using System.Linq;
 using System.Text;
-using static SLA_Management.Controllers.MonitorController;
 using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Controllers
@@ -24,10 +22,12 @@ namespace SLA_Management.Controllers
         private IConfiguration _myConfiguration;
         private static ConnectMySQL db_fv;
         private static ConnectMySQL db_all;
+        private static ConnectSQL_Server db_sql;
         private static List<LastTransactionModel> lasttransaction_dataList = new List<LastTransactionModel>();
         private static List<CardRetainModel> cardretain_dataList = new List<CardRetainModel>();
         private static List<TransactionModel> transaction_dataList = new List<TransactionModel>();
         private static List<EJReportMonitorModel> ejmonitor_dataList = new List<EJReportMonitorModel>();
+        private static List<file_upload_historyModel> file_upload_history_dataList = new List<file_upload_historyModel>();
         #region export transaction parameter
         public static string bankname_ej;
         public static string fromtodate_ej;
@@ -46,6 +46,7 @@ namespace SLA_Management.Controllers
             _myConfiguration = myConfiguration;
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
             db_all = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            db_sql = new ConnectSQL_Server(myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection"));
 
         }
 
@@ -71,9 +72,9 @@ namespace SLA_Management.Controllers
         {
             List<Dictionary<string, object>> resultList = new List<Dictionary<string, object>>();
             string finalQuery = string.Empty;
-            string fromDateStr = model.fromDate.ToString("yyyy-MM-dd HH:mm:dd")??DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string fromDateStr = model.fromDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
             string toDateStr = model.toDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
-            string terminalStr = model.terminalId??"";
+            string terminalStr = model.terminalId ?? "";
             string terminaltypeStr = model.terminalType ?? "";
             string trxtpyeStr = model.transactionType ?? "";
             string terminalQuery = string.Empty;
@@ -90,7 +91,7 @@ namespace SLA_Management.Controllers
                 terminalFinalQuery += " and fdi.TERM_ID = '" + terminalStr + "' ";
 
             }
-            if(terminaltypeStr != "")
+            if (terminaltypeStr != "")
             {
                 terminalQuery += " and terminalid like '%" + terminaltypeStr + "' ";
                 terminalFinalQuery += " and fdi.TERM_ID like '%" + terminaltypeStr + "' ";
@@ -107,7 +108,7 @@ namespace SLA_Management.Controllers
                     tablequery = "ejhistory";
                     trxstatusStr = " AND trx_status = 'OK' ";
                     break;
-                case "": 
+                case "":
                     terminalQuery += " AND trx_type IN ('DEP_DCA' , 'DEP_DCC' , 'DEP_P00', 'DEP_P01','RFT_DCA','FAS' , 'MCASH' , 'WDL','CL_WDL') ";
                     tablequery = "ejhistory";
                     break;
@@ -163,14 +164,14 @@ namespace SLA_Management.Controllers
                         WHERE 
                             trxid IS NOT NULL " + terminalQuery + @"
                             AND trx_datetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
-                            "+ trxstatusStr + @"
+                            " + trxstatusStr + @"
                         GROUP BY 
-                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd")+".terminalid");
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
 
-                            for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
-                            {
-                                string dateStr = date.ToString("yyyyMMdd");
-                                queryBuilder.AppendLine(@"    LEFT JOIN
+                    for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
+                    {
+                        string dateStr = date.ToString("yyyyMMdd");
+                        queryBuilder.AppendLine(@"    LEFT JOIN
                                 (SELECT 
                                     terminalid,
                                     SUM(CASE WHEN DATE(trx_datetime) = '" + date.ToString("yyyy-MM-dd") + "' THEN 1 ELSE 0 END) AS _" + dateStr + @"
@@ -179,15 +180,15 @@ namespace SLA_Management.Controllers
                                 WHERE 
                                     trxid IS NOT NULL " + terminalQuery + @"
                                     AND trx_datetime BETWEEN '" + date.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + date.ToString("yyyy-MM-dd") + @" 23:59:59'
-                                    "+ trxstatusStr + @"
+                                    " + trxstatusStr + @"
                                 GROUP BY 
                                     terminalid) AS _" + dateStr + @"
                                 ON 
                                     fdi.TERM_ID = _" + dateStr + @".terminalid");
-                            }
+                    }
 
-                            finalQuery = queryBuilder.ToString();
-                            finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                    finalQuery = queryBuilder.ToString();
+                    finalQuery += @" join (SELECT @row_number:=0) AS t   where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
 
                 case "termprobsla":
@@ -224,7 +225,7 @@ namespace SLA_Management.Controllers
                             a.seqno IS NOT NULL " + terminalQuery + @"
                             AND trxdatetime BETWEEN '" + fromDate.ToString("yyyy-MM-dd") + @" 00:00:00' AND '" + fromDate.ToString("yyyy-MM-dd") + @" 23:59:59'
                         GROUP BY 
-                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd")+".terminalid");
+                            terminalid) AS _" + fromDate.ToString("yyyyMMdd") + " ON fdi.TERM_ID = _" + fromDate.ToString("yyyyMMdd") + ".terminalid");
 
                     for (DateTime date = fromDate.AddDays(1); date.Date <= toDate.Date; date = date.AddDays(1))
                     {
@@ -247,14 +248,14 @@ namespace SLA_Management.Controllers
 
                     finalQuery = queryBuilder.ToString();
                     finalQuery += @"  join (SELECT @row_number:=0) AS t 
-                                       where fdi.TERM_ID is not null "+ terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
+                                       where fdi.TERM_ID is not null " + terminalFinalQuery + " order by fdi.TERM_SEQ asc ";
                     break;
                 default:
-                    
+
                     break;
             }
-            
-           
+
+
 
             try
             {
@@ -288,12 +289,12 @@ namespace SLA_Management.Controllers
                 }
                 return Json(resultList);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString);
                 return Json(resultList);
             }
-            
+
         }
         public class TerminalTransactionModel
         {
@@ -303,6 +304,414 @@ namespace SLA_Management.Controllers
             public string terminalType { get; set; }
             public string transactionType { get; set; }
         }
+
+        #region SLALogMonitor
+
+
+
+        public static List<file_upload_history> GetFileUploadHistory()
+        {
+
+
+            SqlCommand command = new SqlCommand
+            {
+                CommandText = @"
+            SELECT [ID], [TERM_ID], [UPLOAD_DATE], [UPDATE_BY], 
+                   [REMARK], [FILE_NAME], [FILE_DATETIME], [STATUS]
+            FROM [SLADB].[dbo].[file_upload_history]
+            ORDER BY [UPLOAD_DATE] DESC;"
+            };
+
+            DataTable dt = db_sql.GetDatatable(command);
+
+            if (dt == null || dt.Rows.Count == 0)
+                return new List<file_upload_history>();
+
+            return db_sql.ConvertDataTable<file_upload_history>(dt);
+        }
+
+
+        [HttpGet]
+        public IActionResult SLALogMonitor()
+        {
+
+            int pageSize = 20;
+            int? maxRows = 20;
+            pageSize = maxRows.HasValue ? maxRows.Value : 100;
+            ViewBag.maxRows = pageSize;
+            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.pageSize = pageSize;
+
+            var fileUploadHistory = GetFileUploadHistory();
+
+            ViewBag.StatusAll = fileUploadHistory
+                     .Select(x => x.STATUS)
+                     .Where(x => !string.IsNullOrEmpty(x))
+                     .Distinct()
+                     .ToList();
+
+            ViewBag.StepAll = fileUploadHistory
+                           .Select(x => x.STEP)
+                           .Where(x => !string.IsNullOrEmpty(x))
+                           .Distinct()
+                           .ToList();
+
+
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult SLALogMonitorFetchData(string terminalno, string row, string page, string search, string status, DateTime? date, string step)
+        {
+            #region page manage
+            int _page;
+
+            if (page == null || search == "search")
+            {
+                _page = 1;
+            }
+            else
+            {
+                _page = int.Parse(page);
+            }
+            if (search == "next")
+            {
+                _page++;
+            }
+            else if (search == "prev")
+            {
+                _page--;
+            }
+            int _row;
+            if (row == null)
+            {
+                _row = 20;
+            }
+            else
+            {
+                _row = int.Parse(row);
+            }
+
+            #endregion
+
+            terminalno = terminalno ?? "";
+            status = status ?? "";
+
+            step = step ?? "";
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                ViewBag.Status = status;
+            }
+            else
+            {
+                ViewBag.Status = "";
+            }
+
+            if (!string.IsNullOrEmpty(step))
+            {
+                ViewBag.Step = step;
+            }
+            else
+            {
+                ViewBag.Step = "";
+            }
+
+            List<file_upload_history> file_upload_history_jsonData = new List<file_upload_history>();
+
+            List<file_upload_historyModel> file_upload_historyModel = new List<file_upload_historyModel>();
+            if (search == "search")
+            {
+
+                List<Device_info> deviceInfo = GetDeviceInfoALL();
+
+
+                SqlCommand command = new SqlCommand();
+                StringBuilder sqlBuilder = new StringBuilder();
+                sqlBuilder.Append(@"
+        SELECT [ID], [TERM_ID], [UPLOAD_DATE], [UPDATE_BY], 
+               [REMARK], [FILE_NAME], [FILE_DATETIME], [STATUS], [STEP]
+        FROM [SLADB].[dbo].[file_upload_history]
+        WHERE 1=1
+    ");
+
+                // เพิ่มเงื่อนไขตาม parameter
+                if (!string.IsNullOrEmpty(terminalno))
+                {
+                    sqlBuilder.Append(" AND TERM_ID = @terminalno");
+                    command.Parameters.AddWithValue("@terminalno", terminalno);
+                }
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    sqlBuilder.Append(" AND STATUS = @status");
+                    command.Parameters.AddWithValue("@status", status);
+                }
+
+                if (!string.IsNullOrEmpty(step))
+                {
+                    sqlBuilder.Append(" AND STEP = @step");
+                    command.Parameters.AddWithValue("@step", step);
+                }
+
+                if (date.HasValue)
+                {
+                    sqlBuilder.Append(" AND CAST(UPLOAD_DATE AS DATE) = @date");
+                    command.Parameters.AddWithValue("@date", date.Value.Date);
+                }
+
+                sqlBuilder.Append(" ORDER BY UPLOAD_DATE DESC");
+
+                command.CommandText = sqlBuilder.ToString();
+
+                DataTable dt = db_sql.GetDatatable(command);
+
+                file_upload_history_jsonData = db_sql.ConvertDataTable<file_upload_history>(dt);
+
+                int count = 1;
+
+                foreach (var item in file_upload_history_jsonData)
+                {
+                    var device = deviceInfo.FirstOrDefault(d => d.TERM_ID == item.TERM_ID);
+
+                    file_upload_historyModel.Add(new file_upload_historyModel
+                    {
+                        no = count.ToString(),
+                        term_seq = device?.TERM_SEQ ?? "",
+                        term_id = device?.TERM_ID ?? "",
+                        term_name = device?.TERM_NAME ?? "",
+                        file_name = item.FILE_NAME,
+                        remark = item.REMARK,
+                        status = item.STATUS,
+                        step = item.STEP,
+                    });
+                    count++;
+                }
+
+
+            }
+            else
+            {
+                file_upload_historyModel = file_upload_history_dataList;
+            }
+
+
+                file_upload_history_dataList = file_upload_historyModel;
+            int pages = (int)Math.Ceiling((double)file_upload_historyModel.Count() / _row);
+            List<file_upload_historyModel> filteredData = RangeFilter_file_upload_history(file_upload_historyModel, _page, _row);
+            var response = new DataResponse_file_upload_history
+            {
+                JsonData = filteredData,
+                Page = pages,
+                currentPage = _page,
+                TotalTerminal = file_upload_historyModel.Count(),
+            };
+            return Json(response);
+        }
+
+        public class file_upload_historyModel
+        {
+            public string no { get; set; }
+            public string term_id { get; set; }
+            public string term_seq { get; set; }
+            public string term_name { get; set; }
+            public string file_name { get; set; }
+            public string status { get; set; }
+
+            public string step { get; set; }
+
+            public string remark { get; set; }
+
+        }
+
+        public class DataResponse_file_upload_history
+        {
+            public List<file_upload_historyModel> JsonData { get; set; }
+            public int Page { get; set; }
+            public int currentPage { get; set; }
+            public int TotalTerminal { get; set; }
+        }
+
+        static List<file_upload_historyModel> RangeFilter_file_upload_history<file_upload_historyModel>(List<file_upload_historyModel> inputList, int page, int row)
+        {
+            int start_row;
+            int end_row;
+            if (page == 1)
+            {
+                start_row = 0;
+            }
+            else
+            {
+                start_row = (page - 1) * row;
+            }
+            end_row = start_row + row - 1;
+            if (inputList.Count < end_row)
+            {
+                end_row = inputList.Count - 1;
+            }
+            return inputList.Skip(start_row).Take(row).ToList();
+        }
+
+
+        #endregion
+
+        #region Excel SLALogMonitor
+
+
+        [HttpPost]
+        public IActionResult SLALogMonitor_ExportExc([FromBody] ExportParamModel data)
+        {
+            try
+            {
+                // แยกค่าจาก exparams
+                var splitParams = data.exparams.Split('|');
+                string terminalId = splitParams.Length > 1 ? splitParams[1] : null;
+                string dateStr = splitParams.Length > 2 ? splitParams[2] : null;
+                string status = splitParams.Length > 3 ? splitParams[3] : null;
+                string step = splitParams.Length > 4 ? splitParams[4] : null;
+
+                bool hasDate = DateTime.TryParseExact(dateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date);
+
+                // เริ่มต้น Query
+                var query = @"
+SELECT ID, TERM_ID, UPLOAD_DATE, UPDATE_BY, REMARK, FILE_NAME, FILE_DATETIME, STEP, STATUS
+FROM file_upload_history
+WHERE 1=1";
+
+                if (hasDate)
+                    query += " AND CAST(UPLOAD_DATE AS DATE) = @date";
+                if (!string.IsNullOrEmpty(terminalId))
+                    query += " AND TERM_ID = @terminalId";
+                if (!string.IsNullOrEmpty(status))
+                    query += " AND STATUS = @status";
+                if (!string.IsNullOrEmpty(step))
+                    query += " AND STEP = @step";
+
+                var results = new List<file_upload_history>();
+                string connStr = _myConfiguration.GetValue<string>("ConnectionStrings:DefaultConnection");
+
+                using (var conn = new SqlConnection(connStr))
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    if (hasDate) cmd.Parameters.AddWithValue("@date", date);
+                    if (!string.IsNullOrEmpty(terminalId)) cmd.Parameters.AddWithValue("@terminalId", terminalId);
+                    if (!string.IsNullOrEmpty(status)) cmd.Parameters.AddWithValue("@status", status);
+                    if (!string.IsNullOrEmpty(step)) cmd.Parameters.AddWithValue("@step", step);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            results.Add(new file_upload_history
+                            {
+                                ID = Convert.ToInt64(reader["ID"]),
+                                TERM_ID = reader["TERM_ID"].ToString(),
+                                UPLOAD_DATE = reader["UPLOAD_DATE"] as DateTime?,
+                                UPDATE_BY = reader["UPDATE_BY"].ToString(),
+                                REMARK = reader["REMARK"].ToString(),
+                                FILE_NAME = reader["FILE_NAME"].ToString(),
+                                FILE_DATETIME = reader["FILE_DATETIME"] as DateTime?,
+                                STEP = reader["STEP"].ToString(),
+                                STATUS = reader["STATUS"].ToString()
+                            });
+                        }
+                    }
+                }
+
+                if (results.Count == 0)
+                    return Json(new { success = "F", filename = "", errstr = "ไม่พบข้อมูล!" });
+
+
+                string folderPath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "SLALogExcel", "excelfiles");
+
+                // สร้างโฟลเดอร์ถ้ายังไม่มี
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                // กำหนดโฟลเดอร์ Template และ Output แยกกัน
+                string templateFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "SLALogExcel", "InputTemplate");
+              
+
+               
+
+                string filename = "SLALogMonitor_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
+                string outputPath = Path.Combine(folderPath, filename);
+
+                // สร้าง Excel
+                var exportUtil = new ExcelUtilities_SLALogMonitor();
+                exportUtil.PathDefaultTemplate = templateFolder;
+                exportUtil.ExportToExcel(results.Select(r => new Dictionary<string, object>
+                {
+                    ["Terminal ID"] = r.TERM_ID,
+                    ["File Name"] = r.FILE_NAME,
+                    ["Status"] = r.STATUS,
+                    ["Step"] = r.STEP,
+                    ["Upload Date"] = r.UPLOAD_DATE?.ToString("yyyy-MM-dd HH:mm"),
+                    ["Updated By"] = r.UPDATE_BY,
+                    ["Remark"] = r.REMARK
+                }).ToList(), outputPath);  // ส่งพาธไฟล์ออกด้วย
+
+                // ส่งชื่อไฟล์กลับไปให้ client
+                return Json(new { success = "S", filename = filename, errstr = "" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = "F", filename = "", errstr = ex.Message });
+            }
+        }
+
+
+
+
+
+        [HttpGet]
+        public IActionResult SLALogMonitor_DownloadExportFile(string rpttype, string filename)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filename))
+                    return BadRequest("Invalid file name.");
+
+                // แก้ path ให้ตรงกับที่เก็บไฟล์จริง
+                string folderPath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "SLALogExcel", "excelfiles");
+                string fullPath = Path.Combine(folderPath, filename);
+
+                if (!System.IO.File.Exists(fullPath))
+                    return NotFound("File not found.");
+
+                string contentType = "application/octet-stream";
+                switch (rpttype?.ToLower())
+                {
+                    case "xlsx":
+                        contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                        break;
+                    case "csv":
+                        contentType = "text/csv";
+                        break;
+                    case "pdf":
+                        contentType = "application/pdf";
+                        break;
+                }
+
+                return PhysicalFile(fullPath, contentType, filename);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Download error: " + ex.Message);
+            }
+        }
+
+
+
+
+        #endregion
+
+
+
         #region Excel TransactionSummary
 
         [HttpGet]
@@ -313,9 +722,9 @@ namespace SLA_Management.Controllers
             string strPathDesc = string.Empty;
             string strSuccess = string.Empty;
             string strErr = string.Empty;
-            string fromDateStr = fromDate.ToString("yyyy-MM-dd HH:mm:dd")??DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
+            string fromDateStr = fromDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
             string toDateStr = toDate.ToString("yyyy-MM-dd HH:mm:dd") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd");
-            string terminalStr = terminalId??"";
+            string terminalStr = terminalId ?? "";
             string terminaltypeStr = terminalType ?? "";
             string trxtpyeStr = transactionType ?? "";
             string terminalQuery = "";
@@ -519,7 +928,7 @@ namespace SLA_Management.Controllers
 
                 }
 
-            
+
 
 
 
@@ -545,12 +954,12 @@ namespace SLA_Management.Controllers
 
                 strPathSource = folder_name.Replace("InputTemplate", "tempfiles") + "\\" + obj.FileSaveAsXlsxFormat;
 
-                if(trxtpyeStr != "")
+                if (trxtpyeStr != "")
                 {
                     trxtpyeStr = "_" + trxtpyeStr;
                 }
 
-                fname = "TransactionSummary_"+ DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
+                fname = "TransactionSummary_" + DateTime.Now.ToString("yyyyMMdd") + trxtpyeStr;
 
                 strPathDesc = strPath + _myConfiguration.GetValue<string>("Collection_path:FolderRegulator_Excel") + fname + ".xlsx";
 
@@ -589,7 +998,7 @@ namespace SLA_Management.Controllers
 
 
         [HttpGet]
-        public ActionResult DownloadExportFile_TransactionSummary(string rpttype,string transactionType)
+        public ActionResult DownloadExportFile_TransactionSummary(string rpttype, string transactionType)
         {
             string fname = "";
             string tempPath = "";
@@ -670,6 +1079,10 @@ namespace SLA_Management.Controllers
             ViewBag.pageSize = pageSize;
             return View();
         }
+
+
+
+
         [HttpGet]
         public IActionResult LastTransactionFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype)
         {
@@ -838,6 +1251,8 @@ namespace SLA_Management.Controllers
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
         }
+
+
         #endregion
 
         #region CardRetain
@@ -1053,7 +1468,8 @@ namespace SLA_Management.Controllers
                 terminalQuery += " and t1.terminalid like '%" + terminaltypeStr + "' ";
 
             }
-            switch(sortStr){
+            switch (sortStr)
+            {
                 case "term_id":
                     sortQuery += " ORDER BY adi.term_id asc,t1.trxdatetime desc ";
                     break;
@@ -1070,9 +1486,10 @@ namespace SLA_Management.Controllers
                 default:
                     sortQuery += " ORDER BY terminalid asc, t1.trxdatetime desc";
                     break;
-                }
-                StringBuilder queryBuilder = new StringBuilder();
-            switch(modeQuery){
+            }
+            StringBuilder queryBuilder = new StringBuilder();
+            switch (modeQuery)
+            {
                 case "sum":
                     queryBuilder.AppendLine(@"  SELECT adi.term_seq as SerialNo, t1.terminalid AS TerminalID, adi.term_name as TerminalName, count(t1.remark) as Total FROM ejlog_devicetermprob t1 join fv_device_info adi on t1.terminalid = adi.term_id WHERE adi.term_seq is not null and   remark not like '%[NOCARDTXNRETAINCARD]%' and (t1.probcode = 'DEVICE29') ");
                     groupCheck = " group by t1.terminalid ";
@@ -1083,52 +1500,52 @@ namespace SLA_Management.Controllers
                     break;
                 default:
                     break;
-                }
+            }
             queryBuilder.AppendLine(terminalQuery);
             queryBuilder.AppendLine(@"  and t1.trxdatetime between '" + fromDate.ToString("yyyy-MM-dd") + " 00:00:00' and '" + toDate.ToString("yyyy-MM-dd") + " 23:59:59' " + groupCheck + sortQuery);
 
 
 
             finalQuery = queryBuilder.ToString();
-                try
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
-                    using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                    connection.Open();
+
+                    using (MySqlCommand command = new MySqlCommand(finalQuery, connection))
                     {
-                        connection.Open();
-
-                        using (MySqlCommand command = new MySqlCommand(finalQuery, connection))
+                        command.CommandText = finalQuery;
+                        command.CommandType = CommandType.Text;
+                        command.CommandTimeout = 120;
+                        using (MySqlDataReader reader = command.ExecuteReader())
                         {
-                            command.CommandText = finalQuery;
-                            command.CommandType = CommandType.Text;
-                            command.CommandTimeout = 120;
-                            using (MySqlDataReader reader = command.ExecuteReader())
+                            while (reader.Read())
                             {
-                                while (reader.Read())
+                                Dictionary<string, object> row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
                                 {
-                                    Dictionary<string, object> row = new Dictionary<string, object>();
-
-                                    for (int i = 0; i < reader.FieldCount; i++)
-                                    {
-                                        row[reader.GetName(i)] = reader.GetValue(i);
-                                    }
-
-                                    resultList.Add(row);
+                                    row[reader.GetName(i)] = reader.GetValue(i);
                                 }
+
+                                resultList.Add(row);
                             }
                         }
-
-
-
                     }
-                    return Json(resultList);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString);
-                    return Json(resultList);
-                }
 
+
+
+                }
+                return Json(resultList);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString);
+                return Json(resultList);
+            }
+
+        }
         public class CardRetainQueryModel
         {
             public string terminalId { get; set; }
@@ -1951,6 +2368,8 @@ namespace SLA_Management.Controllers
             }
         }
         #endregion
+
+
         private static List<DeviceFirmwareModel> devicefirmware_dataList = new List<DeviceFirmwareModel>();
         [HttpGet]
         public IActionResult DeviceFirmware()
@@ -2011,7 +2430,7 @@ namespace SLA_Management.Controllers
             terminaltype = terminaltype ?? "";
             sort = sort ?? "terminalno";
             List<DeviceFirmwareModel> jsonData = new List<DeviceFirmwareModel>();
-            if (search == "search"|| search == "paging")
+            if (search == "search" || search == "paging")
             {
                 using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
@@ -2027,13 +2446,13 @@ namespace SLA_Management.Controllers
                     // Filter by terminal number if provided
                     if (!string.IsNullOrEmpty(terminalno))
                     {
-                        query += " AND t.TERM_ID = '"+terminalno+"'";
+                        query += " AND t.TERM_ID = '" + terminalno + "'";
                     }
 
                     // Filter by terminal type if provided
                     if (!string.IsNullOrEmpty(terminaltype))
                     {
-                        query += " AND dih.TYPE_ID = '" + terminaltype +"'";
+                        query += " AND dih.TYPE_ID = '" + terminaltype + "'";
                     }
 
                     // Sorting logic
@@ -2074,13 +2493,13 @@ namespace SLA_Management.Controllers
                                 update_date = reader["DATE(t.UPDATE_DATE)"].ToString()
 
                             });
-                   
+
                         }
                     }
                 }
             }
             devicefirmware_dataList = jsonData;
-                    int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
+            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
             List<DeviceFirmwareModel> filteredData = RangeFilter_dvfw(jsonData, _page, _row);
             var response = new DataResponse_DeviceFirmware
             {
@@ -2089,7 +2508,7 @@ namespace SLA_Management.Controllers
                 currentPage = _page,
                 TotalTerminal = jsonData.Count(),
             };
-                    return Json(response);
+            return Json(response);
         }
         static List<DeviceFirmwareModel> RangeFilter_dvfw<DeviceFirmwareModel>(List<DeviceFirmwareModel> inputList, int page, int row)
         {
@@ -2131,7 +2550,7 @@ namespace SLA_Management.Controllers
             string terminalno = request.Terminalno ?? "";
             string terminaltype = request.Terminaltype ?? "";
             string webRootPath = _webHostEnvironment.WebRootPath;
-            string folderPath = Path.Combine(webRootPath, "RegulatorExcel", "excelfiles"); 
+            string folderPath = Path.Combine(webRootPath, "RegulatorExcel", "excelfiles");
             string strSuccess = "F";
             string strErr = "Data Not Found";
             string fname = "";
@@ -2198,7 +2617,7 @@ namespace SLA_Management.Controllers
                 // Create Excel File using EPPlus
                 using (var package = new ExcelPackage())
                 {
-                    
+
                     var worksheet = package.Workbook.Worksheets.Add("DeviceFirmwareData");
 
                     // Set headers
@@ -2240,7 +2659,7 @@ namespace SLA_Management.Controllers
                     worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
                     try
                     {
-                       
+
                         folderPath = Path.Combine(webRootPath, "RegulatorExcel", "excelfiles");
                         if (!Directory.Exists(folderPath))
                         {
@@ -2248,8 +2667,8 @@ namespace SLA_Management.Controllers
                         }
 
                         // Define the file name and path
-                         fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
-                         strPathDesc = Path.Combine(folderPath, fname);
+                        fname = "DeviceFirmware_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
+                        strPathDesc = Path.Combine(folderPath, fname);
 
                         // Log or print the file path to ensure it's correct
                         Console.WriteLine("Attempting to save file at: " + strPathDesc);
@@ -2491,7 +2910,7 @@ namespace SLA_Management.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult EjreportMonitorFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype, string date,string status)
+        public IActionResult EjreportMonitorFetchData(string terminalno, string row, string page, string search, string sort, string terminaltype, string date, string status)
         {
             int _page;
 

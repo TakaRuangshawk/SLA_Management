@@ -207,9 +207,31 @@ namespace SLA_Management.Data
                 foreach (PropertyInfo pro in temp.GetProperties())
                 {
                     if (pro.Name == column.ColumnName)
-                        pro.SetValue(obj, dr[column.ColumnName], null);
-                    else
-                        continue;
+                    {
+                        var value = dr[column.ColumnName];
+
+                        if (value == DBNull.Value)
+                        {
+                            if (pro.PropertyType == typeof(string))
+                            {
+                                pro.SetValue(obj, "", null); // string → set เป็นค่าว่าง
+                            }
+                            else if (Nullable.GetUnderlyingType(pro.PropertyType) != null)
+                            {
+                                pro.SetValue(obj, null, null); // สำหรับ nullable type เช่น DateTime?
+                            }
+                            else
+                            {
+                                // สำหรับ non-nullable value types เช่น int, bool
+                                pro.SetValue(obj, Activator.CreateInstance(pro.PropertyType), null);
+                            }
+                        }
+                        else
+                        {
+                            pro.SetValue(obj, value, null);
+                        }
+                    }
+
                 }
             }
             return obj;
