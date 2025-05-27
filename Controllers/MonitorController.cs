@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using OfficeOpenXml;
 using SLA_Management.Commons;
@@ -317,7 +318,7 @@ namespace SLA_Management.Controllers
             {
                 CommandText = @"
             SELECT [ID], [TERM_ID], [UPLOAD_DATE], [UPDATE_BY], 
-                   [REMARK], [FILE_NAME], [FILE_DATETIME], [STATUS]
+                   [REMARK], [FILE_NAME], [FILE_DATETIME], [STATUS],[STEP]
             FROM [SLADB].[dbo].[file_upload_history]
             ORDER BY [UPLOAD_DATE] DESC;"
             };
@@ -330,6 +331,56 @@ namespace SLA_Management.Controllers
             return db_sql.ConvertDataTable<file_upload_history>(dt);
         }
 
+        public static LatestStatusDto GetLatestFileUploadSummary()
+        {
+            // Get COUNT_ALL_TERMINAL จาก Device_info ทั้งหมด
+            List<Device_info> deviceInfoList = GetDeviceInfoALL();
+            int totalDevices = deviceInfoList?.Count ?? 0;
+
+            SqlCommand command = new SqlCommand
+            {
+                CommandText = @"
+        SELECT TOP 1
+            COUNT_TERMINAL,
+            COUNT_TASK_TERMINAL,
+            COUNT_TASK_UPLOAD_SUCCESSFUL,
+            COUNT_UPLOAD_COMLOG_SUCCESSFUL,
+            COUNT_INSERT_COMLOG_SUCCESSFUL,
+            COUNT_TASK_UPLOAD_UNSUCCESSFUL,
+            COUNT_UPLOAD_COMLOG_UNSUCCESSFUL,
+            COUNT_INSERT_COMLOG_UNSUCCESSFUL
+        FROM [SLADB].[dbo].[file_upload_report]
+        ORDER BY UPDATE_DATE DESC;"
+            };
+
+            DataTable dt = db_sql.GetDatatable(command);
+
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                return new LatestStatusDto
+                {
+                    COUNT_ALL_TERMINAL = totalDevices
+                };
+            }
+
+            var row = dt.Rows[0];
+
+            return new LatestStatusDto
+            {
+                COUNT_ALL_TERMINAL = totalDevices,
+                COUNT_TERMINAL = Convert.ToInt32(row["COUNT_TERMINAL"]),
+                COUNT_TASK_TERMINAL = Convert.ToInt32(row["COUNT_TASK_TERMINAL"]),
+                COUNT_TASK_UPLOAD_SUCCESSFUL = Convert.ToInt32(row["COUNT_TASK_UPLOAD_SUCCESSFUL"]),
+                COUNT_UPLOAD_COMLOG_SUCCESSFUL = Convert.ToInt32(row["COUNT_UPLOAD_COMLOG_SUCCESSFUL"]),
+                COUNT_INSERT_COMLOG_SUCCESSFUL = Convert.ToInt32(row["COUNT_INSERT_COMLOG_SUCCESSFUL"]),
+                COUNT_TASK_UPLOAD_UNSUCCESSFUL = Convert.ToInt32(row["COUNT_TASK_UPLOAD_UNSUCCESSFUL"]),
+                COUNT_UPLOAD_COMLOG_UNSUCCESSFUL = Convert.ToInt32(row["COUNT_UPLOAD_COMLOG_UNSUCCESSFUL"]),
+                COUNT_INSERT_COMLOG_UNSUCCESSFUL = Convert.ToInt32(row["COUNT_INSERT_COMLOG_UNSUCCESSFUL"])
+            };
+        }
+
+
+
 
         [HttpGet]
         public IActionResult SLALogMonitor()
@@ -341,6 +392,10 @@ namespace SLA_Management.Controllers
             ViewBag.maxRows = pageSize;
             ViewBag.CurrentTID = GetDeviceInfoALL();
             ViewBag.pageSize = pageSize;
+
+            ViewBag.StatusAll = "";
+            ViewBag.StepAll = "";
+
 
             var fileUploadHistory = GetFileUploadHistory();
 
@@ -361,169 +416,173 @@ namespace SLA_Management.Controllers
             return View();
         }
 
-        [HttpGet]
         public IActionResult SLALogMonitorFetchData(string terminalno, string row, string page, string search, string status, DateTime? date, string step)
         {
-            #region page manage
-            int _page;
 
-            if (page == null || search == "search")
+            if (!date.HasValue)
             {
-                _page = 1;
-            }
-            else
-            {
-                _page = int.Parse(page);
-            }
-            if (search == "next")
-            {
-                _page++;
-            }
-            else if (search == "prev")
-            {
-                _page--;
-            }
-            int _row;
-            if (row == null)
-            {
-                _row = 20;
-            }
-            else
-            {
-                _row = int.Parse(row);
+                date = DateTime.Now.AddDays(-1);
             }
 
-            #endregion
+            int _page = page == null || search == "search" ? 1 : int.Parse(page);
+            int _row = row == null ? 20 : int.Parse(row);
 
             terminalno = terminalno ?? "";
             status = status ?? "";
-
             step = step ?? "";
 
+            if (!string.IsNullOrEmpty(status)) ViewBag.Status = status;
+            if (!string.IsNullOrEmpty(step)) ViewBag.Step = step;
+
+            var parameters = new DynamicParameters();
+            var sql = @"
+        SELECT ID, TERM_ID, UPLOAD_DATE, UPDATE_BY, REMARK, FILE_NAME, FILE_DATETIME, STATUS, STEP
+        FROM [SLADB].[dbo].[file_upload_history]
+        WHERE 1=1";
+
+            if (!string.IsNullOrEmpty(terminalno))
+            {
+                sql += " AND TERM_ID = @terminalno";
+                parameters.Add("terminalno", terminalno);
+            }
             if (!string.IsNullOrEmpty(status))
             {
-                ViewBag.Status = status;
+                sql += " AND STATUS = @status";
+                parameters.Add("status", status);
             }
-            else
-            {
-                ViewBag.Status = "";
-            }
-
             if (!string.IsNullOrEmpty(step))
             {
-                ViewBag.Step = step;
+                sql += " AND STEP = @step";
+                parameters.Add("step", step);
             }
-            else
+            if (date.HasValue)
             {
-                ViewBag.Step = "";
+                string fileDateStr = "COM" + date.Value.ToString("yyyyMMdd");
+                sql += " AND FILE_NAME LIKE @fileDateStr";
+                parameters.Add("fileDateStr", fileDateStr + "%");
             }
 
-            List<file_upload_history> file_upload_history_jsonData = new List<file_upload_history>();
+            sql += " ORDER BY UPLOAD_DATE DESC";
 
-            List<file_upload_historyModel> file_upload_historyModel = new List<file_upload_historyModel>();
-            if (search == "search")
+            List<Device_info> deviceInfo = GetDeviceInfoALL();
+            int countAllTerminal = deviceInfo.Count;
+            List<file_upload_historyModel> result;
+
+            using (var connection = new SqlConnection(_myConfiguration.GetConnectionString("DefaultConnection")))
             {
+                connection.Open();
 
-                List<Device_info> deviceInfo = GetDeviceInfoALL();
-
-
-                SqlCommand command = new SqlCommand();
-                StringBuilder sqlBuilder = new StringBuilder();
-                sqlBuilder.Append(@"
-        SELECT [ID], [TERM_ID], [UPLOAD_DATE], [UPDATE_BY], 
-               [REMARK], [FILE_NAME], [FILE_DATETIME], [STATUS], [STEP]
-        FROM [SLADB].[dbo].[file_upload_history]
-        WHERE 1=1
-    ");
-
-                // เพิ่มเงื่อนไขตาม parameter
-                if (!string.IsNullOrEmpty(terminalno))
-                {
-                    sqlBuilder.Append(" AND TERM_ID = @terminalno");
-                    command.Parameters.AddWithValue("@terminalno", terminalno);
-                }
-
-                if (!string.IsNullOrEmpty(status))
-                {
-                    sqlBuilder.Append(" AND STATUS = @status");
-                    command.Parameters.AddWithValue("@status", status);
-                }
-
-                if (!string.IsNullOrEmpty(step))
-                {
-                    sqlBuilder.Append(" AND STEP = @step");
-                    command.Parameters.AddWithValue("@step", step);
-                }
-
-                if (date.HasValue)
-                {
-                    sqlBuilder.Append(" AND CAST(UPLOAD_DATE AS DATE) = @date");
-                    command.Parameters.AddWithValue("@date", date.Value.Date);
-                }
-
-                sqlBuilder.Append(" ORDER BY UPLOAD_DATE DESC");
-
-                command.CommandText = sqlBuilder.ToString();
-
-                DataTable dt = db_sql.GetDatatable(command);
-
-                file_upload_history_jsonData = db_sql.ConvertDataTable<file_upload_history>(dt);
-
+                var historyList = connection.Query<file_upload_history>(sql, parameters).ToList();
+                result = new List<file_upload_historyModel>();
                 int count = 1;
 
-                foreach (var item in file_upload_history_jsonData)
+                foreach (var history in historyList)
                 {
-                    var device = deviceInfo.FirstOrDefault(d => d.TERM_ID == item.TERM_ID);
+                    var device = deviceInfo.FirstOrDefault(d => d.TERM_ID == history.TERM_ID);
 
-                    file_upload_historyModel.Add(new file_upload_historyModel
+                    var model = new file_upload_historyModel
                     {
                         no = count.ToString(),
                         term_seq = device?.TERM_SEQ ?? "",
-                        term_id = device?.TERM_ID ?? "",
+                        term_id = history.TERM_ID,
                         term_name = device?.TERM_NAME ?? "",
-                        file_name = item.FILE_NAME,
-                        remark = item.REMARK,
-                        status = item.STATUS,
-                        step = item.STEP,
-                    });
+                        file_name = history.FILE_NAME,
+                        status = history.STATUS,
+                        step = history.STEP,
+                        upload_date = history.UPLOAD_DATE,
+                        update_by = history.UPDATE_BY,
+                        remark = history.REMARK
+                    };
+                    result.Add(model);
                     count++;
                 }
 
+                // ---------------------
+                // ดึง summary report แยกต่างหาก
+                // ใช้ LOG_DATE จาก FILE_NAME ตัวแรกใน result (ถ้ามี)
+                // ---------------------
+                file_upload_report latestReport = null;
 
+                var firstFileName = result.FirstOrDefault()?.file_name;
+                if (!string.IsNullOrEmpty(firstFileName) && firstFileName.Length >= 11)
+                {
+                    var logDate = firstFileName.Substring(3, 8); // COM20250527 -> 20250527
+
+                    var reportSql = @"
+        SELECT TOP 1
+            COUNT_TERMINAL,
+            COUNT_TASK_TERMINAL,
+            COUNT_TASK_UPLOAD_SUCCESSFUL,
+            COUNT_UPLOAD_COMLOG_SUCCESSFUL,
+            COUNT_INSERT_COMLOG_SUCCESSFUL,
+            COUNT_TASK_UPLOAD_UNSUCCESSFUL,
+            COUNT_UPLOAD_COMLOG_UNSUCCESSFUL,
+            COUNT_INSERT_COMLOG_UNSUCCESSFUL
+        FROM [SLADB].[dbo].[file_upload_report]
+        WHERE CONVERT(VARCHAR(8), LOG_DATE, 112) = @logDate
+        ORDER BY UPDATE_DATE DESC";
+
+                    var reportData = connection.QueryFirstOrDefault<file_upload_report>(reportSql, new { logDate });
+
+                    if (reportData != null)
+                    {
+                        reportData.COUNT_ALL_TERMINAL = countAllTerminal; // เพิ่มค่า
+                        latestReport = reportData;
+                    }
+                    else
+                    {
+                        latestReport = new file_upload_report
+                        {
+                            COUNT_ALL_TERMINAL = countAllTerminal // อย่างน้อยให้มีค่าทั้งหมด
+                        };
+                    }
+                }
+                else
+                {
+                    // fallback: ไม่มี file เลย ก็ใส่ countAllTerminal อย่างเดียว
+                    latestReport = new file_upload_report
+                    {
+                        COUNT_ALL_TERMINAL = countAllTerminal
+                    };
+                }
+
+
+                int totalRecords = result.Count;
+                int totalPages = (int)Math.Ceiling((double)totalRecords / _row);
+                var pagedResult = result.Skip((_page - 1) * _row).Take(_row).ToList();
+
+                var response = new DataResponse_file_upload_history
+                {
+                    JsonData = pagedResult,
+                    Page = totalPages,
+                    currentPage = _page,
+                    TotalTerminal = totalRecords,
+                    latestReport = latestReport
+                };
+       
+
+                return Json(response);
             }
-            else
-            {
-                file_upload_historyModel = file_upload_history_dataList;
-            }
-
-
-                file_upload_history_dataList = file_upload_historyModel;
-            int pages = (int)Math.Ceiling((double)file_upload_historyModel.Count() / _row);
-            List<file_upload_historyModel> filteredData = RangeFilter_file_upload_history(file_upload_historyModel, _page, _row);
-            var response = new DataResponse_file_upload_history
-            {
-                JsonData = filteredData,
-                Page = pages,
-                currentPage = _page,
-                TotalTerminal = file_upload_historyModel.Count(),
-            };
-            return Json(response);
         }
 
         public class file_upload_historyModel
         {
             public string no { get; set; }
-            public string term_id { get; set; }
             public string term_seq { get; set; }
+            public string term_id { get; set; }
             public string term_name { get; set; }
             public string file_name { get; set; }
+            public string remark { get; set; }
             public string status { get; set; }
-
             public string step { get; set; }
 
-            public string remark { get; set; }
+            public DateTime? upload_date { get; set; }
+            public string update_by { get; set; }
 
+            // สำหรับเก็บข้อมูล summary จาก file_upload_report
+            public LatestStatusDto report { get; set; }
         }
+
 
         public class DataResponse_file_upload_history
         {
@@ -531,6 +590,8 @@ namespace SLA_Management.Controllers
             public int Page { get; set; }
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
+
+            public file_upload_report latestReport { get; set; }
         }
 
         static List<file_upload_historyModel> RangeFilter_file_upload_history<file_upload_historyModel>(List<file_upload_historyModel> inputList, int page, int row)
@@ -564,23 +625,32 @@ namespace SLA_Management.Controllers
         {
             try
             {
-                // แยกค่าจาก exparams
                 var splitParams = data.exparams.Split('|');
                 string terminalId = splitParams.Length > 1 ? splitParams[1] : null;
                 string dateStr = splitParams.Length > 2 ? splitParams[2] : null;
                 string status = splitParams.Length > 3 ? splitParams[3] : null;
                 string step = splitParams.Length > 4 ? splitParams[4] : null;
 
-                bool hasDate = DateTime.TryParseExact(dateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date);
+                DateTime filterDate;
+                bool hasDate = DateTime.TryParseExact(dateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out filterDate);
 
-                // เริ่มต้น Query
+                if (!hasDate)
+                {
+                    filterDate = DateTime.Now.AddDays(-1).Date;
+                    hasDate = true;
+                }
+
                 var query = @"
 SELECT ID, TERM_ID, UPLOAD_DATE, UPDATE_BY, REMARK, FILE_NAME, FILE_DATETIME, STEP, STATUS
-FROM file_upload_history
+FROM [SLADB].[dbo].[file_upload_history]
 WHERE 1=1";
 
                 if (hasDate)
-                    query += " AND CAST(UPLOAD_DATE AS DATE) = @date";
+                {
+                    // กรองโดยแปลง substring จาก FILE_NAME ที่เริ่มด้วย 'COM' ตามด้วยวันที่ YYYYMMDD
+                    query += @"
+    AND TRY_CAST(SUBSTRING(FILE_NAME, 4, 8) AS DATE) = @date";
+                }
                 if (!string.IsNullOrEmpty(terminalId))
                     query += " AND TERM_ID = @terminalId";
                 if (!string.IsNullOrEmpty(status))
@@ -594,7 +664,7 @@ WHERE 1=1";
                 using (var conn = new SqlConnection(connStr))
                 using (var cmd = new SqlCommand(query, conn))
                 {
-                    if (hasDate) cmd.Parameters.AddWithValue("@date", date);
+                    if (hasDate) cmd.Parameters.AddWithValue("@date", filterDate);
                     if (!string.IsNullOrEmpty(terminalId)) cmd.Parameters.AddWithValue("@terminalId", terminalId);
                     if (!string.IsNullOrEmpty(status)) cmd.Parameters.AddWithValue("@status", status);
                     if (!string.IsNullOrEmpty(step)) cmd.Parameters.AddWithValue("@step", step);
@@ -623,27 +693,22 @@ WHERE 1=1";
                 if (results.Count == 0)
                     return Json(new { success = "F", filename = "", errstr = "ไม่พบข้อมูล!" });
 
-
                 string folderPath = Path.Combine(Environment.CurrentDirectory, "wwwroot", "SLALogExcel", "excelfiles");
 
-                // สร้างโฟลเดอร์ถ้ายังไม่มี
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
                 }
 
-                // กำหนดโฟลเดอร์ Template และ Output แยกกัน
                 string templateFolder = Path.Combine(Environment.CurrentDirectory, "wwwroot", "SLALogExcel", "InputTemplate");
-              
-
-               
 
                 string filename = "SLALogMonitor_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
                 string outputPath = Path.Combine(folderPath, filename);
 
-                // สร้าง Excel
                 var exportUtil = new ExcelUtilities_SLALogMonitor();
                 exportUtil.PathDefaultTemplate = templateFolder;
+                var latestSummary = GetLatestFileUploadSummary();
+
                 exportUtil.ExportToExcel(results.Select(r => new Dictionary<string, object>
                 {
                     ["Terminal ID"] = r.TERM_ID,
@@ -653,9 +718,8 @@ WHERE 1=1";
                     ["Upload Date"] = r.UPLOAD_DATE?.ToString("yyyy-MM-dd HH:mm"),
                     ["Updated By"] = r.UPDATE_BY,
                     ["Remark"] = r.REMARK
-                }).ToList(), outputPath);  // ส่งพาธไฟล์ออกด้วย
+                }).ToList(), latestSummary, outputPath);
 
-                // ส่งชื่อไฟล์กลับไปให้ client
                 return Json(new { success = "S", filename = filename, errstr = "" });
             }
             catch (Exception ex)
@@ -663,6 +727,7 @@ WHERE 1=1";
                 return Json(new { success = "F", filename = "", errstr = ex.Message });
             }
         }
+
 
 
 

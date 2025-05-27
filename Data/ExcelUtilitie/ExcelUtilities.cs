@@ -1,8 +1,11 @@
 ﻿
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using SLA_Management.Models.LogMonitorModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
+using System.Drawing;
 using System.Globalization;
 using static SLA_Management.Controllers.MaintenanceController;
 using static SLA_Management.Controllers.MonitorController;
@@ -661,53 +664,105 @@ namespace SLA_Management.Data.ExcelUtilitie
 
         #region Function
 
-        public void ExportToExcel(List<Dictionary<string, object>> objData, string outputFilePath)
+        public void ExportToExcel(List<Dictionary<string, object>> objData, LatestStatusDto latestDto, string outputFilePath)
         {
             ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
             FileInfo templateFile = new FileInfo(Path.Combine(PathDefaultTemplate, "SLALogMonitorTemplate.xlsx"));
             using (var package = new ExcelPackage(templateFile))
             {
-                var worksheet = package.Workbook.Worksheets["Sheet1"];
+                // --------- Main Sheet ---------
+                var mainSheet = package.Workbook.Worksheets["Sheet1"];
+                mainSheet.Name = "Main";
 
-                // เขียน Header (ถ้าต้องการเขียน หรือจะใช้ template)
                 int col = 1;
                 foreach (var header in objData[0].Keys)
                 {
-                    var cell = worksheet.Cells[1, col];
+                    var cell = mainSheet.Cells[1, col];
                     cell.Value = header;
-                    // style header เช่นตัวอย่างก่อนหน้า
                     cell.Style.Font.Bold = true;
-                    cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Orange);
-                    cell.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
+                    cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    cell.Style.Fill.BackgroundColor.SetColor(Color.Orange);
+                    cell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
                     col++;
                 }
 
-                // เขียนข้อมูล
                 int row = 2;
                 foreach (var rowData in objData)
                 {
                     col = 1;
                     foreach (var value in rowData.Values)
                     {
-                        worksheet.Cells[row, col].Value = value;
+                        mainSheet.Cells[row, col].Value = value;
                         col++;
                     }
                     row++;
                 }
 
-                // Auto fit columns
                 for (int i = 1; i <= objData[0].Count; i++)
                 {
-                    worksheet.Column(i).AutoFit();
+                    mainSheet.Column(i).AutoFit();
                 }
 
-                // Save file ที่พาธที่กำหนด
+                // --------- Latest Summary Sheet ---------
+                var summarySheet = package.Workbook.Worksheets.Add("Latest Summary");
+
+                // Header labels
+                string[] summaryHeaders = {
+    "COUNT_ALL_TERMINAL",
+    "COUNT_TERMINAL",
+    "COUNT_TASK_TERMINAL",
+    "COUNT_TASK_UPLOAD_SUCCESSFUL",
+    "COUNT_UPLOAD_COMLOG_SUCCESSFUL",
+    "COUNT_INSERT_COMLOG_SUCCESSFUL",
+    "COUNT_TASK_UPLOAD_UNSUCCESSFUL",
+    "COUNT_UPLOAD_COMLOG_UNSUCCESSFUL",
+    "COUNT_INSERT_COMLOG_UNSUCCESSFUL"
+};
+
+                // ใส่ Header
+                for (int i = 0; i < summaryHeaders.Length; i++)
+                {
+                    var cell = summarySheet.Cells[1, i + 1];
+                    cell.Value = summaryHeaders[i];
+
+                    // Style header
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(191, 191, 191));
+                    cell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                }
+
+                // ใส่ข้อมูล
+                summarySheet.Cells[2, 1].Value = latestDto.COUNT_ALL_TERMINAL;
+                summarySheet.Cells[2, 2].Value = latestDto.COUNT_TERMINAL;
+                summarySheet.Cells[2, 3].Value = latestDto.COUNT_TASK_TERMINAL;
+                summarySheet.Cells[2, 4].Value = latestDto.COUNT_TASK_UPLOAD_SUCCESSFUL;
+                summarySheet.Cells[2, 5].Value = latestDto.COUNT_UPLOAD_COMLOG_SUCCESSFUL;
+                summarySheet.Cells[2, 6].Value = latestDto.COUNT_INSERT_COMLOG_SUCCESSFUL;
+                summarySheet.Cells[2, 7].Value = latestDto.COUNT_TASK_UPLOAD_UNSUCCESSFUL;
+                summarySheet.Cells[2, 8].Value = latestDto.COUNT_UPLOAD_COMLOG_UNSUCCESSFUL;
+                summarySheet.Cells[2, 9].Value = latestDto.COUNT_INSERT_COMLOG_UNSUCCESSFUL;
+
+                // ตกแต่ง cell ของข้อมูล
+                for (int i = 1; i <= summaryHeaders.Length; i++)
+                {
+                    var valueCell = summarySheet.Cells[2, i];
+                    valueCell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    valueCell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                    summarySheet.Column(i).AutoFit();
+                    summarySheet.Column(i).Width += 5; // เพิ่ม spacing
+                }
+
+
+
                 package.SaveAs(new FileInfo(outputFilePath));
                 FileSaveAsXlsxFormat = Path.GetFileName(outputFilePath);
             }
         }
+
         #endregion
     }
 
