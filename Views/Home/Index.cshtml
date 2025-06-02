@@ -200,6 +200,20 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="table-responsive" style="overflow-x: hidden;">
+                    <table id="table-incidentCount" class="table table-striped custom-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tag TH</th>
+                                <th>Tag EN</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -222,8 +236,9 @@
             success: function (response) {
                 var data = response.data;
                 var pieData = response.pieDataList;
+                var incident = response.incidents;
                 updateDashboardTable(data);
-                
+                updateIncidentTable(incident);
                 updatePieChartData(pieData);
                
             },
@@ -247,6 +262,28 @@
                                 <td>${item.terminal_Name}</td>
                                 <td>${item.counter_Code}</td>
                                 <td>${item.total_Cases}</td>
+                            </tr>`;
+                tbody.innerHTML += row;
+                count++;
+            });
+        }else{
+            const row = '<tr><td colspan="12" style="text-align: center;">NO DATA AVAILABLE</td></tr>';
+            tbody.innerHTML += row;
+        }
+    }
+
+    function updateIncidentTable(data) {
+        // Clear existing rows in the table
+        const tbody = document.getElementById("table-incidentCount").querySelector("tbody");
+        tbody.innerHTML = "";
+        if (data.length > 0) {
+            let count = 1;
+            data.forEach(item => {
+               const row = `<tr>
+                                <td>${count}</td>
+                                <td>${item.tag_th}</td>
+                                <td>${item.tag_en}</td>
+                                <td>${item.count}</td>
                             </tr>`;
                 tbody.innerHTML += row;
                 count++;

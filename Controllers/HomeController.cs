@@ -39,6 +39,7 @@ namespace SLA_Management.Controllers
         {
             List<DashboradViewModel> dashboardDataList = new List<DashboradViewModel>();
             List<PieChartModel> pieDataList = new List<PieChartModel>();
+            List<IncidentCases> incidents = new List<IncidentCases>();
             string connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac");
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -91,11 +92,34 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT mi.TAG_TH,mi.TAG_EN,COUNT(td.Remark) as Count from t_tsd_jobdetail td join master_incident mi on mi.id = td.Remark WHERE td.Open_Date BETWEEN @fromDate AND @toDate GROUP BY td.Remark";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@fromDate", fromDate + " 00:00:00");
+                    cmd.Parameters.AddWithValue("@toDate", toDate + " 23:59:59");
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            incidents.Add(new IncidentCases()
+                            {
+                                tag_th = reader["TAG_TH"].ToString(),
+                                tag_en = reader["TAG_EN"].ToString(),
+                                count = Convert.ToInt32(reader["Count"])
+                            });
+                        }
+                    }
+                }
+            }
             return Json(new
             {
                 success = true,
                 data = dashboardDataList,
-                pieDataList = pieDataList
+                pieDataList = pieDataList,
+                incidents = incidents
             });
         }
         public IActionResult Index()

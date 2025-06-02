@@ -13,4 +13,10 @@
         public string? name { get; set; }
         public int? value { get; set; }
     }
+    public class IncidentCases
+    {
+        public string? tag_th { get; set; }
+        public string? tag_en { get; set; }
+        public int? count { get; set; }
+    }
 }
