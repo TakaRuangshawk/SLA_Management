@@ -8,6 +8,7 @@ namespace SLA_Management.Models.Information
         public List<Terminal_SerialList>? SerialList { get; set; } = new List<Terminal_SerialList>();
         public List<Software_VersionList>? SoftwareList { get; set; } = new List<Software_VersionList>();
         public List<SP_VersionList>? SPVersionList { get; set; } = new List<SP_VersionList>();
+        public List<CounterCodeList>? CounterList { get; set; } = new List<CounterCodeList>();
         public List<Feelview_VersionList>? FeelviewVersionList { get; set; } = new List<Feelview_VersionList>();
         public List<Device_info_record>? Device_Info_Records { get; set; } = new List<Device_info_record> ();
         public List<SoftwareDataTable>? SoftwareData { get; set; } = new List<SoftwareDataTable> ();
@@ -15,6 +16,8 @@ namespace SLA_Management.Models.Information
         public string? selectedBank { get;set; }
         public string? selectedTerminal { get; set; }
         public string? selectedSoftware_Ver { get; set; }
+        public string? selectedFeelview_Ver { get; set; }
+        public string? selectedCounter { get; set; }
         public int TotalRecords { get; set; } = 0;
         public int CurrentPage { get; set; }
         public int PageSize { get; set; }
@@ -23,6 +26,10 @@ namespace SLA_Management.Models.Information
     public class Terminal_SerialList
     {
         public string? Serial_No { get; set; }
+    }
+    public class CounterCodeList
+    {
+        public string? Counter_No { get; set; }
     }
     public class Software_VersionList
     {
@@ -43,6 +50,7 @@ namespace SLA_Management.Models.Information
         public string? software_Val { get; set; }
         public string? sp_Val { get; set; }
         public string? feelview_Val { get; set; }
+        public string? counterVal { get; set; }
         public int maxRows { get; set; }
         public int page { get; set; }
     }
@@ -55,6 +63,8 @@ namespace SLA_Management.Models.Information
         public string? ATMC_Ver { get; set; }
         public string? SP_Ver { get; set; }
         public string? Agent_Ver { get; set; }
+        public string? Update_Date { get; set; }
+        public string? Update_By { get; set; }
     }
     public class ExportSoftwareVersion
     {
@@ -63,5 +73,6 @@ namespace SLA_Management.Models.Information
         public string? software_Val { get; set; }
         public string? sp_Val { get; set; }
         public string? feelview_Val { get; set; }
+        public string? counterVal { get; set; }
     }
 }

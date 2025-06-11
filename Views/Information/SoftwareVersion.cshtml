@@ -263,10 +263,42 @@
                     </div>
 
                     <div class="col-2" style="">
+                         <h>Counter Code : </h>
+                    </div>
+                    <div class="col-2" style="padding:0px;">
+                        <select class="selectpicker form-control subsearch" id="counterCode" name="counterCode" data-live-search="true">
+                            @if (Model.CounterList.Count == 0)
+                            {
+                                <option data-tokens="" value="">--</option>
+                            }
+                            else
+                            {
+                                <option data-tokens="" value="">--</option>
+                                foreach (var item in Model.CounterList)
+                                {
+                                    if (item.Counter_No == Model.selectedCounter)
+                                    {
+                                        <option value=@item.Counter_No data-tokens=@item.Counter_No selected>@item.Counter_No</option>
+                                    }
+                                    else
+                                    {
+                                        <option value=@item.Counter_No data-tokens=@item.Counter_No>@item.Counter_No</option>
+                                    }
+                                }
+                            }
+                        </select>
                     </div>
                     <div class="col-2" style="padding:0px;">
                     </div>
-                    <div class="col-2" style="padding:0px;">
+                </div>
+                <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                    <div class="col-12" style="color: red; padding-top: 30px;">
+                        <h>Latest Update Date : <span id="updateDateLabel"></span></h>
+                    </div>
+                </div>
+                <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                    <div class="col-12" style="color: red;">
+                        <h>Latest Update By : <span id="updateByLabel"></span></h>
                     </div>
                 </div>
                 <div class="row">
@@ -355,6 +387,7 @@
         var softwareVal = $('#softwareVal').val();
         var spVal = $('#spVersion').val();
         var feelviewVal = $('#feelviewVersion').val();
+        var counterVal = $('#counterCode').val();
         var rptType = "xlsx";
         if (bank == "") {
             alert("Please select a bank");
@@ -368,7 +401,8 @@
                 term_ID: termId,
                 software_Val: softwareVal,
                 sp_Val: spVal,
-                feelview_Val: feelviewVal
+                feelview_Val: feelviewVal,
+                counterVal : counterVal
             }),
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("SoftwareVersion_ExportXlsx", "Information")',
@@ -399,6 +433,7 @@
         var softwareVal = $('#softwareVal').val();
         var spVal = $('#spVersion').val();
         var feelviewVal = $('#feelviewVersion').val();
+        var counterVal = $('#counterCode').val();
         var maxRow = $('#maxRows').val();
         if(bank == ""){
             alert("Please select a bank");
@@ -413,6 +448,7 @@
                 software_Val: softwareVal,
                 sp_Val: spVal,
                 feelview_Val: feelviewVal,
+                counterVal: counterVal,
                 maxRows: maxRow,
                 page: page
             }),
@@ -425,6 +461,8 @@
                 var totalPages = response.totalPages;
                 var totalRecords = response.totalRecords;
                 $('#totalRecords').text(totalRecords);
+                $('#updateByLabel').text(response.updateBy);
+                $('#updateDateLabel').text(response.updateDate);
                 addDatatoDropdown(totalPages, currentPage);
                 updateTableData(data);
                 updatePagination(currentPage, totalPages);

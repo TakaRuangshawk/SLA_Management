@@ -334,7 +334,7 @@ namespace SLA_Management.Controllers
                             {
                                 counterCode = "LOT572";
                             }
-                            else
+                            else if (file.FileName.Contains("362"))
                             {
                                 counterCode = "LOT362";
                             }
@@ -410,6 +410,8 @@ namespace SLA_Management.Controllers
                                 NV_UPDATE_TIME = txtFileData.Length > 67 ? txtFileData[67].Trim() : null,
                                 VERSION_MAIN = txtFileData.Length > 68 ? txtFileData[68].Trim() : null,
                                 MAIN_UPDATE_TIME = txtFileData.Length > 69 ? txtFileData[69].Trim() : null,
+                                LatestUpdatedBy = HttpContext.Session.GetString("Username"),
+                                LatestUpdatedDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
                             };
 
                             await InsertTextDatatoDB(connection, terminal);
@@ -523,7 +525,7 @@ namespace SLA_Management.Controllers
                     cmd.Parameters.AddWithValue("@fsnpath", terminals.FSN_PATH != "null" ? terminals.FSN_PATH : DBNull.Value);
                     cmd.Parameters.AddWithValue("@task", terminals.TASK_PARA != "null" ? terminals.TASK_PARA : DBNull.Value);
                     cmd.Parameters.AddWithValue("@verad", terminals.VERSION_AD != "null" ? terminals.VERSION_AD : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@modifyid", terminals.MODIFY_USERID != "null" ? terminals.MODIFY_USERID : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@modifyid", terminals.MODIFY_USERID != "null" ? terminals.MODIFY_USERID : terminals.LatestUpdatedBy);
                     // Parse datetime or set to NULL
                     if (DateTime.TryParse(terminals.MODIFY_DATE, out var modifyDate))
                     {
@@ -531,7 +533,10 @@ namespace SLA_Management.Controllers
                     }
                     else
                     {
-                        cmd.Parameters.AddWithValue("@modifydate", DBNull.Value); // Handle invalid or null dates
+                        if (DateTime.TryParse(terminals.LatestUpdatedDate, out var latestDate))
+                        {
+                            cmd.Parameters.AddWithValue("@modifydate", latestDate); // Handle invalid or null dates
+                        }  
                     }
                     //cmd.Parameters.AddWithValue("@modifydate",terminals.MODIFY_DATE);
                     cmd.Parameters.AddWithValue("@adduser", terminals.ADD_USERID != "null" ? terminals.ADD_USERID : DBNull.Value);

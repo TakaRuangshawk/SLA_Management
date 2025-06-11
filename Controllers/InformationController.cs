@@ -9,6 +9,7 @@ using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using System.Composition;
 using System.Globalization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static NPOI.HSSF.Util.HSSFColor;
 
 namespace SLA_Management.Controllers 
@@ -28,6 +29,7 @@ namespace SLA_Management.Controllers
             SoftwareVersionViewModel model = new SoftwareVersionViewModel();
             List<Device_info_record> device_Info_Records = new List<Device_info_record>();
             List<Software_VersionList> software_VersionLists = new List<Software_VersionList>();
+            List<CounterCodeList> counter_CodeLists = new List<CounterCodeList>();
             List<SP_VersionList> sp_VersionLists = new List<SP_VersionList>();
             List<Feelview_VersionList> feelview_VersionLists = new List<Feelview_VersionList>();
             //List<Terminal_SerialList> serialLists = new List<Terminal_SerialList>();
@@ -84,6 +86,27 @@ namespace SLA_Management.Controllers
                 }
             }
             model.Device_Info_Records = device_Info_Records;
+            #endregion
+            #region getCounterCode
+            using (var connection = new MySqlConnection(connString))
+            {
+                connection.OpenAsync();
+                string query = "SELECT COUNTER_CODE FROM device_info group by COUNTER_CODE;";
+                using (MySqlCommand cmd = new MySqlCommand(query, connection))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            counter_CodeLists.Add(new CounterCodeList()
+                            {
+                                Counter_No = reader["COUNTER_CODE"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            model.CounterList = counter_CodeLists;
             #endregion
             #region getSoftware Version
 
@@ -173,7 +196,7 @@ namespace SLA_Management.Controllers
                     cmd.Parameters.AddWithValue("@software_Ver", req.software_Val);
                     cmd.Parameters.AddWithValue("@sp_Ver", req.sp_Val);
                     cmd.Parameters.AddWithValue("@feelview_Ver", req.feelview_Val);
-
+                    cmd.Parameters.AddWithValue("@counter_Code", req.counterVal);
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -197,6 +220,50 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
+
+            //for LatestUpdate
+            string UpdateBy = string.Empty;
+            string UpdateDate = string.Empty;
+            if (!string.IsNullOrEmpty(req.counterVal))
+            {
+
+                using (var conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + req.bank_Name)))
+                {
+                    conn.Open();
+                    var query = "SELECT MODIFY_USERID,MODIFY_DATE FROM device_info WHERE COUNTER_CODE=@couter ORDER BY MODIFY_DATE DESC LIMIT 1";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@couter", req.counterVal);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                UpdateBy = reader["MODIFY_USERID"].ToString();
+                                UpdateDate = reader["MODIFY_DATE"].ToString();
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (var conn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + req.bank_Name)))
+                {
+                    conn.Open();
+                    var query = "SELECT MODIFY_USERID,MODIFY_DATE FROM device_info ORDER BY MODIFY_DATE DESC LIMIT 1";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                UpdateBy = reader["MODIFY_USERID"].ToString();
+                                UpdateDate = reader["MODIFY_DATE"].ToString();
+                            }
+                        }
+                    }
+                }
+            }
             model.SoftwareData = softwareTable;
             if (model.SoftwareData != null)
             {
@@ -215,7 +282,7 @@ namespace SLA_Management.Controllers
                 model.PageSize = req.maxRows;
 
             }
-            return Json(new { data = model.SoftwareData, totalRecords = model.TotalRecords, currentPage = model.CurrentPage, totalPages = model.TotalPages, pageSize = model.PageSize });
+            return Json(new { data = model.SoftwareData, totalRecords = model.TotalRecords, currentPage = model.CurrentPage, totalPages = model.TotalPages, pageSize = model.PageSize, updateBy = UpdateBy, updateDate = UpdateDate });
 
         }
 
@@ -244,6 +311,7 @@ namespace SLA_Management.Controllers
                         cmd.Parameters.AddWithValue("@software_Ver", exp.software_Val);
                         cmd.Parameters.AddWithValue("@sp_Ver", exp.sp_Val);
                         cmd.Parameters.AddWithValue("@feelview_Ver", exp.feelview_Val);
+                        cmd.Parameters.AddWithValue("@counter_Code", exp.counterVal);
 
 
                         using (var reader = cmd.ExecuteReader())
@@ -260,6 +328,8 @@ namespace SLA_Management.Controllers
                                     ATMC_Ver = reader["VERSION_ATMC"].ToString(),
                                     SP_Ver = reader["VERSION_SP"].ToString(),
                                     Agent_Ver = reader["VERSION_AGENT"].ToString(),
+                                    Update_Date = reader["MODIFY_DATE"].ToString(),
+                                    Update_By = reader["MODIFY_USERID"].ToString(),
                                 };
                                 softwareDataTables.Add(softwareInfo);
                                 recordCount++;

@@ -1660,6 +1660,8 @@ namespace SLA_Management.Data.ExcelUtilitie
                         excelWorksheet.Cells[nStartRowData, 4].Value = item.ATMC_Ver;
                         excelWorksheet.Cells[nStartRowData, 5].Value = item.SP_Ver;
                         excelWorksheet.Cells[nStartRowData, 6].Value = item.Agent_Ver;
+                        excelWorksheet.Cells[nStartRowData, 7].Value = item.Update_By;
+                        excelWorksheet.Cells[nStartRowData, 8].Value = item.Update_Date;
                         nStartRowData++;
                         nSeq++;
 

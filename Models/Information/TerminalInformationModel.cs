@@ -74,5 +74,7 @@ namespace SLA_Management.Models.Information
         public string? NV_UPDATE_TIME { get; set; }
         public string? VERSION_MAIN { get; set; }
         public string? MAIN_UPDATE_TIME { get; set; }
+        public string? LatestUpdatedBy { get; set; }
+        public string? LatestUpdatedDate { get; set; }
     }
 }
