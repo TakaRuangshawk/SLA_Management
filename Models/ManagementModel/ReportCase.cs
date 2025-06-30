@@ -20,6 +20,9 @@
         public string UpdateDate { get; set; }
         public string UpdateBy { get; set; }
         public string Remark { get; set; }
+
+        public string ProblemDetail { get; set; }
+        public string SolvingProgram { get; set; }
     }
     public class LatestUpdateData_record
     {

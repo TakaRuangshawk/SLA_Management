@@ -30,7 +30,7 @@ namespace SLA_Management.Controllers
         {
             _configuration = configuration;
         }
-       
+
         private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
         {
 
@@ -42,7 +42,7 @@ namespace SLA_Management.Controllers
             List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
 
             return test;
-        }      
+        }
         public class IssueName
         {
             public string Issue_Name { get; set; }
@@ -111,7 +111,7 @@ namespace SLA_Management.Controllers
             return Json(eventsList);
         }
         [HttpPost]
-        public IActionResult CreateEvent(string title, DateTime start,string user)
+        public IActionResult CreateEvent(string title, DateTime start, string user)
         {
             TimeZoneInfo thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             start = TimeZoneInfo.ConvertTimeFromUtc(start, thaiTimeZone);
@@ -126,7 +126,7 @@ namespace SLA_Management.Controllers
 
                     sqlCommand.Parameters.AddWithValue("@start", start.Date);
                     sqlCommand.Parameters.AddWithValue("@title", title);
-                    sqlCommand.Parameters.AddWithValue ("@CreatedBy", user);
+                    sqlCommand.Parameters.AddWithValue("@CreatedBy", user);
                     sqlCommand.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
                     sqlCommand.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
                     sqlCommand.ExecuteNonQuery();
@@ -203,12 +203,12 @@ namespace SLA_Management.Controllers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest("Failed to create event: " + ex.Message);
             }
-            
-           
+
+
 
         }
 
@@ -232,14 +232,14 @@ namespace SLA_Management.Controllers
             }
 
             ViewBag.bankName = bankName;
-            
+
             SetLatestUpdateViewBag();
             // For now, just return the empty view
             return View();
         }
 
         [HttpGet]
-        public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName,string bankName, int row = 50, int page = 1)
+        public JsonResult FetchReportCases(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName, string bankName, int row = 50, int page = 1)
         {
             List<ReportCase> reportCases = new List<ReportCase>();
             int totalCases = 0;
@@ -266,7 +266,7 @@ namespace SLA_Management.Controllers
             }
 
 
-            if(connectionDB == "")
+            if (connectionDB == "")
             {
                 return Json(new
                 {
@@ -279,36 +279,61 @@ namespace SLA_Management.Controllers
                 });
             }
 
+            bool hasWhere = false;
+
             using (MySqlConnection conn = new MySqlConnection(_configuration.GetValue<string>(connectionDB)))
             {
                 conn.Open();
 
-                string query = "SELECT Case_Error_No, Terminal_ID, Place_Install, Issue_Name, Date_Inform, Status_Name, Branch_name_pb, Repair1, Repair2, Repair3, Repair4, Repair5, Incident_No, Date_Close_Pb, Type_Project, Update_Date, Update_By, Remark " +
-                               "FROM reportcases WHERE 1=1";
+                string query = @"
+    SELECT 
+        r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
+        r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
+        r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
+        j.Problem_Detail, j.Solving_Program
+    FROM baac_logview.reportcases r
+    LEFT JOIN baac_logview.t_tsd_jobdetail j 
+    ON j.Job_No = r.Repair2 
+    OR j.Job_No = r.Repair3 
+    OR j.Job_No = r.Repair4 
+    OR j.Job_No = r.Incident_No";
+
 
                 if (!string.IsNullOrEmpty(terminalID))
                 {
-                    query += " AND Terminal_ID = @TerminalID";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " Terminal_ID = @TerminalID";
+                    hasWhere = true;
                 }
                 if (!string.IsNullOrEmpty(placeInstall))
                 {
-                    query += " AND Place_Install LIKE @PlaceInstall";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " Place_Install LIKE @PlaceInstall";
+                    hasWhere = true;
                 }
                 if (!string.IsNullOrEmpty(issueName))
                 {
-                    query += " AND Issue_Name LIKE @IssueName";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " Issue_Name LIKE @IssueName";
+                    hasWhere = true;
                 }
                 if (fromdate.HasValue)
                 {
-                    query += " AND DATE(Date_Inform) >= @FromDate";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " DATE(Date_Inform) >= @FromDate";
+                    hasWhere = true;
                 }
                 if (todate.HasValue)
                 {
-                    query += " AND DATE(Date_Inform) <= @ToDate";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " DATE(Date_Inform) <= @ToDate";
+                    hasWhere = true;
                 }
                 if (!string.IsNullOrEmpty(statusName))
                 {
-                    query += " AND Status_Name = @StatusName";
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " Status_Name = @StatusName";
+                    hasWhere = true;
                 }
 
                 //query += " ORDER BY Date_Inform ASC ";
@@ -322,6 +347,7 @@ namespace SLA_Management.Controllers
                 cmd.Parameters.AddWithValue("@ToDate", todate);
                 cmd.Parameters.AddWithValue("@StatusName", statusName);
                 cmd.Parameters.AddWithValue("@Offset", (page - 1) * row);
+
 
                 using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -346,7 +372,10 @@ namespace SLA_Management.Controllers
                             TypeProject = reader["Type_Project"] != DBNull.Value ? reader.GetString("Type_Project") : string.Empty,
                             UpdateDate = reader["Update_Date"] != DBNull.Value ? reader.GetDateTime("Update_Date").ToString("dd/MM/yyyy HH:mm") : string.Empty,
                             UpdateBy = reader["Update_By"] != DBNull.Value ? reader.GetString("Update_By") : string.Empty,
-                            Remark = reader["Remark"] != DBNull.Value ? reader.GetString("Remark") : string.Empty
+                            Remark = reader["Remark"] != DBNull.Value ? reader.GetString("Remark") : string.Empty,
+                            ProblemDetail = reader["Problem_Detail"] != DBNull.Value ? reader.GetString("Problem_Detail") : string.Empty,
+                            SolvingProgram = reader["Solving_Program"] != DBNull.Value ? reader.GetString("Solving_Program") : string.Empty,
+
                         });
 
                     }
@@ -373,26 +402,64 @@ namespace SLA_Management.Controllers
         }
         public IActionResult ExportReportCasesToExcel(string terminalID, string placeInstall, string issueName, DateTime? fromdate, DateTime? todate, string statusName)
         {
-
             using (var connection = new MySqlConnection(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_BAAC")))
             {
                 connection.Open();
-                string query = "SELECT * FROM reportcases WHERE 1=1";
+
+                string query = @"
+SELECT 
+    r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
+    r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
+    r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
+    j.Problem_Detail, j.Solving_Program
+FROM reportcases r
+LEFT JOIN baac_logview.t_tsd_jobdetail j 
+    ON j.Job_No = r.Repair2 
+    OR j.Job_No = r.Repair3 
+    OR j.Job_No = r.Repair4 
+    OR j.Job_No = r.Incident_No
+";
+
+                bool hasWhere = false;
 
                 if (!string.IsNullOrEmpty(terminalID))
-                    query += " AND Terminal_ID = @TerminalID";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Terminal_ID = @TerminalID";
+                    hasWhere = true;
+                }
                 if (!string.IsNullOrEmpty(placeInstall))
-                    query += " AND Place_Install LIKE @PlaceInstall";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Place_Install LIKE @PlaceInstall";
+                    hasWhere = true;
+                }
                 if (!string.IsNullOrEmpty(issueName))
-                    query += " AND Issue_Name LIKE @IssueName";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Issue_Name LIKE @IssueName";
+                    hasWhere = true;
+                }
                 if (fromdate.HasValue)
-                    query += " AND Date_Inform >= @FromDate";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Date_Inform >= @FromDate";
+                    hasWhere = true;
+                }
                 if (todate.HasValue)
-                    query += " AND Date_Inform <= @ToDate";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Date_Inform <= @ToDate";
+                    hasWhere = true;
+                }
                 if (!string.IsNullOrEmpty(statusName))
-                    query += " AND Status_Name = @StatusName";
+                {
+                    query += hasWhere ? " AND" : " WHERE";
+                    query += " r.Status_Name = @StatusName";
+                    hasWhere = true;
+                }
 
-                query += " ORDER BY Date_Inform ASC, Case_Error_No ASC ";
+                query += " ORDER BY r.Date_Inform ASC, r.Case_Error_No ASC";
 
                 using (var command = new MySqlCommand(query, connection))
                 {
@@ -402,41 +469,38 @@ namespace SLA_Management.Controllers
                     command.Parameters.AddWithValue("@FromDate", fromdate?.Date);
                     command.Parameters.AddWithValue("@ToDate", todate?.Date);
                     command.Parameters.AddWithValue("@StatusName", statusName);
+
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
                     using (var reader = command.ExecuteReader())
                     {
                         using (var package = new ExcelPackage())
                         {
                             var worksheet = package.Workbook.Worksheets.Add("ReportCases");
 
-                            // Add headers
-                            worksheet.Cells[1, 1].Value = "Case No";
-                            worksheet.Cells[1, 2].Value = "Terminal ID";
-                            worksheet.Cells[1, 3].Value = "Place Install";
-                            worksheet.Cells[1, 4].Value = "Issue Name";
-                            worksheet.Cells[1, 5].Value = "Date Inform";
-                            worksheet.Cells[1, 6].Value = "Status Name";
-                            worksheet.Cells[1, 7].Value = "Branch Name";
-                            worksheet.Cells[1, 8].Value = "Repair 1";
-                            worksheet.Cells[1, 9].Value = "Repair 2";
-                            worksheet.Cells[1, 10].Value = "Repair 3";
-                            worksheet.Cells[1, 11].Value = "Repair 4";
-                            worksheet.Cells[1, 12].Value = "Repair 5";
-                            worksheet.Cells[1, 13].Value = "Incident No";
-                            worksheet.Cells[1, 14].Value = "Date Close Pb";
-                            worksheet.Cells[1, 15].Value = "Type Project";
-                            worksheet.Cells[1, 16].Value = "Update Date";
-                            worksheet.Cells[1, 17].Value = "Update By";
-                            worksheet.Cells[1, 18].Value = "Remark";
-                            using (var range = worksheet.Cells[1, 1, 1, 18]) // Apply to all header cells
+                            // Header
+                            string[] headers = new[]
                             {
-                                range.Style.Font.Bold = true; // Bold font
-                                range.Style.Font.Size = 14; // Larger font size
-                                range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Set fill pattern to solid
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue); // Set background color
-                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Center text
-                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center; // Center vertically
+                        "Case No", "Terminal ID", "Place Install", "Issue Name", "Date Inform", "Status Name", "Branch Name",
+                        "Repair 1", "Repair 2", "Repair 3", "Repair 4", "Repair 5", "Incident No", "Date Close Pb",
+                        "Type Project", "Update Date", "Update By", "Remark", "Problem Detail", "Solving Program"
+                    };
+
+                            for (int i = 0; i < headers.Length; i++)
+                            {
+                                worksheet.Cells[1, i + 1].Value = headers[i];
                             }
+
+                            using (var range = worksheet.Cells[1, 1, 1, headers.Length])
+                            {
+                                range.Style.Font.Bold = true;
+                                range.Style.Font.Size = 14;
+                                range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+                                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                            }
+
                             int row = 2;
                             while (reader.Read())
                             {
@@ -444,7 +508,7 @@ namespace SLA_Management.Controllers
                                 worksheet.Cells[row, 2].Value = reader["Terminal_ID"] != DBNull.Value ? reader["Terminal_ID"] : null;
                                 worksheet.Cells[row, 3].Value = reader["Place_Install"] != DBNull.Value ? reader["Place_Install"] : null;
                                 worksheet.Cells[row, 4].Value = reader["Issue_Name"] != DBNull.Value ? reader["Issue_Name"] : null;
-                                worksheet.Cells[row, 5].Value = reader["Date_Inform"] != DBNull.Value ? reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 5].Value = reader["Date_Inform"] != DBNull.Value ? Convert.ToDateTime(reader["Date_Inform"]).ToString("dd/MM/yyyy") : null;
                                 worksheet.Cells[row, 6].Value = reader["Status_Name"] != DBNull.Value ? reader["Status_Name"] : null;
                                 worksheet.Cells[row, 7].Value = reader["Branch_name_pb"] != DBNull.Value ? reader["Branch_name_pb"] : null;
                                 worksheet.Cells[row, 8].Value = reader["Repair1"] != DBNull.Value ? reader["Repair1"] : null;
@@ -453,32 +517,26 @@ namespace SLA_Management.Controllers
                                 worksheet.Cells[row, 11].Value = reader["Repair4"] != DBNull.Value ? reader["Repair4"] : null;
                                 worksheet.Cells[row, 12].Value = reader["Repair5"] != DBNull.Value ? reader["Repair5"] : null;
                                 worksheet.Cells[row, 13].Value = reader["Incident_No"] != DBNull.Value ? reader["Incident_No"] : null;
-                                worksheet.Cells[row, 14].Value = reader["Date_Close_Pb"] != DBNull.Value ? reader.GetDateTime("Date_Close_Pb").ToString("dd/MM/yyyy") : null;
+                                worksheet.Cells[row, 14].Value = reader["Date_Close_Pb"] != DBNull.Value ? Convert.ToDateTime(reader["Date_Close_Pb"]).ToString("dd/MM/yyyy") : null;
                                 worksheet.Cells[row, 15].Value = reader["Type_Project"] != DBNull.Value ? reader["Type_Project"] : null;
-                                worksheet.Cells[row, 16].Value = reader["Update_Date"] != DBNull.Value ? reader.GetDateTime("Update_Date").ToString("dd/MM/yyyy HH:mm") : null;
+                                worksheet.Cells[row, 16].Value = reader["Update_Date"] != DBNull.Value ? Convert.ToDateTime(reader["Update_Date"]).ToString("dd/MM/yyyy HH:mm") : null;
                                 worksheet.Cells[row, 17].Value = reader["Update_By"] != DBNull.Value ? reader["Update_By"] : null;
                                 worksheet.Cells[row, 18].Value = reader["Remark"] != DBNull.Value ? reader["Remark"] : null;
-
+                                worksheet.Cells[row, 19].Value = reader["Problem_Detail"] != DBNull.Value ? reader["Problem_Detail"] : null;
+                                worksheet.Cells[row, 20].Value = reader["Solving_Program"] != DBNull.Value ? reader["Solving_Program"] : null;
 
                                 row++;
                             }
 
                             worksheet.Cells.AutoFitColumns();
 
-                            // Build the filename based on filters
                             string excelName = "ReportCases";
-                            if (!string.IsNullOrEmpty(terminalID))
-                                excelName += $"_Terminal_{terminalID}";
-                            if (!string.IsNullOrEmpty(placeInstall))
-                                excelName += $"_Place_{placeInstall.Replace(" ", "_")}";
-                            if (!string.IsNullOrEmpty(issueName))
-                                excelName += $"_Issue_{issueName.Replace(" ", "_")}";
-                            if (fromdate.HasValue)
-                                excelName += $"_From_{fromdate.Value.ToString("yyyyMMdd")}";
-                            if (todate.HasValue)
-                                excelName += $"_To_{todate.Value.ToString("yyyyMMdd")}";
-                            if (!string.IsNullOrEmpty(statusName))
-                                excelName += $"_Status_{statusName.Replace(" ", "_")}";
+                            if (!string.IsNullOrEmpty(terminalID)) excelName += $"_Terminal_{terminalID}";
+                            if (!string.IsNullOrEmpty(placeInstall)) excelName += $"_Place_{placeInstall.Replace(" ", "_")}";
+                            if (!string.IsNullOrEmpty(issueName)) excelName += $"_Issue_{issueName.Replace(" ", "_")}";
+                            if (fromdate.HasValue) excelName += $"_From_{fromdate.Value:yyyyMMdd}";
+                            if (todate.HasValue) excelName += $"_To_{todate.Value:yyyyMMdd}";
+                            if (!string.IsNullOrEmpty(statusName)) excelName += $"_Status_{statusName.Replace(" ", "_")}";
 
                             excelName += ".xlsx";
 
@@ -624,7 +682,7 @@ namespace SLA_Management.Controllers
             return new DateTime(date.Year, date.Month, date.Day, hour, minute, second);
         }
         [HttpGet]
-        public IActionResult TicketManagement(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, int? maxRows, string cmdButton,string bank)
+        public IActionResult TicketManagement(string termid, string ticket, DateTime? todate, DateTime? fromdate, string mainproblem, string terminaltype, string jobno, int? maxRows, string cmdButton, string bank)
         {
             int pageSize = 20;
             recordset_ticketManagement = new List<TicketManagement>();
@@ -642,12 +700,13 @@ namespace SLA_Management.Controllers
                 ViewBag.CurrentTermID = new List<Device_info_record>();
                 return View();
             }
-           
-            
+
+
             ViewBag.JobNo = jobno;
             ViewBag.countrow = recordset_ticketManagement.Count;
             ViewBag.maxRows = pageSize;
-            if(bank != "") {
+            if (bank != "")
+            {
                 ViewBag.CurrentJobNo = GetJobNumberMysql(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"), bank, _configuration);
                 ViewBag.CurrentTermID = GetDeviceInfoMysql(bank, _configuration);
                 if (fromdate.HasValue && todate.HasValue)
@@ -692,7 +751,7 @@ namespace SLA_Management.Controllers
             {
                 ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
             }
-            
+
             return View(recordset_ticketManagement);
         }
 
@@ -998,7 +1057,7 @@ namespace SLA_Management.Controllers
 
         #endregion
 
-       
+
     }
 
 }

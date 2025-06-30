@@ -494,6 +494,20 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ProblemDetail">Problem Detail</label>
+                                <input type="text" class="form-control editable" id="ProblemDetail" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="SolvingProgram">Solving Program</label>
+                                <input type="text" class="form-control editable" id="SolvingProgram" readonly>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="row">
                         <div class="col-md-6">
@@ -509,6 +523,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
             <div class="modal-footer">
@@ -591,6 +606,8 @@
                                 "data-update-date": item.updateDate,
                                 "data-update-by": item.updateBy,
                                 "data-remark": item.remark,
+                                "data-problem-detail": item.problemDetail,
+                                "data-solving-program": item.solvingProgram,
                                 "data-toggle": "modal",
                                 "data-target": "#reportCaseModal"
                             })
@@ -628,6 +645,10 @@
                     $("#IncidentNo").val($(this).data("incident-no"));
                     $("#DateClosePb").val($(this).data("date-close-pb"));
                     $("#TypeProject").val($(this).data("type-project"));
+
+                      $("#ProblemDetail").val($(this).data("problemDetail"));
+                    $("#SolvingProgram").val($(this).data("solvingProgram"));
+
                     $("#UpdateDate").val($(this).data("update-date"));
                     $("#UpdateBy").val($(this).data("update-by"));
                     $("#Remark").val($(this).data("remark"));
@@ -642,7 +663,7 @@
 
 
 
-    function editReportCase(caseErrorNo, terminalID, placeInstall, issueName, dateInform, statusName, branchName, repair1, repair2, repair3, repair4, repair5, incidentNo, dateClosePb, typeProject, updateDate, updateBy, remark) {
+    function editReportCase(caseErrorNo, terminalID, placeInstall, issueName, dateInform, statusName, branchName, repair1, repair2, repair3, repair4, repair5, incidentNo, dateClosePb, typeProject, updateDate, updateBy, remark,problemDetail,solvingProgram) {
         $("#CaseErrorNo").val(caseErrorNo);
         $("#TerminalID").val(terminalID);
         $("#PlaceInstall").val(placeInstall);
@@ -658,10 +679,15 @@
         $("#IncidentNo").val(incidentNo);
         $("#DateClosePb").val(dateClosePb);
         $("#TypeProject").val(typeProject);
+
+        $("#ProblemDetail").val(problemDetail);
+        $("#SolvingProgram").val(solvingProgram);
+
         $("#UpdateDate").val(updateDate);
         $("#UpdateBy").val(updateBy);
         $("#Remark").val(remark);
     }
+
     $(document).ready(function () {
         $("#btnSEExp").click(function () {
             var terminalID = $("#TerminalID").val();
@@ -712,6 +738,8 @@
             });
         });
     });
+
+
     $(document).ready(function () {
         // Handle update button click
         $("#updateRemarkBtn").click(function () {
