@@ -1,26 +1,27 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
-using SLA_Management.Data;
-using SLA_Management.Commons;
-using SLA_Management.Models.OperationModel;
-using System.Data;
-using SLA_Management.Data.ExcelUtilitie;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using System.Text;
-using System.Security.Cryptography;
-using Renci.SshNet;
-using NuGet.DependencyResolver;
-using SLA_Management.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Globalization;
-using SLA_Management.Models.TermProbModel;
-using PagedList;
-using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.VisualBasic.FileIO;
+using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
+using NuGet.DependencyResolver;
+using PagedList;
+using Renci.SshNet;
+using SLA_Management.Commons;
+using SLA_Management.Data;
+using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Data.TermProb;
-using System.Linq;
+using SLA_Management.Models;
 using SLA_Management.Models.Information;
+using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.TermProbModel;
+using System.Data;
+using System.Globalization;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SLA_Management.Controllers
 {
@@ -134,7 +135,7 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and (di.STATUS = 'use' or di.STATUS ='roustop') ";
             }
-            else if (status == "notuse")
+            else if (status == "no")
             {
                 filterquery += " and di.STATUS = 'no' ";
             }
@@ -149,17 +150,30 @@ namespace SLA_Management.Controllers
             }
             if (fromdate != "" && todate != "")
             {
-                filterquery += " AND (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') BETWEEN '" + fromdate + "' AND '" + todate + "' ";
-                filterquery += " OR (LENGTH(TRIM(di.SERVICE_ENDDATE)) = 0 AND (STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + todate + "' ";
-                filterquery += " OR STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d') < '" + todate + "'))) ";
+                filterquery += $@"
+        AND (
+            di.SERVICE_ENDDATE IS NULL
+            OR TRIM(di.SERVICE_ENDDATE) = ''
+            OR COALESCE(
+                STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d'),
+                STR_TO_DATE(di.SERVICE_ENDDATE, '%Y/%m/%d')
+            ) BETWEEN '{fromdate}' AND '{todate}'
+        )";
             }
             else
             {
                 string currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-                filterquery += " AND (STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d') BETWEEN '2020-05-01' AND '" + currentDate + "' ";
-                filterquery += "OR (LENGTH(TRIM(di.SERVICE_ENDDATE)) = 0 AND (STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y-%m-%d') < '" + currentDate + "' ";
-                filterquery += "OR STR_TO_DATE(di.SERVICE_BEGINDATE, '%Y/%m/%d') < '" + currentDate + "'))) ";
+                filterquery += $@"
+        AND (
+            di.SERVICE_ENDDATE IS NULL
+            OR TRIM(di.SERVICE_ENDDATE) = ''
+            OR COALESCE(
+                STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d'),
+                STR_TO_DATE(di.SERVICE_ENDDATE, '%Y/%m/%d')
+            ) BETWEEN '2020-05-01' AND '{currentDate}'
+        )";
             }
+
             if (currentlyinuse == "no")
             {
                 filterquery += " and di.TERM_SEQ IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
@@ -176,7 +190,14 @@ namespace SLA_Management.Controllers
 
                 // Modify the SQL query to use the 'input' parameter for filtering
                 string query = @" SELECT di.DEVICE_ID,di.TERM_SEQ,di.TYPE_ID,di.TERM_ID,di.TERM_NAME,di.TERM_IP,
-                CASE WHEN SERVICE_ENDDATE IS NULL OR SERVICE_ENDDATE = '' THEN 'Active' ELSE 'Inactive' END AS Status,
+               CASE 
+    WHEN di.SERVICE_ENDDATE IS NULL OR TRIM(di.SERVICE_ENDDATE) = '' THEN 'Active'
+    WHEN COALESCE(
+            STR_TO_DATE(di.SERVICE_ENDDATE, '%Y-%m-%d'),
+            STR_TO_DATE(di.SERVICE_ENDDATE, '%Y/%m/%d')
+         ) > CURRENT_DATE THEN 'Active'
+    ELSE 'Inactive'
+  END AS Status,
                 di.COUNTER_CODE,CONCAT(di.SERVICE_TYPE, ' ', di.BUSINESS_BEGINTIME, ' - ', di.BUSINESS_ENDTIME) as ServiceType,
                 di.TERM_LOCATION,di.LATITUDE,di.LONGITUDE,di.CONTROL_BY,di.PROVINCE,DATE_FORMAT(
                      COALESCE(
@@ -292,7 +313,6 @@ namespace SLA_Management.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadTerminal(IFormFile file, string bank)
         {
-            List<TerminalInformationModel> terminals = new List<TerminalInformationModel>();
             if (file == null || file.Length == 0)
             {
                 return BadRequest("Please upload a valid text file.");
@@ -300,135 +320,133 @@ namespace SLA_Management.Controllers
 
             try
             {
-                // Reading file content
-                using (var reader = new StreamReader(file.OpenReadStream()))
+                var connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bank);
+
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    var firstLine = await reader.ReadLineAsync(); // detect delimeter 
-                    char delimiter = DetectDelimiter(firstLine);
+                    await connection.OpenAsync();
 
-                    var connectionString = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bank);
-
-                    using (var connection = new MySqlConnection(connectionString))
+                    using (var stream = file.OpenReadStream())
+                    using (var parser = new TextFieldParser(stream))
                     {
-                        await connection.OpenAsync();
+                        parser.TextFieldType = FieldType.Delimited;
+                        parser.SetDelimiters(",");
+                        parser.HasFieldsEnclosedInQuotes = false;
 
-                        while (!reader.EndOfStream)
+                        // ข้าม header row
+                        if (!parser.EndOfData)
+                            parser.ReadLine();
+
+                        while (!parser.EndOfData)
                         {
-                            var line = await reader.ReadLineAsync();
-                            if (string.IsNullOrWhiteSpace(line))
-                            {
+                            var fields = parser.ReadFields();
+                            if (fields == null || fields.Length < 70)
                                 continue;
-                            }
-                            var txtFileData = line?.Split(delimiter);
 
-                            if (txtFileData.Length == 0 || txtFileData == null)
-                            {
-                                continue;
-                            }
                             string counterCode = "";
-                            if (file.FileName.Contains("587"))
-                            {
-                                counterCode = "LOT587";
-                            }
-                            else if (file.FileName.Contains("572"))
-                            {
-                                counterCode = "LOT572";
-                            }
-                            else if (file.FileName.Contains("362"))
-                            {
-                                counterCode = "LOT362";
-                            }
+                            if (file.FileName.Contains("587")) counterCode = "LOT587";
+                            else if (file.FileName.Contains("572")) counterCode = "LOT572";
+                            else if (file.FileName.Contains("362")) counterCode = "LOT362";
+
                             var terminal = new TerminalInformationModel
                             {
-                                DEVICE_ID = txtFileData.Length > 0 ? txtFileData[0].Trim() : null,
-                                TERM_ID = txtFileData.Length > 1 ? txtFileData[1].Trim() : null,
-                                DEPT_ID = txtFileData.Length > 2 ? txtFileData[2].Trim() : null,
-                                TYPE_ID = txtFileData.Length > 3 ? txtFileData[3].Trim() : null,
-                                BRAND_ID = txtFileData.Length > 4 ? txtFileData[4].Trim() : null,
-                                MODEL_ID = txtFileData.Length > 5 ? txtFileData[5].Trim() : null,
-                                TERM_SEQ = txtFileData.Length > 6 ? txtFileData[6].Trim() : null,
-                                COUNTER_CODE = txtFileData.Length > 7 ? counterCode : null,//Counter Code
-                                TERM_IP = txtFileData.Length > 8 ? txtFileData[8].Trim() : null,
-                                STATUS = txtFileData.Length > 9 ? txtFileData[9].Trim() : null,
-                                TERM_NAME = txtFileData.Length > 10 ? txtFileData[10].Trim() : null,
-                                TERM_ADDR = txtFileData.Length > 11 ? txtFileData[11].Trim() : null,
-                                TERM_LOCATION = txtFileData.Length > 12 ? txtFileData[12].Trim() : null,
-                                TERM_ZONE = txtFileData.Length > 13 ? txtFileData[13].Trim() : null,
-                                CONTROL_BY = txtFileData.Length > 14 ? txtFileData[14].Trim() : null,
-                                REPLENISH_BY = txtFileData.Length > 15 ? txtFileData[15].Trim() : null,
-                                POST = txtFileData.Length > 16 ? txtFileData[16].Trim() : null,
-                                INSTALL_DATE = txtFileData.Length > 17 ? txtFileData[17].Trim() : null,
-                                ACTIVE_DATE = txtFileData.Length > 18 ? txtFileData[18].Trim() : null,
-                                SERVICE_TYPE = txtFileData.Length > 19 ? txtFileData[19].Trim() : null,
-                                INSTALL_TYPE = txtFileData.Length > 20 ? txtFileData[20].Trim() : null,
-                                LAYOUT_TYPE = txtFileData.Length > 21 ? txtFileData[21].Trim() : null,
-                                MAN_ID = txtFileData.Length > 22 ? txtFileData[22].Trim() : null,
-                                SERVICEMAN_ID = txtFileData.Length > 23 ? txtFileData[23].Trim() : null,
-                                COMPANY_ID = txtFileData.Length > 24 ? txtFileData[24].Trim() : null,
-                                COMPANY_NAME = txtFileData.Length > 25 ? txtFileData[25].Trim() : null,
-                                SERVICE_BEGINDATE = txtFileData.Length > 26 ? txtFileData[26].Trim() : null,
-                                SERVICE_ENDDATE = txtFileData.Length > 27 ? txtFileData[27].Trim() : null,
-                                SERVICE_YEARS = txtFileData.Length > 28 ? txtFileData[28].Trim() : null,
-                                IS_CCTV = txtFileData.Length > 29 ? txtFileData[29].Trim() : null,
-                                IS_UPS = txtFileData.Length > 30 ? txtFileData[30].Trim() : null,
-                                IS_INTERNATIONAL = txtFileData.Length > 31 ? txtFileData[31].Trim() : null,
-                                BUSINESS_BEGINTIME = txtFileData.Length > 32 ? txtFileData[32].Trim() : null,
-                                BUSINESS_ENDTIME = txtFileData.Length > 33 ? txtFileData[33].Trim() : null,
-                                IS_VIP = txtFileData.Length > 34 ? txtFileData[34].Trim() : null,
-                                AREA_ID = txtFileData.Length > 35 ? txtFileData[35].Trim() : null,
-                                AREA_ADDR = txtFileData.Length > 36 ? txtFileData[36].Trim() : null,
-                                FUNCTION_TYPE = txtFileData.Length > 37 ? txtFileData[37].Trim() : null,
-                                LONGITUDE = txtFileData.Length > 38 ? txtFileData[38].Trim() : null,
-                                LATITUDE = txtFileData.Length > 39 ? txtFileData[39].Trim() : null,
-                                PROVINCE = txtFileData.Length > 40 ? txtFileData[40].Trim() : null,
-                                LOT_TYPE = txtFileData.Length > 41 ? txtFileData[41].Trim() : null,
-                                AUDITING = txtFileData.Length > 42 ? txtFileData[42].Trim() : null,
-                                CURRENT_IP = txtFileData.Length > 43 ? txtFileData[43].Trim() : null,
-                                VERSION_ATMC = txtFileData.Length > 44 ? txtFileData[44].Trim() : null,
-                                VERSION_SP = txtFileData.Length > 45 ? txtFileData[45].Trim() : null,
-                                VERSION_AGENT = txtFileData.Length > 46 ? txtFileData[46].Trim() : null,
-                                VERSION_MB = txtFileData.Length > 47 ? txtFileData[47].Trim() : null,
-                                FLAG_XFS = txtFileData.Length > 48 ? txtFileData[48].Trim() : null,
-                                FLAG_EJ = txtFileData.Length > 49 ? txtFileData[49].Trim() : null,
-                                FLAG_FSN = txtFileData.Length > 50 ? txtFileData[50].Trim() : null,
-                                EJ_FILES = txtFileData.Length > 51 ? txtFileData[51].Trim() : null,
-                                FSN_PATH = txtFileData.Length > 52 ? txtFileData[52].Trim() : null,
-                                TASK_PARA = txtFileData.Length > 53 ? txtFileData[53].Trim() : null,
-                                VERSION_AD = txtFileData.Length > 54 ? txtFileData[54].Trim() : null,
-                                MODIFY_USERID = txtFileData.Length > 55 ? txtFileData[55].Trim() : null,
-                                MODIFY_DATE = txtFileData.Length > 56 ? txtFileData[56].Trim() : null,
-                                ADD_USERID = txtFileData.Length > 57 ? txtFileData[57].Trim() : null,
-                                ADD_DATE = txtFileData.Length > 58 ? txtFileData[58].Trim() : null,
-                                ASSET_NO = txtFileData.Length > 59 ? txtFileData[59].Trim() : null,
-                                CASH_BOX_NUM = txtFileData.Length > 60 ? txtFileData[60].Trim() : null,
-                                SERVICE_SMS_TYPE = txtFileData.Length > 61 ? txtFileData[61].Trim() : null,
-                                EJ_OPEN_DATE = txtFileData.Length > 62 ? txtFileData[62].Trim() : null,
-                                ATMC_UPDATE_TIME = txtFileData.Length > 63 ? txtFileData[63].Trim() : null,
-                                SP_UPDATE_TIME = txtFileData.Length > 64 ? txtFileData[64].Trim() : null,
-                                AGENT_UPDATE_TIME = txtFileData.Length > 65 ? txtFileData[65].Trim() : null,
-                                VERSION_NV = txtFileData.Length > 66 ? txtFileData[66].Trim() : null,
-                                NV_UPDATE_TIME = txtFileData.Length > 67 ? txtFileData[67].Trim() : null,
-                                VERSION_MAIN = txtFileData.Length > 68 ? txtFileData[68].Trim() : null,
-                                MAIN_UPDATE_TIME = txtFileData.Length > 69 ? txtFileData[69].Trim() : null,
+                                DEVICE_ID = CleanValue(fields[0]),
+                                TERM_ID = CleanValue(fields[1]),
+                                DEPT_ID = CleanValue(fields[2]),
+                                TYPE_ID = CleanValue(fields[3]),
+                                BRAND_ID = CleanValue(fields[4]),
+                                MODEL_ID = CleanValue(fields[5]),
+                                TERM_SEQ = CleanValue(fields[6]),
+                                COUNTER_CODE = CleanValue(counterCode),
+                                TERM_IP = CleanValue(fields[8]),
+                                STATUS = CleanValue(fields[9]),
+                                TERM_NAME = CleanValue(fields[10]),
+                                TERM_ADDR = CleanValue(fields[11]),
+                                TERM_LOCATION = CleanValue(fields[12]),
+                                TERM_ZONE = CleanValue(fields[13]),
+                                CONTROL_BY = CleanValue(fields[14]),
+                                REPLENISH_BY = CleanValue(fields[15]),
+                                POST = CleanValue(fields[16]),
+                                INSTALL_DATE = CleanValue(fields[17]),
+                                ACTIVE_DATE = CleanValue(fields[18]),
+                                SERVICE_TYPE = CleanValue(fields[19]),
+                                INSTALL_TYPE = CleanValue(fields[20]),
+                                LAYOUT_TYPE = CleanValue(fields[21]),
+                                MAN_ID = CleanValue(fields[22]),
+                                SERVICEMAN_ID = CleanValue(fields[23]),
+                                COMPANY_ID = CleanValue(fields[24]),
+                                COMPANY_NAME = CleanValue(fields[25]),
+                                SERVICE_BEGINDATE = CleanValue(fields[26]),
+                                SERVICE_ENDDATE = CleanValue(fields[27]),
+                                SERVICE_YEARS = CleanValue(fields[28]),
+                                IS_CCTV = CleanValue(fields[29]),
+                                IS_UPS = CleanValue(fields[30]),
+                                IS_INTERNATIONAL = CleanValue(fields[31]),
+                                BUSINESS_BEGINTIME = CleanValue(fields[32]),
+                                BUSINESS_ENDTIME = CleanValue(fields[33]),
+                                IS_VIP = CleanValue(fields[34]),
+                                AREA_ID = CleanValue(fields[35]),
+                                AREA_ADDR = CleanValue(fields[36]),
+                                FUNCTION_TYPE = CleanValue(fields[37]),
+                                LONGITUDE = CleanValue(fields[38]),
+                                LATITUDE = CleanValue(fields[39]),
+                                PROVINCE = CleanValue(fields[40]),
+                                LOT_TYPE = CleanValue(fields[41]),
+                                AUDITING = CleanValue(fields[42]),
+                                CURRENT_IP = CleanValue(fields[43]),
+                                VERSION_ATMC = CleanValue(fields[44]),
+                                VERSION_SP = CleanValue(fields[45]),
+                                VERSION_AGENT = CleanValue(fields[46]),
+                                VERSION_MB = CleanValue(fields[47]),
+                                FLAG_XFS = CleanValue(fields[48]),
+                                FLAG_EJ = CleanValue(fields[49]),
+                                FLAG_FSN = CleanValue(fields[50]),
+                                EJ_FILES = CleanValue(fields[51]),
+                                FSN_PATH = CleanValue(fields[52]),
+                                TASK_PARA = CleanValue(fields[53]),
+                                VERSION_AD = CleanValue(fields[54]),
+                                MODIFY_USERID = CleanValue(fields[55]),
+                                MODIFY_DATE = CleanValue(fields[56]),
+                                ADD_USERID = CleanValue(fields[57]),
+                                ADD_DATE = CleanValue(fields[58]),
+                                ASSET_NO = CleanValue(fields[59]),
+                                CASH_BOX_NUM = CleanValue(fields[60]),
+                                SERVICE_SMS_TYPE = CleanValue(fields[61]),
+                                EJ_OPEN_DATE = CleanValue(fields[62]),
+                                ATMC_UPDATE_TIME = CleanValue(fields[63]),
+                                SP_UPDATE_TIME = CleanValue(fields[64]),
+                                AGENT_UPDATE_TIME = CleanValue(fields[65]),
+                                VERSION_NV = CleanValue(fields[66]),
+                                NV_UPDATE_TIME = CleanValue(fields[67]),
+                                VERSION_MAIN = CleanValue(fields[68]),
+                                MAIN_UPDATE_TIME = CleanValue(fields[69]),
                                 LatestUpdatedBy = HttpContext.Session.GetString("Username"),
                                 LatestUpdatedDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
                             };
 
                             await InsertTextDatatoDB(connection, terminal);
-
                         }
-                        //return StatusCode(500, $"An error occurred:");
                     }
+
                     return Ok("File processed and data inserted successfully.");
                 }
-
-
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
+        private string CleanValue(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input) || input.ToLower() == "null")
+                return null;
+
+            return new string(input
+                .Where(c => !char.IsWhiteSpace(c)) // ลบทุกชนิดของ white space เช่น tab, space
+                .ToArray());
+        }
+
         private async Task InsertTextDatatoDB(MySqlConnection conn, TerminalInformationModel terminals)
         {
 
@@ -536,7 +554,7 @@ namespace SLA_Management.Controllers
                         if (DateTime.TryParse(terminals.LatestUpdatedDate, out var latestDate))
                         {
                             cmd.Parameters.AddWithValue("@modifydate", latestDate); // Handle invalid or null dates
-                        }  
+                        }
                     }
                     //cmd.Parameters.AddWithValue("@modifydate",terminals.MODIFY_DATE);
                     cmd.Parameters.AddWithValue("@adduser", terminals.ADD_USERID != "null" ? terminals.ADD_USERID : DBNull.Value);
@@ -631,26 +649,6 @@ namespace SLA_Management.Controllers
             catch (Exception ex) { }
 
 
-        }
-        private char DetectDelimiter(string firstLine)
-        {
-            if (string.IsNullOrEmpty(firstLine))
-            {
-                return '\0'; // No delimiter found
-            }
-
-            // List of possible delimiters
-            char[] possibleDelimiters = { '|', ' ', '\t', ',', ';' };
-
-            foreach (var delimiter in possibleDelimiters)
-            {
-                if (firstLine.Contains(delimiter))
-                {
-                    return delimiter;
-                }
-            }
-
-            return '\0';
         }
 
         #endregion
@@ -1802,7 +1800,7 @@ namespace SLA_Management.Controllers
                 var additionalItems = device_Info_Records.Select(x => x.COUNTER_CODE).Distinct();
 
 
-                var item = new List<string> {  };
+                var item = new List<string> { };
 
 
                 ViewBag.probTermStr = new SelectList(additionalItems.Concat(item).ToList());
@@ -1904,7 +1902,7 @@ namespace SLA_Management.Controllers
                 }
                 #endregion
 
-               
+
 
 
             }
@@ -1951,7 +1949,7 @@ namespace SLA_Management.Controllers
 
         private static string GetFileContentFromSFTP(string path)
         {
-           
+
             string host = "10.98.10.31";
             string username = "root";
             string password = "P@ssw0rd";
@@ -1960,7 +1958,7 @@ namespace SLA_Management.Controllers
             {
                 try
                 {
-                    sftp.Connect(); 
+                    sftp.Connect();
                     if (!sftp.Exists(path))
                     {
                         return $"Error: File '{path}' not found on the server.";
@@ -1968,19 +1966,19 @@ namespace SLA_Management.Controllers
 
                     var fileContent = string.Empty;
 
-                  
+
                     using (var fileStream = new MemoryStream())
                     {
-                        sftp.DownloadFile(path, fileStream); 
+                        sftp.DownloadFile(path, fileStream);
                         fileStream.Position = 0;
 
                         using (var reader = new StreamReader(fileStream))
                         {
-                            fileContent = reader.ReadToEnd(); 
+                            fileContent = reader.ReadToEnd();
                         }
                     }
 
-                    return fileContent; 
+                    return fileContent;
                 }
                 catch (Exception ex)
                 {
@@ -1988,7 +1986,7 @@ namespace SLA_Management.Controllers
                 }
                 finally
                 {
-                    sftp.Disconnect(); 
+                    sftp.Disconnect();
                 }
             }
         }
