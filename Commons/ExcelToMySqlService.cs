@@ -1,11 +1,15 @@
-﻿using OfficeOpenXml;
+﻿using CsvHelper;
+using Models.ManagementModel;
 using MySql.Data.MySqlClient;
+using NPOI.HSSF.UserModel;
+using OfficeOpenXml;
+using SLA_Management.Models.TermProbModel;
 using System;
 using System.Data;
+using System.Formats.Asn1;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using Models.ManagementModel;
-using NPOI.HSSF.UserModel;
 namespace SLA_Management.Commons
 {
     public class ExcelToMySqlService
@@ -124,6 +128,209 @@ namespace SLA_Management.Commons
                         }
                     }
                 }
+            }
+        }
+
+        public async Task ImportExcelProblemDataAsync(Stream excelStream, string userName)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(excelStream))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                if (worksheet == null)
+                    throw new Exception("📄 ไม่พบ worksheet แรกในไฟล์ Excel");
+
+                var expectedHeaders = new[]
+                {
+             "terminalid", "probcode", "remark", "dtenderrcode13",
+            "dterrcode13", "trxdatetime", "status", "createdate", "updatedate", "resolveprob"
+        };
+
+                for (int i = 0; i < expectedHeaders.Length; i++)
+                {
+                    var header = worksheet.Cells[1, i + 1].Value?.ToString()?.Trim().ToLower();
+                    if (header != expectedHeaders[i])
+                    {
+                        throw new Exception($"❌ คอลัมน์ที่ {(i + 1)} ควรเป็น '{expectedHeaders[i]}' แต่พบว่าเป็น '{header ?? "null"}'");
+                    }
+                }
+
+                var rowCount = worksheet.Dimension.Rows;
+
+                if (rowCount <= 1)
+                {
+                    throw new Exception("⚠️ ไม่พบข้อมูลในไฟล์ Excel (น้อยกว่า 2 แถว)");
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    for (int row = 2; row <= rowCount; row++) // Row 1 = Header
+                    {
+                        try
+                        {
+                            var terminalId = worksheet.Cells[row, 2].Value?.ToString();
+                            var probcode = worksheet.Cells[row, 3].Value?.ToString();
+                            var remark = worksheet.Cells[row, 4].Value?.ToString();
+
+                            if (string.IsNullOrWhiteSpace(terminalId) || string.IsNullOrWhiteSpace(probcode))
+                            {
+                                throw new Exception($"Missing required fields at row {row} (terminalId/probcode)");
+                            }
+
+                            // dtenderrcode13
+                            DateTime? dtEndErrCode13 = null;
+                            var dtEndErrCode13Raw = worksheet.Cells[row, 5].Value;
+                            if (dtEndErrCode13Raw is double d1) dtEndErrCode13 = DateTime.FromOADate(d1);
+                            else if (DateTime.TryParse(dtEndErrCode13Raw?.ToString(), out var parsed1)) dtEndErrCode13 = parsed1;
+
+                            // dterrcode13
+                            long? dtErrCode13 = null;
+                            var dtErrCode13Raw = worksheet.Cells[row, 6].Value;
+                            if (long.TryParse(dtErrCode13Raw?.ToString(), out long parsedLong))
+                                dtErrCode13 = parsedLong;
+
+                            // trxdatetime
+                            DateTime? trxdatetime = null;
+                            var trxDatetimeRaw = worksheet.Cells[row, 7].Value;
+                            if (trxDatetimeRaw is double d2) trxdatetime = DateTime.FromOADate(d2);
+                            else if (DateTime.TryParse(trxDatetimeRaw?.ToString(), out var parsed2)) trxdatetime = parsed2;
+
+                            // status
+                            var status = worksheet.Cells[row, 8].Value?.ToString() ?? "ACT";
+
+                            // createdate
+                            DateTime? createdate = null;
+                            var createdateRaw = worksheet.Cells[row, 9].Value;
+                            if (createdateRaw is double d3) createdate = DateTime.FromOADate(d3);
+                            else if (DateTime.TryParse(createdateRaw?.ToString(), out var parsed3)) createdate = parsed3;
+
+                            // updatedate
+                            DateTime? updatedate = null;
+                            var updatedateRaw = worksheet.Cells[row, 10].Value;
+                            if (updatedateRaw is double d4) updatedate = DateTime.FromOADate(d4);
+                            else if (DateTime.TryParse(updatedateRaw?.ToString(), out var parsed4)) updatedate = parsed4;
+
+                            var resolveProb = worksheet.Cells[row, 11].Value?.ToString();
+
+                            var query = @"
+INSERT INTO ejlog_devicetermprob
+(terminalid, probcode, remark, trxdatetime, status, createdate, updatedate, resolveprob, dtenderrcode13, dterrcode13)
+VALUES 
+(@terminalid, @probcode, @remark, @trxdatetime, @status, @createdate, @updatedate, @resolveprob, @dtenderrcode13, @dterrcode13)
+ON DUPLICATE KEY UPDATE
+    remark = VALUES(remark),
+    status = VALUES(status),
+    updatedate = VALUES(updatedate),
+    resolveprob = VALUES(resolveprob),
+    dtenderrcode13 = VALUES(dtenderrcode13),
+    dterrcode13 = VALUES(dterrcode13);";
+
+                            using var command = new MySqlCommand(query, connection);
+                            command.Parameters.AddWithValue("@terminalid", terminalId);
+                            command.Parameters.AddWithValue("@probcode", probcode);
+                            command.Parameters.AddWithValue("@remark", remark ?? "");
+                            command.Parameters.AddWithValue("@trxdatetime", (object?)trxdatetime ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@status", status);
+                            command.Parameters.AddWithValue("@createdate", (object?)createdate ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@updatedate", (object?)updatedate ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@resolveprob", userName ?? "");
+                            command.Parameters.AddWithValue("@dtenderrcode13", (object?)dtEndErrCode13 ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@dterrcode13", (object?)dtErrCode13 ?? DBNull.Value);
+
+                            int result = await command.ExecuteNonQueryAsync();
+
+                            if (result <= 0)
+                            {
+                                throw new Exception($"Row {row}: Insert failed (0 affected rows).");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"❌ Error at row {row}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+        }
+
+        private DateTime? ParseDateTime(string input) =>
+        string.IsNullOrWhiteSpace(input) ? null :
+        DateTime.TryParse(input, out var dt) ? dt : null;
+
+        private long? ParseLong(string input) =>
+            string.IsNullOrWhiteSpace(input) ? null :
+            long.TryParse(input, out var val) ? val : null;
+
+        public async Task ImportCsvProblemDataAsync(Stream csvStream, string userName)
+        {
+            using var reader = new StreamReader(csvStream);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            try
+            {
+                // Force parsing all records to trigger header & format validation early
+                var records = csv.GetRecords<ProblemCsvModel>().ToList();
+
+                if (records == null || records.Count == 0)
+                {
+                    throw new Exception("⚠️ ไม่พบข้อมูลในไฟล์ CSV หรือข้อมูลไม่ตรงกับโครงสร้างที่กำหนด");
+                }
+
+                foreach (var item in records)
+                {
+                    if (string.IsNullOrWhiteSpace(item.terminalid) || string.IsNullOrWhiteSpace(item.probcode))
+                        continue;
+
+                    string query = @"
+INSERT INTO ejlog_devicetermprob
+(terminalid, probcode, remark, trxdatetime, status, createdate, updatedate, resolveprob, dtenderrcode13, dterrcode13)
+VALUES 
+(@terminalid, @probcode, @remark, @trxdatetime, @status, @createdate, @updatedate, @resolveprob, @dtenderrcode13, @dterrcode13)
+ON DUPLICATE KEY UPDATE
+    remark = VALUES(remark),
+    status = VALUES(status),
+    updatedate = VALUES(updatedate),
+    resolveprob = VALUES(resolveprob),
+    dtenderrcode13 = VALUES(dtenderrcode13),
+    dterrcode13 = VALUES(dterrcode13);";
+
+                    using var command = new MySqlCommand(query, connection);
+
+                    command.Parameters.AddWithValue("@terminalid", item.terminalid);
+                    command.Parameters.AddWithValue("@probcode", item.probcode);
+                    command.Parameters.AddWithValue("@remark", item.remark ?? "");
+                    command.Parameters.AddWithValue("@trxdatetime", string.IsNullOrWhiteSpace(item.trxdatetime) ? DBNull.Value : (object?)ParseDateTime(item.trxdatetime));
+                    command.Parameters.AddWithValue("@status", item.status ?? "ACT");
+                    command.Parameters.AddWithValue("@createdate", string.IsNullOrWhiteSpace(item.createdate) ? DBNull.Value : (object?)ParseDateTime(item.createdate));
+                    command.Parameters.AddWithValue("@updatedate", string.IsNullOrWhiteSpace(item.updatedate) ? DBNull.Value : (object?)ParseDateTime(item.updatedate));
+                    command.Parameters.AddWithValue("@resolveprob", userName ?? "");
+                    command.Parameters.AddWithValue("@dtenderrcode13", string.IsNullOrWhiteSpace(item.dtenderrcode13) ? DBNull.Value : (object?)ParseDateTime(item.dtenderrcode13));
+                    command.Parameters.AddWithValue("@dterrcode13", string.IsNullOrWhiteSpace(item.dterrcode13) ? DBNull.Value : (object?)ParseLong(item.dterrcode13));
+
+                    int result = await command.ExecuteNonQueryAsync();
+
+                    if (result <= 0)
+                    {
+                        throw new Exception($"❌ Insert failed (0 affected rows) for terminalid={item.terminalid}");
+                    }
+                }
+            }
+            catch (HeaderValidationException hex)
+            {
+                throw new Exception("❌ CSV header format is invalid. โปรดตรวจสอบชื่อ column หรือลำดับให้ถูกต้อง", hex);
+            }
+            catch (ReaderException rex)
+            {
+                throw new Exception("❌ ข้อมูลในไฟล์ CSV มีรูปแบบไม่ถูกต้องหรือไม่สามารถอ่านได้", rex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("❌ เกิดข้อผิดพลาดขณะนำเข้าไฟล์ CSV", ex);
             }
         }
 

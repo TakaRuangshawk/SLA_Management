@@ -16,8 +16,11 @@ namespace SLA_Management.Controllers
         }
         private readonly ExcelToMySqlService _excelService;
 
+        private readonly IConfiguration _configuration;
+
         public ExcelController(IConfiguration configuration)
         {
+            _configuration = configuration;
             var connectionString = configuration.GetSection("ConnectString_NonOutsource").GetValue<string>("FullNameConnection_baac");
             _excelService = new ExcelToMySqlService(connectionString);
         }
@@ -48,6 +51,57 @@ namespace SLA_Management.Controllers
                 }
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadExcel_Problem(IFormFile file, string bank)
+        {
+            string userName = HttpContext.Session.GetString("Username");
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid file.");
+            }
+
+            if (string.IsNullOrWhiteSpace(bank))
+            {
+                return BadRequest("Bank is required.");
+            }
+
+            // ดึง connection string ตาม bank ที่เลือก
+            string key = $"ConnectString_NonOutsource:FullNameConnection_{bank.ToLower()}";
+            string connectionString = _configuration.GetValue<string>(key);
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return BadRequest("Invalid bank or configuration not found.");
+            }
+
+            ExcelToMySqlService _excelService = new ExcelToMySqlService(connectionString);
+
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+            stream.Position = 0;
+
+            try
+            {
+                if (extension == ".csv")
+                {
+                    await _excelService.ImportCsvProblemDataAsync(stream, userName);
+                }
+                else
+                {
+                    await _excelService.ImportExcelProblemDataAsync(stream, userName);
+                }
+
+                return Ok("Data imported successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> UploadExcel_CardRetain(IFormFile file)

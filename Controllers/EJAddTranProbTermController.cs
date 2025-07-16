@@ -4,21 +4,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using Mysqlx;
+using OfficeOpenXml;
 using PagedList;
 using SLA_Management.Commons;
 using SLA_Management.Data;
+using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
+using SLA_Management.Data.HealthCheck;
 using SLA_Management.Data.TermProb;
+using SLA_Management.Models;
+using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.TermProbModel;
-using SLA_Management.Data;
 using System;
 using System.Data;
 using System.Data.Common;
 using System.Drawing;
 using System.Globalization;
-using SLA_Management.Data.HealthCheck;
-using SLA_Management.Models;
 
 
 namespace SLA_Management.Controllers
@@ -40,9 +42,7 @@ namespace SLA_Management.Controllers
 
         public EJAddTranProbTermController(IConfiguration myConfiguration)
         {
-
             _myConfiguration = myConfiguration;
-
 
         }
 
@@ -83,7 +83,7 @@ namespace SLA_Management.Controllers
                     break;
             }
 
-
+            SetLatestUpdateViewBag(bankName);
 
             //if (terminalType == "ADM") terminalType = "G262";
             //else if (terminalType == "ATM") terminalType = "G165";
@@ -128,7 +128,7 @@ namespace SLA_Management.Controllers
                     MessErrKeyWord = (MessErrKeyWord ?? currMessErrKeyWord);
                 }
 
-                if (DBService.CheckDatabase() )
+                if (DBService.CheckDatabase())
                 {
                     ProdMasData = dBService.GetMasterSysErrorWord();
                     ProdAllMasData = dBService.GetAllMasterSysErrorWord();
@@ -194,11 +194,11 @@ namespace SLA_Management.Controllers
 
                 if (!noBankSelect)
                 {
-                     device_Info_Records = dBService.GetDeviceInfoFeelview();
+                    device_Info_Records = dBService.GetDeviceInfoFeelview();
 
                 }
 
-                
+
 
                 var additionalItems = device_Info_Records.Select(x => x.TYPE_ID).Distinct();
                 if (bankName == "BAAC")
@@ -308,7 +308,7 @@ namespace SLA_Management.Controllers
                     {
                         if (chk_date)
                         {
-                            recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate , dBService);
+                            recordset = GetErrorTermDeviceEJLog_DatabaseAll(param, strErrorWordSeparate, dBService);
                         }
                     }
                     #endregion
@@ -403,7 +403,69 @@ namespace SLA_Management.Controllers
         #endregion
 
         #region Private function
-        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate ,DBService_TermProb dBService_TermProb)
+
+        private void SetLatestUpdateViewBag(string bankName)
+        {
+            try
+            {
+                ConnectMySQL db_mysql = null;
+
+                if (string.IsNullOrWhiteSpace(bankName))
+                {
+                    // ไม่ต้องทำอะไรเลย ปล่อยให้ ViewBag เป็น "-"
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                    return;
+                }
+
+                switch (bankName.Trim().ToUpper())
+                {
+                    case "BAAC":
+                        db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
+                        break;
+                    case "ICBC":
+                        db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
+                        break;
+                    case "BOC":
+                        db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
+                        break;
+                    default:
+                        // ไม่รู้จัก bankName ก็ไม่ทำอะไร
+                        ViewBag.LatestUpdateDate = "-";
+                        ViewBag.UpdatedBy = "-";
+                        return;
+                }
+
+                MySqlCommand com = new MySqlCommand
+                {
+                    CommandText = "SELECT updatedate, resolveprob FROM ejlog_devicetermprob ORDER BY updatedate DESC LIMIT 1;"
+                };
+
+                DataTable dt = db_mysql.GetDatatable(com);
+                List<LatestUpdateData_recordProb> result = ConvertDataTableToModel.ConvertDataTable<LatestUpdateData_recordProb>(dt);
+                LatestUpdateData_recordProb latestUpdate = result.FirstOrDefault();
+
+                if (latestUpdate != null)
+                {
+                    ViewBag.LatestUpdateDate = latestUpdate.updatedate.ToString("dd/MM/yyyy HH:mm");
+                    ViewBag.UpdatedBy = latestUpdate.resolveprob;
+                }
+                else
+                {
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching latest update: {ex.Message}");
+                ViewBag.LatestUpdateDate = "-";
+                ViewBag.UpdatedBy = "-";
+            }
+        }
+
+
+        private List<ej_trandeviceprob> GetErrorTermDeviceEJLog_DatabaseAll(ej_trandada_seek paramTemp, string[] strErrorWordSeparate, DBService_TermProb dBService_TermProb)
         {
             List<ej_trandeviceprob> ej_Trandeviceprobs = new List<ej_trandeviceprob>();
 
@@ -419,7 +481,7 @@ namespace SLA_Management.Controllers
                 //}
                 //else
                 //{
-                    ej_Trandeviceprobs.AddRange(dBService_TermProb.GetErrorTermDeviceEJLog_Database(paramTemp));
+                ej_Trandeviceprobs.AddRange(dBService_TermProb.GetErrorTermDeviceEJLog_Database(paramTemp));
                 //}
             }
             catch (Exception)
@@ -637,6 +699,131 @@ namespace SLA_Management.Controllers
 
 
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadExcel_Problem(IFormFile file, string bank)
+        {
+            string userName = HttpContext.Session.GetString("Username");
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid file.");
+            }
+
+            string key = $"ConnectString_NonOutsource:FullNameConnection_{bank.ToLower()}";
+            string connectionString = _myConfiguration.GetValue<string>(key);
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return BadRequest("Invalid bank or configuration not found.");
+            }
+
+            ExcelToMySqlService _excelService = new ExcelToMySqlService(connectionString);
+
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+            stream.Position = 0;
+
+            try
+            {
+                if (extension == ".csv")
+                {
+                    await _excelService.ImportCsvProblemDataAsync(stream, userName);
+                }
+                else
+                {
+                    await _excelService.ImportExcelProblemDataAsync(stream, userName);
+                }
+
+                return Ok("Data imported successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportProblemCodeExcel(string bank)
+        {
+            if (string.IsNullOrEmpty(bank))
+                return BadRequest("Bank is required.");
+
+            string key = $"ConnectString_NonOutsource:FullNameConnection_{bank.ToLower()}";
+            string connectionString = _myConfiguration.GetValue<string>(key);
+
+            if (string.IsNullOrEmpty(connectionString))
+                return BadRequest("Invalid bank or configuration not found.");
+
+            const string query = @"
+SELECT probcode, probname, probtype, probterm, status, displayflag, memo, createdate, updatedate, updateby 
+FROM ejlog_problemmascode";
+
+            using var conn = new MySqlConnection(connectionString);
+            await conn.OpenAsync();
+
+            var cmd = new MySqlCommand(query, conn);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var data = new List<ProblemMasCodeModel>();
+            while (await reader.ReadAsync())
+            {
+                data.Add(new ProblemMasCodeModel
+                {
+                    probcode = reader["probcode"].ToString(),
+                    probname = reader["probname"].ToString(),
+                    probtype = reader["probtype"].ToString(),
+                    probterm = reader["probterm"].ToString(),
+                    status = reader["status"].ToString(),
+                    displayflag = reader["displayflag"].ToString(),
+                    memo = reader["memo"].ToString(),
+                    createdate = reader["createdate"] as DateTime?,
+                    updatedate = reader["updatedate"] as DateTime?,
+                    updateby = reader["updateby"].ToString()
+                });
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("ProblemCodes");
+
+            // Header
+            worksheet.Cells[1, 1].Value = "รหัสปัญหา";
+            worksheet.Cells[1, 2].Value = "ชื่อปัญหา";
+            worksheet.Cells[1, 3].Value = "ประเภทปัญหา";
+            worksheet.Cells[1, 4].Value = "ประเภทเครื่อง";
+            worksheet.Cells[1, 5].Value = "สถานะ";
+            worksheet.Cells[1, 6].Value = "แสดง";
+            worksheet.Cells[1, 7].Value = "Memo";
+            worksheet.Cells[1, 8].Value = "วันที่สร้าง";
+            worksheet.Cells[1, 9].Value = "วันที่แก้ไข";
+            worksheet.Cells[1, 10].Value = "แก้ไขโดย";
+
+            int row = 2;
+            foreach (var item in data)
+            {
+                worksheet.Cells[row, 1].Value = item.probcode;
+                worksheet.Cells[row, 2].Value = item.probname;
+                worksheet.Cells[row, 3].Value = item.probtype;
+                worksheet.Cells[row, 4].Value = item.probterm;
+                worksheet.Cells[row, 5].Value = item.status;
+                worksheet.Cells[row, 6].Value = item.displayflag;
+                worksheet.Cells[row, 7].Value = item.memo;
+                worksheet.Cells[row, 8].Value = item.createdate?.ToString("yyyy-MM-dd HH:mm");
+                worksheet.Cells[row, 9].Value = item.updatedate?.ToString("yyyy-MM-dd HH:mm");
+                worksheet.Cells[row, 10].Value = item.updateby;
+                row++;
+            }
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            string excelName = $"ProblemCodes_{bank}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+        }
+
+
     }
 
 }

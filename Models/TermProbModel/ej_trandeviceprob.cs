@@ -24,4 +24,12 @@ namespace SLA_Management.Models.TermProbModel
 
         public string Memo { get; set; }
     }
+
+
+    public class LatestUpdateData_recordProb
+    {
+        public DateTime updatedate { get; set; }
+        public string resolveprob { get; set; }
+    }
+
 }

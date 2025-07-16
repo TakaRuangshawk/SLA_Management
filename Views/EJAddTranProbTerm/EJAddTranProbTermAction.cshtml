@@ -29,113 +29,122 @@
 <style>
 
     .bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn) {
-    width: 526px;
-    margin-left: -2px;
+        width: 526px;
+        margin-left: -2px;
     }
 
     .bootstrap-select > .dropdown-toggle {
-    border-color: #ced4da;
-    background-color: transparent;
-    position: relative;
-    width: 100%;
-    text-align: right;
-    white-space: nowrap;
-    display: -webkit-inline-box;
-    display: -webkit-inline-flex;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-    -ms-flex-pack: justify;
-    justify-content: space-between;
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: -webkit-inline-box;
+        display: -webkit-inline-flex;
+        display: -ms-inline-flexbox;
+        display: inline-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
     }
 
     select.form-control {
-    -webkit-appearance: button;
+        -webkit-appearance: button;
     }
 
 
     #header_search {
-    top: 20px;
-    position: relative;
-    background-color: orange;
-    border: solid;
-    padding: 8px 40px 8px 40px;
-    border-radius: 12px;
-    font-weight: 700;
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
     }
 
     .item {
-    padding: 0px;
+        padding: 0px;
     }
 
     #submit {
-    position: relative;
-    top: 50px;
-    background: lightgray;
-    border: 10px double white;
-    border-radius: 20px;
-    padding: 0px 10px 0px 10px;
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
     }
 
     #before-submit {
-    display: flex;
-    justify-content: center;
+        display: flex;
+        justify-content: center;
     }
 
     #main_search {
-    margin-bottom: 50px;
-    padding: 30px 3vw 30px 3vw;
-    margin-left: 50px;
-    margin-right: 50px;
-    border: 3px solid #888888;
-    background-color: white;
-    border-radius: 50px;
+        margin-bottom: 50px;
+        padding: 30px 3vw 30px 3vw;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
     }
 
     .dropdown-toggle {
-    border-radius: 10px;
+        border-radius: 10px;
     }
 
     .show-tick {
-    width: -webkit-fill-available !important;
+        width: -webkit-fill-available !important;
     }
 
     th {
-    text-align: center;
+        text-align: center;
     }
 
     .boxDownload {
-    /*  background-color: rgba(255, 255, 255, 0.5);
-    position: fixed;
-    top: 250px;
-    right: 550px;
-    pointer-events: none;
-    z-index: 10; */
-    background-color: rgba(255, 255, 255, 0.5);
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-    pointer-events: none;
-    z-index: 10;
+        /*  background-color: rgba(255, 255, 255, 0.5);
+                            position: fixed;
+                            top: 250px;
+                            right: 550px;
+                            pointer-events: none;
+                            z-index: 10; */
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        pointer-events: none;
+        z-index: 10;
     }
 
     .imgDownload {
-    position: sticky;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 
 </style>
 
-
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="successToastBody">
+                <!-- Message จะถูก set จาก JS -->
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
@@ -159,39 +168,39 @@
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                             @Html.DropDownList("bankName", new SelectListItem[] {
-                        new SelectListItem(){ Text="--", Value = ""  },
-                        new SelectListItem(){ Text="BAAC", Value = "BAAC"  },
-                        new SelectListItem(){ Text="ICBC", Value = "ICBC" }
+                            new SelectListItem() { Text = "--", Value = "" },
+                                                new SelectListItem() { Text = "BAAC", Value = "BAAC" },
+                                                new SelectListItem() { Text = "ICBC", Value = "ICBC" }
 
-                                                        }, new
-                                                        {
-                                                            @class = "form-control dropdown"
-                                              ,
-                                                            @style = " border-radius: 10px;",
-                                                            @name = "state",
-                                            @id = "bankNameDropdown"
-                                                            // @onchange = "submitForm()"
+                                                }, new
+                        {
+                            @class = "form-control dropdown"
+                                                ,
+                            @style = " border-radius: 10px;",
+                            @name = "state",
+                            @id = "bankNameDropdown"
+                                                     // @onchange = "submitForm()"
 
-                                                        })
+                        })
 
-                        </div>
                     </div>
-                    <div class="col-md-1">
-                        <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
-                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                        </button>
-                    </div>
-
                 </div>
-                <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+                <div class="col-md-1">
+                    <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;">
+                        <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                    </button>
+                </div>
 
-                    <div class="col-2" style="">
-                        <h>Terminal : </h>
-                    </div>
-                    @* <div class="col-md-2" style="margin-left:30px">
+            </div>
+            <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                <div class="col-2" style="">
+                    <h>Terminal : </h>
+                </div>
+                @* <div class="col-md-2" style="margin-left:30px">
                 @Html.TextBox("TermID", ViewBag.CurrentTID as string, new { @class = "form-control subsearch" , @placeholder = "Terminal ID" })
                 </div>*@
-                    @*<div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
+                @*<div class="item col-2" style="border-color:#ced4da; background-color: transparent;">
                 <select class="form-control subsearch selectpicker" id="TermID" name="TermID" data-live-search="true">
                 <option data-tokens="" value="">--</option>
                 @foreach (string item in ViewBag.CurrentTID)
@@ -211,43 +220,43 @@
                 }
                 </select>
                 </div>*@
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                        <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
-                            <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <select class="selectpicker form-control subsearch" id="TermID" name="TermID" data-live-search="true">
+                        <option data-tokens="" value="">--</option>
+                        @foreach (var item in ViewBag.CurrentTID)
+                        {
+                            if (@item.TERM_ID != @ViewBag.TermID)
                             {
-                                if (@item.TERM_ID != @ViewBag.TermID)
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-
-                                }
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
                             }
-                        </select>
-                    </div>
-                    <div class="col-2" style="">
-                        <h>From Date : </h>
-                    </div>
-                    <div class="col-2 " style="padding:0; ">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
-                        </div>
-                    </div>
-                    <div class="col-2" style="">
-                        <h>To Date : </h>
-                    </div>
-                    <div class="col-2" style="padding:0;">
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                            @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
-                        </div>
+                            else
+                            {
+                                <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-2" style="">
+                    <h>From Date : </h>
+                </div>
+                <div class="col-2 " style="padding:0; ">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("FrDate", ViewBag.CurrentFr as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31", @onfocus = "(this.type='date')" })
                     </div>
                 </div>
-                @* <div class="row" style="margin-top: 15px;align-items:center;">
+                <div class="col-2" style="">
+                    <h>To Date : </h>
+                </div>
+                <div class="col-2" style="padding:0;">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                        @Html.TextBox("ToDate", ViewBag.CurrentTo as string, new { @style = " border-radius: 10px;", @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030", @pattern = "dd/mm/yyyy" })
+                    </div>
+                </div>
+            </div>
+            @* <div class="row" style="margin-top: 15px;align-items:center;">
             <div class="col col-lg-1">
             </div>
             <div class="col col-lg-2" style="width: auto">
@@ -269,75 +278,75 @@
             </div>
             </div>
             </div>*@
-                <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+            <div class="row " style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-between;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                    <div class="col-2" style="">
-                        <label for="ErrMeaaage">Error Message:</label>
-                    </div>
-                    <div class="col-2" style="padding: 0px;">
-                        <select name="ddlProbMaster" id="ddlProbMaster" style="" class="selectpicker" multiple>
-                            @{
+                <div class="col-2" style="">
+                    <label for="ErrMeaaage">Error Message:</label>
+                </div>
+                <div class="col-2" style="padding: 0px;">
+                    <select name="ddlProbMaster" id="ddlProbMaster" style="" class="selectpicker" multiple>
+                        @{
 
-                                if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
+                            if (ViewBag.ProbMaster != "" && ViewBag.ProbMaster != null)
+                            {
+                                char[] spMas = new char[] { '|' };
+                                string strMasterProb = ViewBag.ProbMaster;
+                                string[] arrMasterProb = strMasterProb.Split(spMas);
+                                char[] spMas1 = new char[] { '$' };
+                                foreach (string mas in arrMasterProb)
                                 {
-                                    char[] spMas = new char[] { '|' };
-                                    string strMasterProb = ViewBag.ProbMaster;
-                                    string[] arrMasterProb = strMasterProb.Split(spMas);
-                                    char[] spMas1 = new char[] { '$' };
-                                    foreach (string mas in arrMasterProb)
+
+                                    string[] arrMasterProb1 = mas.Split(spMas1);
+                                    string currentProbMaster = ViewBag.CurrentProbMaster;
+
+
+                                    if (!string.IsNullOrEmpty(currentProbMaster))
                                     {
-
-                                        string[] arrMasterProb1 = mas.Split(spMas1);
-                                        string currentProbMaster = ViewBag.CurrentProbMaster;
-
-
-                                        if (!string.IsNullOrEmpty(currentProbMaster))
+                                        string[] currentProbMasterSpilt = currentProbMaster.Split(',');
+                                        var flag = false;
+                                        foreach (string temp in currentProbMasterSpilt)
                                         {
-                                            string[] currentProbMasterSpilt = currentProbMaster.Split(',');
-                                            var flag = false;
-                                            foreach (string temp in currentProbMasterSpilt)
+                                            if (temp == arrMasterProb1[0].ToString())
                                             {
-                                                if (temp == arrMasterProb1[0].ToString())
-                                                {
-                                                    <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                    flag = true;
-                                                }
+                                                <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                                flag = true;
+                                            }
 
 
-                                            }
-                                            if (flag == false)
-                                            {
-                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                            }
+                                        }
+                                        if (flag == false)
+                                        {
+                                            <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (mas == arrMasterProb1[0].ToString())
+                                        {
+                                            <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
+                                            break;
                                         }
                                         else
                                         {
-                                            if (mas == arrMasterProb1[0].ToString())
-                                            {
-                                                <option selected="selected" value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
-                                            }
+                                            <option value="@(arrMasterProb1[0].ToString())">@(arrMasterProb1[1].ToString())</option>
                                         }
-
                                     }
+
                                 }
                             }
-                        </select>
-                    </div>
-                    @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
-                    <div class="col-2" style="">
-                        <h>TerminalType : </h>
-                    </div>
+                        }
+                    </select>
+                </div>
+                @Html.Hidden("KeyWordList", ViewBag.KeyWordList as string)
+                <div class="col-2" style="">
+                    <h>TerminalType : </h>
+                </div>
 
-                    <div class="col-2" style="padding:0px;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                            @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
-                            @* @Html.DropDownList("terminalType", new SelectListItem[] {
+                <div class="col-2" style="padding:0px;">
+                    <div class="form-group">
+                        <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("terminalType", ViewBag.probTermStr as SelectList, "--", new { @class = "form-control" })
+                        @* @Html.DropDownList("terminalType", new SelectListItem[] {
                         new SelectListItem(){ Text="ALL", Value = "G165;G262" },
                         new SelectListItem(){ Text="ATM", Value = "G165"  },
                         new SelectListItem(){ Text="ADM", Value = "G262"  }
@@ -351,9 +360,9 @@
 
                         })*@
 
-                        </div>
                     </div>
-                    @* <div class="col col-lg-2">
+                </div>
+                @* <div class="col col-lg-2">
                 <label for="MessageErr1">Error Meaasge</label>&nbsp;<br />
                 <label for="MessageErr2">(Key Word)</label>&nbsp;:&nbsp;&nbsp;
                 </div>
@@ -361,31 +370,31 @@
                 @Html.TextBox("MessErrKeyWord", ViewBag.CurrentMessErrKeyWord as string, new { @class = "w-100 form-control" })
                 </div>*@
 
-                    <div class="col-2" style="">
-                        <h>Rows : </h>
-                    </div>
+                <div class="col-2" style="">
+                    <h>Rows : </h>
+                </div>
 
-                    <div class="col-2" style="padding:0px;">
-                        <div class="form-group">
-                            <!--		Show Numbers Of Rows 		-->
-                            @Html.DropDownList("maxRows", new SelectListItem[] {
-                        new SelectListItem(){ Text="50", Value = "50" },
-                        new SelectListItem(){ Text="100", Value = "100"  },
-                        new SelectListItem(){ Text="500", Value = "500"  },
-                        new SelectListItem(){ Text="1000", Value = "1000"  }
-                                                        }, new
-                                                        {
-                                                            @class = "form-control dropdown"
-                                              ,
-                                                            @style = " border-radius: 10px;",
-                                                            @name = "state"
+                <div class="col-2" style="padding:0px;">
+                    <div class="form-group">
+                        <!--		Show Numbers Of Rows 		-->
+                        @Html.DropDownList("maxRows", new SelectListItem[] {
+                        new SelectListItem() { Text = "50", Value = "50" },
+                                                new SelectListItem() { Text = "100", Value = "100" },
+                                                new SelectListItem() { Text = "500", Value = "500" },
+                                                new SelectListItem() { Text = "1000", Value = "1000" }
+                                                }, new
+                        {
+                            @class = "form-control dropdown"
+                                                ,
+                            @style = " border-radius: 10px;",
+                            @name = "state"
 
-                                                        })
+                        })
 
-                        </div>
                     </div>
                 </div>
-                @*  <div class="row" style="margin-top: 15px;align-items:center;">
+            </div>
+            @*  <div class="row" style="margin-top: 15px;align-items:center;">
 
             <div class="col col-lg-1">
             </div>
@@ -393,35 +402,60 @@
 
             </div>*@
 
-                <div class="row">
+            <div class="row justify-content-md-center" style="padding: 50px 50px 0px 50px;">
+                <div id="dropArea" class="border p-5 text-center">
+                    <p>Drag and drop your Excel files here</p>
+                    <p>or</p>
+                    <input type="file" id="fileInput" multiple hidden />
+                    <button type="button" class="btn btn-primary" onclick="triggerFileInput()">Browse Files</button>
+                </div>
+                <div id="progressBars" class="mt-3"></div>
+                <div id="message" class="mt-3"></div>
+            </div>
+            <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                <div class="col-12" style="color: red; padding-left: 5px">
+                    <label id="updateDateLabel">Latest Update Date : @ViewBag.LatestUpdateDate</label>
+                </div>
+            </div>
+            <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                <div class="col-12" style="color: red; padding-left: 5px;">
+                    <label id="updatedByLabel">Latest Update By : @ViewBag.UpdatedBy</label>
+                </div>
+            </div>
 
-                    <div class="col" id="before-submit">
-                        <div id="submit">
-                            <button type="submit" id="btnsearch2" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
-                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+            <div class="row">
+
+                <div class="col" id="before-submit">
+                    <div id="submit">
+                        <button type="submit" id="btnsearch2" title="ค้นหาข้อมูล" class="btn" style="padding:0px;">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
+                        </button>
+
+                        <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                        </button>
+
+
+                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                            <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
+                        </a>
+
+                        <button type="button" id="export-problemcode-btn" class="btn btn-success">
+                            Export masCode
+                        </button>
+
+                        @if (Context.Session.GetString("Role") != "User")
+                        {
+                            <button type="button" id="btnInsertProb" class="btn" name="InsertProbButton" title="Insert Problem Master" data-toggle="modal" data-target="#InsertProbModal" style="padding:0px;border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_add.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
                             </button>
+                        }
 
-                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
-                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
-                            </button>
-
-
-                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                            </a>
-
-                            @if (Context.Session.GetString("Role") != "User")
-                            {
-                                <button type="button" id="btnInsertProb" class="btn" name="InsertProbButton" title="Insert Problem Master" data-toggle="modal" data-target="#InsertProbModal" style="padding:0px;border: 0px; background-color: transparent;">
-                                    <img src="~/images/icon_add.png" style="width: 144px; height: 40px" class="rounded-lg p-0" alt="Upload Comlog" />
-                                </button>
-                            }
-
-                        </div>
                     </div>
                 </div>
+            </div>
 
-            }
+                        }
 
         </div>
 
@@ -474,8 +508,8 @@
                         {
 
                         <td colspan="8" style="text-align: center;"> NO DATA </td>
-                        }
                     }
+                }
                 </tbody>
 
 
@@ -504,10 +538,10 @@
                         Select page :
                         @Html.DropDownList("seletePageNow", new SelectListItem[] {
 
-                                        }, new
-                                        {
-                                            @class = "form-control"
-                                        })
+                                                }, new
+                                                   {
+                                                       @class = "form-control"
+                                                   })
                     </p>
                 </div>
             </div>
@@ -653,16 +687,16 @@
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
                                 @*@Html.TextBox("probTermStr", ViewBag.probTermStr as string, new { @class = "form-control subsearch", @placeholder = "probTerm"})*@
                                 @Html.DropDownList("displayflagStr", new SelectListItem[] {
-                                new SelectListItem(){ Text = "1",Value = "1" },
-                                new SelectListItem(){ Text = "0",Value = "0" }
-                                                        }, new
-                                                        {
-                                                            @class = "form-control dropdown"
-                                         ,
-                                                            @style = " border-radius: 10px;",
-                                                            @name = "state"
+                                                                new SelectListItem() { Text = "1", Value = "1" },
+                                                                new SelectListItem() { Text = "0", Value = "0" }
+                                                                }, new
+                                {
+                                    @class = "form-control dropdown"
+                                                                ,
+                                    @style = " border-radius: 10px;",
+                                    @name = "state"
 
-                                                        })
+                                })
                             </div>
                         </div>
                     </div>
@@ -734,7 +768,7 @@
 
                 res.then((data) => {
 
-                    resultElement.value = 'Result succeed : result is ' + data.result + ';
+                    resultElement.value = 'Result succeed : result is ' + data.result ;
                     resultElement.style.color = 'LightGreen';
                 });
 
@@ -752,13 +786,47 @@
 <script>
 
 
+         document.getElementById('export-problemcode-btn').addEventListener('click', async function (event) {
+        event.preventDefault();
+
+           const bank = document.getElementById('bankNameDropdown').value;
+    if (!bank) {
+        alert('กรุณาเลือกธนาคารก่อนดาวน์โหลด');
+        return;
+    }
+
+    const url = '@Url.Action("ExportProblemCodeExcel", "EJAddTranProbTerm")' + '?bank=' + encodeURIComponent(bank);
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Download failed');
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `ProblemCodes_${bank}_${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        alert('เกิดข้อผิดพลาดในการดาวน์โหลด: ' + error.message);
+    }
+
+    });
+
+
+
+
 
          $("#btnsearch").click(function (e) {
          e.preventDefault();
 
              $("#boxDownload").show();
 
-           
+
 
              setTimeout(function () {
                  $("#EJAddTranProbTermRecheckDate").submit();
@@ -1145,4 +1213,151 @@
 
 
 
+</script>
+
+<script>
+      var dropArea = document.getElementById('dropArea');
+    var fileInput = document.getElementById('fileInput');
+
+    // Prevent default behavior (Prevent file from being opened)
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop area when file is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('bg-light'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('bg-light'), false);
+    });
+
+    // Handle dropped files
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function triggerFileInput() {
+        // Trigger file input click
+        fileInput.click();
+    }
+
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleDrop(e) {
+        var dt = e.dataTransfer;
+        var files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        for (var i = 0; i < files.length; i++) {
+            uploadFile(files[i], i);
+        }
+    }
+
+       function uploadFile(file, index) {
+        const selectedBank = document.getElementById("bankNameDropdown").value;
+        const allowedExtensions = ['csv', 'xlsx', 'xls'];
+        const fileExt = file.name.split('.').pop().toLowerCase();
+
+        if (!selectedBank) {
+            alert("กรุณาเลือกธนาคารก่อนทำการอัปโหลดไฟล์");
+            return;
+        }
+
+        if (!allowedExtensions.includes(fileExt)) {
+            alert("รองรับเฉพาะไฟล์ .csv, .xlsx หรือ .xls เท่านั้น");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bank', selectedBank);
+
+        const xhr = new XMLHttpRequest();
+       xhr.open('POST', '@Url.Action("UploadExcel_Problem", "EJAddTranProbTerm")', true);
+
+        // ป้องกันการกดซ้ำ (ถ้ามีปุ่ม)
+        const uploadBtn = document.getElementById('btnUpload');
+        if (uploadBtn) uploadBtn.disabled = true;
+
+        // Progress bar
+        const progressBarContainer = document.createElement('div');
+        progressBarContainer.className = 'progress mb-3';
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.role = 'progressbar';
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', '0');
+        progressBar.setAttribute('aria-valuemin', '0');
+        progressBar.setAttribute('aria-valuemax', '100');
+        progressBar.innerHTML = '0%';
+        progressBarContainer.appendChild(progressBar);
+        document.getElementById('progressBars').appendChild(progressBarContainer);
+
+        // Progress event
+        xhr.upload.onprogress = function (event) {
+            if (event.lengthComputable) {
+                const percentComplete = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+                progressBar.innerHTML = percentComplete + '%';
+            }
+        };
+
+        // Success
+        xhr.onload = function () {
+            if (uploadBtn) uploadBtn.disabled = false;
+
+            if (xhr.status === 200) {
+                progressBar.innerHTML = 'Upload complete';
+                progressBar.classList.add('bg-success');
+                displayMessage('File uploaded successfully', 'alert-success');
+                showSuccessToast('✅ ไฟล์อัปโหลดสำเร็จแล้ว');
+            } else {
+                progressBar.innerHTML = 'Upload failed';
+                progressBar.classList.add('bg-danger');
+                displayMessage('File upload failed. Please try again.', 'alert-danger');
+                showSuccessToast('❌ การอัปโหลดไฟล์ล้มเหลว');
+            }
+        };
+
+        // Error
+        xhr.onerror = function () {
+            if (uploadBtn) uploadBtn.disabled = false;
+            progressBar.innerHTML = 'Upload error';
+            progressBar.classList.add('bg-danger');
+            displayMessage('An error occurred during the upload. Please try again.', 'alert-danger');
+            showSuccessToast('⚠️ เกิดข้อผิดพลาดระหว่างการอัปโหลด');
+        };
+
+        // ส่งไฟล์
+        try {
+            xhr.send(formData);
+        } catch (err) {
+            if (uploadBtn) uploadBtn.disabled = false;
+            showSuccessToast('⚠️ ไม่สามารถส่งไฟล์ได้: ' + err.message);
+        }
+    }
+
+    function displayMessage(message, alertClass) {
+        var messageContainer = document.getElementById('message');
+        messageContainer.innerHTML = `<div class="alert ${alertClass}" role="alert">${message}</div>`;
+    }
+
+
+        function showSuccessToast(message) {
+        const toastBody = document.getElementById('successToastBody');
+        toastBody.textContent = message;
+
+        const toastElement = document.getElementById('successToast');
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
 </script>
