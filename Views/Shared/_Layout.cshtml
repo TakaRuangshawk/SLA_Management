@@ -186,6 +186,8 @@
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="RecurringCasesMonitor">Recurring Cases Monitor</a></li>
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="LogAnalysis">Log Analysis Monitor</a></li>
                                     <li><a class="dropdown-item" asp-controller="Monitor" asp-action="CardRetain">CardRetain</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="CassetteStatus">Cassette Status Monitor</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="TicketManagement">Ticket Monitor</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
@@ -196,13 +198,20 @@
                                     <li><a class="dropdown-item" asp-controller="Maintenance" asp-action="EJournalMenu">EJournal</a></li>
                                 </ul>
                             </li>
+                            <li class="nav-item dropdown nav-report">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                                    Report
+                                </a>
+                                <div class="dropdown-menu">                                
+                                    <a class="dropdown-item text-dark" asp-area="" asp-controller="Report" asp-action="BalancingReport">Balancing Report</a>
+                                </div>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown">
                                     Management
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="TicketManagement">Ticket Management</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="ReportCases">Report Cases</a></li>
+                                <ul class="dropdown-menu">                                   
+                                    <li><a class="dropdown-item" asp-controller="Management" asp-action="ReportCases">Report Cases</a></li>                                
                                 </ul>
                             </li>
                              <li class="nav-item dropdown">

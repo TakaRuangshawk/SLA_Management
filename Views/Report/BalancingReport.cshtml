@@ -147,127 +147,141 @@
     }
 </style>
 
-
-<div class="container w-auto containerHeader">
-
-    <div class="row">
-        <div class="col col-md-1">
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1"></div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Balancing Report</a>
+            </div>
         </div>
-        <div class="col col-md-4">
-            <a class="text-white fs-4" id="header_search">Balancing Report</a>
-        </div>
-    </div>
 
-    <div id="main_search">
-
-        @using (Html.BeginForm("BalancingReport", "Report", FormMethod.Get, new { id = "", style = "padding: 0 4vw;" }))
-        {
-            <div class="row" style="margin-top: 35px;display: flex;align-items: baseline;justify-content: space-evenly;">
-
-                <div class="col-md-1" style="width: 112px;">
-                    <h>Terminal ID : </h>
-                </div>
-                <div class="col-md-2 " style="">
-                    <div class="">
-                        <select class="selectpicker form-control subsearch " id="terminalno" name="TermID" data-live-search="true">
-
-                            <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
+        <div id="main_search">
+            @using (Html.BeginForm("BalancingReport", "Report", FormMethod.Get, new { id = "balancingForm" }))
+            {
+                <!-- Row 1: Bank + Search -->
+                <div class="row" style="margin-top: 45px; align-items: center; display: flex; padding: 0vw 3vw; white-space: nowrap;">
+                    <div class="col-md-1" style="margin-right: 49px;">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2">
+                        <div class="form-group">
+                            @Html.DropDownList("bankName", new List<SelectListItem>
                             {
-                                if (@item.TERM_ID != @ViewBag.TermID)
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                new SelectListItem { Text = "--", Value = "" },
+                                new SelectListItem { Text = "BAAC", Value = "BAAC", Selected = (ViewBag.BankName == "BAAC") },
+                                new SelectListItem { Text = "ICBC", Value = "ICBC", Selected = (ViewBag.BankName == "ICBC") }
+                            }, new {
+                                @class = "form-control dropdown",
+                                @style = "border-radius: 10px;width: 189px;"
+                            })
+                        </div>
+                    </div>
 
-                                }
-                            }
+                    <div class="col-md-1">
+                        <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;margin-bottom: 13px;" onclick="updateTable('search')">
+                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Row 2: Terminal ID, From Date, To Date, Rows -->
+                <div class="row" style="margin-top: 20px; align-items: center; display: flex; justify-content: space-around; padding: 0vw 2vw; white-space: nowrap;">
+                    <!-- Terminal ID -->
+                    <div class="col-md-1">
+                        <h>Terminal ID : </h>
+                    </div>
+                    <div class="item col-md-2">
+                        <select class="form-control selectpicker subsearch" id="terminalno" name="TermID" data-live-search="true">
+                            <option value="">--</option>
+                           @foreach (var item in ViewBag.CurrentTID)
+{
+    if (item.TERM_ID == ViewBag.TermID)
+    {
+        <option value="@item.TERM_ID" selected>
+            @item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME
+        </option>
+    }
+    else
+    {
+        <option value="@item.TERM_ID">
+            @item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME
+        </option>
+    }
+}
 
                         </select>
                     </div>
-                </div>
 
-                <div class="col-md-1" style="width: 112px;">
-                    <h>From Date : </h>
-                </div>
-                <div class="col-md-2 " style="">
-                    <div class="">
-                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
-                        @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "1997-01-01", @max = "2030-12-31" ,@onfocus="(this.type='date')"})
+                    <!-- From Date -->
+                    <div class="col-md-1">
+                        <h>From Date : </h>
                     </div>
-                </div>
-                <div class="col-md-1" style="width: 112px;">
-                    <h>To Date : </h>
-                </div>
-                <div class="col-md-2" style="">
-                    <div class="">
-                        <span class=""><i class="glyphicon glyphicon-calendar"></i></span>
-                        @Html.TextBox("todate", ViewBag.CurrentTo as string, new { @class = "form-control subsearch", @placeholder = "dd/mm/yyyy", @type = "date", @min = "01-01-1997", @max = "31-12-2030" ,@pattern="dd/mm/yyyy" })
+                    <div class="item col-md-2">
+                        @Html.TextBox("fromdate", ViewBag.CurrentFr as string, new {
+                            @class = "form-control subsearch",
+                            @type = "date",
+                            @min = "1997-01-01",
+                            @max = "2030-12-31"
+                        })
                     </div>
-                </div>
-            </div>
 
-            <div class="row " style="margin-top: 35px;display: flex;align-items: baseline;justify-content: space-evenly;">
-                <div style="width: 112px;" class="col-md-1">
-                  
-                </div>
-                <div class="col-md-2">
-                   
-                </div>
-                <div style="width: 112px;" class="col-md-1">
-                   
-                </div>
-                <div class="col-md-2">
-
-                </div>
-                <div style="width: 112px;" class="col-md-1">
-                    <h>Rows : </h>
-                </div>
-
-                <div class="col-md-2" style="">
-                    <div class="form-group">
-
-                        @Html.DropDownList("row", new SelectListItem[] {
-                    new SelectListItem(){ Text="50", Value = "50"  },
-                    new SelectListItem(){ Text="100", Value = "100"  },
-                    new SelectListItem(){ Text="500", Value = "500"  },
-                    new SelectListItem(){ Text="1000", Value = "1000"  }
-                    }, new
-                    {
-                    @class = "form-control dropdown"
-                    ,
-                    @name = "state"
-
-                    })
-
+                    <!-- To Date -->
+                    <div class="col-md-1">
+                        <h>To Date : </h>
+                    </div>
+                    <div class="item col-md-2">
+                        @Html.TextBox("todate", ViewBag.CurrentTo as string, new {
+                            @class = "form-control subsearch",
+                            @type = "date",
+                            @min = "1997-01-01",
+                            @max = "2030-12-31"
+                        })
                     </div>
                 </div>
 
-            </div>
-
-            <div class="row">
-
-                <div class="col" id="before-submit">
-                    <div id="submit">
-
-                        <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateTable('search')">
-                            <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
-                        </button>
-                        <button type="submit" id="btnclear" data-toggle="modal" data-target="#WaitingModal" onclick="clearFunction()" class="btn" data-toggle="tooltip" name="cmdButton" title="ล้างข้อมูล" value="Clear" style="padding:0px;border: 0px; background-color: transparent;">
-                            <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
-                        </button>
-                        <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
-                            <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
-                        </a>
+                <!-- Row 3: Rows (record count) -->
+                <div class="row" style="margin-top: 40px; align-items: center; display: flex; padding: 0vw 3vw;">
+                    <div class="col-md-1" style="margin-right: 41px;">
+                        <h>Rows : </h>
+                    </div>
+                    <div class="col-md-2">
+                        @Html.DropDownList("row", new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = "50", Value = "50" },
+                            new SelectListItem { Text = "100", Value = "100" },
+                            new SelectListItem { Text = "500", Value = "500" },
+                            new SelectListItem { Text = "1000", Value = "1000" }
+                        }, new {
+                            @class = "form-control dropdown",
+                            @style = "width: 187px;"
+                        })
                     </div>
                 </div>
-            </div>
-        }
 
+                <!-- Row 4: Buttons -->
+                <div class="row justify-content-md-center" style="margin-top: 36px;">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
+                            </button>
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" title="ล้างข้อมูล" style="padding:0px; border: 0px; background-color: transparent;" onclick="clearFunction()">
+                                <img src="~/images/icon_delete.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 </div>
+
+
+
 <div class="container-fluid">
     <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
 
@@ -376,6 +390,14 @@
         var toDateInput = document.getElementById("todate");
         var fromDateValue = new Date(fromDateInput.value);
         var toDateValue = new Date(toDateInput.value);
+          var bankName = $("#bankName").val();
+
+           if (!bankName || bankName === "null") {
+        alert("Please select a bank.");
+        return;
+    }
+
+
         if (isNaN(fromDateValue) || isNaN(toDateValue)) {
             alert("Invalid Date Format. Please enter valid dates.");
             return;

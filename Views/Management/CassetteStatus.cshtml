@@ -3,7 +3,9 @@
     string[] tableHeaders = new string[]
     {
     "No.",
+    "Serial No.",
     "TerminalNo ",
+    "Terminal Name ",
     "Lot Type",
     "1000A",
     "1000B",
@@ -14,6 +16,123 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    /* ---------- ปุ่มและ Dropdown ---------- */
+    .btn-light {
+        border: 1px solid darkgrey;
+        border-radius: 10px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    /* ---------- Header และ Layout ---------- */
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    h {
+        display: flex;
+        justify-content: center;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    /* ---------- ตาราง ---------- */
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    td {
+        padding: 0.5em !important;
+        vertical-align: middle;
+    }
+
+    .pagination li a {
+        color: black !important;
+    }
+
+    /* ---------- Checkbox ---------- */
+    .chkbox {
+        text-align: left;
+    }
+
+    /* ---------- Download Animation Overlay ---------- */
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>
 
 
 
@@ -24,31 +143,32 @@
             <div class="col col-md-1">
             </div>
             <div class="col col-md-11">
-                <a class="text-white fs-4" id="header_search">Cassette Status</a>
+                <a class="text-white fs-4" id="header_search">Cassette Status Monitor</a>
             </div>
         </div>
         <div id="main_search" style="">
-            @using (Html.BeginForm("ReportCases", "Management", FormMethod.Get, new { id = "myForm" }))
+            @using (Html.BeginForm("CassetteStatus", "Management", FormMethod.Get, new { id = "myForm" }))
             {
-
                 <div class="row" style="margin-top: 45px;align-items:center;display: flex;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col-md-1" style="margin-right: 70px;">
                         <h>Bank : </h>
                     </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent; ">
                         <div class="form-group">
                             <!--		Show Numbers Of Rows 		-->
                             @Html.DropDownList("bankName", new SelectListItem[] {
-                            new SelectListItem() { Text = "BAAC", Value = "BAAC", Selected = true }
+                            new SelectListItem() { Text = "--", Value = "" },
+                                                new SelectListItem() { Text = "BAAC", Value = "BAAC" },
+                                                new SelectListItem() { Text = "ICBC", Value = "ICBC" }
 
                                                 }, new
                         {
                             @class = "form-control dropdown"
                                                 ,
-                            @style = " border-radius: 10px;",
+                            @style = " border-radius: 10px;left: -6px",
                             @name = "state",
-                            @disabled = "disabled",
-                                                    // @onchange = "submitForm()"
+
+                            // @onchange = "submitForm()"
 
                         })
 
@@ -56,159 +176,63 @@
                 </div>
                 <input type="hidden" id="bankName" name="bankName" value="BAAC" />
                 <div class="col-md-1">
-                    <button type="submit" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateReportCasesTable()">
+                    <button type="button" data-toggle="modal" data-target="#WaitingModal" id="btnsearch" class="btn" style="padding:0px;" onclick="updateReportCasesTable()">
                         <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Search" />
                     </button>
                 </div>
 
             </div>
 
-            <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
 
-                <div class="col-md-1" style="">
-                    <h>Terminal No : </h>
+
+            <div class="row" style="margin-top: 20px; align-items:center; display: flex; justify-content: space-around; padding:0vw 3vw 0vw 3vw; white-space:nowrap;">
+                <!-- Terminal ID -->
+                <div class="col-md-1">
+                    <h>Terminal ID : </h>
+                </div>
+                <div class="item col-md-2">
+                    <select class="form-control selectpicker subsearch" id="Filter_TerminalID" name="Filter_TerminalID" data-live-search="true">
+                        <option value="">--</option>
+                        @foreach (var item in ViewBag.CurrentTID)
+                        {
+                            <option value="@item.TERM_ID">@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                        }
+                    </select>
                 </div>
 
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <div class="form-group">
-                        <select class="selectpicker form-control subsearch" id="Terminal_ID" name="Terminal_ID" data-live-search="true">
-
-                            <option data-tokens="" value="">--</option>
-                            @foreach (var item in ViewBag.CurrentTID)
-                            {
-                                if (@item.TERM_ID != @ViewBag.TermID)
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-                                }
-                                else
-                                {
-                                    <option value=@item.TERM_ID data-tokens=@item.TERM_ID selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
-
-                                }
-                            }
-
-                        </select>
-                    </div>
+                <!-- Lot Type -->
+                <div class="col-md-1">
+                    <h>Lot Type : </h>
+                </div>
+                <div class="item col-md-2">
+                    <select class="form-control selectpicker subsearch" id="Filter_LotType" name="Filter_LotType">
+                        <option value="">--</option>
+                        @foreach (var item in ViewBag.LotTypes)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
                 </div>
 
-                <div class="col col-md-1" style="">
-                    <h>Issue Name : </h>
+                <!-- Data DateTime -->
+                <div class="col-md-1">
+                    <h>Data Date : </h>
                 </div>
-
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <div class="dropdown bootstrap-select form-control subsearch">
-                        <select class="form-control selectpicker subsearch" id="Issue_Name" name="Issue_Name">
-                            <option value="">--</option>
-                            @foreach (var item in ViewBag.Issue_Name)
-                            {
-                                if (@item.Issue_Name != @ViewBag.Issue_Name_Current)
-                                {
-                                    <option value=@item.Issue_Name data-tokens=@item.Issue_Name>@item.Issue_Name </option>
-                                }
-                                else
-                                {
-                                    <option value=@item.Issue_Name data-tokens=@item.Issue_Name selected>@item.Issue_Name </option>
-
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col col-md-1" style="">
-                    <h>Status Name : </h>
-                </div>
-
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <div class="dropdown bootstrap-select form-control subsearch">
-                        <select class="form-control selectpicker subsearch" id="Status_Name" name="Status_Name">
-                            <option value="">--</option>
-                            @foreach (var item in ViewBag.Status_Name)
-                            {
-                                if (@item.Status_Name != @ViewBag.Status_Name_Current)
-                                {
-                                    <option value=@item.Status_Name data-tokens=@item.Status_Name>@item.Status_Name </option>
-                                }
-                                else
-                                {
-                                    <option value=@item.Status_Name data-tokens=@item.Status_Name selected>@item.Status_Name </option>
-                                }
-                            }
-                        </select>
-                    </div>
+                <div class="item col-md-2">
+                    <input class="form-control subsearch" id="Filter_DataDate" name="Filter_DataDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                 </div>
             </div>
 
-            <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
-
-                <div class="col-md-1">
-                    <h>From Date : </h>
-
-                </div>
-
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <input class="form-control subsearch" id="fromdate" name="fromdate" placeholder="yyyy-mm-dd" type="Date" value="@DateTime.Now.ToString("yyyy-MM-dd")">
-                </div>
-
-                <div class="col-md-1">
-                    <h>To Date : </h>
-                </div>
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    <input class="form-control subsearch" id="todate" name="todate" placeholder="yyyy-mm-dd" type="Date" value="@DateTime.Now.ToString("yyyy-MM-dd")">
-                </div>
-                <div class="col-md-1">
-                    @*<h>Rows : </h>*@
-                </div>
-
-                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    @*<div class="form-group">
-                    <div class="dropdown bootstrap-select form-control subsearch">
-                        <select class="form-control selectpicker subsearch" id="maxRows" name="maxRows">
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-
-                </div>*@
+            <div class="row" style="padding:0vw 3vw 0vw 3vw; margin-top: 36px;">
+                <div class="col-12" style="color: red; padding-left: 5px">
+                    <label id="updateDateLabel">Latest Update Date : @ViewBag.LatestUpdateDate</label>
                 </div>
             </div>
-            @if (Context.Session.GetString("Role") != "User")
-            {
-                <div class="row justify-content-md-center" style="padding: 50px 50px 0px 50px;">
-                    <div id="dropArea" class="border p-5 text-center">
-                        <p>Drag and drop your Excel files here</p>
-                        <p>or</p>
-                        <input type="file" id="fileInput" multiple hidden />
-                        <button type="button" class="btn btn-primary" onclick="triggerFileInput()">Browse Files</button>
-                    </div>
-                    <div id="progressBars" class="mt-3"></div>
-                    <div id="message" class="mt-3"></div>
+            <div class="row" style="padding:0vw 3vw 0vw 3vw;">
+                <div class="col-12" style="color: red; padding-left: 5px;">
+                    <label id="updatedByLabel">Latest Update By : @ViewBag.UpdatedBy</label>
                 </div>
-                <div class="row" style="padding:0vw 3vw 0vw 3vw;">
-                    <div class="col-12" style="color: red; padding-left: 5px">
-                        <label id="updateDateLabel">Latest Update Date : @ViewBag.LatestUpdateDate</label>
-                    </div>
-                </div>
-                <div class="row" style="padding:0vw 3vw 0vw 3vw;">
-                    <div class="col-12" style="color: red; padding-left: 5px;">
-                        <label id="updatedByLabel">Latest Update By : @ViewBag.UpdatedBy</label>
-                    </div>
-                </div>
-            }
-            @if (Context.Session.GetString("Role") == "User")
-            {
-                <div class="row" style="padding:0vw 3vw 0vw 4vw;">
-                    <div class="col-12" style="color: red; padding: 30px 0px 0px 20px;">
-                        <label>Latest Update Date : @ViewBag.LatestUpdateDate</label>
-                    </div>
-                </div>
-                <div class="row" style="padding:0vw 3vw 0vw 4vw;">
-                    <div class="col-12" style="color: red; padding-left: 20px">
-                        <label>Latest Update By : @ViewBag.UpdatedBy</label>
-                    </div>
-                </div>
-            }
+            </div>
 
             <div class="row justify-content-md-center" style="">
 
@@ -224,13 +248,488 @@
                         <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                             <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg  p-0" alt="Excel Export Report" />
                         </a>
+                        @*  <button type="button" id="btnInsert" class="btn" title="เพิ่มข้อมูล" data-toggle="modal" data-target="#InsertModal" style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_add.png" style="width: 150px; height: 50px" class="rounded-lg p-0" alt="Insert" />
+                        </button> *@
+                        <button type="button" id="btnInsert" class="btn text-white" title="เพิ่มข้อมูล" data-toggle="modal" data-target="#InsertModal"
+                                style="padding: 0px 15px; border: 0px; background-color: #136f8d; font-size: 18px;height: 40px;">
+                            Add files
+                        </button>
                     </div>
                 </div>
 
             </div>
 
                         }
+
         </div>
     </div>
 </div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="InsertModal" tabindex="-1" role="dialog" aria-labelledby="InsertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="InsertModalLabel">📥 อัปโหลดไฟล์ Cassette Event</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="modal-body">
+
+                    <!-- 🔹 Data_Date Picker -->
+                    <div class="form-group" hidden>
+                        <label for="DataDate">📅 วันที่ข้อมูล (Data Date)</label>
+                        <input type="date" class="form-control" id="DataDate" name="DataDate" />
+                    </div>
+                    <!-- 🔹 File Upload แบบ Drag & Drop + Preview -->
+                    <div class="form-group">
+                        <label>📄 เลือกไฟล์ (.txt)</label>
+
+                        <!-- Dropzone -->
+                        <div id="dropZone" class="border border-secondary p-4 text-center rounded" style="background-color: #f9f9f9; cursor: pointer;">
+                            👉 คลิกหรือลากไฟล์มาวางที่นี่ (รองรับ .txt)
+                            <input type="file" id="FileUpload" name="FileUpload" accept=".txt" multiple style="display:none;" />
+                        </div>
+
+                        <!-- File list preview -->
+                        <ul id="fileList" class="list-group mt-2"></ul>
+
+                        <small class="form-text text-muted mt-2">คุณสามารถเลือกได้หลายไฟล์ และลบรายการก่อนอัปโหลดได้</small>
+                    </div>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">❌ ยกเลิก</button>
+                    <button class="btn btn-success mt-2" onclick="uploadFiles()">📤 อัปโหลด</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+
+<div class="container-fluid mb-5">
+    <!-- 🔸 Summary Table (Centered + Slightly Narrower) -->
+    <div class="table-responsive" style="overflow-x: hidden; margin-bottom: 15px;">
+        <table id="summary-table"
+               class="table table-striped custom-table text-center"
+               style="border: 1px solid #dee2e6; width: 90%; margin: 0 auto;">
+            <thead style="background-color: #f8d5ad; font-weight: bold;">
+                <tr>
+                    <th style="vertical-align: middle;">Summary</th>
+                    <th style="vertical-align: middle;">1000A</th>
+                    <th style="vertical-align: middle;">1000B</th>
+                    <th style="vertical-align: middle;">500</th>
+                    <th style="vertical-align: middle;">100</th>
+                    <th style="vertical-align: middle;">Total Records</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background-color: #fff;">
+                    <td style="vertical-align: middle;">รวม</td>
+                    <td id="sum1000A" style="vertical-align: middle;">-</td>
+                    <td id="sum1000B" style="vertical-align: middle;">-</td>
+                    <td id="sum500" style="vertical-align: middle;">-</td>
+                    <td id="sum100" style="vertical-align: middle;">-</td>
+                    <td id="sumTotal" style="vertical-align: middle;">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+
+    <!-- ✅ เพิ่ม margin ล่างให้เว้นจาก footer -->
+    <!-- Total Record Box -->
+    <div class="row"
+         style="background-color: #f8d5ad; width: fit-content; padding: 8px; margin-left: 3px; border-radius: 15px; font-size: 22px; font-weight: bold; margin-bottom: 15px; border:1px solid lightgrey;">
+        <div class="col" style="display: flex; justify-content: center;">
+            <a style="white-space:nowrap; align-items: center; display: flex;">Total Record:</a>
+        </div>
+        <div class="col" style="display: flex; justify-content: center;">
+            <a id="totalRecordCount" style="white-space:nowrap; display: flex; align-items: center; background-color: rgba(255,255,255,1); padding: 10px 35px; border-radius: 10px;">
+                @ViewBag.Records
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    @foreach (var head in tableHeaders)
+                    {
+                        <th scope="col" style="text-align:center">@head</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    var index = 1;
+                    foreach (var Data in Model)
+                    {
+                        <tr>
+                            <td style="text-align:center;">@index</td>
+                            <td style="text-align:center;">@Data.terminalNo</td>
+                            <td style="text-align:center;">@Data.lotType</td>
+                            <td style="text-align:center;">@Data.cassette1000A</td>
+                            <td style="text-align:center;">@Data.cassette1000B</td>
+                            <td style="text-align:center;">@Data.cassette500</td>
+                            <td style="text-align:center;">@Data.cassette100</td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" style="text-align:center;">NO DATA</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination (placeholder) -->
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px; z-index:1;">
+                <nav>
+                    <div class="pagination">
+                        <li data-page="prev" id="back" style="background-color:transparent;" title="Previous Page">
+                            <img style="height:40px;width:auto;margin-right:10px;" src="~/images/arrow.png" />
+                        </li>
+                        <li data-page="next" id="prev" style="background-color:transparent;" title="Next Page">
+                            <img style="height:40px;width:auto;margin-left:10px; transform:scaleX(-1);" src="~/images/arrow.png" />
+                        </li>
+                    </div>
+                </nav>
+            </div>
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px; font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("seletePageNow", new SelectListItem[] { }, new { @class = "form-control" })
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
+
+<script>
+         const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("FileUpload");
+      const fileList = document.getElementById("fileList");
+      let selectedFiles = [];
+
+      // ⏬ อัปเดต preview list
+      function updateFileList() {
+          fileList.innerHTML = "";
+
+          if (selectedFiles.length === 0) {
+              fileList.innerHTML = "<li class='list-group-item text-muted'>ยังไม่มีไฟล์ที่เลือก</li>";
+              return;
+          }
+
+          selectedFiles.forEach((file, index) => {
+              const li = document.createElement("li");
+              li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+              li.innerHTML = `
+                  ${file.name}
+                  <button type="button" class="btn btn-sm btn-danger" onclick="removeFile(${index})">❌</button>
+              `;
+              fileList.appendChild(li);
+          });
+      }
+
+      // ⛔ ลบไฟล์
+      function removeFile(index) {
+          selectedFiles.splice(index, 1);
+          updateFileList();
+      }
+
+      // 📂 เมื่อเลือกไฟล์จาก input
+      fileInput.addEventListener("change", (e) => {
+          selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+          updateFileList();
+      });
+
+      // 🎯 คลิกที่ dropZone เพื่อเปิด file dialog
+      dropZone.addEventListener("click", () => fileInput.click());
+
+      // 🧲 Drag over
+      dropZone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropZone.classList.add("bg-light");
+      });
+
+      // 🧲 Drag leave
+      dropZone.addEventListener("dragleave", () => {
+          dropZone.classList.remove("bg-light");
+      });
+
+      // 🧲 Drop
+      dropZone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("bg-light");
+          const files = Array.from(e.dataTransfer.files);
+          selectedFiles = [...selectedFiles, ...files];
+          updateFileList();
+      });
+
+      // 📤 Submit form (ต้องใช้ selectedFiles ส่งเองผ่าน FormData)
+      function uploadFiles() {
+          if (selectedFiles.length === 0) {
+              alert("⚠️ กรุณาเลือกไฟล์อย่างน้อยหนึ่งไฟล์");
+              return;
+          }
+
+          const formData = new FormData();
+          selectedFiles.forEach(file => formData.append("files", file));
+           @*  formData.append("Upload_Date", new Date().toISOString());
+        formData.append("Data_Date", $("#DataDate").val());
+            const dataDate = $("#DataDate").val();
+   if (!dataDate) {
+        alert("⚠️ กรุณาเลือกวันที่ข้อมูล");
+        return;
+    } 
+    formData.append("Data_Date", dataDate);*@
+
+      var bankName = $("#bankName").val();
+      formData.append("_bank", bankName);
+          $.ajax({
+              url: '@Url.Action("UploadCassetteEventMultiple", "Management")',
+              type: "POST",
+              data: formData,
+              contentType: false,
+              processData: false,
+              beforeSend: function () {
+                  $("#boxDownload").fadeIn();
+              },
+                success: function (response) {
+          if (response && response.success) {
+              alert(response.message); // ✅ แสดงข้อความจากเซิร์ฟเวอร์
+          } else {
+              alert("⚠️ Upload สำเร็จ แต่ไม่พบข้อความตอบกลับที่ถูกต้อง");
+          }
+
+          selectedFiles = [];
+          updateFileList();
+          $('#InsertModal').modal('hide');
+      }
+      ,
+              error: function () {
+                  alert("❌ อัปโหลดล้มเหลว กรุณาลองใหม่");
+              },
+                  beforeSend: function () {
+          $("#boxDownload").fadeIn();
+          $(".modal-footer button").prop("disabled", true);
+      },
+      complete: function () {
+          updateReportCasesTable();
+          $("#boxDownload").fadeOut();
+          $(".modal-footer button").prop("disabled", false);
+      }
+          });
+      }
+
+
+</script>
+
+<script>
+        function updateReportCasesTable(page = 1) {
+            var terminalID = $("#Filter_TerminalID").val();
+            var lotType = $("#Filter_LotType").val();
+            var dataDate = $("#Filter_DataDate").val();
+            var bankName = $("#bankName").val();
+
+            // 🔄 Show loading overlay
+            $("#boxDownload").fadeIn();
+
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("FetchCassetteStatus", "Management")',
+                data: {
+                    terminalID: terminalID,
+                    lotType: lotType,
+                    fromdate: dataDate,
+                    bankName: bankName,
+                    row: 50,
+                    page: page
+                },
+                dataType: "json",
+                success: function (data) {
+                    var jsondata = data.jsonData;
+                    var currentPage = data.currentPage;
+                    var totalPages = data.totalPages;
+                    var totalCases = data.totalCases;
+
+                    $("#totalRecordCount").text(totalCases);
+                    $("#table-id tbody").empty();
+
+                    if (jsondata.length === 0) {
+                        $("#table-id tbody").append(
+                            $("<tr>").append($("<td colspan='9' style='text-align:center;'>").text("No data"))
+                        );
+                    } else {
+                        $.each(jsondata, function (index, item) {
+                            var row = $("<tr>");
+                            row.append($("<td>").css("text-align", "center").text((currentPage - 1) * 50 + index + 1));
+                            row.append($("<td>").css("text-align", "center").text(item.serialNo));
+                            row.append($("<td>").css("text-align", "center").text(item.terminalNo));
+                            row.append($("<td>").css("text-align", "center").text(item.terminalName));
+                            row.append($("<td>").css("text-align", "center").text(item.lotType));
+                            row.append($("<td>").css("text-align", "center").text(item.cassette1000A));
+                            row.append($("<td>").css("text-align", "center").text(item.cassette1000B));
+                            row.append($("<td>").css("text-align", "center").text(item.cassette500));
+                            row.append($("<td>").css("text-align", "center").text(item.cassette100));
+                            $("#table-id tbody").append(row);
+
+                                let sum1000A = 0, sum1000B = 0, sum500 = 0, sum100 = 0;
+    jsondata.forEach(item => {
+        sum1000A += extractNumber(item.cassette1000A);
+        sum1000B += extractNumber(item.cassette1000B);
+        sum500   += extractNumber(item.cassette500);
+        sum100   += extractNumber(item.cassette100);
+    });
+    $("#sum1000A").text(sum1000A.toLocaleString());
+    $("#sum1000B").text(sum1000B.toLocaleString());
+    $("#sum500").text(sum500.toLocaleString());
+    $("#sum100").text(sum100.toLocaleString());
+    $("#sumTotal").text(jsondata.length.toLocaleString());
+        $("#updateDateLabel").text("Latest Update Date : " + (data.latestUpdateDate || "-"));
+    $("#updatedByLabel").text("Latest Update By : " + (data.updatedBy || "-"));
+
+                        });
+                    }
+
+                    const selectPage = $("#seletePageNow");
+                    selectPage.empty();
+                    for (let i = 1; i <= totalPages; i++) {
+                        const option = $("<option>").val(i).text(i);
+                        if (i === currentPage) option.attr("selected", "selected");
+                        selectPage.append(option);
+                    }
+
+                    selectPage.off("change").on("change", function () {
+                        const selectedPage = parseInt($(this).val());
+                        updateReportCasesTable(selectedPage);
+                    });
+
+                    if (currentPage <= 1) {
+                        $("#back").hide();
+                    } else {
+                        $("#back").show();
+                    }
+
+                    if (currentPage >= totalPages) {
+                        $("#prev").hide();
+                    } else {
+                        $("#prev").show();
+                    }
+
+                    $("#back").off("click").on("click", function () {
+                        if (currentPage > 1) {
+                            updateReportCasesTable(currentPage - 1);
+                        }
+                    });
+
+                    $("#prev").off("click").on("click", function () {
+                        if (currentPage < totalPages) {
+                            updateReportCasesTable(currentPage + 1);
+                        }
+                    });
+
+
+        const terminalDropdown = $("#Filter_TerminalID");
+        terminalDropdown.empty().append(`<option value="">--</option>`);
+        data.terminalDropdown.forEach(function (item) {
+            terminalDropdown.append(
+               `<option value="${item.terM_ID}">${item.terM_SEQ} : ${item.terM_ID} : ${item.terM_NAME}</option>`
+            );
+        });
+        console.log("TerminalDropdown =", data.terminalDropdown);
+        terminalDropdown.selectpicker('refresh');
+
+        const lotTypeDropdown = $("#Filter_LotType");
+        lotTypeDropdown.empty().append(`<option value="">--</option>`);
+        data.lotTypeDropdown.forEach(function (item) {
+            lotTypeDropdown.append(`<option value="${item}">${item}</option>`);
+        });
+        lotTypeDropdown.selectpicker('refresh');
+
+        $("#Filter_TerminalID").val(terminalID);
+    $("#Filter_LotType").val(lotType);
+    $("#Filter_DataDate").val(dataDate);
+
+        $("#Filter_TerminalID").selectpicker('refresh');
+        $("#Filter_LotType").selectpicker('refresh');
+
+                    // ✅ Hide loading after success
+                    $("#boxDownload").fadeOut();
+                    window.scrollTo(0, 0);
+
+                },
+                error: function (error) {
+                    console.log("Error: " + JSON.stringify(error));
+                    $("#table-id tbody").html(`<tr><td colspan="7" style="text-align:center;">ERROR</td></tr>`);
+                    // ✅ Hide loading after error
+                    $("#boxDownload").fadeOut();
+                }
+            });
+
+
+
+        }
+
+
+</script>
+
+<script>
+
+     const exportUrlBase = '@Url.Action("ExportCassetteStatusToExcel", "Management")';
+
+        $("#btnSEExp").on("click", function () {
+        const terminalID = $("#Filter_TerminalID").val();
+        const lotType = $("#Filter_LotType").val();
+        const dataDate = $("#Filter_DataDate").val();
+        const bankName = $("#bankName").val();
+
+        const url = `${exportUrlBase}?terminalID=${terminalID}&lotType=${lotType}&fromdate=${dataDate}&bankName=${bankName}`;
+
+
+        window.open(url, "_blank");
+    });
+
+        function extractNumber(value) {
+        if (!value || value === '-' || value.trim() === '') return 0;
+        const match = value.match(/\d+/); // ดึงเลขจาก "Fail(123)" หรือ "123"
+        return match ? parseInt(match[0], 10) : 0;
+    }
+
+
+
+
+
+</script>
+
+
 

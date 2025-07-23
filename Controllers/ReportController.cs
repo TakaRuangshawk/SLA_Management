@@ -3,8 +3,9 @@ using MySql.Data.MySqlClient;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
-using System.Data;
+using SLA_Management.Models.OperationModel;
 using System;
+using System.Data;
 
 namespace SLA_Management.Controllers
 {
@@ -398,11 +399,24 @@ namespace SLA_Management.Controllers
         #region Balance
         public IActionResult BalancingReport()
         {
-            ViewBag.CurrentTID = GetDeviceInfoALL();
+            ViewBag.CurrentTID = new List<Device_info_record>();
             return View();
         }
 
-        public IActionResult BalancingReportFetchData(string terminalno, string row, string page, string search, string todate, string fromdate)
+        private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
+        {
+
+            ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
+            MySqlCommand com = new MySqlCommand();
+            com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
+            DataTable testss = db_mysql.GetDatatable(com);
+
+            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
+
+            return test;
+        }
+
+        public IActionResult BalancingReportFetchData(string terminalno, string row, string page, string search, string todate, string fromdate,string _bank)
         {
             int _page;
             int id_row = 0;
@@ -432,11 +446,15 @@ namespace SLA_Management.Controllers
             {
                 _row = int.Parse(row);
             }
+
+            ViewBag.CurrentTID = GetDeviceInfoFeelview(_bank.ToLower(), _myConfiguration);
+
+
             terminalno = terminalno ?? "";
             fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
             todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
             List<BalancingReportModel> jsonData = new List<BalancingReportModel>();
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank)))
             {
                 string transationdate_row = "";
                 connection.Open();
@@ -475,7 +493,7 @@ namespace SLA_Management.Controllers
                 query += " WHERE probcode ='BALRP_05' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c3_inc IS NOT NULL OR c3_dec IS NOT NULL)) t5 ON t1.terminalid = t5.terminalid AND t1.min_date = t5.min_date";
                 query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C3 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 OUT', -1), ' ', 1) END AS c3_out,CASE WHEN ej.remark LIKE '%C3 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 END', -1), ' ', 1) END AS c3_end FROM ejlog_devicetermprob_ejreport ej ";
                 query += " WHERE probcode ='BALRP_06' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c3_out IS NOT NULL OR c3_end IS NOT NULL)) t6 ON t1.terminalid = t6.terminalid AND t1.min_date = t6.min_date";
-                query += " left join all_device_info adi on t1.terminalid = adi.term_id ";
+                query += " LEFT JOIN device_info adi ON t1.terminalid = adi.TERM_ID";
 
                 MySqlCommand command = new MySqlCommand(query, connection);
 
@@ -559,7 +577,7 @@ namespace SLA_Management.Controllers
                 query += " WHERE probcode ='BALRP_05' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t11 ON t1.terminalid = t11.terminalid AND t1.min_date = t11.max_date ";
                 query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C3 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_06' LIMIT 1), 'C3 OUT', -1), ' ', 1) END AS c3_out,CASE WHEN ej.remark LIKE '%C3 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_06' LIMIT 1), 'C3 END', -1), ' ', 1) END AS c3_end FROM ejlog_devicetermprob_ejreport ej ";
                 query += " WHERE probcode ='BALRP_06' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t12 ON t1.terminalid = t12.terminalid AND t1.min_date = t12.max_date ";
-                query += " left join all_device_info adi on t1.terminalid = adi.term_id ";
+                query += " LEFT JOIN device_info adi ON t1.terminalid = adi.TERM_ID ";
                 command = new MySqlCommand(query, connection);
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
