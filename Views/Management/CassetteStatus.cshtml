@@ -603,18 +603,28 @@
                             row.append($("<td>").css("text-align", "center").text(item.cassette100));
                             $("#table-id tbody").append(row);
 
-                                let sum1000A = 0, sum1000B = 0, sum500 = 0, sum100 = 0;
+                                   let sum1000A = 0, sum1000B = 0, sum500 = 0, sum100 = 0;
+    let validRowCount = 0;
+
     jsondata.forEach(item => {
-        sum1000A += extractNumber(item.cassette1000A);
-        sum1000B += extractNumber(item.cassette1000B);
-        sum500   += extractNumber(item.cassette500);
-        sum100   += extractNumber(item.cassette100);
+        const val1000A = extractNumber(item.cassette1000A);
+        const val1000B = extractNumber(item.cassette1000B);
+        const val500   = extractNumber(item.cassette500);
+        const val100   = extractNumber(item.cassette100);
+
+        sum1000A += val1000A;
+        sum1000B += val1000B;
+        sum500   += val500;
+        sum100   += val100;
+
+        validRowCount = sum1000A + sum1000B + sum500 + sum100;
     });
+
     $("#sum1000A").text(sum1000A.toLocaleString());
     $("#sum1000B").text(sum1000B.toLocaleString());
     $("#sum500").text(sum500.toLocaleString());
     $("#sum100").text(sum100.toLocaleString());
-    $("#sumTotal").text(jsondata.length.toLocaleString());
+    $("#sumTotal").text(validRowCount.toLocaleString());
         $("#updateDateLabel").text("Latest Update Date : " + (data.latestUpdateDate || "-"));
     $("#updatedByLabel").text("Latest Update By : " + (data.updatedBy || "-"));
 
