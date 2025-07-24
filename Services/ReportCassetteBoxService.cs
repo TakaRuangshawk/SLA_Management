@@ -1,6 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 
 using Serilog;
+using SLA_Management.Commons;
 using SLA_Management.Models.CassetteStatus;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 
-namespace SLA_Management.Commons
+namespace Services
 {
     public class ReportCassetteBoxService
     {
@@ -22,11 +23,11 @@ namespace SLA_Management.Commons
 
         }
 
-        public bool AddCassetteEventFile(CassetteEventFile cassetteEventFile)
+        public bool AddImportFileData(ImportFileData cassetteEventFile)
         {
             bool result = false;
             MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"INSERT INTO `cassette_event_file`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date);";
+            string sql = @"INSERT INTO `import_file_data`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`,`Import_Data_Rroject`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date,@Import_Data_Rroject);";
             try
             {
                 conn.Open();
@@ -36,6 +37,9 @@ namespace SLA_Management.Commons
                 com.Parameters.AddWithValue("@Upload_By", cassetteEventFile.Upload_By);
                 com.Parameters.AddWithValue("@Upload_Date", cassetteEventFile.Upload_Date);
                 com.Parameters.AddWithValue("@Data_Date", cassetteEventFile.Data_Date);
+                com.Parameters.AddWithValue("@Import_Data_Rroject", cassetteEventFile.Import_Data_Rroject);
+
+
                 com.Connection = conn;
 
                 com.ExecuteNonQuery();
@@ -44,7 +48,7 @@ namespace SLA_Management.Commons
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "AddCassetteEventFile Error : ");
+                Log.Error(ex, "AddImportFileData Error : ");
 
             }
             finally
@@ -132,11 +136,12 @@ namespace SLA_Management.Commons
 
         }
 
-        public void DeleteCassetteEventFile(string id)
+
+        public void DeleteImportFileData(string id)
         {
 
             MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"DELETE FROM `cassette_event_file`
+            string sql = @"DELETE FROM `import_file_data`
                             WHERE Id = @Id;
                            DELETE FROM `report_cassette`
                             WHERE Cassette_Event_File_Id = @Id;
@@ -156,7 +161,7 @@ namespace SLA_Management.Commons
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "DeleteCassetteEventFile Error : ");
+                Log.Error(ex, "DeleteImportFileData Error : ");
 
             }
             finally
@@ -171,9 +176,9 @@ namespace SLA_Management.Commons
 
         }
 
-        public List<CassetteEventFile> GetCassetteEventFileByDate(DateTime data)
+        public List<ImportFileData> GetImportFileDataByDate(DateTime data, string projectName)
         {
-            List<CassetteEventFile> result = new List<CassetteEventFile>();
+            List<ImportFileData> result = new List<ImportFileData>();
             DateTime start = new DateTime(data.Year, data.Month, data.Day, 0, 0, 0);
             DateTime end = start.AddDays(1);
             MySqlConnection conn = new MySqlConnection(_connectionString);
@@ -183,14 +188,15 @@ namespace SLA_Management.Commons
                                             'Upload_By', Upload_By,
                                             'Upload_Date', DATE_FORMAT(Upload_Date, '%Y-%m-%dT%H:%i:%sZ') ,
                                             'Data_Date',DATE_FORMAT(Data_Date, '%Y-%m-%dT%H:%i:%sZ') ) AS json_result
-                            FROM cassette_event_file  
-                            where Data_Date between @start and @end;";
+                            FROM import_file_data  
+                            where Import_Data_Rroject = @Import_Data_Rroject  and  Data_Date between @start and @end;";
             try
             {
                 conn.Open();
                 MySqlCommand com = new MySqlCommand(sql);
                 com.Parameters.AddWithValue("@start", start);
                 com.Parameters.AddWithValue("@end", end);
+                com.Parameters.AddWithValue("@Import_Data_Rroject", projectName);
                 com.Connection = conn;
 
                 using (var reader = com.ExecuteReader())
@@ -202,7 +208,7 @@ namespace SLA_Management.Commons
                         {
                             jsonText = jsonText.Substring(0, jsonText.Length - 1);
                         }
-                        CassetteEventFile item = JsonSerializer.Deserialize<CassetteEventFile>(jsonText);
+                        ImportFileData item = JsonSerializer.Deserialize<ImportFileData>(jsonText);
                         result.Add(item);
                     }
                 }
@@ -212,7 +218,7 @@ namespace SLA_Management.Commons
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "GetCassetteEventFileByDate Error : ");
+                Log.Error(ex, "GetImportFileDataByDate Error : ");
 
             }
             finally
@@ -392,34 +398,46 @@ namespace SLA_Management.Commons
                 return terminalCassetteData;
             }
         }
+
         public class InsertResult
         {
+            public bool Inserted { get; set; }
             public int CassetteCount { get; set; }
             public int TerminalCassetteCount { get; set; }
-            public bool Inserted { get; set; }
         }
 
         public class InsertReport
         {
             private static string[] eventMoniterConfig = { "9" };
             private static string[] cassetteMoniterConfig = { "00100", "00500", "1000A", "1000B" };
+            private static string projectNameConfig = "ReadStatusCasebox";
+
             public static InsertResult Insert(List<Stream> files, string connectionStringReportConfig, string username)
             {
-                var result = new InsertResult();
+                var result = new InsertResult
+                {
+                    Inserted = false,
+                    CassetteCount = 0,
+                    TerminalCassetteCount = 0
+                };
 
                 TerminalCassetteData terminalCassetteData = null;
                 foreach (var file in files)
                 {
-                    TerminalCassetteData readData = ReportCassetteBoxService.ReadFile.GetStatusCaseboxV2(file);
+                    TerminalCassetteData readData = ReadFile.GetStatusCaseboxV2(file);
+
                     if (terminalCassetteData == null)
                     {
                         terminalCassetteData = readData;
                     }
-                    else if (readData.queryDate.ToString("yyyyMMdd").Equals(terminalCassetteData.queryDate.ToString("yyyyMMdd")))
+                    else if (readData.queryDate.ToString("yyyyMMdd") == terminalCassetteData.queryDate.ToString("yyyyMMdd"))
                     {
                         terminalCassetteData.data.AddRange(readData.data);
                     }
                 }
+
+                if (terminalCassetteData == null || terminalCassetteData.data.Count == 0)
+                    return result;
 
                 List<ReportCassette> reportCassetteDatas = new List<ReportCassette>();
                 List<ReportTerminalCassette> reportTerminalCassetteDatas = new List<ReportTerminalCassette>();
@@ -428,24 +446,33 @@ namespace SLA_Management.Commons
                 var textFileReport = $"{Guid.NewGuid()}_{dateTextFileReport:yyyyMMdd}.txt";
 
                 ReportCassetteBoxService reportCassetteBoxService = new ReportCassetteBoxService(connectionStringReportConfig);
-                reportCassetteBoxService.MapReportCassette(eventMoniterConfig, cassetteMoniterConfig, reportCassetteDatas, reportTerminalCassetteDatas, textFileReport, terminalCassetteData.data);
+                reportCassetteBoxService.MapReportCassette(
+                    eventMoniterConfig,
+                    cassetteMoniterConfig,
+                    reportCassetteDatas,
+                    reportTerminalCassetteDatas,
+                    textFileReport,
+                    terminalCassetteData.data
+                );
 
-                var cassetteEventFiles = reportCassetteBoxService.GetCassetteEventFileByDate(terminalCassetteData.queryDate);
-                foreach (var cassetteEventFileDate in cassetteEventFiles)
+                // ลบไฟล์เดิมของวันนั้นก่อน
+                var cassetteEventFiles = reportCassetteBoxService.GetImportFileDataByDate(terminalCassetteData.queryDate, projectNameConfig);
+                foreach (var oldFile in cassetteEventFiles)
                 {
-                    reportCassetteBoxService.DeleteCassetteEventFile(cassetteEventFileDate.Id);
+                    reportCassetteBoxService.DeleteImportFileData(oldFile.Id);
                 }
 
-                var cassetteEventFile = new CassetteEventFile()
+                var cassetteEventFile = new ImportFileData
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name_File = textFileReport,
                     Upload_By = username,
                     Upload_Date = DateTime.Now,
-                    Data_Date = terminalCassetteData.queryDate
+                    Data_Date = terminalCassetteData.queryDate,
+                    Import_Data_Rroject = projectNameConfig
                 };
 
-                if (reportCassetteBoxService.AddCassetteEventFile(cassetteEventFile))
+                if (reportCassetteBoxService.AddImportFileData(cassetteEventFile))
                 {
                     foreach (var reportCassette in reportCassetteDatas)
                     {
@@ -453,9 +480,9 @@ namespace SLA_Management.Commons
                         {
                             Id = Guid.NewGuid().ToString(),
                             Cassette_Id = reportCassette.cassetteId,
-                            Cassette_Status_Count = reportCassette.cassetteStatusCount,
                             Cassette_Status = reportCassette.cassetteStatus,
-                            Cassette_Event_File_Id = cassetteEventFile.Id,
+                            Cassette_Status_Count = reportCassette.cassetteStatusCount,
+                            Cassette_Event_File_Id = cassetteEventFile.Id
                         });
                     }
 
@@ -472,14 +499,15 @@ namespace SLA_Management.Commons
                         });
                     }
 
+                    // ✅ คืนค่าผลลัพธ์
+                    result.Inserted = true;
                     result.CassetteCount = reportCassetteDatas.Count;
                     result.TerminalCassetteCount = reportTerminalCassetteDatas.Count;
-                    result.Inserted = true;
                 }
 
                 return result;
             }
-
         }
+
     }
 }

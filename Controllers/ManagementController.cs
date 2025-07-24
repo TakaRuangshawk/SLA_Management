@@ -15,13 +15,15 @@ using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
+using SLA_Management.Services;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq.Expressions;
-using static SLA_Management.Commons.ReportCassetteBoxService;
-using static SLA_Management.Commons.ReportCassetteBoxService.ReadFile;
+using static NPOI.SS.Formula.Functions.LinearRegressionFunction;
+using static Services.ReportCassetteBoxService;
+using static Services.ReportCassetteBoxService.ReadFile;
 using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Controllers
@@ -29,12 +31,15 @@ namespace SLA_Management.Controllers
     public class ManagementController : Controller
     {
         private readonly IConfiguration _configuration;
+        private readonly CassetteService _cassetteService;
+
         private static regulator_seek param = new regulator_seek();
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
         private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
-        public ManagementController(IConfiguration configuration)
+        public ManagementController(IConfiguration configuration, CassetteService cassetteService)
         {
             _configuration = configuration;
+            _cassetteService = cassetteService;
         }
 
         private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
@@ -223,164 +228,36 @@ namespace SLA_Management.Controllers
         #region Cassette Status
 
         [HttpPost]
-
-        public async Task<IActionResult> UploadCassetteEventMultiple(List<IFormFile> files ,string _bank)
+        public async Task<IActionResult> UploadCassetteEventMultiple(List<IFormFile> files, string _bank)
         {
-
             string userName = HttpContext.Session.GetString("Username");
-
 
             if (files == null || files.Count == 0)
                 return BadRequest("❌ ไม่พบไฟล์ที่อัปโหลด");
 
-          
-
-            var uploadFolder = Path.Combine("Uploads", "Cassette");
-            if (!Directory.Exists(uploadFolder))
-                Directory.CreateDirectory(uploadFolder); // ✅ สร้างโฟลเดอร์ถ้ายังไม่มี
+            if (files.Any(f => !new[] { ".csv", ".xlsx" }.Contains(Path.GetExtension(f.FileName).ToLower())))
+                return BadRequest("❌ รองรับเฉพาะไฟล์ .csv หรือ .xlsx เท่านั้น");
 
             var streamList = new List<Stream>();
-
             foreach (var file in files)
             {
-                
-                    var memoryStream = new MemoryStream();
-                    await file.CopyToAsync(memoryStream);
-                    memoryStream.Position = 0; // อย่าลืม reset ตำแหน่งก่อนใช้
-                    streamList.Add(memoryStream);
-
+                var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+                streamList.Add(memoryStream);
             }
 
-          
-
-            var result = InsertReport.Insert(streamList, _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank), userName);
+            var connStr = _cassetteService.GetConnectionStringByBank(_bank);
+            var result = InsertReport.Insert(streamList, connStr, userName);
 
             return Ok(new
             {
                 success = true,
                 message = result.Inserted
-          ? $"✅ Upload สำเร็จ: เพิ่มข้อมูลจำนวน {result.CassetteCount + result.TerminalCassetteCount} รายการ"
-          : "⚠️ Upload สำเร็จ แต่ไม่มีการเพิ่มข้อมูล"
+                    ? $"✅ Upload สำเร็จ: เพิ่มข้อมูลจำนวน {result.CassetteCount + result.TerminalCassetteCount} รายการ"
+                    : "⚠️ Upload สำเร็จ แต่ไม่มีการเพิ่มข้อมูล"
             });
         }
-
-        private void SetLatestUpdateViewBag(string bankName)
-        {
-            try
-            {
-                ConnectMySQL db_mysql = null;
-
-                if (string.IsNullOrWhiteSpace(bankName))
-                {
-                   
-                    ViewBag.LatestUpdateDate = "-";
-                    ViewBag.UpdatedBy = "-";
-                    return;
-                }
-
-                switch (bankName.Trim().ToUpper())
-                {
-                    case "BAAC":
-                        db_mysql = new ConnectMySQL(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"));
-                        break;
-                    case "ICBC":
-                        db_mysql = new ConnectMySQL(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"));
-                        break;
-                    case "BOC":
-                        db_mysql = new ConnectMySQL(_configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"));
-                        break;
-                    default:
-                       
-                        ViewBag.LatestUpdateDate = "-";
-                        ViewBag.UpdatedBy = "-";
-                        return;
-                }
-
-                MySqlCommand com = new MySqlCommand
-                {
-                    CommandText = "SELECT Upload_Date, Upload_By FROM cassette_event_file ORDER BY Upload_Date DESC LIMIT 1;"
-                };
-
-                DataTable dt = db_mysql.GetDatatable(com);
-                List<CassetteEventFile> result = ConvertDataTableToModel.ConvertDataTable<CassetteEventFile>(dt);
-                CassetteEventFile latestUpdate = result.FirstOrDefault();
-
-                if (latestUpdate != null)
-                {
-                    ViewBag.LatestUpdateDate = latestUpdate.Upload_Date.ToString("dd/MM/yyyy HH:mm");
-                    ViewBag.UpdatedBy = latestUpdate.Upload_By;
-                }
-                else
-                {
-                    ViewBag.LatestUpdateDate = "-";
-                    ViewBag.UpdatedBy = "-";
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching latest update: {ex.Message}");
-                ViewBag.LatestUpdateDate = "-";
-                ViewBag.UpdatedBy = "-";
-            }
-        }
-
-        public List<string> GetLotTypes(string bankName, IConfiguration config)
-        {
-            ConnectMySQL db_mysql = new ConnectMySQL(config.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bankName));
-
-            MySqlCommand com = new MySqlCommand();
-            com.CommandText = "SELECT DISTINCT COUNTER_CODE FROM device_info WHERE COUNTER_CODE IS NOT NULL AND COUNTER_CODE <> '' ORDER BY COUNTER_CODE;";
-
-            DataTable dt = db_mysql.GetDatatable(com);
-            List<string> lotTypes = new List<string>();
-
-            foreach (DataRow row in dt.Rows)
-            {
-                string value = row["COUNTER_CODE"]?.ToString();
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    lotTypes.Add(value);
-                }
-            }
-
-            return lotTypes;
-        }
-
-        public IActionResult CassetteStatus(
-     string bankName,
-     string Filter_TerminalID,
-     string Filter_LotType,
-     string Filter_DataDate)
-        {
-            // Load dropdown data
-            if (!string.IsNullOrEmpty(bankName))
-            {
-                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
-                // 📌 Load Lot Types จาก device_info (จำลองไว้เป็น static list หรือ query จริงก็ได้)
-                ViewBag.LotTypes = GetLotTypes(bankName.ToLower(), _configuration);
-            }
-            else
-            {
-                ViewBag.CurrentTID = new List<Device_info_record>();
-
-                ViewBag.LotTypes = new List<string>(); // กรณีไม่มีข้อมูล
-            }
-
-            // เก็บ bankName สำหรับ hidden input
-            ViewBag.bankName = bankName;
-
-            // ✅ เก็บค่าฟิลเตอร์กลับไปให้ View
-            ViewBag.Filter_TerminalID_Current = Filter_TerminalID;
-            ViewBag.Filter_LotType_Current = Filter_LotType;
-            ViewBag.Filter_DataDate_Current = Filter_DataDate;
-
-            // TODO: ดึงข้อมูลรายงานจริง (จาก DB) ด้วย filter ทั้ง 3 ตัวนี้
-            // var result = GetCassetteReport(Filter_TerminalID, Filter_LotType, Filter_DataDate);
-            // return View(result);
-
-            return View(); // ถ้ายังไม่ดึงข้อมูลรายงาน
-        }
-
 
         [HttpGet]
         public async Task<JsonResult> FetchCassetteStatus(string terminalID, string lotType, DateTime? fromdate, string bankName, int row = 50, int page = 1)
@@ -400,107 +277,44 @@ namespace SLA_Management.Controllers
                 });
             }
 
-            ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
-            ViewBag.LotTypes = GetLotTypes(bankName.ToLower(), _configuration);
 
-            var reportCassette = await GetCassetteStatusAsync(terminalID, lotType, fromdate, bankName);
+            var terminalList = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
+            var lotTypeList = _cassetteService.GetLotTypes(bankName.ToLower());
+
+            var reportCassette = await _cassetteService.GetCassetteStatusAsync(terminalID, lotType, fromdate, bankName);
+
+            int sum1000A = 0, sum1000B = 0, sum500 = 0, sum100 = 0;
+            foreach (var item in reportCassette)
+            {
+                sum1000A += CassetteService.ExtractNumber(item.cassette1000A);
+                sum1000B += CassetteService.ExtractNumber(item.cassette1000B);
+                sum500 += CassetteService.ExtractNumber(item.cassette500);
+                sum100 += CassetteService.ExtractNumber(item.cassette100);
+            }
+
 
             int totalCases = reportCassette.Count;
             int totalPages = (int)Math.Ceiling((double)totalCases / row);
+            var pagedData = reportCassette.Skip((page - 1) * row).Take(row).ToList();
 
-            var pagedData = reportCassette
-                .Skip((page - 1) * row)
-                .Take(row)
-                .ToList();
-
-            SetLatestUpdateViewBag(bankName); 
+            var (latestDate, updatedBy) = _cassetteService.GetLatestUpdate(bankName);
 
             return Json(new
             {
                 jsonData = pagedData,
                 currentPage = page,
-                totalPages = totalPages,
-                totalCases = totalCases,
-                latestUpdateDate = ViewBag.LatestUpdateDate,
-                updatedBy = ViewBag.UpdatedBy,
-                terminalDropdown = ViewBag.CurrentTID,
-                lotTypeDropdown = ViewBag.LotTypes
+                totalPages,
+                totalCases,
+                latestUpdateDate = latestDate,
+                updatedBy = updatedBy,
+                terminalDropdown = terminalList,
+                lotTypeDropdown = lotTypeList,
+                sum1000A,
+                sum1000B,
+                sum500,
+                sum100
             });
         }
-
-        public async Task<List<report_display>> GetCassetteStatusAsync(string terminalID, string lotType, DateTime? fromdate, string bankName)
-        {
-            var reportCassette = new List<report_display>();
-
-            string connectionDB = bankName switch
-            {
-                "BAAC" => _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_baac"),
-                "ICBC" => _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_icbc"),
-                "BOC" => _configuration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_boct"),
-                _ => null
-            };
-
-            if (string.IsNullOrEmpty(connectionDB))
-                return reportCassette;
-
-            var dbPrefix = bankName.ToLower() + "_logview";
-
-            using var conn = new MySqlConnection(connectionDB);
-            await conn.OpenAsync();
-
-            string query = $@"
-SELECT 
-    rtc.TermId AS terminalNo,
-    COALESCE(di.TERM_SEQ, '-') AS serialNo,
-    COALESCE(di.TERM_NAME, '-') AS terminalName,
-    COALESCE(di.COUNTER_CODE, '-') AS lotType,
-    COALESCE(MAX(CASE WHEN rtc.Cassette_Id = '1000A' AND rtc.Cassette_Status = '9' 
-        THEN CONCAT('Fail(', rtc.Cassette_Remain, ')') END), '-') AS cassette1000A,
-    COALESCE(MAX(CASE WHEN rtc.Cassette_Id = '1000B' AND rtc.Cassette_Status = '9' 
-        THEN CONCAT('Fail(', rtc.Cassette_Remain, ')') END), '-') AS cassette1000B,
-    COALESCE(MAX(CASE WHEN rtc.Cassette_Id = '500' AND rtc.Cassette_Status = '9' 
-        THEN CONCAT('Fail(', rtc.Cassette_Remain, ')') END), '-') AS cassette500,
-    COALESCE(MAX(CASE WHEN rtc.Cassette_Id = '100' AND rtc.Cassette_Status = '9' 
-        THEN CONCAT('Fail(', rtc.Cassette_Remain, ')') END), '-') AS cassette100,
-    MAX(cef.Data_Date) AS Data_DateTime
-FROM {dbPrefix}.report_terminal_cassette rtc
-LEFT JOIN {dbPrefix}.device_info di ON rtc.TermId = di.TERM_ID
-LEFT JOIN {dbPrefix}.cassette_event_file cef ON rtc.Cassette_Event_File_Id = cef.Id
-GROUP BY rtc.TermId, di.COUNTER_CODE
-ORDER BY rtc.TermId";
-
-            using var cmd = new MySqlCommand(query, conn);
-            using var reader = await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                reportCassette.Add(new report_display
-                {
-                    terminalNo = reader["terminalNo"]?.ToString() ?? "-",
-                    serialNo = reader["serialNo"]?.ToString() ?? "-",         
-                    terminalName = reader["terminalName"]?.ToString() ?? "-", 
-                    lotType = reader["lotType"]?.ToString() ?? "-",
-                    cassette1000A = reader["cassette1000A"]?.ToString() ?? "-",
-                    cassette1000B = reader["cassette1000B"]?.ToString() ?? "-",
-                    cassette500 = reader["cassette500"]?.ToString() ?? "-",
-                    cassette100 = reader["cassette100"]?.ToString() ?? "-",
-                    Data_DateTime = reader["Data_DateTime"] != DBNull.Value ? reader.GetDateTime("Data_DateTime") : null
-                });
-            }
-
-            // Filtering
-            if (!string.IsNullOrEmpty(terminalID))
-                reportCassette = reportCassette.Where(x => x.terminalNo?.Contains(terminalID, StringComparison.OrdinalIgnoreCase) == true).ToList();
-
-            if (!string.IsNullOrEmpty(lotType))
-                reportCassette = reportCassette.Where(x => x.lotType?.Equals(lotType, StringComparison.OrdinalIgnoreCase) == true).ToList();
-
-            if (fromdate.HasValue)
-                reportCassette = reportCassette.Where(x => x.Data_DateTime.HasValue && x.Data_DateTime.Value.Date >= fromdate.Value.Date).ToList();
-
-            return reportCassette;
-        }
-
 
         [HttpGet]
         public async Task<IActionResult> ExportCassetteStatusToExcel(string terminalID, string lotType, string fromdate, string bankName)
@@ -509,18 +323,16 @@ ORDER BY rtc.TermId";
             if (DateTime.TryParse(fromdate, out var dt))
                 parsedDate = dt;
 
-            var data = await GetCassetteStatusAsync(terminalID, lotType, parsedDate, bankName);
+            var data = await _cassetteService.GetCassetteStatusAsync(terminalID, lotType, parsedDate, bankName);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using var package = new ExcelPackage();
             var ws = package.Workbook.Worksheets.Add("CassetteStatus");
 
-            // 🟡 แสดงวันที่ข้อมูลบนหัวเอกสาร
             string displayDate = parsedDate.HasValue ? parsedDate.Value.ToString("yyyy-MM-dd") : "ทั้งหมด";
             ws.Cells["A1"].Value = $"📅 วันที่ข้อมูล: {displayDate}";
             ws.Cells["A1"].Style.Font.Bold = true;
 
-            // 🟡 Header เริ่มจากแถวที่ 3
             var headers = new[] { "No.", "TerminalNo", "Lot Type", "1000A", "1000B", "500", "100" };
             for (int i = 0; i < headers.Length; i++)
             {
@@ -531,7 +343,6 @@ ORDER BY rtc.TermId";
                 ws.Column(i + 1).AutoFit();
             }
 
-            // 🟡 Data rows เริ่มจากแถวที่ 4
             int row = 4;
             int no = 1;
             foreach (var item in data)
@@ -546,7 +357,6 @@ ORDER BY rtc.TermId";
                 row++;
             }
 
-            // 🟡 สร้างชื่อไฟล์โดยอิงตามวันที่ข้อมูล ไม่ใช่เวลาปัจจุบัน
             string safeDate = parsedDate.HasValue ? parsedDate.Value.ToString("yyyyMMdd") : "AllDates";
             string fileName = $"CassetteStatus_{safeDate}.xlsx";
 
@@ -557,6 +367,35 @@ ORDER BY rtc.TermId";
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
+        public IActionResult CassetteStatus(
+    string bankName,
+    string Filter_TerminalID,
+    string Filter_LotType,
+    string Filter_DataDate)
+        {
+
+            if (!string.IsNullOrEmpty(bankName))
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
+
+                ViewBag.LotTypes = _cassetteService.GetLotTypes(bankName.ToLower());
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+
+                ViewBag.LotTypes = new List<string>();
+            }
+
+
+            ViewBag.bankName = bankName;
+
+            ViewBag.Filter_TerminalID_Current = Filter_TerminalID;
+            ViewBag.Filter_LotType_Current = Filter_LotType;
+            ViewBag.Filter_DataDate_Current = Filter_DataDate;
+
+            return View();
+        }
 
         #endregion
 
