@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using MySqlX.XDevAPI.Common;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
 using SLA_Management.Models.OperationModel;
+using SLA_Management.Models.TermProbModel;
+using SLA_Management.Services;
 using System;
 using System.Data;
 
@@ -12,15 +17,17 @@ namespace SLA_Management.Controllers
     public class ReportController : Controller
     {
         private IConfiguration _myConfiguration;
+        private BalancingService _balancingService;
         private static ConnectMySQL db_fv;
         private static ConnectMySQL db_all;
-        List<WhitelistReportModel> whitelistreport_dataList = new  List<WhitelistReportModel>();
+        List<WhitelistReportModel> whitelistreport_dataList = new List<WhitelistReportModel>();
         private List<BalancingReportModel> balancingreport_dataList = new List<BalancingReportModel>();
         private List<HardwareReportWebModel> hardwarereport_dataList = new List<HardwareReportWebModel>();
-        public ReportController(IConfiguration myConfiguration)
+        public ReportController(IConfiguration myConfiguration, BalancingService balancingService)
         {
 
             _myConfiguration = myConfiguration;
+            _balancingService = balancingService;
             db_fv = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection"));
             db_all = new ConnectMySQL(myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
         }
@@ -396,266 +403,210 @@ namespace SLA_Management.Controllers
             return Json(response);
         }
         #endregion
+
+
         #region Balance
-        public IActionResult BalancingReport()
+
+        public IActionResult BalancingReport(string bankName, string Filter_TerminalID, string Filter_FromDate, string Filter_ToDate)
         {
-            ViewBag.CurrentTID = new List<Device_info_record>();
+            ViewBag.BankName = bankName;
+
+            if (!string.IsNullOrEmpty(bankName))
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration);
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+            }
+
+            ViewBag.Filter_TerminalID = Filter_TerminalID;
+            ViewBag.Filter_FromDate = Filter_FromDate;
+            ViewBag.Filter_ToDate = Filter_ToDate;
+
             return View();
         }
 
         private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
         {
-
             ConnectMySQL db_mysql = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank));
             MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT * FROM device_info order by TERM_SEQ;";
             DataTable testss = db_mysql.GetDatatable(com);
 
-            List<Device_info_record> test = ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
-
-            return test;
+            return ConvertDataTableToModel.ConvertDataTable<Device_info_record>(testss);
         }
 
-        public IActionResult BalancingReportFetchData(string terminalno, string row, string page, string search, string todate, string fromdate,string _bank)
+        public class BalancingReportFilter
         {
-            int _page;
-            int id_row = 0;
-            string filterquery = string.Empty;
-            if (page == null || search == "search")
-            {
-                _page = 1;
-            }
-            else
-            {
-                _page = int.Parse(page);
-            }
-            if (search == "next")
-            {
-                _page++;
-            }
-            else if (search == "prev")
-            {
-                _page--;
-            }
-            int _row;
-            if (row == null)
-            {
-                _row = 20;
-            }
-            else
-            {
-                _row = int.Parse(row);
-            }
-
-            ViewBag.CurrentTID = GetDeviceInfoFeelview(_bank.ToLower(), _myConfiguration);
-
-
-            terminalno = terminalno ?? "";
-            fromdate = fromdate ?? DateTime.Now.ToString("yyyy-MM-dd");
-            todate = todate ?? DateTime.Now.ToString("yyyy-MM-dd");
-            List<BalancingReportModel> jsonData = new List<BalancingReportModel>();
-            using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank)))
-            {
-                string transationdate_row = "";
-                connection.Open();
-
-                if (terminalno != "")
-                {
-                    filterquery += " and terminalid = '" + terminalno + "' ";
-                }
-                string query = @"  SELECT t1.terminalid,adi.term_seq,adi.term_name,t1.min_datetime,
-                FORMAT(CAST(SUBSTRING(t1.c1_inc, 3) AS UNSIGNED), 0) AS c1_dep ,
-                FORMAT(CAST(SUBSTRING(t1.c1_dec, 3) AS UNSIGNED), 0) AS c1_dec ,
-                FORMAT(CAST(SUBSTRING(t2.c1_out, 3) AS UNSIGNED), 0) AS c1_out ,
-                FORMAT(CAST(SUBSTRING(t2.c1_end, 3) AS UNSIGNED), 0) AS c1_end ,
-                FORMAT(CAST(SUBSTRING(t3.c2_inc, 3) AS UNSIGNED), 0) AS c2_dep ,
-                FORMAT(CAST(SUBSTRING(t3.c2_dec, 3) AS UNSIGNED), 0) AS c2_dec ,
-                FORMAT(CAST(SUBSTRING(t4.c2_out, 3) AS UNSIGNED), 0) AS c2_out ,
-                FORMAT(CAST(SUBSTRING(t4.c2_end, 3) AS UNSIGNED), 0) AS c2_end ,
-                FORMAT(CAST(SUBSTRING(t5.c3_inc, 3) AS UNSIGNED), 0) AS c3_dep ,
-                FORMAT(CAST(SUBSTRING(t5.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec ,
-                FORMAT(CAST(SUBSTRING(t6.c3_out, 3) AS UNSIGNED), 0) AS c3_out ,
-                FORMAT(CAST(SUBSTRING(t6.c3_end, 3) AS UNSIGNED), 0) AS c3_end,
-                '-' AS c1_inc,
-                '-' AS c2_inc,
-                '-' AS c3_inc	
-                FROM (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 INC', -1), ' ', 1) END AS c1_inc,
-                CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 DEC', -1), ' ', 1) END AS c1_dec FROM ejlog_devicetermprob_ejreport ej  ";
-
-                query += " WHERE probcode ='BALRP_01' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c1_inc IS NOT NULL OR c1_dec IS NOT NULL)) t1";
-                query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 OUT', -1), ' ', 1) END AS c1_out,CASE WHEN ej.remark LIKE '%C1 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 END', -1), ' ', 1) END AS c1_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_02' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c1_out IS NOT NULL OR c1_end IS NOT NULL)) t2 ON t1.terminalid = t2.terminalid AND t1.min_date = t2.min_date";
-                query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C2 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C2 INC', -1), ' ', 1) END AS c2_inc,CASE WHEN ej.remark LIKE '%C2 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C2 DEC', -1), ' ', 1) END AS c2_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_03' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c2_inc IS NOT NULL OR c2_dec IS NOT NULL)) t3 ON t1.terminalid = t3.terminalid AND t1.min_date = t3.min_date";
-                query += " JOIN (SELECT ej.terminalid, DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C2 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C2 OUT', -1), ' ', 1) END AS c2_out,CASE WHEN ej.remark LIKE '%C2 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C2 END', -1), ' ', 1) END AS c2_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_04' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c2_out IS NOT NULL OR c2_end IS NOT NULL)) t4 ON t1.terminalid = t4.terminalid AND t1.min_date = t4.min_date";
-                query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C3 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 INC', -1), ' ', 1) END AS c3_inc, CASE WHEN ej.remark LIKE '%C3 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 DEC', -1), ' ', 1) END AS c3_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_05' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c3_inc IS NOT NULL OR c3_dec IS NOT NULL)) t5 ON t1.terminalid = t5.terminalid AND t1.min_date = t5.min_date";
-                query += " JOIN (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C3 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 OUT', -1), ' ', 1) END AS c3_out,CASE WHEN ej.remark LIKE '%C3 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C3 END', -1), ' ', 1) END AS c3_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_06' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c3_out IS NOT NULL OR c3_end IS NOT NULL)) t6 ON t1.terminalid = t6.terminalid AND t1.min_date = t6.min_date";
-                query += " LEFT JOIN device_info adi ON t1.terminalid = adi.TERM_ID";
-
-                MySqlCommand command = new MySqlCommand(query, connection);
-
-                using (MySqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        id_row += 1;
-                        if (reader["min_datetime"] != DBNull.Value && DateTime.TryParse(reader["min_datetime"].ToString(), out DateTime trxDateTime))
-                        {
-                            transationdate_row = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
-                        }
-                        else
-                        {
-                            transationdate_row = "-";
-                        }
-                        jsonData.Add(new BalancingReportModel
-                        {
-
-                            no = (id_row).ToString(),
-                            term_seq = reader["term_seq"].ToString(),
-                            term_id = reader["terminalid"].ToString(),
-                            term_name = reader["term_name"].ToString(),
-                            transationdate = transationdate_row,
-                            c1_inc = reader["c1_inc"].ToString(),
-                            c1_dec = reader["c1_dec"].ToString(),
-                            c1_out = reader["c1_out"].ToString(),
-                            c1_end = reader["c1_end"].ToString(),
-                            c2_inc = reader["c2_inc"].ToString(),
-                            c2_dec = reader["c2_dec"].ToString(),
-                            c2_out = reader["c2_out"].ToString(),
-                            c2_end = reader["c2_end"].ToString(),
-                            c3_inc = reader["c3_inc"].ToString(),
-                            c3_dec = reader["c3_dec"].ToString(),
-                            c3_out = reader["c3_out"].ToString(),
-                            c3_end = reader["c3_end"].ToString(),
-                            c1_dep = reader["c1_dep"].ToString(),
-                            c2_dep = reader["c2_dep"].ToString(),
-                            c3_dep = reader["c3_dep"].ToString()
-                        });
-                    }
-                }
-
-                query = @"SELECT 
-                 t1.terminalid,
-                 adi.term_seq,
-                 adi.term_name,
-                 t7.max_transaction_date AS min_datetime,
-                 FORMAT(CAST(SUBSTRING(t7.c1_inc, 3) AS UNSIGNED), 0) AS c1_inc,
-                 FORMAT(CAST(SUBSTRING(t7.c1_dec, 3) AS UNSIGNED), 0) AS c1_dec,
-                 FORMAT(CAST(SUBSTRING(t8.c1_out, 3) AS UNSIGNED), 0) AS c1_out,
-                 FORMAT(CAST(SUBSTRING(t8.c1_end, 3) AS UNSIGNED), 0) AS c1_end,
-                 (FORMAT(CAST(SUBSTRING(t8.c1_end, 3) AS UNSIGNED), 0) -
-                 FORMAT(CAST(SUBSTRING(t7.c1_inc, 3) AS UNSIGNED), 0) +
-                 FORMAT(CAST(SUBSTRING(t8.c1_out, 3) AS UNSIGNED), 0)) AS c1_dep,
-                 FORMAT(CAST(SUBSTRING(t9.c2_inc, 3) AS UNSIGNED), 0) AS c2_inc,
-                 FORMAT(CAST(SUBSTRING(t9.c2_dec, 3) AS UNSIGNED), 0) AS c2_dec,
-                 FORMAT(CAST(SUBSTRING(t10.c2_out, 3) AS UNSIGNED), 0) AS c2_out,
-                 FORMAT(CAST(SUBSTRING(t10.c2_end, 3) AS UNSIGNED), 0) AS c2_end,
-                 (FORMAT(CAST(SUBSTRING(t10.c2_end, 3) AS UNSIGNED), 0) -
-                 FORMAT(CAST(SUBSTRING(t9.c2_inc, 3) AS UNSIGNED), 0) +
-                 FORMAT(CAST(SUBSTRING(t10.c2_out, 3) AS UNSIGNED), 0)) AS c2_dep,
-                 FORMAT(CAST(SUBSTRING(t11.c3_inc, 3) AS UNSIGNED), 0) AS c3_inc,
-                 FORMAT(CAST(SUBSTRING(t11.c3_dec, 3) AS UNSIGNED), 0) AS c3_dec,
-                 FORMAT(CAST(SUBSTRING(t12.c3_out, 3) AS UNSIGNED), 0) AS c3_out,
-                 FORMAT(CAST(SUBSTRING(t12.c3_end, 3) AS UNSIGNED), 0) AS c3_end,
-                 (FORMAT(CAST(SUBSTRING(t12.c3_end, 3) AS UNSIGNED), 0) -
-                 FORMAT(CAST(SUBSTRING(t11.c3_inc, 3) AS UNSIGNED), 0) +
-                 FORMAT(CAST(SUBSTRING(t12.c3_out, 3) AS UNSIGNED), 0)) AS c3_dep
-                        FROM (SELECT ej.terminalid,DATE(ej.trxdatetime) AS min_date,MIN(ej.trxdatetime) AS min_datetime,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 INC', -1), ' ', 1) END AS c1_inc,CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX(ej.remark, 'C1 DEC', -1), ' ', 1) END AS c1_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_01' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY ej.terminalid, min_date HAVING (c1_inc IS NOT NULL OR c1_dec IS NOT NULL)) t1 ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C1 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_01' LIMIT 1), 'C1 INC', -1), ' ', 1) END AS c1_inc,CASE WHEN ej.remark LIKE '%C1 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_01' LIMIT 1), 'C1 DEC', -1), ' ', 1) END AS c1_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_01' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t7 ON t1.terminalid = t7.terminalid AND t1.min_date = t7.max_date ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C1 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_02' LIMIT 1), 'C1 OUT', -1), ' ', 1) END AS c1_out,CASE WHEN ej.remark LIKE '%C1 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_02' LIMIT 1), 'C1 END', -1), ' ', 1) END AS c1_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_02' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t8 ON t1.terminalid = t8.terminalid AND t1.min_date = t8.max_date ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C2 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_03' LIMIT 1), 'C2 INC', -1), ' ', 1) END AS c2_inc,CASE WHEN ej.remark LIKE '%C2 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_03' LIMIT 1), 'C2 DEC', -1), ' ', 1) END AS c2_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_03' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t9 ON t1.terminalid = t9.terminalid AND t1.min_date = t9.max_date ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C2 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_04' LIMIT 1), 'C2 OUT', -1), ' ', 1) END AS c2_out,CASE WHEN ej.remark LIKE '%C2 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_04' LIMIT 1), 'C2 END', -1), ' ', 1) END AS c2_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_04' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t10 ON t1.terminalid = t10.terminalid AND t1.min_date = t10.max_date ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C3 INC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_05' LIMIT 1), 'C3 INC', -1), ' ', 1) END AS c3_inc,CASE WHEN ej.remark LIKE '%C3 DEC%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_05' LIMIT 1), 'C3 DEC', -1), ' ', 1) END AS c3_dec FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_05' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t11 ON t1.terminalid = t11.terminalid AND t1.min_date = t11.max_date ";
-                query += " JOIN (SELECT terminalid,DATE(ej.trxdatetime) AS max_date,MAX(trxdatetime) AS max_transaction_date,CASE WHEN ej.remark LIKE '%C3 OUT%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_06' LIMIT 1), 'C3 OUT', -1), ' ', 1) END AS c3_out,CASE WHEN ej.remark LIKE '%C3 END%' THEN SUBSTRING_INDEX(SUBSTRING_INDEX((SELECT remark FROM ejlog_devicetermprob_ejreport subej WHERE subej.terminalid = ej.terminalid AND subej.trxdatetime = MAX(ej.trxdatetime) and probcode ='BALRP_06' LIMIT 1), 'C3 END', -1), ' ', 1) END AS c3_end FROM ejlog_devicetermprob_ejreport ej ";
-                query += " WHERE probcode ='BALRP_06' and ej.trxdatetime between '" + fromdate + " 00:00:00' and '" + todate + " 23:59:59' " + filterquery + " GROUP BY terminalid,DATE(trxdatetime)) t12 ON t1.terminalid = t12.terminalid AND t1.min_date = t12.max_date ";
-                query += " LEFT JOIN device_info adi ON t1.terminalid = adi.TERM_ID ";
-                command = new MySqlCommand(query, connection);
-                using (MySqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        id_row += 1;
-                        if (reader["min_datetime"] != DBNull.Value && DateTime.TryParse(reader["min_datetime"].ToString(), out DateTime trxDateTime))
-                        {
-                            transationdate_row = trxDateTime.ToString("yyyy-MM-dd HH:mm:ss");
-                        }
-                        else
-                        {
-                            transationdate_row = "-";
-                        }
-                        jsonData.Add(new BalancingReportModel
-                        {
-
-                            no = (id_row).ToString(),
-                            term_seq = reader["term_seq"].ToString(),
-                            term_id = reader["terminalid"].ToString(),
-                            term_name = reader["term_name"].ToString(),
-                            transationdate = transationdate_row,
-                            c1_inc = reader["c1_inc"].ToString(),
-                            c1_dec = reader["c1_dec"].ToString(),
-                            c1_out = reader["c1_out"].ToString(),
-                            c1_end = reader["c1_end"].ToString(),
-                            c2_inc = reader["c2_inc"].ToString(),
-                            c2_dec = reader["c2_dec"].ToString(),
-                            c2_out = reader["c2_out"].ToString(),
-                            c2_end = reader["c2_end"].ToString(),
-                            c3_inc = reader["c3_inc"].ToString(),
-                            c3_dec = reader["c3_dec"].ToString(),
-                            c3_out = reader["c3_out"].ToString(),
-                            c3_end = reader["c3_end"].ToString(),
-                            c1_dep = "0",
-                            c2_dep = "0",
-                            c3_dep = "0"
-                        });
-                    }
-                }
-
-            }
-
-
-            jsonData = jsonData
-            .OrderBy(x => x.term_id)  // Sort by terminalid
-            .ThenBy(x => x.transationdate)  // Then sort by transactiondate
-            .ToList();
-            balancingreport_dataList = jsonData;
-            int pages = (int)Math.Ceiling((double)jsonData.Count() / _row);
-            List<BalancingReportModel> filteredData = RangeFilter_br(jsonData, _page, _row);
-            var response = new DataResponse_BalancingReport
-            {
-                JsonData = filteredData,
-                Page = pages,
-                currentPage = _page,
-                TotalTerminal = jsonData.Count(),
-            };
-            return Json(response);
+            public string TerminalID { get; set; }
+            public string FromDate { get; set; }
+            public string ToDate { get; set; }
+            public string BankName { get; set; }
+            public int Page { get; set; } = 1;
+            public int Row { get; set; } = 20;
         }
-        static List<BalancingReportModel> RangeFilter_br<BalancingReportModel>(List<BalancingReportModel> inputList, int page, int row)
+
+        [HttpGet]
+        public async Task<JsonResult> BalancingReportFetchData(string terminalID, string fromdate, string todate, string bankName, int row = 20, int page = 1)
         {
-            int start_row;
-            int end_row;
-            if (page == 1)
+            if (string.IsNullOrEmpty(bankName))
             {
-                start_row = 0;
+                return Json(new
+                {
+                    jsonData = new List<report_display>(),
+                    totalTerminal = 0,
+                    terminalDropdown = new List<Device_info_record>(),
+                    filter = new { terminalID, fromdate, todate, bankName }
+                });
             }
-            else
+
+            if (string.IsNullOrEmpty(terminalID) || string.IsNullOrEmpty(fromdate) || string.IsNullOrEmpty(todate))
             {
-                start_row = (page - 1) * row;
+                var terminalList = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration);
+                return Json(new
+                {
+                    jsonData = new List<report_display>(),
+                    totalTerminal = 0,
+                    terminalDropdown = terminalList,
+                    filter = new { terminalID, fromdate, todate, bankName }
+                });
             }
-            end_row = start_row + row - 1;
-            if (inputList.Count < end_row)
+
+            DateTime.TryParse(fromdate, out DateTime fromDate);
+            DateTime.TryParse(todate, out DateTime toDate);
+
+            var fullData = await _balancingService.GetBalancingReportAsync(
+                terminalno: terminalID,
+                fromDate: fromDate,
+                toDate: toDate,
+                bankName: bankName);
+
+            int total = fullData.Count;
+            int totalPages = (int)Math.Ceiling((double)total / row);
+            var pagedData = fullData.Skip((page - 1) * row).Take(row).ToList();
+            var terminalDropdown = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration);
+
+            return Json(new
             {
-                end_row = inputList.Count - 1;
+                jsonData = pagedData,
+                totalTerminal = total,
+                totalPages,
+                currentPage = page,
+                terminalDropdown,
+                filter = new { terminalID, fromdate, todate, bankName }
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadBalanceFiles(List<IFormFile> files, string _bank)
+        {
+            string userName = HttpContext.Session.GetString("Username");
+
+            if (files == null || files.Count == 0)
+                return BadRequest("❌ ไม่พบไฟล์ที่อัปโหลด");
+
+            if (files.Any(f => !new[] { ".txt" }.Contains(Path.GetExtension(f.FileName).ToLower())))
+                return BadRequest("❌ รองรับเฉพาะไฟล์ .txt เท่านั้น");
+
+            var streamList = new List<Stream>();
+            foreach (var file in files)
+            {
+                var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+                streamList.Add(memoryStream);
             }
-            return inputList.Skip(start_row).Take(row).ToList();
+
+            var connStr = _myConfiguration.GetConnectionString($"ConnectString_NonOutsource:FullNameConnection_{_bank.ToLower()}");
+            var result = ReadLocalBalanceService.InsertLocalBalance.Insert(streamList, connStr, userName);
+
+            return Ok(new
+            {
+                success = true,
+                message = result.InsertedCount > 0
+                    ? $"✅ Upload สำเร็จ: เพิ่มข้อมูล {result.InsertedCount} รายการ จาก {result.FileCount} ไฟล์"
+                    : "⚠️ Upload สำเร็จ แต่ไม่มีข้อมูลใหม่ถูกเพิ่ม"
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportBalancingReportToExcel(string terminalno, string fromdate, string todate, string bankName)
+        {
+            DateTime? parsedFromDate = null;
+            DateTime? parsedToDate = null;
+
+            if (DateTime.TryParse(fromdate, out var dtFrom)) parsedFromDate = dtFrom;
+            if (DateTime.TryParse(todate, out var dtTo)) parsedToDate = dtTo;
+
+            var data = await _balancingService.GetBalancingReportAsync(
+                terminalno: terminalno,
+                fromDate: parsedFromDate,
+                toDate: parsedToDate,
+                bankName: bankName
+            );
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("BalancingReport");
+
+            string displayDateRange = parsedFromDate.HasValue && parsedToDate.HasValue
+                ? $"{parsedFromDate:yyyy-MM-dd} ถึง {parsedToDate:yyyy-MM-dd}"
+                : "ทั้งหมด";
+
+            ws.Cells["A1"].Value = $"📅 วันที่ข้อมูล: {displayDateRange}";
+            ws.Cells["A1"].Style.Font.Bold = true;
+
+            var headers = new[]
+            {
+        "No.", "Terminal ID", "Terminal Name", "Terminal Seq", "Transaction Date",
+        "C1 Inc", "C2 Inc", "C3 Inc",
+        "C1 Dep", "C2 Dep", "C3 Dep",
+        "C1 Out", "C2 Out", "C3 Out",
+        "C1 End", "C2 End", "C3 End"
+    };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[3, i + 1].Value = headers[i];
+                ws.Cells[3, i + 1].Style.Font.Bold = true;
+                ws.Cells[3, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[3, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                ws.Column(i + 1).AutoFit();
+            }
+
+            int row = 4;
+            int no = 1;
+            foreach (var item in data)
+            {
+                ws.Cells[row, 1].Value = no++;
+                ws.Cells[row, 2].Value = item.term_id;
+                ws.Cells[row, 3].Value = item.term_name;
+                ws.Cells[row, 4].Value = item.term_seq;
+                ws.Cells[row, 5].Value = item.transationdate;
+                ws.Cells[row, 6].Value = item.c1_inc;
+                ws.Cells[row, 7].Value = item.c2_inc;
+                ws.Cells[row, 8].Value = item.c3_inc;
+                ws.Cells[row, 9].Value = item.c1_dep;
+                ws.Cells[row, 10].Value = item.c2_dep;
+                ws.Cells[row, 11].Value = item.c3_dep;
+                ws.Cells[row, 12].Value = item.c1_out;
+                ws.Cells[row, 13].Value = item.c2_out;
+                ws.Cells[row, 14].Value = item.c3_out;
+                ws.Cells[row, 15].Value = item.c1_end;
+                ws.Cells[row, 16].Value = item.c2_end;
+                ws.Cells[row, 17].Value = item.c3_end;
+                row++;
+            }
+
+            string safeDate = parsedFromDate.HasValue ? parsedFromDate.Value.ToString("yyyyMMdd") : "AllDates";
+            string fileName = $"BalancingReport_{safeDate}.xlsx";
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         public class BalancingReportModel
@@ -680,8 +631,8 @@ namespace SLA_Management.Controllers
             public string c1_dep { get; set; }
             public string c2_dep { get; set; }
             public string c3_dep { get; set; }
-
         }
+
         public class DataResponse_BalancingReport
         {
             public List<BalancingReportModel> JsonData { get; set; }
@@ -689,7 +640,10 @@ namespace SLA_Management.Controllers
             public int currentPage { get; set; }
             public int TotalTerminal { get; set; }
         }
+
+
         #endregion
+
         #region anyfunction
         public class Device_info
         {

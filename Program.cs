@@ -15,6 +15,7 @@ builder.Services.AddSession(options =>
 
 
 builder.Services.AddScoped<CassetteService>();
+builder.Services.AddScoped<BalancingService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();

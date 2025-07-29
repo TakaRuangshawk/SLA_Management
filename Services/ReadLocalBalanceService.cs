@@ -4,6 +4,7 @@ using SLA_Management.Models.CassetteStatus;
 using System.Data;
 using System.Text;
 using System.Text.Json;
+using static Services.ReportCassetteBoxService;
 
 namespace SLA_Management.Services
 {
@@ -17,7 +18,7 @@ namespace SLA_Management.Services
             _connectionString = connectionString;
         }
 
-        public void AddLocalBalance(LocalBalance localBalance)
+        public bool AddLocalBalance(LocalBalance localBalance)
         {
 
             MySqlConnection conn = new MySqlConnection(_connectionString);
@@ -201,10 +202,13 @@ namespace SLA_Management.Services
 
                 com.ExecuteNonQuery();
 
+                int rowsAffected = com.ExecuteNonQuery();
+                return rowsAffected > 0;
 
             }
             catch (Exception ex)
             {
+                return false;
                 // Log.Error(ex, "AddLocalBalance Error : ");
 
             }
@@ -234,7 +238,7 @@ namespace SLA_Management.Services
                 com.Parameters.AddWithValue("@Upload_By", cassetteEventFile.Upload_By);
                 com.Parameters.AddWithValue("@Upload_Date", cassetteEventFile.Upload_Date);
                 com.Parameters.AddWithValue("@Data_Date", cassetteEventFile.Data_Date);
-                com.Parameters.AddWithValue("@Import_Data_Rroject", cassetteEventFile.Import_Data_Rroject);
+                com.Parameters.AddWithValue("@Import_Data_Rroject", cassetteEventFile.Import_Data_Project);
 
 
                 com.Connection = conn;
@@ -408,20 +412,27 @@ namespace SLA_Management.Services
             }
         }
 
+        public class InsertResult
+        {
+            public int InsertedCount { get; set; } = 0;
+            public int FileCount { get; set; } = 0;
+        }
 
         public class InsertLocalBalance
         {
             private static string projectNameConfig = "ReadLocalBalance";
-            public static void Insert(List<Stream> files, string connectionStringReportConfig, string username)
+            public static InsertResult Insert(List<Stream> files, string connectionStringReportConfig, string username)
             {
+                InsertResult result = new InsertResult();
                 List<LocalBalance> localBalances = new List<LocalBalance>();
+
                 foreach (var file in files)
                 {
                     var data = ReadFile.ReadData(file);
                     if (data.Count != 0)
                     {
                         localBalances.AddRange(data);
-
+                        result.FileCount++; // นับเฉพาะไฟล์ที่มีข้อมูล
                     }
                 }
 
@@ -431,19 +442,14 @@ namespace SLA_Management.Services
 
                     ReadLocalBalanceService readLocalBalanceService = new ReadLocalBalanceService(connectionStringReportConfig);
 
+                    var textFileReport = $"{Guid.NewGuid().ToString()}_{minBALANCING_DATE:yyyyMMdd}.txt";
 
-
-                    var textFileReport = $"{Guid.NewGuid().ToString()}_{minBALANCING_DATE.ToString("yyyyMMdd")}.txt";
-
-                    var importFileDataBalanceService = readLocalBalanceService.GetImportFileDataByDate(minBALANCING_DATE, projectNameConfig);
-
-                    if (importFileDataBalanceService.Count != 0)
+                    var existingImportFiles = readLocalBalanceService.GetImportFileDataByDate(minBALANCING_DATE, projectNameConfig);
+                    foreach (var fileRecord in existingImportFiles)
                     {
-                        foreach (var cassetteEventFileDate in importFileDataBalanceService)
-                        {
-                            readLocalBalanceService.DeleteImportFileData(cassetteEventFileDate.Id);
-                        }
+                        readLocalBalanceService.DeleteImportFileData(fileRecord.Id);
                     }
+
                     var importFileData = new ImportFileData()
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -451,18 +457,23 @@ namespace SLA_Management.Services
                         Upload_By = username,
                         Upload_Date = DateTime.Now,
                         Data_Date = minBALANCING_DATE,
-                        Import_Data_Rroject = projectNameConfig
+                        Import_Data_Project = projectNameConfig
                     };
+
                     readLocalBalanceService.AddImportFileData(importFileData);
 
                     foreach (var localBalance in localBalances)
                     {
-                        readLocalBalanceService.AddLocalBalance(localBalance);
+                        if (readLocalBalanceService.AddLocalBalance(localBalance))
+                        {
+                            result.InsertedCount++;
+                        }
                     }
                 }
 
-
+                return result;
             }
+
         }
 
     }

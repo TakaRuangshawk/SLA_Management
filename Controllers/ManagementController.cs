@@ -235,8 +235,8 @@ namespace SLA_Management.Controllers
             if (files == null || files.Count == 0)
                 return BadRequest("❌ ไม่พบไฟล์ที่อัปโหลด");
 
-            if (files.Any(f => !new[] { ".csv", ".xlsx" }.Contains(Path.GetExtension(f.FileName).ToLower())))
-                return BadRequest("❌ รองรับเฉพาะไฟล์ .csv หรือ .xlsx เท่านั้น");
+            if (files.Any(f => !new[] { ".txt" }.Contains(Path.GetExtension(f.FileName).ToLower())))
+                return BadRequest("❌ รองรับเฉพาะไฟล์ .txt เท่านั้น");
 
             var streamList = new List<Stream>();
             foreach (var file in files)
@@ -475,7 +475,7 @@ namespace SLA_Management.Controllers
         r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
         r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
         r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
-        j.Problem_Detail, j.Solving_Program
+        j.Problem_Detail, j.Solving_Program , j.Status as AService_Status
     FROM baac_logview.reportcases r
     LEFT JOIN baac_logview.t_tsd_jobdetail j 
     ON j.Job_No = r.Repair2 
@@ -560,7 +560,7 @@ namespace SLA_Management.Controllers
                             Remark = reader["Remark"] != DBNull.Value ? reader.GetString("Remark") : string.Empty,
                             ProblemDetail = reader["Problem_Detail"] != DBNull.Value ? reader.GetString("Problem_Detail") : string.Empty,
                             SolvingProgram = reader["Solving_Program"] != DBNull.Value ? reader.GetString("Solving_Program") : string.Empty,
-
+                            AServiceStatus = reader["AService_Status"] != DBNull.Value ? reader.GetString("AService_Status") : string.Empty,
                         });
 
                     }
@@ -596,7 +596,7 @@ SELECT
     r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
     r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
     r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
-    j.Problem_Detail, j.Solving_Program
+    j.Problem_Detail, j.Solving_Program , j.Status as AService_Status 
 FROM reportcases r
 LEFT JOIN baac_logview.t_tsd_jobdetail j 
     ON j.Job_No = r.Repair2 
@@ -615,7 +615,7 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                 }
                 if (!string.IsNullOrEmpty(placeInstall))
                 {
-                    query += hasWhere ? " AND" : " WHERE";
+                    query += hasWhere ? " OR" : " WHERE";
                     query += " r.Place_Install LIKE @PlaceInstall";
                     hasWhere = true;
                 }
@@ -666,9 +666,9 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                             // Header
                             string[] headers = new[]
                             {
-                        "Case No", "Terminal ID", "Place Install", "Issue Name", "Date Inform", "Status Name", "Branch Name",
+                        "Case No", "Terminal ID", "Place Install", "Issue Name", "Date Inform", "BAAC Status", "Branch Name",
                         "Repair 1", "Repair 2", "Repair 3", "Repair 4", "Repair 5", "Incident No", "Date Close Pb",
-                        "Type Project", "Update Date", "Update By", "Remark", "Problem Detail", "Solving Program"
+                        "Type Project", "Update Date", "Update By", "Remark", "Problem Detail", "Solving Program", "Aservice Status"
                     };
 
                             for (int i = 0; i < headers.Length; i++)
@@ -709,7 +709,7 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                                 worksheet.Cells[row, 18].Value = reader["Remark"] != DBNull.Value ? reader["Remark"] : null;
                                 worksheet.Cells[row, 19].Value = reader["Problem_Detail"] != DBNull.Value ? reader["Problem_Detail"] : null;
                                 worksheet.Cells[row, 20].Value = reader["Solving_Program"] != DBNull.Value ? reader["Solving_Program"] : null;
-
+                                worksheet.Cells[row, 21].Value = reader["AService_Status"] != DBNull.Value ? reader["AService_Status"] : null;
                                 row++;
                             }
 

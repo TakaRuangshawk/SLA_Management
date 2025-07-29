@@ -14,33 +14,44 @@
 </head>
 
 <style>
-    .bootstrap-select > .dropdown-toggle {
+    /* 🔽 Dropdown & Form Controls */
+    .bootstrap-select > .dropdown-toggle,
+    .dropdown-toggle {
         border-color: #ced4da;
         background-color: transparent;
         position: relative;
         width: 100%;
         text-align: right;
         white-space: nowrap;
-        display: -webkit-inline-box;
-        display: -webkit-inline-flex;
-        display: -ms-inline-flexbox;
         display: inline-flex;
-        -webkit-box-align: center;
-        -webkit-align-items: center;
-        -ms-flex-align: center;
         align-items: center;
-        -webkit-box-pack: justify;
-        -webkit-justify-content: space-between;
-        -ms-flex-pack: justify;
         justify-content: space-between;
+        border-radius: 10px;
     }
 
     .form-control {
         border-radius: 10px;
     }
-</style>
 
-<style>
+    select.form-control,
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .form-group {
+        margin-bottom: 1em;
+    }
+
+    /* ✅ Input Layout & Buttons */
+    .btnsearch {
+        font-size: 18px;
+    }
+
     .chkbox {
         text-align: left;
     }
@@ -50,36 +61,27 @@
         height: 38px;
     }
 
-    input:disabled {
-        background-color: #f2f2f2;
+    .item {
+        padding: 0px;
     }
 
-    .btnsearch {
-        font-size: 18px;
-    }
-
-    select.form-control {
-        -webkit-appearance: button;
-    }
-
-    input.form-control {
-        -webkit-appearance: button;
-        border-radius: 10px;
-    }
-
-
+    /* 🔎 Header & Search Box */
     #header_search {
         top: 20px;
         position: relative;
         background-color: orange;
         border: solid;
-        padding: 8px 40px 8px 40px;
+        padding: 8px 40px;
         border-radius: 12px;
         font-weight: 700;
     }
 
-    .item {
-        padding: 0px;
+    #main_search {
+        margin: 30px 50px 50px 50px;
+        padding: 30px 0;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
     }
 
     #submit {
@@ -88,7 +90,7 @@
         background: lightgray;
         border: 10px double white;
         border-radius: 20px;
-        padding: 0px 10px 0px 10px;
+        padding: 0px 10px;
     }
 
     #before-submit {
@@ -96,56 +98,65 @@
         justify-content: center;
     }
 
-    #main_search {
-        margin-bottom: 50px;
-        padding: 30px 0;
-        margin-left: 50px;
-        margin-right: 50px;
-        border: 3px solid #888888;
-        background-color: white;
-        border-radius: 50px;
-    }
-
-    .dropdown-toggle {
-        border-radius: 10px;
-    }
-
-    th {
-        text-align: center;
-    }
-
-    .form-group {
-        margin-bottom: 1em;
-    }
-
-    h {
-        white-space: nowrap;
-    }
-
+    /* 📋 Table Styling */
     .table-container {
         position: relative;
         width: 100%;
         overflow-x: auto;
     }
 
-    .dashboard-table .table th, .dashboard-table .table td {
-        min-width: 180px;
-        vertical-align: middle !important;
-    }
-
-        .dashboard-table .table th:first-child, .dashboard-table .table td:first-child {
-            min-width: 140px;
-            padding-left: 30px;
-        }
-
     .dashboard-table {
         border: 1px solid #ddd;
         border-radius: 6px;
     }
-    td{
-        padding : 0.2em!important;
+
+    .dashboard-table .table th,
+    .dashboard-table .table td {
+        min-width: 180px;
+        vertical-align: middle !important;
+    }
+
+    .dashboard-table .table th:first-child,
+    .dashboard-table .table td:first-child {
+        min-width: 140px;
+        padding-left: 30px;
+    }
+
+    td {
+        padding: 0.2em !important;
+    }
+
+    th {
+        text-align: center;
+    }
+
+    h {
+        white-space: nowrap;
+    }
+
+    /* ⏳ Loading Overlay */
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 9999; /* อยู่บนสุดกว่าทุก modal */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 </style>
+
 
 <div class="content contentHeader">
     <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
@@ -177,9 +188,9 @@
                             })
                         </div>
                     </div>
-
+                     <input type="hidden" id="bankName" name="bankName" value="" />
                     <div class="col-md-1">
-                        <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;margin-bottom: 13px;" onclick="updateTable('search')">
+                        <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;margin-bottom: 13px;" onclick="updateBalancingTable()">
                             <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
                         </button>
                     </div>
@@ -263,7 +274,8 @@
                 <div class="row justify-content-md-center" style="margin-top: 36px;">
                     <div class="col" id="before-submit">
                         <div id="submit">
-                            <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;" onclick="updateTable('search')">
+                           <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;" onclick="updateBalancingTable()">
+
                                 <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
                             </button>
                             <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" title="ล้างข้อมูล" style="padding:0px; border: 0px; background-color: transparent;" onclick="clearFunction()">
@@ -272,6 +284,11 @@
                             <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
                                 <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Excel Export Report" />
                             </a>
+                            <button type="button" id="btnInsertBalance" class="btn text-white" title="เพิ่มข้อมูล" data-toggle="modal" data-target="#InsertModalBalance"
+        style="padding: 0px 15px; border: 0px; background-color: #136f8d; font-size: 18px; height: 40px;">
+    Add files
+</button>
+
                         </div>
                     </div>
                 </div>
@@ -279,8 +296,6 @@
         </div>
     </div>
 </div>
-
-
 
 <div class="container-fluid">
     <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
@@ -365,352 +380,268 @@
                 </nav>
             </div>
         </div>
+ </div>
+
+ <!-- Modal -->
+<div class="modal fade" id="InsertModalBalance" tabindex="-1" role="dialog" aria-labelledby="InsertModalLabelBalance" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="InsertModalLabelBalance">📥 อัปโหลดไฟล์ Balancing Report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="uploadFormBalance" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- 🔹 File Upload แบบ Drag & Drop + Preview -->
+                    <div class="form-group">
+                        <label>📄 เลือกไฟล์ (.txt)</label>
+
+                        <div id="dropZoneBalance" class="border border-secondary p-4 text-center rounded" style="background-color: #f9f9f9; cursor: pointer;">
+                            👉 คลิกหรือลากไฟล์มาวางที่นี่ (รองรับ .txt)
+                            <input type="file" id="FileUploadBalance" name="FileUploadBalance" accept=".txt" multiple style="display:none;" />
+                        </div>
+
+                        <ul id="fileListBalance" class="list-group mt-2"></ul>
+
+                        <small class="form-text text-muted mt-2">คุณสามารถเลือกได้หลายไฟล์ และลบรายการก่อนอัปโหลดได้</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">❌ ยกเลิก</button>
+                    <button class="btn btn-success mt-2" onclick="uploadBalanceFiles()">📤 อัปโหลด</button>
+                </div>
+            </form>
+
         </div>
+    </div>
+</div>
+
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
    
-
-
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
 
 <script>
+    $(document).ready(function () {
 
+        // 🔄 แสดง/ซ่อน Loading ทั่วทั้งหน้า
+        $(document).ajaxStart(() => $("#boxDownload").fadeIn());
+        $(document).ajaxStop(() => $("#boxDownload").fadeOut());
 
-    function updateTable(search) {
-        var terminalno = $("#terminalno").val();
-        var trxtype = $("#trxtype").val();
-        var todate = $("#todate").val();
-        var fromdate = $("#fromdate").val();
-        var status = $("#status").val();
-        var row = $("#row").val();
-        var page = $("#page").val();
-        var sort = $("#sort").val();
-        var order = $("#order").val();
-        var rc = $("#rc").val();
-        var prevDiv = document.getElementById("prev");
-        var nextDiv = document.getElementById("next");
-        var fromDateInput = document.getElementById("fromdate");
-        var toDateInput = document.getElementById("todate");
-        var fromDateValue = new Date(fromDateInput.value);
-        var toDateValue = new Date(toDateInput.value);
-          var bankName = $("#bankName").val();
+        // 🌐 Global Variables
+        const dropZone = document.getElementById("dropZoneBalance");
+        const fileInput = document.getElementById("FileUploadBalance");
+        const fileList = document.getElementById("fileListBalance");
+        let selectedFiles = [];
+        let isBankSearched = false;
 
-           if (!bankName || bankName === "null") {
-        alert("Please select a bank.");
-        return;
-    }
-
-
-        if (isNaN(fromDateValue) || isNaN(toDateValue)) {
-            alert("Invalid Date Format. Please enter valid dates.");
-            return;
+        // 📦 อัปเดต Preview รายชื่อไฟล์
+        function updateFileList() {
+            fileList.innerHTML = selectedFiles.length === 0
+                ? "<li class='list-group-item text-muted'>ยังไม่มีไฟล์ที่เลือก</li>"
+                : selectedFiles.map((file, i) =>
+                    `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${file.name}
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeBalanceFile(${i})">❌</button>
+                    </li>`
+                ).join("");
         }
-        if (fromDateValue > toDateValue) {
-            alert("Invalid Date Range. Please Select a Valid Date Range.");
-            fromDateInput.value = new Date().toISOString().split('T')[0];
-            toDateInput.value = new Date().toISOString().split('T')[0];
-            return;
-        }
-        if (fromDateValue && toDateValue) {
-            
-        } else {
-            alert("Please select both fromdate and todate.");
-            return;
-        }
-        if (terminalno) {
-           
-        } else {
-            alert("Please Select a Terminal.");
-            return;
-        }
-        $.ajax({
-            type: "GET",
-            url: '@Url.Action("BalancingReportFetchData", "Report")',
-            data: {
-                terminalno: terminalno,
-                todate: todate,
-                fromdate: fromdate,
-                row: row,
-                page: page,
-                search: search,
-            },
-            dataType: "json",
-            success: function (data) {
-                console.log(data);
-                var jsondata = data.jsonData;
-                var pages = data.page;
-                var currentpage = data.currentPage ?? 1;
-                $('#recordCount').text(data.totalTerminal);
-                $("#table-id tbody").empty();
-                if (jsondata.length === 0) {
-                    // Display a message when there is no data
-                    var noDataRow = $("<tr>").append($("<td colspan='18' style='text-align:center;'>").text("No data"));
-                    $("#table-id tbody").append(noDataRow);
-                } else {
-                    var i = (currentpage - 1) * row + 1;
-                    console.log('rows : ' + i + ' , ' + page + ', ' + row);
-                    $.each(jsondata, function (index, item) {
-                        var row = $("<tr>");
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(i));
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_id));
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_name));
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.term_seq));
-                        row.append($("<td>").css("text-align", "center").css("white-space", "nowrap").text(item.transationdate));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_inc));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_dep));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_dep));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_dep));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_out));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_out));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_out));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c1_end));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c2_end));
-                        row.append($("<td>").css("text-align", "right").css("white-space", "nowrap").text(item.c3_end));
 
-                        $("#table-id tbody").append(row);
-                        i++;
-                    });
-                    window.scrollTo(0, 0);
-                    $('.dashboard-table').doubleScroll({
-                        resetOnWindowResize: true
-                    });
+        // 🗑️ ลบไฟล์ที่เลือก
+        window.removeBalanceFile = function (index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        };
+
+        // 📥 Drag & Drop + Click
+        dropZone.addEventListener("click", () => fileInput.click());
+        dropZone.addEventListener("dragover", e => {
+            e.preventDefault();
+            dropZone.classList.add("bg-light");
+        });
+        dropZone.addEventListener("dragleave", () => dropZone.classList.remove("bg-light"));
+        dropZone.addEventListener("drop", e => {
+            e.preventDefault();
+            dropZone.classList.remove("bg-light");
+            selectedFiles = [...selectedFiles, ...Array.from(e.dataTransfer.files)];
+            updateFileList();
+        });
+        fileInput.addEventListener("change", e => {
+            selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+            updateFileList();
+        });
+
+        // 📤 อัปโหลดไฟล์
+        window.uploadBalanceFiles = function () {
+            if (selectedFiles.length === 0) {
+                alert("⚠️ กรุณาเลือกไฟล์อย่างน้อยหนึ่งไฟล์");
+                return;
+            }
+
+            const selectedBank = $("#bankName").val();
+            if (!selectedBank) {
+                alert("⚠️ กรุณาเลือกธนาคารก่อนอัปโหลด");
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append("files", file));
+            formData.append("_bank", selectedBank);
+
+            $.ajax({
+                url: '@Url.Action("UploadBalanceFiles", "Report")',
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    $(".modal-footer button").prop("disabled", true);
+                },
+                success: function (response) {
+                    alert(response?.message || "✅ อัปโหลดสำเร็จ");
+                    selectedFiles = [];
+                    updateFileList();
+                    $('#InsertModalBalance').modal('hide');
+                    updateBalancingTable(); // 📊 โหลดข้อมูลใหม่
+                },
+                error: () => {
+                    alert("❌ อัปโหลดล้มเหลว กรุณาลองใหม่");
+                },
+                complete: function () {
+                    $(".modal-footer button").prop("disabled", false);
                 }
-                generatePageButtons(pages, currentpage);
-                if (pages >= 1) {
+            });
+        };
 
-                    $("#page").empty();
-                    for (var i = 1; i <= pages; i++) {
-                        var option = $('<option>', {
-                            value: i,
-                            text: i
-                        });
-                        if (i === currentpage) {
-                            option.prop("selected", true);
-                        }
-                        $("#page").append(option);
+        // 📊 โหลดตาราง
+        window.updateBalancingTable = function (page = 1) {
+            const terminalID = $("#terminalno").val();
+            const fromdate = $("#fromdate").val();
+            const todate = $("#todate").val();
+            const bankName = $("#bankName").val();
 
+            if (!bankName || bankName === "null") {
+                alert("⚠️ กรุณาเลือกธนาคารก่อนค้นหา");
+                return;
+            }
+
+            if (isBankSearched) {
+                const hasDateOrTerminal = (fromdate && todate) || terminalID;
+                const fromDateValue = new Date(fromdate);
+                const toDateValue = new Date(todate);
+
+                if (hasDateOrTerminal) {
+                    if (isNaN(fromDateValue) || isNaN(toDateValue)) {
+                        alert("⚠️ กรุณาเลือกวันที่ให้ถูกต้อง");
+                        return;
+                    }
+                    if (fromDateValue > toDateValue) {
+                        alert("⚠️ วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด");
+                        return;
                     }
                 }
-                else {
-                    $("#page").empty();
-                    var option = $('<option>', {
-                        value: 1,
-                        text: 1
+            }
+
+            isBankSearched = true;
+
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("BalancingReportFetchData", "Report")',
+                data: { terminalID, fromdate, todate, bankName, page },
+                dataType: "json",
+                success: function (data) {
+                    const jsondata = data.jsonData;
+                    const totalRecords = data.totalTerminal;
+                    const currentPage = page;
+                    const totalPages = Math.ceil(totalRecords / 50);
+
+                    $("#recordCount").text(totalRecords);
+                    const tbody = $("#table-id tbody").empty();
+
+                    if (jsondata.length === 0) {
+                        tbody.append(`<tr><td colspan='18' style='text-align:center;'>No data</td></tr>`);
+                    } else {
+                        jsondata.forEach((item, index) => {
+                            const row = `
+                                <tr>
+                                    <td style="text-align:center">${(currentPage - 1) * 50 + index + 1}</td>
+                                    <td style="text-align:center">${item.term_id}</td>
+                                    <td style="text-align:center">${item.term_name}</td>
+                                    <td style="text-align:center">${item.term_seq}</td>
+                                    <td style="text-align:center">${item.transationdate}</td>
+                                    <td style="text-align:right">${item.c1_inc}</td>
+                                    <td style="text-align:right">${item.c2_inc}</td>
+                                    <td style="text-align:right">${item.c3_inc}</td>
+                                    <td style="text-align:right">${item.c1_dep}</td>
+                                    <td style="text-align:right">${item.c2_dep}</td>
+                                    <td style="text-align:right">${item.c3_dep}</td>
+                                    <td style="text-align:right">${item.c1_out}</td>
+                                    <td style="text-align:right">${item.c2_out}</td>
+                                    <td style="text-align:right">${item.c3_out}</td>
+                                    <td style="text-align:right">${item.c1_end}</td>
+                                    <td style="text-align:right">${item.c2_end}</td>
+                                    <td style="text-align:right">${item.c3_end}</td>
+                                </tr>`;
+                            tbody.append(row);
+                        });
+                    }
+
+                    const pageDropdown = $("#page").empty();
+                    for (let i = 1; i <= totalPages; i++) {
+                        const option = $("<option>").val(i).text(i);
+                        if (i === currentPage) option.prop("selected", true);
+                        pageDropdown.append(option);
+                    }
+
+                    const termSelect = $("#terminalno").empty().append(`<option value="">--</option>`);
+                    data.terminalDropdown.forEach(item => {
+                        const selected = item.terM_ID === terminalID ? "selected" : "";
+                        termSelect.append(`<option value="${item.terM_ID}" ${selected}>${item.terM_SEQ} : ${item.terM_ID} : ${item.terM_NAME}</option>`);
                     });
-                    $("#page").append(option);
+                    termSelect.selectpicker('refresh');
 
-                }
-                console.log(currentpage + "  " + pages + "  " + page)
-                if ((currentpage == 1 || page == null) && pages > 1) {
-                    prevDiv.style.visibility = "hidden";
-                    nextDiv.style.visibility = "visible";
-
-                }
-                else if ((currentpage == pages) && pages > 1) {
-                    prevDiv.style.visibility = "visible";
-                    nextDiv.style.visibility = "hidden";
-
-                }
-                else if ((currentpage < pages) && pages > 1) {
-                    prevDiv.style.visibility = "visible";
-                    nextDiv.style.visibility = "visible";
-
-                }
-                else {
-                    prevDiv.style.visibility = "hidden";
-                    nextDiv.style.visibility = "hidden";
-
-                }
-            },
-            error: function (error) {
-                console.log("Error: " + JSON.stringify(error));
-            }
-        });
-    }
-
-
-    function generatePageButtons(pages, currentpage) {
-        var pageButtonsContainer = $("#pageButtonsContainer");
-        pageButtonsContainer.empty();
-
-        var maxButtons = 5;
-        var startPage = Math.max(1, currentpage - Math.floor(maxButtons / 2));
-        var endPage = Math.min(startPage + maxButtons - 1, pages);
-
-        for (var i = startPage; i <= endPage; i++) {
-            var button = $("<a>").text(i).click(function () {
-                $("#page").val($(this).text()); // Set #page value
-                updateTable();
-            });
-            button.css({
-                "display": "inline-flex",
-                "align-items": "center",
-                "justify-content": "center"
-            });
-            // Highlight the current page button
-            if (i === currentpage) {
-                button.addClass("current-page");
-            }
-
-            pageButtonsContainer.append(button);
-        }
-    }
-    $("#btnSEExp").click(function (e) {
-        e.preventDefault();
-        var terminalno = $("#terminalno").val();
-        var todate = $("#todate").val();
-        var fromdate = $("#fromdate").val();
-        var rptType = "xlsx";
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            data: {
-                terminalno: terminalno,
-                todate: todate,
-                fromdate: fromdate,
-            },
-            contentType: 'application/json; charset=utf-8',
-            url: '@Url.Action("BalancingReport_ExportExc", "Report")',
-            success: function (result) {
-                if (result.success == 'S') {
-                    var url = '@Url.Action("BalancingReport_DownloadExportFile", "Report")'
-                    window.location = '@Url.Action("BalancingReport_DownloadExportFile", "Report")/?rpttype=' + rptType;
-                }
-                else { alert(result.errstr); }
-            },
-            error: function (err) {
-                alert('@ViewBag.ErrorMsg');
-            }
-        });
-    });
-
-
-
-    $(document).ready(function () {
-        $('.dashboard-table').doubleScroll({
-            resetOnWindowResize: true
-        });
-
-        var s = $(".doubleScroll-scroll-wrapper");
-        var pos = s.position();
-        $(window).scroll(function () {
-            var windowpos = $(window).scrollTop();
-            if (windowpos >= pos.top) {
-                s.addClass("fixed-scroll");
-            } else {
-                s.removeClass("fixed-scroll");
-            }
-        });
-    });
-
-
-    (function ($) {
-
-        jQuery.fn.doubleScroll = function (userOptions) {
-
-            // Default options
-            var options = {
-                contentElement: undefined, // Widest element, if not specified first child element will be used
-                scrollCss: {
-                    'overflow-x': 'auto',
-                    'overflow-y': 'hidden'
+                    $("#prev").toggle(currentPage > 1).off("click").on("click", () => updateBalancingTable(currentPage - 1));
+                    $("#next").toggle(currentPage < totalPages).off("click").on("click", () => updateBalancingTable(currentPage + 1));
                 },
-                contentCss: {
-                    'overflow-x': 'auto',
-                    'overflow-y': 'hidden'
-                },
-                onlyIfScroll: true, // top scrollbar is not shown if the bottom one is not present
-                resetOnWindowResize: false, // recompute the top ScrollBar requirements when the window is resized
-                timeToWaitForResize: 30 // wait for the last update event (usefull when browser fire resize event constantly during ressing)
-            };
-
-            $.extend(true, options, userOptions);
-
-            // do not modify
-            // internal stuff
-            $.extend(options, {
-                topScrollBarMarkup: '<div class="doubleScroll-scroll-wrapper" style="height: 20px;"><div class="doubleScroll-scroll" style="height: 20px;"></div></div>',
-                topScrollBarWrapperSelector: '.doubleScroll-scroll-wrapper',
-                topScrollBarInnerSelector: '.doubleScroll-scroll'
+                error: function (err) {
+                    console.error("Error:", err);
+                    $("#table-id tbody").html(`<tr><td colspan='18' style='text-align:center;'>ERROR</td></tr>`);
+                }
             });
+        };
 
-            var _showScrollBar = function ($self, options) {
+        // 📁 Export Excel
+        $("#btnSEExp").on("click", function () {
+            const terminalID = $("#terminalno").val();
+            const fromdate = $("#fromdate").val();
+            const todate = $("#todate").val();
+            const bankName = $("#bankName").val();
 
-                if (options.onlyIfScroll && $self.get(0).scrollWidth <= $self.width()) {
-                    // content doesn't scroll
-                    // remove any existing occurrence...
-                    $self.prev(options.topScrollBarWrapperSelector).remove();
-                    return;
-                }
-
-                // add div that will act as an upper scroll only if not already added to the DOM
-                var $topScrollBar = $self.prev(options.topScrollBarWrapperSelector);
-
-                if ($topScrollBar.length == 0) {
-
-                    // creating the scrollbar
-                    // added before in the DOM
-                    $topScrollBar = $(options.topScrollBarMarkup);
-                    $self.before($topScrollBar);
-
-                    // apply the css
-                    $topScrollBar.css(options.scrollCss);
-                    $self.css(options.contentCss);
-
-                    // bind upper scroll to bottom scroll
-                    $topScrollBar.bind('scroll.doubleScroll', function () {
-                        $self.scrollLeft($topScrollBar.scrollLeft());
-                    });
-
-                    // bind bottom scroll to upper scroll
-                    var selfScrollHandler = function () {
-                        $topScrollBar.scrollLeft($self.scrollLeft());
-                    };
-                    $self.bind('scroll.doubleScroll', selfScrollHandler);
-                }
-
-                // find the content element (should be the widest one)
-                var $contentElement;
-
-                if (options.contentElement !== undefined && $self.find(options.contentElement).length !== 0) {
-                    $contentElement = $self.find(options.contentElement);
-                } else {
-                    $contentElement = $self.find('>:first-child');
-                }
-
-                // set the width of the wrappers
-                $(options.topScrollBarInnerSelector, $topScrollBar).width($contentElement.outerWidth());
-                $topScrollBar.width($self.width());
-                $topScrollBar.scrollLeft($self.scrollLeft());
-
+            if (!bankName || bankName === "null") {
+                alert("⚠️ กรุณาเลือกธนาคารก่อน");
+                return;
             }
 
-            return this.each(function () {
+            const url = `${'@Url.Action("ExportBalancingReportToExcel", "Report")'}?terminalno=${terminalID}&fromdate=${fromdate}&todate=${todate}&bankName=${bankName}`;
+            window.open(url, "_blank");
+        });
 
-                var $self = $(this);
-
-                _showScrollBar($self, options);
-
-                // bind the resize handler
-                // do it once
-                if (options.resetOnWindowResize) {
-
-                    var id;
-                    var handler = function (e) {
-                        _showScrollBar($self, options);
-                    };
-
-                    $(window).bind('resize.doubleScroll', function () {
-                        // adding/removing/replacing the scrollbar might resize the window
-                        // so the resizing flag will avoid the infinite loop here...
-                        clearTimeout(id);
-                        id = setTimeout(handler, options.timeToWaitForResize);
-                    });
-
-                }
-
-            });
-
+        // ☑️ Scroll เสริมแนวนอน (ถ้ามี Plugin)
+        if ($.fn.doubleScroll) {
+            $(".dashboard-table").doubleScroll({ resetOnWindowResize: true });
+        } else {
+            console.warn("⚠️ doubleScroll plugin is not loaded. Horizontal scroll enhancement is disabled.");
         }
-
-    }(jQuery));
+    });
 </script>
+
+
+

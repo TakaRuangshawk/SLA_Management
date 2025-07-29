@@ -27,7 +27,7 @@ namespace Services
         {
             bool result = false;
             MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"INSERT INTO `import_file_data`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`,`Import_Data_Rroject`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date,@Import_Data_Rroject);";
+            string sql = @"INSERT INTO `import_file_data`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`,`Import_Data_Project`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date,@Import_Data_Project);";
             try
             {
                 conn.Open();
@@ -37,7 +37,7 @@ namespace Services
                 com.Parameters.AddWithValue("@Upload_By", cassetteEventFile.Upload_By);
                 com.Parameters.AddWithValue("@Upload_Date", cassetteEventFile.Upload_Date);
                 com.Parameters.AddWithValue("@Data_Date", cassetteEventFile.Data_Date);
-                com.Parameters.AddWithValue("@Import_Data_Rroject", cassetteEventFile.Import_Data_Rroject);
+                com.Parameters.AddWithValue("@Import_Data_Project", cassetteEventFile.Import_Data_Project);
 
 
                 com.Connection = conn;
@@ -189,14 +189,14 @@ namespace Services
                                             'Upload_Date', DATE_FORMAT(Upload_Date, '%Y-%m-%dT%H:%i:%sZ') ,
                                             'Data_Date',DATE_FORMAT(Data_Date, '%Y-%m-%dT%H:%i:%sZ') ) AS json_result
                             FROM import_file_data  
-                            where Import_Data_Rroject = @Import_Data_Rroject  and  Data_Date between @start and @end;";
+                            where Import_Data_Project = @Import_Data_Project  and  Data_Date between @start and @end;";
             try
             {
                 conn.Open();
                 MySqlCommand com = new MySqlCommand(sql);
                 com.Parameters.AddWithValue("@start", start);
                 com.Parameters.AddWithValue("@end", end);
-                com.Parameters.AddWithValue("@Import_Data_Rroject", projectName);
+                com.Parameters.AddWithValue("@Import_Data_Project", projectName);
                 com.Connection = conn;
 
                 using (var reader = com.ExecuteReader())
@@ -279,6 +279,21 @@ namespace Services
             reportTerminalCassetteDatas.AddRange(dataReport);
         }
 
+
+        public class InsertResult
+        {
+            public bool Inserted { get; set; }
+            public int CassetteCount { get; set; }
+            public int TerminalCassetteCount { get; set; }
+
+            public int CassetteInsertSucceed { get; set; }
+            public int TerminalCassetteSucceed { get; set; }
+
+            public int CassetteInsertError { get; set; }
+            public int TerminalCassetteError { get; set; }
+
+
+        }
         public class ReadFile
         {
             public static TerminalCassetteData GetStatusCaseboxV1(string pathFile, DateTime queryDate)
@@ -399,13 +414,6 @@ namespace Services
             }
         }
 
-        public class InsertResult
-        {
-            public bool Inserted { get; set; }
-            public int CassetteCount { get; set; }
-            public int TerminalCassetteCount { get; set; }
-        }
-
         public class InsertReport
         {
             private static string[] eventMoniterConfig = { "9" };
@@ -418,77 +426,96 @@ namespace Services
                 {
                     Inserted = false,
                     CassetteCount = 0,
-                    TerminalCassetteCount = 0
-                };
+                    TerminalCassetteCount = 0,
 
+                    CassetteInsertSucceed = 0,
+                    TerminalCassetteSucceed = 0,
+
+                    CassetteInsertError = 0,
+                    TerminalCassetteError = 0
+
+
+                };
                 TerminalCassetteData terminalCassetteData = null;
                 foreach (var file in files)
                 {
-                    TerminalCassetteData readData = ReadFile.GetStatusCaseboxV2(file);
+
+
+                    TerminalCassetteData readData = ReportCassetteBoxService.ReadFile.GetStatusCaseboxV2(file); ;
 
                     if (terminalCassetteData == null)
                     {
                         terminalCassetteData = readData;
                     }
-                    else if (readData.queryDate.ToString("yyyyMMdd") == terminalCassetteData.queryDate.ToString("yyyyMMdd"))
+                    else if (readData.queryDate.ToString("yyyyMMdd").Equals(terminalCassetteData.queryDate.ToString("yyyyMMdd")))
                     {
                         terminalCassetteData.data.AddRange(readData.data);
                     }
-                }
 
+
+                }
                 if (terminalCassetteData == null || terminalCassetteData.data.Count == 0)
                     return result;
 
                 List<ReportCassette> reportCassetteDatas = new List<ReportCassette>();
                 List<ReportTerminalCassette> reportTerminalCassetteDatas = new List<ReportTerminalCassette>();
 
+
                 var dateTextFileReport = terminalCassetteData.queryDate;
-                var textFileReport = $"{Guid.NewGuid()}_{dateTextFileReport:yyyyMMdd}.txt";
+
+                var textFileReport = $"{Guid.NewGuid().ToString()}_{dateTextFileReport.ToString("yyyyMMdd")}.txt";
 
                 ReportCassetteBoxService reportCassetteBoxService = new ReportCassetteBoxService(connectionStringReportConfig);
-                reportCassetteBoxService.MapReportCassette(
-                    eventMoniterConfig,
-                    cassetteMoniterConfig,
-                    reportCassetteDatas,
-                    reportTerminalCassetteDatas,
-                    textFileReport,
-                    terminalCassetteData.data
-                );
-
-                // ลบไฟล์เดิมของวันนั้นก่อน
+                reportCassetteBoxService.MapReportCassette(eventMoniterConfig, cassetteMoniterConfig, reportCassetteDatas, reportTerminalCassetteDatas, textFileReport, terminalCassetteData.data);
                 var cassetteEventFiles = reportCassetteBoxService.GetImportFileDataByDate(terminalCassetteData.queryDate, projectNameConfig);
-                foreach (var oldFile in cassetteEventFiles)
+                if (cassetteEventFiles.Count != 0)
                 {
-                    reportCassetteBoxService.DeleteImportFileData(oldFile.Id);
-                }
+                    foreach (var cassetteEventFileDate in cassetteEventFiles)
+                    {
+                        reportCassetteBoxService.DeleteImportFileData(cassetteEventFileDate.Id);
+                    }
 
-                var cassetteEventFile = new ImportFileData
+                }
+                var cassetteEventFile = new ImportFileData()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name_File = textFileReport,
                     Upload_By = username,
                     Upload_Date = DateTime.Now,
                     Data_Date = terminalCassetteData.queryDate,
-                    Import_Data_Rroject = projectNameConfig
+                    Import_Data_Project = projectNameConfig
                 };
-
                 if (reportCassetteBoxService.AddImportFileData(cassetteEventFile))
                 {
+                    result.Inserted = true;
+                    result.CassetteCount = reportCassetteDatas.Count;
+                    result.TerminalCassetteCount = reportTerminalCassetteDatas.Count;
+
                     foreach (var reportCassette in reportCassetteDatas)
                     {
-                        reportCassetteBoxService.AddReportCassette(new ReportCassetteDB
+                        var insertStatus = reportCassetteBoxService.AddReportCassette(new ReportCassetteDB()
                         {
                             Id = Guid.NewGuid().ToString(),
                             Cassette_Id = reportCassette.cassetteId,
-                            Cassette_Status = reportCassette.cassetteStatus,
                             Cassette_Status_Count = reportCassette.cassetteStatusCount,
-                            Cassette_Event_File_Id = cassetteEventFile.Id
+                            Cassette_Status = reportCassette.cassetteStatus,
+                            Cassette_Event_File_Id = cassetteEventFile.Id,
                         });
+
+                        if (insertStatus)
+                        {
+                            result.CassetteInsertSucceed++;
+                        }
+                        else
+                        {
+                            result.CassetteInsertError++;
+                        }
+
                     }
 
                     foreach (var reportTerminalCassette in reportTerminalCassetteDatas)
                     {
-                        reportCassetteBoxService.AddReportTerminalCassette(new ReportTerminalCassetteDB
+                        var insertStatus = reportCassetteBoxService.AddReportTerminalCassette(new ReportTerminalCassetteDB()
                         {
                             Id = Guid.NewGuid().ToString(),
                             TermId = reportTerminalCassette.termId,
@@ -496,18 +523,24 @@ namespace Services
                             Cassette_Status = reportTerminalCassette.cassetteStatus,
                             Cassette_Remain = reportTerminalCassette.cassetteRemain,
                             Cassette_Event_File_Id = cassetteEventFile.Id
+
                         });
+
+
+                        if (insertStatus)
+                        {
+                            result.TerminalCassetteSucceed++;
+                        }
+                        else
+                        {
+                            result.TerminalCassetteError++;
+                        }
                     }
 
-                    // ✅ คืนค่าผลลัพธ์
-                    result.Inserted = true;
-                    result.CassetteCount = reportCassetteDatas.Count;
-                    result.TerminalCassetteCount = reportTerminalCassetteDatas.Count;
                 }
 
                 return result;
             }
         }
-
     }
 }

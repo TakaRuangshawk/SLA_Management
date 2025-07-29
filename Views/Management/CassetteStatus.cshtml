@@ -468,13 +468,15 @@
 
         window.uploadFiles = function () {
             if (selectedFiles.length === 0) return alert("⚠️ กรุณาเลือกไฟล์อย่างน้อยหนึ่งไฟล์");
-            const dataDate = $("#DataDate").val();
-            if (!dataDate) return alert("⚠️ กรุณาเลือกวันที่ข้อมูล");
+
+             const selectedBank = $("#bankName").val();
+             if (!selectedBank)
+        return alert("⚠️ กรุณาเลือกธนาคารก่อนทำการอัปโหลด");
 
             const formData = new FormData();
             selectedFiles.forEach(file => formData.append("files", file));
             formData.append("_bank", $("#bankName").val());
-            formData.append("Data_Date", dataDate);
+
 
             $.ajax({
                 url: '@Url.Action("UploadCassetteEventMultiple", "Management")',
@@ -607,8 +609,8 @@
         });
     });
 
-       
-    
+
+
 
 </script>
 

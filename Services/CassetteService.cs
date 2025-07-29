@@ -58,7 +58,7 @@ namespace SLA_Management.Services
                 if (string.IsNullOrEmpty(connStr)) return ("-", "-");
 
                 var db_mysql = new ConnectMySQL(connStr);
-                var cmd = new MySqlCommand("SELECT Upload_Date, Upload_By FROM cassette_event_file ORDER BY Upload_Date DESC LIMIT 1;");
+                var cmd = new MySqlCommand("SELECT Upload_Date, Upload_By FROM import_file_data ORDER BY Upload_Date DESC LIMIT 1;");
                 var dt = db_mysql.GetDatatable(cmd);
 
                 var latest = ConvertDataTableToModel.ConvertDataTable<ImportFileData>(dt).FirstOrDefault();
@@ -99,7 +99,7 @@ SELECT
     MAX(cef.Data_Date) AS Data_DateTime
 FROM {dbPrefix}.report_terminal_cassette rtc
 LEFT JOIN {dbPrefix}.device_info di ON rtc.TermId = di.TERM_ID
-LEFT JOIN {dbPrefix}.cassette_event_file cef ON rtc.Cassette_Event_File_Id = cef.Id
+LEFT JOIN {dbPrefix}.import_file_data cef ON rtc.Cassette_Event_File_Id = cef.Id
 GROUP BY rtc.TermId, di.COUNTER_CODE
 ORDER BY rtc.TermId;";
 
