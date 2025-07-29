@@ -3,6 +3,7 @@
 using Serilog;
 using SLA_Management.Commons;
 using SLA_Management.Models.CassetteStatus;
+using SLA_Management.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,55 +14,18 @@ using System.Text.Json;
 
 namespace Services
 {
-    public class ReportCassetteBoxService
+    public class ReportCassetteBoxService : ImportFileService
     {
         private string _connectionString { get; set; }
 
-        public ReportCassetteBoxService(string connectionString)
+        public ReportCassetteBoxService(string connectionString) : base(connectionString)
+
         {
             _connectionString = connectionString;
 
         }
 
-        public bool AddImportFileData(ImportFileData cassetteEventFile)
-        {
-            bool result = false;
-            MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"INSERT INTO `import_file_data`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`,`Import_Data_Project`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date,@Import_Data_Project);";
-            try
-            {
-                conn.Open();
-                MySqlCommand com = new MySqlCommand(sql);
-                com.Parameters.AddWithValue("@Id", cassetteEventFile.Id);
-                com.Parameters.AddWithValue("@Name_File", cassetteEventFile.Name_File);
-                com.Parameters.AddWithValue("@Upload_By", cassetteEventFile.Upload_By);
-                com.Parameters.AddWithValue("@Upload_Date", cassetteEventFile.Upload_Date);
-                com.Parameters.AddWithValue("@Data_Date", cassetteEventFile.Data_Date);
-                com.Parameters.AddWithValue("@Import_Data_Project", cassetteEventFile.Import_Data_Project);
 
-
-                com.Connection = conn;
-
-                com.ExecuteNonQuery();
-                result = true;
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "AddImportFileData Error : ");
-
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                {
-                    conn.Close();
-                }
-
-            }
-            return result;
-
-        }
         public bool AddReportCassette(ReportCassetteDB reportCassetteDB)
         {
             bool result = false;
@@ -137,13 +101,12 @@ namespace Services
         }
 
 
-        public void DeleteImportFileData(string id)
+
+        public void DeleteReportCassetteAndReportTerminalCassetteById(string id)
         {
 
             MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"DELETE FROM `import_file_data`
-                            WHERE Id = @Id;
-                           DELETE FROM `report_cassette`
+            string sql = @"DELETE FROM `report_cassette`
                             WHERE Cassette_Event_File_Id = @Id;
                            DELETE FROM `report_terminal_cassette`
                             WHERE Cassette_Event_File_Id = @Id;";
@@ -161,7 +124,7 @@ namespace Services
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "DeleteImportFileData Error : ");
+                Log.Error(ex, "DeleteReportCassetteAndReportTerminalCassetteById Error : ");
 
             }
             finally
@@ -176,62 +139,6 @@ namespace Services
 
         }
 
-        public List<ImportFileData> GetImportFileDataByDate(DateTime data, string projectName)
-        {
-            List<ImportFileData> result = new List<ImportFileData>();
-            DateTime start = new DateTime(data.Year, data.Month, data.Day, 0, 0, 0);
-            DateTime end = start.AddDays(1);
-            MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"SELECT 
-                              JSON_OBJECT(	'Id', Id,
-				                            'Name_File', Name_File,
-                                            'Upload_By', Upload_By,
-                                            'Upload_Date', DATE_FORMAT(Upload_Date, '%Y-%m-%dT%H:%i:%sZ') ,
-                                            'Data_Date',DATE_FORMAT(Data_Date, '%Y-%m-%dT%H:%i:%sZ') ) AS json_result
-                            FROM import_file_data  
-                            where Import_Data_Project = @Import_Data_Project  and  Data_Date between @start and @end;";
-            try
-            {
-                conn.Open();
-                MySqlCommand com = new MySqlCommand(sql);
-                com.Parameters.AddWithValue("@start", start);
-                com.Parameters.AddWithValue("@end", end);
-                com.Parameters.AddWithValue("@Import_Data_Project", projectName);
-                com.Connection = conn;
-
-                using (var reader = com.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string jsonText = reader.GetString("json_result");
-                        if (jsonText.EndsWith("|"))
-                        {
-                            jsonText = jsonText.Substring(0, jsonText.Length - 1);
-                        }
-                        ImportFileData item = JsonSerializer.Deserialize<ImportFileData>(jsonText);
-                        result.Add(item);
-                    }
-                }
-
-
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "GetImportFileDataByDate Error : ");
-
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                {
-                    conn.Close();
-                }
-
-            }
-            return result;
-
-        }
 
 
         public void MapReportCassette(string[] eventMoniterConfig, string[] cassetteMoniterConfig, List<ReportCassette> reportCassetteDatas, List<ReportTerminalCassette> reportTerminalCassetteDatas, string fileName, List<TerminalCassette> data)
@@ -473,6 +380,7 @@ namespace Services
                     foreach (var cassetteEventFileDate in cassetteEventFiles)
                     {
                         reportCassetteBoxService.DeleteImportFileData(cassetteEventFileDate.Id);
+                        reportCassetteBoxService.DeleteReportCassetteAndReportTerminalCassetteById(cassetteEventFileDate.Id);
                     }
 
                 }

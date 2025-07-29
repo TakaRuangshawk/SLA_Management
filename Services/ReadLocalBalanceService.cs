@@ -9,18 +9,18 @@ using static Services.ReportCassetteBoxService;
 namespace SLA_Management.Services
 {
 
-    public class ReadLocalBalanceService
+    public class ReadLocalBalanceService : ImportFileService
     {
         private string _connectionString { get; set; }
 
-        public ReadLocalBalanceService(string connectionString)
+        public ReadLocalBalanceService(string connectionString) : base(connectionString)
         {
             _connectionString = connectionString;
         }
 
         public bool AddLocalBalance(LocalBalance localBalance)
         {
-
+            bool result = false;
             MySqlConnection conn = new MySqlConnection(_connectionString);
             string sql = @"INSERT IGNORE INTO `local_balance`
                                     (`BALANCE_ID`,
@@ -201,14 +201,12 @@ namespace SLA_Management.Services
                 com.Connection = conn;
 
                 com.ExecuteNonQuery();
+                result = true;
 
-                int rowsAffected = com.ExecuteNonQuery();
-                return rowsAffected > 0;
 
             }
             catch (Exception ex)
             {
-                return false;
                 // Log.Error(ex, "AddLocalBalance Error : ");
 
             }
@@ -221,140 +219,140 @@ namespace SLA_Management.Services
 
             }
 
-
+            return result;
         }
 
-        public bool AddImportFileData(ImportFileData cassetteEventFile)
+        public bool AddLocalBalances(List<LocalBalance> localBalances)
         {
+            if (localBalances == null || localBalances.Count == 0)
+            {
+                return true; // Nothing to insert
+            }
+
             bool result = false;
-            MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"INSERT INTO `import_file_data`(`Id`,`Name_File`,`Upload_By`,`Upload_Date`,`Data_Date`,`Import_Data_Rroject`) VALUES (@Id,@Name_File,@Upload_By,@Upload_Date,@Data_Date,@Import_Data_Rroject);";
-            try
+            using (MySqlConnection conn = new MySqlConnection(_connectionString))
             {
-                conn.Open();
-                MySqlCommand com = new MySqlCommand(sql);
-                com.Parameters.AddWithValue("@Id", cassetteEventFile.Id);
-                com.Parameters.AddWithValue("@Name_File", cassetteEventFile.Name_File);
-                com.Parameters.AddWithValue("@Upload_By", cassetteEventFile.Upload_By);
-                com.Parameters.AddWithValue("@Upload_Date", cassetteEventFile.Upload_Date);
-                com.Parameters.AddWithValue("@Data_Date", cassetteEventFile.Data_Date);
-                com.Parameters.AddWithValue("@Import_Data_Rroject", cassetteEventFile.Import_Data_Project);
-
-
-                com.Connection = conn;
-
-                com.ExecuteNonQuery();
-                result = true;
-
-            }
-            catch (Exception ex)
-            {
-                //Log.Error(ex, "AddImportFileData Error : ");
-
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
+                try
                 {
-                    conn.Close();
-                }
+                    conn.Open();
+                    MySqlTransaction transaction = conn.BeginTransaction();
 
-            }
-            return result;
 
-        }
-        public List<ImportFileData> GetImportFileDataByDate(DateTime data, string projectName)
-        {
-            List<ImportFileData> result = new List<ImportFileData>();
-            DateTime start = new DateTime(data.Year, data.Month, data.Day, 0, 0, 0);
-            DateTime end = start.AddDays(1);
-            MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"SELECT 
-                              JSON_OBJECT(	'Id', Id,
-				                            'Name_File', Name_File,
-                                            'Upload_By', Upload_By,
-                                            'Upload_Date', DATE_FORMAT(Upload_Date, '%Y-%m-%dT%H:%i:%sZ') ,
-                                            'Data_Date',DATE_FORMAT(Data_Date, '%Y-%m-%dT%H:%i:%sZ') ) AS json_result
-                            FROM import_file_data  
-                            where Import_Data_Rroject = @Import_Data_Rroject  and  Data_Date between @start and @end;";
-            try
-            {
-                conn.Open();
-                MySqlCommand com = new MySqlCommand(sql);
-                com.Parameters.AddWithValue("@start", start);
-                com.Parameters.AddWithValue("@end", end);
-                com.Parameters.AddWithValue("@Import_Data_Rroject", projectName);
-                com.Connection = conn;
+                    string singleRowSql = @"INSERT IGNORE INTO `local_balance`
+                                        (`BALANCE_ID`, `TERM_ID`, `SERIAL_NUMBER`, `BALANCING_DATE`,
+                                         `INITIAL_TYPE1000AQTY`, `INITIAL_TYPE1000BQTY`, `INITIAL_TYPE1000CQTY`, `INITIAL_TYPE1000DQTY`, `INITIAL_TYPE1000QTY`, `INITIAL_TYPE1000AMOUNT`,
+                                         `INITIAL_TYPE500AQTY`, `INITIAL_TYPE500BQTY`, `INITIAL_TYPE500CQTY`, `INITIAL_TYPE500DQTY`, `INITIAL_TYPE500QTY`, `INITIAL_TYPE500AMOUNT`,
+                                         `INITIAL_TYPE100AQTY`, `INITIAL_TYPE100BQTY`, `INITIAL_TYPE100CQTY`, `INITIAL_TYPE100DQTY`, `INITIAL_TYPE100QTY`, `INITIAL_TYPE100AMOUNT`,
+                                         `DEPOSIT_TYPE1000QTY`, `DEPOSIT_TYPE1000AMOUNT`, `DEPOSIT_TYPE500QTY`, `DEPOSIT_TYPE500AMOUNT`, `DEPOSIT_TYPE100QTY`, `DEPOSIT_TYPE100AMOUNT`,
+                                         `WITHDRAW_TYPE1000QTY`, `WITHDRAW_TYPE1000AMOUNT`, `WITHDRAW_TYPE500QTY`, `WITHDRAW_TYPE500AMOUNT`, `WITHDRAW_TYPE100QTY`, `WITHDRAW_TYPE100AMOUNT`,
+                                         `BALANCE_TYPE1000QTY`, `BALANCE_TYPE1000AMOUNT`, `BALANCE_TYPE500QTY`, `BALANCE_TYPE500AMOUNT`, `BALANCE_TYPE100QTY`, `BALANCE_TYPE100AMOUNT`,
+                                         `RETRACT_TYPE1000QTY`, `RETRACT_TYPE1000AMOUNT`, `RETRACT_TYPE500QTY`, `RETRACT_TYPE500AMOUNT`, `RETRACT_TYPE100QTY`, `RETRACT_TYPE100AMOUNT`,
+                                         `RETRACT_TYPE_UNKNOWN_AMOUNT`,
+                                         `REJECT_TYPE1000QTY`, `REJECT_TYPE1000AMOUNT`, `REJECT_TYPE500QTY`, `REJECT_TYPE500AMOUNT`, `REJECT_TYPE100QTY`, `REJECT_TYPE100AMOUNT`)
+                                        VALUES
+                                        (@BALANCE_ID, @TERM_ID, @SERIAL_NUMBER, @BALANCING_DATE,
+                                         @INITIAL_TYPE1000AQTY, @INITIAL_TYPE1000BQTY, @INITIAL_TYPE1000CQTY, @INITIAL_TYPE1000DQTY, @INITIAL_TYPE1000QTY, @INITIAL_TYPE1000AMOUNT,
+                                         @INITIAL_TYPE500AQTY, @INITIAL_TYPE500BQTY, @INITIAL_TYPE500CQTY, @INITIAL_TYPE500DQTY, @INITIAL_TYPE500QTY, @INITIAL_TYPE500AMOUNT,
+                                         @INITIAL_TYPE100AQTY, @INITIAL_TYPE100BQTY, @INITIAL_TYPE100CQTY, @INITIAL_TYPE100DQTY, @INITIAL_TYPE100QTY, @INITIAL_TYPE100AMOUNT,
+                                         @DEPOSIT_TYPE1000QTY, @DEPOSIT_TYPE1000AMOUNT, @DEPOSIT_TYPE500QTY, @DEPOSIT_TYPE500AMOUNT, @DEPOSIT_TYPE100QTY, @DEPOSIT_TYPE100AMOUNT,
+                                         @WITHDRAW_TYPE1000QTY, @WITHDRAW_TYPE1000AMOUNT, @WITHDRAW_TYPE500QTY, @WITHDRAW_TYPE500AMOUNT, @WITHDRAW_TYPE100QTY, @WITHDRAW_TYPE100AMOUNT,
+                                         @BALANCE_TYPE1000QTY, @BALANCE_TYPE1000AMOUNT, @BALANCE_TYPE500QTY, @BALANCE_TYPE500AMOUNT, @BALANCE_TYPE100QTY, @BALANCE_TYPE100AMOUNT,
+                                         @RETRACT_TYPE1000QTY, @RETRACT_TYPE1000AMOUNT, @RETRACT_TYPE500QTY, @RETRACT_TYPE500AMOUNT, @RETRACT_TYPE100QTY, @RETRACT_TYPE100AMOUNT,
+                                         @RETRACT_TYPE_UNKNOWN_AMOUNT,
+                                         @REJECT_TYPE1000QTY, @REJECT_TYPE1000AMOUNT, @REJECT_TYPE500QTY, @REJECT_TYPE500AMOUNT, @REJECT_TYPE100QTY, @REJECT_TYPE100AMOUNT)";
 
-                using (var reader = com.ExecuteReader())
-                {
-                    while (reader.Read())
+
+
+                    foreach (var lb in localBalances)
                     {
-                        string jsonText = reader.GetString("json_result");
-                        if (jsonText.EndsWith("|"))
-                        {
-                            jsonText = jsonText.Substring(0, jsonText.Length - 1);
-                        }
-                        ImportFileData item = JsonSerializer.Deserialize<ImportFileData>(jsonText);
-                        result.Add(item);
+                        MySqlCommand command = new MySqlCommand(singleRowSql, conn, transaction);
+
+                        command.Parameters.AddWithValue("@BALANCE_ID", lb.BALANCE_ID);
+                        command.Parameters.AddWithValue("@TERM_ID", lb.TERM_ID);
+                        command.Parameters.AddWithValue("@SERIAL_NUMBER", lb.SERIAL_NUMBER);
+                        command.Parameters.AddWithValue("@BALANCING_DATE", lb.BALANCING_DATE);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AQTY", lb.INITIAL_TYPE1000AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000BQTY", lb.INITIAL_TYPE1000BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000CQTY", lb.INITIAL_TYPE1000CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000DQTY", lb.INITIAL_TYPE1000DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000QTY", lb.INITIAL_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AMOUNT", lb.INITIAL_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500AQTY", lb.INITIAL_TYPE500AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500BQTY", lb.INITIAL_TYPE500BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500CQTY", lb.INITIAL_TYPE500CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500DQTY", lb.INITIAL_TYPE500DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500QTY", lb.INITIAL_TYPE500QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500AMOUNT", lb.INITIAL_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100AQTY", lb.INITIAL_TYPE100AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100BQTY", lb.INITIAL_TYPE100BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100CQTY", lb.INITIAL_TYPE100CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100DQTY", lb.INITIAL_TYPE100DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100QTY", lb.INITIAL_TYPE100QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100AMOUNT", lb.INITIAL_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000QTY", lb.DEPOSIT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000AMOUNT", lb.DEPOSIT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500QTY", lb.DEPOSIT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500AMOUNT", lb.DEPOSIT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100QTY", lb.DEPOSIT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100AMOUNT", lb.DEPOSIT_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000QTY", lb.WITHDRAW_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000AMOUNT", lb.WITHDRAW_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500QTY", lb.WITHDRAW_TYPE500QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500AMOUNT", lb.WITHDRAW_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100QTY", lb.WITHDRAW_TYPE100QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100AMOUNT", lb.WITHDRAW_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE1000QTY", lb.BALANCE_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE1000AMOUNT", lb.BALANCE_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE500QTY", lb.BALANCE_TYPE500QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE500AMOUNT", lb.BALANCE_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE100QTY", lb.BALANCE_TYPE100QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE100AMOUNT", lb.BALANCE_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE1000QTY", lb.RETRACT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE1000AMOUNT", lb.RETRACT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE500QTY", lb.RETRACT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE500AMOUNT", lb.RETRACT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE100QTY", lb.RETRACT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE100AMOUNT", lb.RETRACT_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE_UNKNOWN_AMOUNT", lb.RETRACT_TYPE_UNKNOWN_AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE1000QTY", lb.REJECT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE1000AMOUNT", lb.REJECT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE500QTY", lb.REJECT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE500AMOUNT", lb.REJECT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE100QTY", lb.REJECT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE100AMOUNT", lb.REJECT_TYPE100AMOUNT);
+
+                        command.ExecuteNonQuery();
                     }
+
+
+                    transaction.Commit();
+                    result = true;
                 }
-
-
-
-            }
-            catch (Exception ex)
-            {
-                //Log.Error(ex, "GetImportFileDataByDate Error : ");
-
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
+                catch (Exception ex)
                 {
-                    conn.Close();
-                }
+                    //Log.Error(ex, "AddLocalBalances Error : ");
 
+                    if (conn.State == ConnectionState.Open)
+                    {
+                        conn.Close();
+                    }
+
+                }
             }
             return result;
-
         }
 
-        public void DeleteImportFileData(string id)
+        public class InsertResult
         {
-
-            MySqlConnection conn = new MySqlConnection(_connectionString);
-            string sql = @"DELETE FROM `import_file_data`
-                            WHERE Id = @Id;
-                           DELETE FROM `report_cassette`
-                            WHERE Cassette_Event_File_Id = @Id;
-                           DELETE FROM `report_terminal_cassette`
-                            WHERE Cassette_Event_File_Id = @Id;";
-            try
-            {
-                conn.Open();
-                MySqlCommand com = new MySqlCommand(sql);
-                com.Parameters.AddWithValue("@Id", id);
-
-                com.Connection = conn;
-
-                com.ExecuteNonQuery();
+            public bool Inserted { get; set; }
+            public int LocalBalanceCount { get; set; }
 
 
-            }
-            catch (Exception ex)
-            {
-                // Log.Error(ex, "DeleteImportFileData Error : ");
+            public int LocalBalanceInsertSucceed { get; set; }
 
-            }
-            finally
-            {
-                if (conn.State == ConnectionState.Open)
-                {
-                    conn.Close();
-                }
 
-            }
+            public int LocalBalanceInsertError { get; set; }
+
 
 
         }
@@ -391,7 +389,7 @@ namespace SLA_Management.Services
                         }
                         catch (Exception ex)
                         {
-                            //Log.Error($"ReadData Error {line} : {ex}");
+                            // Log.Error($"ReadData Error {line} : {ex}");
                         }
 
                     }
@@ -412,29 +410,44 @@ namespace SLA_Management.Services
             }
         }
 
-        public class InsertResult
-        {
-            public int InsertedCount { get; set; } = 0;
-            public int FileCount { get; set; } = 0;
-        }
 
         public class InsertLocalBalance
         {
             private static string projectNameConfig = "ReadLocalBalance";
             public static InsertResult Insert(List<Stream> files, string connectionStringReportConfig, string username)
             {
-                InsertResult result = new InsertResult();
-                List<LocalBalance> localBalances = new List<LocalBalance>();
+                var result = new InsertResult
+                {
+                    Inserted = false,
+                    LocalBalanceCount = 0,
+                    LocalBalanceInsertSucceed = 0,
+                    LocalBalanceInsertError = 0
 
+                };
+                var nameFile = new List<string>();
+                List<LocalBalance> localBalances = new List<LocalBalance>();
                 foreach (var file in files)
                 {
                     var data = ReadFile.ReadData(file);
                     if (data.Count != 0)
                     {
                         localBalances.AddRange(data);
-                        result.FileCount++; // นับเฉพาะไฟล์ที่มีข้อมูล
+
+                        if (file is FileStream fileStream)
+                        {
+                            nameFile.Add(fileStream.Name);
+                        }
+                        else
+                        {
+                            nameFile.Add($"{Guid.NewGuid().ToString()}.txt");
+
+                        }
+
                     }
                 }
+
+                if (localBalances.Count == 0)
+                    return result;
 
                 if (localBalances.Count != 0)
                 {
@@ -442,13 +455,13 @@ namespace SLA_Management.Services
 
                     ReadLocalBalanceService readLocalBalanceService = new ReadLocalBalanceService(connectionStringReportConfig);
 
-                    var textFileReport = $"{Guid.NewGuid().ToString()}_{minBALANCING_DATE:yyyyMMdd}.txt";
 
-                    var existingImportFiles = readLocalBalanceService.GetImportFileDataByDate(minBALANCING_DATE, projectNameConfig);
-                    foreach (var fileRecord in existingImportFiles)
-                    {
-                        readLocalBalanceService.DeleteImportFileData(fileRecord.Id);
-                    }
+
+                    //var textFileReport = $"{Guid.NewGuid().ToString()}_{minBALANCING_DATE.ToString("yyyyMMdd")}.txt";
+                    var textFileReport = string.Join(", ", nameFile);
+
+                    var importFileDataBalanceService = readLocalBalanceService.GetFirstImportFileDataByDate(minBALANCING_DATE, projectNameConfig);
+
 
                     var importFileData = new ImportFileData()
                     {
@@ -460,20 +473,46 @@ namespace SLA_Management.Services
                         Import_Data_Project = projectNameConfig
                     };
 
-                    readLocalBalanceService.AddImportFileData(importFileData);
-
-                    foreach (var localBalance in localBalances)
+                    bool statusInsert = false;
+                    if (importFileDataBalanceService != null)
                     {
-                        if (readLocalBalanceService.AddLocalBalance(localBalance))
-                        {
-                            result.InsertedCount++;
-                        }
+                        importFileData.Id = importFileDataBalanceService.Id;
+                        readLocalBalanceService.UpdateImportFileData(importFileData);
                     }
+                    else
+                    {
+                        statusInsert = readLocalBalanceService.AddImportFileData(importFileData);
+                    }
+
+                    if (statusInsert)
+                    {
+                        result.Inserted = true;
+                        result.LocalBalanceCount = localBalances.Count;
+
+                        foreach (var localBalance in localBalances)
+                        {
+                            var insertStatus = readLocalBalanceService.AddLocalBalance(localBalance);
+
+                            if (insertStatus)
+                            {
+                                result.LocalBalanceInsertSucceed++;
+                            }
+                            else
+                            {
+                                result.LocalBalanceInsertError++;
+                            }
+                        }
+
+
+                    }
+
                 }
 
-                return result;
-            }
 
+
+                return result;
+
+            }
         }
 
     }

@@ -518,14 +518,14 @@ namespace SLA_Management.Controllers
                 streamList.Add(memoryStream);
             }
 
-            var connStr = _myConfiguration.GetConnectionString($"ConnectString_NonOutsource:FullNameConnection_{_bank.ToLower()}");
+            var connStr = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + _bank);
             var result = ReadLocalBalanceService.InsertLocalBalance.Insert(streamList, connStr, userName);
 
             return Ok(new
             {
                 success = true,
-                message = result.InsertedCount > 0
-                    ? $"✅ Upload สำเร็จ: เพิ่มข้อมูล {result.InsertedCount} รายการ จาก {result.FileCount} ไฟล์"
+                message = result.LocalBalanceCount > 0
+                    ? $"✅ Upload สำเร็จ: เพิ่มข้อมูล {result.LocalBalanceCount}"
                     : "⚠️ Upload สำเร็จ แต่ไม่มีข้อมูลใหม่ถูกเพิ่ม"
             });
         }
