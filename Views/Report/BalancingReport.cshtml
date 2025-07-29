@@ -538,16 +538,20 @@
                 const fromDateValue = new Date(fromdate);
                 const toDateValue = new Date(todate);
 
-                if (hasDateOrTerminal) {
-                    if (isNaN(fromDateValue) || isNaN(toDateValue)) {
-                        alert("⚠️ กรุณาเลือกวันที่ให้ถูกต้อง");
-                        return;
-                    }
-                    if (fromDateValue > toDateValue) {
-                        alert("⚠️ วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด");
-                        return;
-                    }
-                }
+                 if (!hasDateOrTerminal) {
+        alert("⚠️ กรุณาระบุ Terminal ID หรือช่วงวันที่ก่อนค้นหาอีกครั้ง");
+        return;
+    }
+
+    if (isNaN(fromDateValue) || isNaN(toDateValue)) {
+        alert("⚠️ กรุณาเลือกวันที่ให้ถูกต้อง");
+        return;
+    }
+
+    if (fromDateValue > toDateValue) {
+        alert("⚠️ วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด");
+        return;
+    }
             }
 
             isBankSearched = true;
