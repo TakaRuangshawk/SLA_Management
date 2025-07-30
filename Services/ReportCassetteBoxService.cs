@@ -4,13 +4,8 @@ using Serilog;
 using SLA_Management.Commons;
 using SLA_Management.Models.CassetteStatus;
 using SLA_Management.Services;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
 
 namespace Services
 {
@@ -329,6 +324,8 @@ namespace Services
 
             public static InsertResult Insert(List<Stream> files, string connectionStringReportConfig, string username)
             {
+
+
                 var result = new InsertResult
                 {
                     Inserted = false,
@@ -343,6 +340,7 @@ namespace Services
 
 
                 };
+                var nameFile = new List<string>();
                 TerminalCassetteData terminalCassetteData = null;
                 foreach (var file in files)
                 {
@@ -357,6 +355,16 @@ namespace Services
                     else if (readData.queryDate.ToString("yyyyMMdd").Equals(terminalCassetteData.queryDate.ToString("yyyyMMdd")))
                     {
                         terminalCassetteData.data.AddRange(readData.data);
+
+                    }
+                    if (file is FileStream fileStream)
+                    {
+                        nameFile.Add(Path.GetFileName(fileStream.Name));
+                    }
+                    else
+                    {
+                        nameFile.Add($"{Guid.NewGuid().ToString()}.txt");
+
                     }
 
 
@@ -370,21 +378,20 @@ namespace Services
 
                 var dateTextFileReport = terminalCassetteData.queryDate;
 
-                var textFileReport = $"{Guid.NewGuid().ToString()}_{dateTextFileReport.ToString("yyyyMMdd")}.txt";
+                //var textFileReport = $"{Guid.NewGuid().ToString()}_{dateTextFileReport.ToString("yyyyMMdd")}.txt";
+                var textFileReport = string.Join(", ", nameFile);
+
 
                 ReportCassetteBoxService reportCassetteBoxService = new ReportCassetteBoxService(connectionStringReportConfig);
                 reportCassetteBoxService.MapReportCassette(eventMoniterConfig, cassetteMoniterConfig, reportCassetteDatas, reportTerminalCassetteDatas, textFileReport, terminalCassetteData.data);
-                var cassetteEventFiles = reportCassetteBoxService.GetImportFileDataByDate(terminalCassetteData.queryDate, projectNameConfig);
-                if (cassetteEventFiles.Count != 0)
-                {
-                    foreach (var cassetteEventFileDate in cassetteEventFiles)
-                    {
-                        reportCassetteBoxService.DeleteImportFileData(cassetteEventFileDate.Id);
-                        reportCassetteBoxService.DeleteReportCassetteAndReportTerminalCassetteById(cassetteEventFileDate.Id);
-                    }
 
-                }
-                var cassetteEventFile = new ImportFileData()
+
+
+
+
+
+                bool statusInsert = false;
+                var importFileData = new ImportFileData()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name_File = textFileReport,
@@ -393,7 +400,35 @@ namespace Services
                     Data_Date = terminalCassetteData.queryDate,
                     Import_Data_Project = projectNameConfig
                 };
-                if (reportCassetteBoxService.AddImportFileData(cassetteEventFile))
+
+
+
+
+
+                var cassetteEventFile = reportCassetteBoxService.GetFirstImportFileDataByDate(terminalCassetteData.queryDate, projectNameConfig);
+                if (cassetteEventFile != null)
+                {
+                    importFileData.Id = cassetteEventFile.Id;
+                    reportCassetteBoxService.DeleteReportCassetteAndReportTerminalCassetteById(importFileData.Id);
+                    statusInsert = reportCassetteBoxService.UpdateImportFileData(importFileData);
+                }
+                else
+                {
+                    statusInsert = reportCassetteBoxService.AddImportFileData(importFileData);
+                }
+
+                /*var cassetteEventFiles = reportCassetteBoxService.GetImportFileDataByDate(terminalCassetteData.queryDate, projectNameConfig);
+                if (cassetteEventFiles.Count != 0)
+                {
+                    foreach (var cassetteEventFileDate in cassetteEventFiles)
+                    {
+                        reportCassetteBoxService.DeleteImportFileData(cassetteEventFileDate.Id);
+                        reportCassetteBoxService.DeleteReportCassetteAndReportTerminalCassetteById(cassetteEventFileDate.Id);
+                    }
+
+                }*/
+
+                if (statusInsert)
                 {
                     result.Inserted = true;
                     result.CassetteCount = reportCassetteDatas.Count;
@@ -407,7 +442,7 @@ namespace Services
                             Cassette_Id = reportCassette.cassetteId,
                             Cassette_Status_Count = reportCassette.cassetteStatusCount,
                             Cassette_Status = reportCassette.cassetteStatus,
-                            Cassette_Event_File_Id = cassetteEventFile.Id,
+                            Cassette_Event_File_Id = importFileData.Id,
                         });
 
                         if (insertStatus)
@@ -430,7 +465,7 @@ namespace Services
                             Cassette_Id = reportTerminalCassette.cassetteId,
                             Cassette_Status = reportTerminalCassette.cassetteStatus,
                             Cassette_Remain = reportTerminalCassette.cassetteRemain,
-                            Cassette_Event_File_Id = cassetteEventFile.Id
+                            Cassette_Event_File_Id = importFileData.Id
 
                         });
 

@@ -4,7 +4,6 @@ using SLA_Management.Models.CassetteStatus;
 using System.Data;
 using System.Text;
 using System.Text.Json;
-using static Services.ReportCassetteBoxService;
 
 namespace SLA_Management.Services
 {
@@ -12,7 +11,6 @@ namespace SLA_Management.Services
     public class ReadLocalBalanceService : ImportFileService
     {
         private string _connectionString { get; set; }
-
         public ReadLocalBalanceService(string connectionString) : base(connectionString)
         {
             _connectionString = connectionString;
@@ -129,8 +127,7 @@ namespace SLA_Management.Services
                                     @REJECT_TYPE500QTY,
                                     @REJECT_TYPE500AMOUNT,
                                     @REJECT_TYPE100QTY,
-                                    @REJECT_TYPE100AMOUNT);
-                                    ";
+                                    @REJECT_TYPE100AMOUNT);";
 
             try
             {
@@ -207,7 +204,7 @@ namespace SLA_Management.Services
             }
             catch (Exception ex)
             {
-                // Log.Error(ex, "AddLocalBalance Error : ");
+                //Log.Error(ex, "AddLocalBalance Error : ");
 
             }
             finally
@@ -263,63 +260,63 @@ namespace SLA_Management.Services
 
 
 
-                    foreach (var lb in localBalances)
+                    foreach (var localBalance in localBalances)
                     {
                         MySqlCommand command = new MySqlCommand(singleRowSql, conn, transaction);
 
-                        command.Parameters.AddWithValue("@BALANCE_ID", lb.BALANCE_ID);
-                        command.Parameters.AddWithValue("@TERM_ID", lb.TERM_ID);
-                        command.Parameters.AddWithValue("@SERIAL_NUMBER", lb.SERIAL_NUMBER);
-                        command.Parameters.AddWithValue("@BALANCING_DATE", lb.BALANCING_DATE);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AQTY", lb.INITIAL_TYPE1000AQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000BQTY", lb.INITIAL_TYPE1000BQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000CQTY", lb.INITIAL_TYPE1000CQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000DQTY", lb.INITIAL_TYPE1000DQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000QTY", lb.INITIAL_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AMOUNT", lb.INITIAL_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500AQTY", lb.INITIAL_TYPE500AQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500BQTY", lb.INITIAL_TYPE500BQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500CQTY", lb.INITIAL_TYPE500CQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500DQTY", lb.INITIAL_TYPE500DQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500QTY", lb.INITIAL_TYPE500QTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE500AMOUNT", lb.INITIAL_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100AQTY", lb.INITIAL_TYPE100AQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100BQTY", lb.INITIAL_TYPE100BQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100CQTY", lb.INITIAL_TYPE100CQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100DQTY", lb.INITIAL_TYPE100DQTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100QTY", lb.INITIAL_TYPE100QTY);
-                        command.Parameters.AddWithValue("@INITIAL_TYPE100AMOUNT", lb.INITIAL_TYPE100AMOUNT);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000QTY", lb.DEPOSIT_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000AMOUNT", lb.DEPOSIT_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500QTY", lb.DEPOSIT_TYPE500QTY);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500AMOUNT", lb.DEPOSIT_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100QTY", lb.DEPOSIT_TYPE100QTY);
-                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100AMOUNT", lb.DEPOSIT_TYPE100AMOUNT);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000QTY", lb.WITHDRAW_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000AMOUNT", lb.WITHDRAW_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500QTY", lb.WITHDRAW_TYPE500QTY);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500AMOUNT", lb.WITHDRAW_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100QTY", lb.WITHDRAW_TYPE100QTY);
-                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100AMOUNT", lb.WITHDRAW_TYPE100AMOUNT);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE1000QTY", lb.BALANCE_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE1000AMOUNT", lb.BALANCE_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE500QTY", lb.BALANCE_TYPE500QTY);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE500AMOUNT", lb.BALANCE_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE100QTY", lb.BALANCE_TYPE100QTY);
-                        command.Parameters.AddWithValue("@BALANCE_TYPE100AMOUNT", lb.BALANCE_TYPE100AMOUNT);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE1000QTY", lb.RETRACT_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE1000AMOUNT", lb.RETRACT_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE500QTY", lb.RETRACT_TYPE500QTY);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE500AMOUNT", lb.RETRACT_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE100QTY", lb.RETRACT_TYPE100QTY);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE100AMOUNT", lb.RETRACT_TYPE100AMOUNT);
-                        command.Parameters.AddWithValue("@RETRACT_TYPE_UNKNOWN_AMOUNT", lb.RETRACT_TYPE_UNKNOWN_AMOUNT);
-                        command.Parameters.AddWithValue("@REJECT_TYPE1000QTY", lb.REJECT_TYPE1000QTY);
-                        command.Parameters.AddWithValue("@REJECT_TYPE1000AMOUNT", lb.REJECT_TYPE1000AMOUNT);
-                        command.Parameters.AddWithValue("@REJECT_TYPE500QTY", lb.REJECT_TYPE500QTY);
-                        command.Parameters.AddWithValue("@REJECT_TYPE500AMOUNT", lb.REJECT_TYPE500AMOUNT);
-                        command.Parameters.AddWithValue("@REJECT_TYPE100QTY", lb.REJECT_TYPE100QTY);
-                        command.Parameters.AddWithValue("@REJECT_TYPE100AMOUNT", lb.REJECT_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_ID", localBalance.BALANCE_ID);
+                        command.Parameters.AddWithValue("@TERM_ID", localBalance.TERM_ID);
+                        command.Parameters.AddWithValue("@SERIAL_NUMBER", localBalance.SERIAL_NUMBER);
+                        command.Parameters.AddWithValue("@BALANCING_DATE", localBalance.BALANCING_DATE);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AQTY", localBalance.INITIAL_TYPE1000AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000BQTY", localBalance.INITIAL_TYPE1000BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000CQTY", localBalance.INITIAL_TYPE1000CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000DQTY", localBalance.INITIAL_TYPE1000DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000QTY", localBalance.INITIAL_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE1000AMOUNT", localBalance.INITIAL_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500AQTY", localBalance.INITIAL_TYPE500AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500BQTY", localBalance.INITIAL_TYPE500BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500CQTY", localBalance.INITIAL_TYPE500CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500DQTY", localBalance.INITIAL_TYPE500DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500QTY", localBalance.INITIAL_TYPE500QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE500AMOUNT", localBalance.INITIAL_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100AQTY", localBalance.INITIAL_TYPE100AQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100BQTY", localBalance.INITIAL_TYPE100BQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100CQTY", localBalance.INITIAL_TYPE100CQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100DQTY", localBalance.INITIAL_TYPE100DQTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100QTY", localBalance.INITIAL_TYPE100QTY);
+                        command.Parameters.AddWithValue("@INITIAL_TYPE100AMOUNT", localBalance.INITIAL_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000QTY", localBalance.DEPOSIT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE1000AMOUNT", localBalance.DEPOSIT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500QTY", localBalance.DEPOSIT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE500AMOUNT", localBalance.DEPOSIT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100QTY", localBalance.DEPOSIT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@DEPOSIT_TYPE100AMOUNT", localBalance.DEPOSIT_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000QTY", localBalance.WITHDRAW_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE1000AMOUNT", localBalance.WITHDRAW_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500QTY", localBalance.WITHDRAW_TYPE500QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE500AMOUNT", localBalance.WITHDRAW_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100QTY", localBalance.WITHDRAW_TYPE100QTY);
+                        command.Parameters.AddWithValue("@WITHDRAW_TYPE100AMOUNT", localBalance.WITHDRAW_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE1000QTY", localBalance.BALANCE_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE1000AMOUNT", localBalance.BALANCE_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE500QTY", localBalance.BALANCE_TYPE500QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE500AMOUNT", localBalance.BALANCE_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE100QTY", localBalance.BALANCE_TYPE100QTY);
+                        command.Parameters.AddWithValue("@BALANCE_TYPE100AMOUNT", localBalance.BALANCE_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE1000QTY", localBalance.RETRACT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE1000AMOUNT", localBalance.RETRACT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE500QTY", localBalance.RETRACT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE500AMOUNT", localBalance.RETRACT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE100QTY", localBalance.RETRACT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE100AMOUNT", localBalance.RETRACT_TYPE100AMOUNT);
+                        command.Parameters.AddWithValue("@RETRACT_TYPE_UNKNOWN_AMOUNT", localBalance.RETRACT_TYPE_UNKNOWN_AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE1000QTY", localBalance.REJECT_TYPE1000QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE1000AMOUNT", localBalance.REJECT_TYPE1000AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE500QTY", localBalance.REJECT_TYPE500QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE500AMOUNT", localBalance.REJECT_TYPE500AMOUNT);
+                        command.Parameters.AddWithValue("@REJECT_TYPE100QTY", localBalance.REJECT_TYPE100QTY);
+                        command.Parameters.AddWithValue("@REJECT_TYPE100AMOUNT", localBalance.REJECT_TYPE100AMOUNT);
 
                         command.ExecuteNonQuery();
                     }
@@ -389,7 +386,7 @@ namespace SLA_Management.Services
                         }
                         catch (Exception ex)
                         {
-                            // Log.Error($"ReadData Error {line} : {ex}");
+                            //Log.Error($"ReadData Error {line} : {ex}");
                         }
 
                     }
@@ -435,7 +432,7 @@ namespace SLA_Management.Services
 
                         if (file is FileStream fileStream)
                         {
-                            nameFile.Add(fileStream.Name);
+                            nameFile.Add(Path.GetFileName(fileStream.Name));
                         }
                         else
                         {
@@ -477,7 +474,8 @@ namespace SLA_Management.Services
                     if (importFileDataBalanceService != null)
                     {
                         importFileData.Id = importFileDataBalanceService.Id;
-                        readLocalBalanceService.UpdateImportFileData(importFileData);
+
+                        statusInsert = readLocalBalanceService.UpdateImportFileData(importFileData);
                     }
                     else
                     {
@@ -489,7 +487,7 @@ namespace SLA_Management.Services
                         result.Inserted = true;
                         result.LocalBalanceCount = localBalances.Count;
 
-                        foreach (var localBalance in localBalances)
+                        /*foreach (var localBalance in localBalances)
                         {
                             var insertStatus = readLocalBalanceService.AddLocalBalance(localBalance);
 
@@ -501,8 +499,15 @@ namespace SLA_Management.Services
                             {
                                 result.LocalBalanceInsertError++;
                             }
+                        }*/
+                        if (readLocalBalanceService.AddLocalBalances(localBalances))
+                        {
+                            result.LocalBalanceInsertSucceed = localBalances.Count;
                         }
-
+                        else
+                        {
+                            result.LocalBalanceInsertError = localBalances.Count;
+                        }
 
                     }
 
