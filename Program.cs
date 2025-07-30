@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 using SLA_Management.Commons.SignalR;
 using SLA_Management.Services;
 
@@ -16,6 +17,7 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddScoped<CassetteService>();
 builder.Services.AddScoped<BalancingService>();
+builder.Services.AddScoped<ReportCasesCheckService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();

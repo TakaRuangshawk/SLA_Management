@@ -1,0 +1,456 @@
+﻿@{
+    ViewData["Title"] = "Report Management ";
+
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* 🔽 Dropdown & Form Controls */
+    .bootstrap-select > .dropdown-toggle,
+    .dropdown-toggle {
+        border-color: #ced4da;
+        background-color: transparent;
+        position: relative;
+        width: 100%;
+        text-align: right;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 10px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+
+    select.form-control,
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .form-group {
+        margin-bottom: 1em;
+    }
+
+    /* ✅ Input Layout & Buttons */
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    /* 🔎 Header & Search Box */
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    #main_search {
+        margin: 30px 50px 50px 50px;
+        padding: 30px 0;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    /* 📋 Table Styling */
+    .table-container {
+        position: relative;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .dashboard-table {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+        .dashboard-table .table th,
+        .dashboard-table .table td {
+            min-width: 180px;
+            vertical-align: middle !important;
+        }
+
+            .dashboard-table .table th:first-child,
+            .dashboard-table .table td:first-child {
+                min-width: 140px;
+                padding-left: 30px;
+            }
+
+    td {
+        padding: 0.2em !important;
+    }
+
+    th {
+        text-align: center;
+    }
+
+    h {
+        white-space: nowrap;
+    }
+
+    /* ⏳ Loading Overlay */
+    .boxDownload {
+        background-color: rgba(255, 255, 255, 0.5);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 9999; /* อยู่บนสุดกว่าทุก modal */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .imgDownload {
+        position: sticky;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1"></div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Report Cases Check</a>
+            </div>
+        </div>
+
+        <div id="main_search">
+            @using (Html.BeginForm("ReportCasesCheck", "Management", FormMethod.Get, new { id = "ReportCasesCheckForm" }))
+            {
+                <!-- Bank Row -->
+                <div class="row" style="margin-top: 45px; align-items:center; display: flex; padding:0vw 6vw; white-space:nowrap;">
+                    <div class="col-md-1" style="margin-right: 143px;">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2" style="border-color:#ced4da;">
+                        @Html.DropDownList("bankName", new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = "BAAC", Value = "BAAC", Selected = ViewBag.bankName == "BAAC" },
+                            new SelectListItem { Text = "ICBC", Value = "ICBC", Selected = ViewBag.bankName == "ICBC" }
+                        }, new {
+                            @class = "form-control dropdown",
+                            @style = "border-radius: 10px;"
+                        })
+                    </div>
+                </div>
+
+                <!-- From / To Date -->
+                <div class="row" style="margin-top: 45px; align-items:center; display: flex; justify-content: space-around; padding:0vw 3vw; white-space:nowrap;">
+                    <div class="col-md-1"><h>From Date : </h></div>
+                    <div class="item col-md-2">
+                        <input class="form-control subsearch" id="fromdate" name="fromdate" type="date"
+                               value="@ViewBag.Filter_FromDate" min="1997-01-01" max="2030-12-31" />
+                    </div>
+                    <div class="col-md-1"><h>To Date : </h></div>
+                    <div class="item col-md-2">
+                        <input class="form-control subsearch" id="todate" name="todate" type="date"
+                               value="@ViewBag.Filter_ToDate" min="1997-01-01" max="2030-12-31" />
+                    </div>
+                </div>
+
+                <!-- Rows & Status -->
+                <div class="row" style="margin-top: 45px; align-items:center; display: flex; padding:0vw 3vw; white-space:nowrap;justify-content: space-around;">
+                    <div class="col-md-1" style=""><h>Rows : </h></div>
+                    <div class="item col-md-2">
+                        @Html.DropDownList("row", new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = "50", Value = "50" },
+                            new SelectListItem { Text = "100", Value = "100" },
+                            new SelectListItem { Text = "500", Value = "500" }
+                        }, new {
+                            @class = "form-control dropdown",
+                            @style = "border-radius: 10px;"
+                        })
+                    </div>
+
+                    <div class="col-md-1" style=""><h>Status : </h></div>
+                    <div class="item col-md-2">
+                        @Html.DropDownList("status", new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = "All", Value = "" },
+                            new SelectListItem { Text = "Found", Value = "Found" },
+                            new SelectListItem { Text = "NotFound", Value = "NotFound" }
+                        }, new {
+                            @class = "form-control dropdown",
+                            @style = "border-radius: 10px;"
+                        })
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="row justify-content-md-center" style="margin-top: 45px;">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button" data-toggle="modal" data-target="#WaitingModal" class="btn" style="padding:0px;" onclick="updateReportCasesCheckTable()">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
+                            </button>
+                            <button type="submit" id="btnclear" class="btn" data-toggle="tooltip" title="ล้างข้อมูล" style="padding:0px; border: 0px; background-color: transparent;" onclick="clearFunction()">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 38px" class="rounded-lg p-0" alt="Clear Data" />
+                            </button>
+                            <a id="btnSEExp" data-toggle="tooltip" title="Excel Export Report" style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Record:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;" ;="">
+                <span id="recordCount">0</span>
+            </a>
+        </div>
+    </div>
+    <div class="table-container dashboard-table">
+      
+            <table id="table-id" class="table table-striped custom-table">
+                <thead id="t-header" style="">
+                 <tr>
+                    <th style="text-align:center; vertical-align: middle;text-wrap: nowrap;"> No </th>
+                    <th  style ="text-align:center; vertical-align: middle;text-wrap: nowrap;"> DateTime </th>
+                    <th  style="text-align:center; vertical-align: middle;text-wrap: nowrap;"> Status </th>                   
+                </tr>
+              
+            </thead>
+
+                <tbody>
+                    <tr>
+                        <td colspan="18" style="text-align:center;">No data</td>
+                    </tr>
+                </tbody>
+            </table>
+   
+    </div>
+
+        <div class="row">
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] {
+
+                    }, new
+                    {
+                    @class = "form-control",
+                    onchange = "updateTable('page')"
+                    })
+                </p>
+            </div>
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                            <li data-page="prev" id="prev" style="visibility:hidden;" onclick="updateTable('prev')">
+                                <a style="color: #7a7a7a;"> < </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
+
+                            <li data-page="next" id="next" style="visibility:hidden;" onclick=" updateTable('next')">
+                                <a style="color: #7a7a7a;"> > </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+ </div>
+
+ <div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">
+</div>
+
+<script>
+   function updateReportCasesCheckTable(page = 1) {
+        const fromdate = $("#fromdate").val();
+        const todate = $("#todate").val();
+        const bankName = $("#bankName").val() || $("select[name='bankName']").val();
+        const status = $("select[name='status']").val();
+        const row = $("select[name='row']").val();
+
+        // ✅ ตรวจสอบว่ามีการเลือกธนาคาร
+        if (!bankName) {
+            alert("⚠️ กรุณาเลือกธนาคารก่อนค้นหา");
+            return;
+        }
+
+        // ✅ ตรวจสอบวันที่
+        if (!fromdate || !todate) {
+            alert("⚠️ กรุณาเลือกวันที่ From และ To ให้ครบ");
+            return;
+        }
+
+        const fromDateValue = new Date(fromdate);
+        const toDateValue = new Date(todate);
+
+        if (isNaN(fromDateValue.getTime()) || isNaN(toDateValue.getTime())) {
+            alert("⚠️ รูปแบบวันที่ไม่ถูกต้อง");
+            return;
+        }
+
+        if (fromDateValue > toDateValue) {
+            alert("⚠️ วันที่เริ่มต้น (From) ต้องไม่เกินวันที่สิ้นสุด (To)");
+            return;
+        }
+
+        // ✅ ถ้าผ่านเงื่อนไขทั้งหมด เริ่ม AJAX
+        $.ajax({
+            type: "GET",
+            url: '/Management/FetchReportCasesCheck',
+            data: { fromdate, todate, bankName, page, row ,status  },
+            dataType: "json",
+            beforeSend: function () {
+                $("#boxDownload").fadeIn(); // 🔄 แสดง overlay
+            },
+            success: function (data) {
+                const tbody = $("#table-id tbody").empty();
+                const jsondata = data.jsonData;
+                const totalPages = data.totalPages;
+                const currentPage = data.currentPage;
+                const totalCases = data.totalCases;
+
+                $("#recordCount").text(totalCases);
+
+                if (!jsondata || jsondata.length === 0) {
+                    tbody.append(`<tr><td colspan="3" style="text-align:center;">No data</td></tr>`);
+                    return;
+                }
+
+                jsondata.forEach((item, index) => {
+                     const formattedDate = item.dateInform
+        ? new Date(item.dateInform).toLocaleDateString('en-GB') // ✅ แสดงเป็น DD/MM/YYYY
+        : "-";
+                    tbody.append(`
+                        <tr>
+                            <td style="text-align:center;">${(currentPage - 1) * row + index + 1}</td>
+                            <td style="text-align:center;">${formattedDate.replace(/\//g, "-")}</td>
+                            <td style="text-align:center;">${item.status}</td>
+                        </tr>
+                    `);
+                });
+
+                const pageDropdown = $("select[name='page']").empty();
+                for (let i = 1; i <= totalPages; i++) {
+                    const selected = (i === currentPage) ? "selected" : "";
+                    pageDropdown.append(`<option value="${i}" ${selected}>${i}</option>`);
+                }
+
+                $("#prev").css("visibility", currentPage > 1 ? "visible" : "hidden");
+                $("#next").css("visibility", currentPage < totalPages ? "visible" : "hidden");
+            },
+            error: function () {
+                $("#table-id tbody").html(`<tr><td colspan="3" style="text-align:center;">❌ ERROR</td></tr>`);
+            },
+            complete: function () {
+                $("#boxDownload").fadeOut(); // 🔄 ซ่อน overlay
+            }
+        });
+    }
+
+    // 🔁 ใช้สำหรับ dropdown และปุ่ม Prev/Next
+    function updateTable(mode) {
+        let page = parseInt($("select[name='page']").val());
+
+        if (mode === "prev" && page > 1) {
+            page--;
+        } else if (mode === "next") {
+            page++;
+        } else if (mode === "page") {
+            page = parseInt($("select[name='page']").val());
+        }
+
+        updateReportCasesCheckTable(page);
+    }
+
+    // 🧼 ล้างฟอร์ม
+   function clearFunction() {
+    // ล้างค่า Input
+    $("#fromdate").val("");
+    $("#todate").val("");
+
+    // ล้าง Dropdowns ทั้งหมด
+    $("select[name='bankName']").prop('selectedIndex', 0);
+    $("select[name='status']").prop('selectedIndex', 0);
+    $("select[name='row']").val("50");
+    $("select[name='page']").empty();
+
+    // ล้างตัวแสดงผล
+    $("#recordCount").text("0");
+    $("#table-id tbody").html(`<tr><td colspan="3" style="text-align:center;">No data</td></tr>`);
+
+    // รีเซ็ตหน้าเพจ
+    $("#prev").css("visibility", "hidden");
+    $("#next").css("visibility", "hidden");
+}
+
+// 📁 Export Excel: ReportCasesCheck
+$("#btnSEExp").on("click", function () {
+    const fromdate = $("#fromdate").val();
+    const todate = $("#todate").val();
+    const bankName = $("#bankName").val();
+    const status = $("select[name='status']").val();
+
+    if (!bankName || bankName === "null") {
+        alert("⚠️ กรุณาเลือกธนาคารก่อน");
+        return;
+    }
+
+    const url = `${'/Management/ExportReportCasesCheckToExcel'}?fromdate=${fromdate}&todate=${todate}&bankName=${bankName}&status=${status}`;
+    window.open(url, "_blank");
+});
+
+
+</script>

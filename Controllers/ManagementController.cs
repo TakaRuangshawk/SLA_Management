@@ -1,30 +1,21 @@
-﻿using MathNet.Numerics;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Models.ManagementModel;
 using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-using NPOI.SS.Formula.Functions;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
-using SLA_Management.Models.CassetteStatus;
 using SLA_Management.Models.ManagementModel;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
 using SLA_Management.Services;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
-using System.Linq.Expressions;
-using static NPOI.SS.Formula.Functions.LinearRegressionFunction;
 using static Services.ReportCassetteBoxService;
-using static Services.ReportCassetteBoxService.ReadFile;
-using static SLA_Management.Controllers.ReportController;
+
 
 namespace SLA_Management.Controllers
 {
@@ -32,14 +23,16 @@ namespace SLA_Management.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly CassetteService _cassetteService;
+        private readonly ReportCasesCheckService _reportCasesCheckService;
 
         private static regulator_seek param = new regulator_seek();
         private static List<TicketManagement> ticket_dataList = new List<TicketManagement>();
         private static List<TicketManagement> recordset_ticketManagement = new List<TicketManagement>();
-        public ManagementController(IConfiguration configuration, CassetteService cassetteService)
+        public ManagementController(IConfiguration configuration, CassetteService cassetteService, ReportCasesCheckService reportCaesCheckService)
         {
             _configuration = configuration;
             _cassetteService = cassetteService;
+            _reportCasesCheckService = reportCaesCheckService;
         }
 
         private static List<Device_info_record> GetDeviceInfoFeelview(string _bank, IConfiguration _myConfiguration)
@@ -222,6 +215,141 @@ namespace SLA_Management.Controllers
 
 
         }
+
+        #endregion
+
+        #region Report Cases Management ( Check )
+
+        public IActionResult ReportCasesCheck(
+   string bankName,
+   string Filter_FromDate,
+   string Filter_ToDate
+   )
+        {
+
+            ViewBag.bankName = bankName;
+
+            ViewBag.Filter_FromDate = Filter_FromDate;
+            ViewBag.Filter_ToDate = Filter_ToDate;
+            
+
+            return View();
+        }
+
+       
+
+        [HttpGet]
+        public async Task<JsonResult> FetchReportCasesCheck(DateTime? fromdate, DateTime? todate, string bankName, int row = 50, int page = 1, string status = "")
+
+        {
+            if (string.IsNullOrEmpty(bankName))
+            {
+                return Json(new
+                {
+                    jsonData = new List<ReportCaseStatusModel>(),
+                    currentPage = page,
+                    totalPages = 0,
+                    totalCases = 0,
+                    terminalDropdown = new List<Device_info_record>()
+                });
+            }
+
+            // 📦 preload dropdown (ถ้ามีในอนาคต)
+            var terminalList = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
+
+            // ✅ ดึงข้อมูลทั้งหมดจาก Service
+            var allCases = await _reportCasesCheckService.GetReportCasesAsync(fromdate, todate, bankName);
+
+            // ✅ กรองตาม Status ถ้ามีการระบุ
+            if (!string.IsNullOrEmpty(status))
+            {
+                allCases = allCases
+                    .Where(x => string.Equals(x.Status, status, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            int totalCases = allCases.Count;
+            int totalPages = (int)Math.Ceiling((double)totalCases / row);
+
+            // ✅ Paging
+            var pagedData = allCases
+                .OrderByDescending(r => r.DateInform)
+                .Skip((page - 1) * row)
+                .Take(row)
+                .ToList();
+
+            // ✅ ถ้าไม่พบเลย  
+            if (pagedData.Count == 0)
+            {
+                pagedData.Add(new ReportCaseStatusModel
+                {
+                    DateInform = null,
+                    Status = "NotFound"
+                });
+            }
+
+            return Json(new
+            {
+                jsonData = pagedData,
+                currentPage = page,
+                totalPages,
+                totalCases,
+                terminalDropdown = terminalList
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportReportCasesCheckToExcel(DateTime? fromdate, DateTime? todate, string bankName, string status)
+        {
+            var data = await _reportCasesCheckService.GetReportCasesAsync(fromdate, todate, bankName);
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                data = data.Where(d => d.Status == status).ToList();
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("ReportCases");
+
+            string displayDate = fromdate.HasValue && todate.HasValue
+                ? $"{fromdate.Value:dd-MM-yyyy} ถึง {todate.Value:dd-MM-yyyy}"
+                : "ทั้งหมด";
+
+            ws.Cells["A1"].Value = $"📅 ช่วงวันที่ข้อมูล: {displayDate}";
+            ws.Cells["A1"].Style.Font.Bold = true;
+
+            var headers = new[] { "No.", "Date", "Status" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[3, i + 1].Value = headers[i];
+                ws.Cells[3, i + 1].Style.Font.Bold = true;
+                ws.Cells[3, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[3, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                ws.Column(i + 1).AutoFit();
+            }
+
+            int row = 4;
+            int no = 1;
+            foreach (var item in data)
+            {
+                ws.Cells[row, 1].Value = no++;
+                ws.Cells[row, 2].Value = item.DateInform?.ToString("dd-MM-yyyy");
+                ws.Cells[row, 3].Value = item.Status;
+                row++;
+            }
+
+            string safeFrom = fromdate?.ToString("yyyyMMdd") ?? "Start";
+            string safeTo = todate?.ToString("yyyyMMdd") ?? "End";
+            string fileName = $"ReportCasesCheck_{safeFrom}_to_{safeTo}.xlsx";
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
 
         #endregion
 
