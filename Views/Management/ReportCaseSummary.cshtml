@@ -1,0 +1,360 @@
+﻿@using SLA_Management.Models.ManagementModel
+@using SLA_Management.Models.OperationModel
+@model List<ReportCaseSummary>
+@{
+    ViewData["Title"] = "Report Case Summary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var terminalList = ViewBag.CurrentTID as List<Device_info_record>;
+    var selectedYear = ViewBag.SelectedYear;
+    var selectedTerminalId = ViewBag.TerminalId;
+}
+
+<style>
+    .btn-light {
+    border: 1px solid darkgrey;
+    border-radius: 10px;
+}
+
+h {
+    display: flex;
+    justify-content: center;
+}
+
+.chkbox {
+    text-align: left;
+}
+
+.my-dropdown {
+    width: 100%;
+    height: 38px;
+}
+
+input:disabled {
+    background-color: #f2f2f2;
+}
+
+.btnsearch {
+    font-size: 18px;
+}
+
+select.form-control {
+    -webkit-appearance: button;
+}
+
+input.form-control {
+    -webkit-appearance: button;
+    border-radius: 10px;
+}
+
+
+#header_search {
+    top: 20px;
+    position: relative;
+    background-color: orange;
+    border: solid;
+    padding: 8px 40px 8px 40px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.item {
+    padding: 0px;
+}
+
+#submit {
+    display: flex;
+    position: relative;
+    top: 50px;
+    background: lightgray;
+    border: 10px double white;
+    border-radius: 20px;
+    padding: 0px 0px 0px 0px;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+#before-submit {
+    display: flex;
+    justify-content: center;
+}
+
+#main_search {
+    margin-bottom: 50px;
+    padding: 30px 0;
+    margin-left: 50px;
+    margin-right: 50px;
+    border: 3px solid #888888;
+    background-color: white;
+    border-radius: 50px;
+}
+
+.dropdown-toggle {
+    border-radius: 10px;
+}
+th,
+td {
+  white-space: nowrap;  
+}
+
+.issue-column {
+  max-width: 250px;     
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+th {
+    text-align: center;
+    vertical-align: middle;
+}
+td {
+    padding: 0.5em !important;
+    vertical-align: middle;
+}
+
+.pagination li a {
+    color: black !important;
+}
+
+.boxDownload {
+    background-color: rgba(255, 255, 255, 0.5);
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.imgDownload {
+    position: sticky;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#top-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 20px;
+    margin-bottom: 5px;
+}
+
+#top-scroll-content {
+    height: 1px;
+}
+
+#bottom-scroll {
+    overflow-x: auto;
+}
+.custom-table {
+    min-width: 1600px;
+}
+
+
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1"></div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Report Case Summary</a>
+            </div>
+        </div>
+        <div id="main_search">
+            @using (Html.BeginForm("ReportCaseSummary", "Management", FormMethod.Get, new { id = "myForm" }))
+            {
+                <div class="row" style="margin-top: 45px;  align-items:center; justify-content: space-around; padding:0vw 3vw; white-space:nowrap;">
+                    <div class="col-md-1" style="">
+                        <h>Bank : </h>
+                    </div>
+                    <div class="item col-md-2">
+                        @Html.DropDownList("bankName", new SelectListItem[] {
+                            new SelectListItem() { Text = "BAAC", Value = "BAAC", Selected = true }
+                        }, new {
+                            @class = "form-control dropdown",
+                            @style = "border-radius: 10px;",
+                            @name = "state",
+                            @disabled = "disabled"
+                        })
+                    </div>
+                    <input type="hidden" id="bankName" name="bankName" value="BAAC" />
+                     <div class="col-md-1" style="">
+                        
+                    </div>
+                    <div class="item col-md-2">
+                    </div>
+                     <div class="col-md-1" style="">
+                        
+                    </div>
+                    <div class="item col-md-2">
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 30px; align-items:center; justify-content: space-around; padding:0vw 3vw; white-space:nowrap;">
+                    <div class="col-md-1">
+                        <h>Terminal No : </h>
+                    </div>
+                    <div class="item col-md-2">
+                        <select class="selectpicker form-control subsearch" id="Terminal_ID" name="Terminal_ID" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @foreach (var item in terminalList)
+                            {
+                                if (item.TERM_ID != selectedTerminalId)
+                                {
+                                    <option value="@item.TERM_ID" data-tokens="@item.TERM_ID">@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.TERM_ID" data-tokens="@item.TERM_ID" selected>@item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-1">
+                        <h>Year: </h>
+                    </div>
+                    <div class="item col-md-2">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="yearDropdown" name="year">
+                                @for (int y = DateTime.Now.Year - 1; y <= DateTime.Now.Year + 5; y++)
+                                    {
+                                        <option value="@y" selected="@(y == selectedYear ? "selected" : null)">@y</option>
+                                    }
+
+                            </select>
+                        </div>
+                    </div>
+                     <div class="col-md-1" style="">
+                        
+                    </div>
+                    <div class="item col-md-2">
+                    </div>
+                </div>
+                <div class="row" style=" align-items:center; justify-content: space-around; padding:0vw 3vw; white-space:nowrap;">
+                    <div class="col-md-2">
+                        <div id="submit">
+                            <button type="submit" id="btnsearch" class="btn" style="padding:0px;">
+                                <img src="~/images/icon_search.png" style="width: 50px; height: 50px" class="rounded-lg p-0" alt="Search" />
+                            </button>
+
+                            <a href="@Url.Action("ReportCaseSummary", "Management")" id="btnclear" class="btn" title="ล้างข้อมูล" style="padding:0px; border: 0px; background-color: transparent;">
+                                <img src="~/images/icon_refresh.png" style="width: 40px; height: 40px" class="rounded-lg p-0" alt="Clear Data" />
+                            </a>
+
+                            <a title="Export to Excel" style="cursor: pointer;">
+                                <img src="@Url.Content("~/images/icon_excel.png")"
+                                     style="width: 50px; height: 50px;"
+                                     onclick="exportTableToServer()" />
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="scroll-wrapper">
+        <div id="top-scroll"><div id="top-scroll-content"></div></div>
+        <div id="bottom-scroll">
+            <table id="summaryTable" class="table table-striped custom-table">
+                <thead>
+                    <tr>
+                        <th class="issue-column" rowspan="2">Issue Name</th>
+                        @foreach (var m in new[] { "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค." })
+                        {
+                            <th colspan="2">@m</th>
+                        }
+                        <th colspan="2">รวม</th>
+                    </tr>
+                    <tr>
+                        @for (int i = 0; i < 13; i++)
+                        {
+                            <th>4000</th><th>AService</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var row in Model)
+                        {
+                            <tr>
+                                <td>@row.IssueName</td>
+                                @for (int i = 0; i < 12; i++)
+                                {
+                                    <td>@row.BaacService[i]</td>
+                                    <td>@row.AService[i]</td>
+                                }
+                                <td>@row.TotalBaacService</td>
+                                <td>@row.TotalAService</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="27" style="text-align:center;">NO DATA</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="boxDownload" id="boxDownload" style="display: none;">
+    <img class="imgDownload" src="~/images/loading.gif">ห
+</div>
+
+<script>
+    const topScroll = document.getElementById('top-scroll');
+    const bottomScroll = document.getElementById('bottom-scroll');
+    const topScrollContent = document.getElementById('top-scroll-content');
+    const summaryTable = document.getElementById('summaryTable');
+
+    function syncScrollbars() {
+        topScrollContent.style.width = summaryTable.scrollWidth + 'px';
+        topScroll.scrollLeft = bottomScroll.scrollLeft;
+        topScroll.onscroll = () => bottomScroll.scrollLeft = topScroll.scrollLeft;
+        bottomScroll.onscroll = () => topScroll.scrollLeft = bottomScroll.scrollLeft;
+    }
+    function exportTableToServer() {
+        const table = document.getElementById("summaryTable");
+        const rows = table.querySelectorAll("tbody tr");
+        const tableData = [];
+
+        rows.forEach(row => {
+            const rowData = [];
+            row.querySelectorAll("td").forEach(cell => {
+                rowData.push(cell.innerText.trim());
+            });
+            tableData.push(rowData);
+        });
+
+        fetch('/Management/ExportFromTableReportCaseSummary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tableData)
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "ReportCaseSummary.xlsx";
+            link.click();
+        });
+    }
+
+
+    window.onload = syncScrollbars;
+    window.onresize = syncScrollbars;
+</script>

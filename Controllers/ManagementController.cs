@@ -987,7 +987,235 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
             }
         }
         #endregion
+        #region ReportCaseSummary
+        public IActionResult ReportCaseSummary(int? year, string Terminal_ID)
+        {
+            string bankName = "baac";
 
+            if (bankName != null)
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _configuration);
+                ViewBag.Issue_Name = GetIssue_Name(bankName.ToLower(), _configuration);
+                ViewBag.Status_Name = GetStatus_Name(bankName.ToLower(), _configuration);
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+                ViewBag.Issue_Name = new List<IssueName>();
+                ViewBag.Status_Name = new List<StatusName>();
+            }
+
+            ViewBag.bankName = bankName;
+            ViewBag.SelectedYear = year ?? DateTime.Now.Year;
+            ViewBag.TerminalId = Terminal_ID;
+
+            // ✅ ดึงรายงานสรุป
+            var results = LoadCaseSummaryByYearAndTerminal(ViewBag.SelectedYear, Terminal_ID, bankName, _configuration);
+            return View(results); // 🔁 ส่ง List<ReportCaseSummaryRow> ไปยัง View
+        }
+        private List<ReportCaseSummary> LoadCaseSummaryByYearAndTerminal(int year, string terminalId, string bank, IConfiguration _myConfiguration)
+        {
+            var results = new List<ReportCaseSummary>();
+            var connStr = _myConfiguration.GetValue<string>("ConnectString_NonOutsource:FullNameConnection_" + bank.ToLower());
+
+            using var conn = new MySqlConnection(connStr);
+            conn.Open();
+
+            string sql = @"
+SELECT 
+    Issue_Name,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 1 AND Incident_No IS NULL THEN 1 END) AS baacservice_1,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 1 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_1,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 2 AND Incident_No IS NULL THEN 1 END) AS baacservice_2,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 2 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_2,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 3 AND Incident_No IS NULL THEN 1 END) AS baacservice_3,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 3 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_3,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 4 AND Incident_No IS NULL THEN 1 END) AS baacservice_4,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 4 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_4,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 5 AND Incident_No IS NULL THEN 1 END) AS baacservice_5,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 5 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_5,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 6 AND Incident_No IS NULL THEN 1 END) AS baacservice_6,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 6 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_6,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 7 AND Incident_No IS NULL THEN 1 END) AS baacservice_7,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 7 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_7,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 8 AND Incident_No IS NULL THEN 1 END) AS baacservice_8,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 8 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_8,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 9 AND Incident_No IS NULL THEN 1 END) AS baacservice_9,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 9 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_9,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 10 AND Incident_No IS NULL THEN 1 END) AS baacservice_10,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 10 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_10,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 11 AND Incident_No IS NULL THEN 1 END) AS baacservice_11,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 11 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_11,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 12 AND Incident_No IS NULL THEN 1 END) AS baacservice_12,
+    COUNT(CASE WHEN MONTH(Date_Inform) = 12 AND Incident_No IS NOT NULL THEN 1 END) AS aservice_12,
+    COUNT(CASE WHEN Incident_No IS NULL THEN 1 END) AS total_baacservice,
+    COUNT(CASE WHEN Incident_No IS NOT NULL THEN 1 END) AS total_aservice
+FROM reportcases
+WHERE YEAR(Date_Inform) = @year
+  AND (@terminalId IS NULL OR Terminal_ID = @terminalId)
+GROUP BY Issue_Name
+ORDER BY Issue_Name;";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@year", year);
+            cmd.Parameters.AddWithValue("@terminalId", string.IsNullOrEmpty(terminalId) ? DBNull.Value : terminalId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var row = new ReportCaseSummary
+                {
+                    IssueName = reader["Issue_Name"].ToString(),
+                    TotalBaacService = Convert.ToInt32(reader["total_baacservice"]),
+                    TotalAService = Convert.ToInt32(reader["total_aservice"]),
+                };
+
+                for (int i = 0; i < 12; i++)
+                {
+                    row.BaacService[i] = Convert.ToInt32(reader[$"baacservice_{i + 1}"]);
+                    row.AService[i] = Convert.ToInt32(reader[$"aservice_{i + 1}"]);
+                }
+
+                results.Add(row);
+            }
+
+            return results;
+        }
+
+
+        [HttpPost]
+        public IActionResult ExportFromTableReportCaseSummary([FromBody] List<List<string>> tableBody)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("Summary");
+
+            var months = new[] { "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค." };
+
+            // 🔶 Header (row 1, 2)
+            ws.Cells[1, 1, 2, 1].Merge = true;
+            ws.Cells[1, 1].Value = "Issue Name";
+            StyleHeader(ws.Cells[1, 1]);
+
+            for (int i = 0; i < 12; i++)
+            {
+                int col = 2 + i * 2;
+                ws.Cells[1, col, 1, col + 1].Merge = true;
+                ws.Cells[1, col].Value = months[i];
+                StyleHeader(ws.Cells[1, col, 1, col + 1]);
+
+                ws.Cells[2, col].Value = "4000";
+                ws.Cells[2, col + 1].Value = "aservice";
+                StyleSubHeader(ws.Cells[2, col]);
+                StyleSubHeader(ws.Cells[2, col + 1]);
+            }
+
+            ws.Cells[1, 26, 1, 27].Merge = true;
+            ws.Cells[1, 26].Value = "รวมทั้งหมด";
+            StyleHeader(ws.Cells[1, 26, 1, 27]);
+            ws.Cells[2, 26].Value = "4000";
+            ws.Cells[2, 27].Value = "aservice";
+            StyleSubHeader(ws.Cells[2, 26]);
+            StyleSubHeader(ws.Cells[2, 27]);
+
+            // 🔽 Fill Data
+            int row = 3;
+            foreach (var line in tableBody)
+            {
+                ws.Cells[row, 1].Value = line[0]; // Issue Name
+                ws.Cells[row, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                int sum4000 = 0;
+                int sumAsvc = 0;
+
+                for (int i = 0; i < 24 && i + 1 < line.Count; i++)
+                {
+                    int col = i + 2;
+                    string cellVal = line[i + 1];
+
+                    if (int.TryParse(cellVal, out int val))
+                    {
+                        ws.Cells[row, col].Value = val;
+                        if (i % 2 == 0) sum4000 += val;     // คู่ (index 0,2,...22) → 4000
+                        else sumAsvc += val;                // คี่ (index 1,3,...23) → aservice
+                    }
+                    else
+                    {
+                        ws.Cells[row, col].Value = cellVal;
+                    }
+
+                    ws.Cells[row, col].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                }
+
+                // ✅ รวม 4000 ที่ col Z (index 26)
+                ws.Cells[row, 26].Value = sum4000;
+                ws.Cells[row, 26].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                // ✅ รวม aservice ที่ col AA (index 27)
+                ws.Cells[row, 27].Value = sumAsvc;
+                ws.Cells[row, 27].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                row++;
+            }
+            // ✅ รวมแต่ละคอลัมน์แนวนอน (Total per column)
+            ws.Cells[row, 1].Value = "รวมทั้งหมด";
+            ws.Cells[row, 1].Style.Font.Bold = true;
+            ws.Cells[row, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws.Cells[row, 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            ws.Cells[row, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+            for (int col = 2; col <= 27; col++) // คอลัมน์ B ถึง AA (2–27)
+            {
+                string colLetter = GetExcelColumnName(col); // Helper function ด้านล่าง
+                string formula = $"SUM({colLetter}3:{colLetter}{row - 1})";
+
+                ws.Cells[row, col].Formula = formula;
+                ws.Cells[row, col].Calculate(); // คำนวณเลยถ้าจะ export ทันที
+                ws.Cells[row, col].Style.Font.Bold = true;
+                ws.Cells[row, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                ws.Cells[row, col].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+            }
+
+
+            ws.Cells[ws.Dimension.Address].AutoFitColumns();
+            var stream = new MemoryStream(package.GetAsByteArray());
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ReportCaseSummary.xlsx");
+        }
+        private static string GetExcelColumnName(int columnNumber)
+        {
+            string columnName = "";
+
+            while (columnNumber > 0)
+            {
+                int modulo = (columnNumber - 1) % 26;
+                columnName = Convert.ToChar('A' + modulo) + columnName;
+                columnNumber = (columnNumber - modulo) / 26;
+            }
+
+            return columnName;
+        }
+
+        void StyleHeader(ExcelRange cell)
+        {
+            cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            cell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            cell.Style.Font.Bold = true;
+            cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cell.Style.Fill.BackgroundColor.SetColor(Color.Orange);
+            cell.Style.Font.Color.SetColor(Color.Black);
+            cell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+        }
+        void StyleSubHeader(ExcelRange cell)
+        {
+            cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            cell.Style.Font.Bold = true;
+            cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cell.Style.Fill.BackgroundColor.SetColor(Color.Orange);
+            cell.Style.Font.Color.SetColor(Color.Black);
+            cell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+        }
+        #endregion
         #region ticket
         private DateTime SetTime(DateTime date, int hour, int minute, int second)
         {
