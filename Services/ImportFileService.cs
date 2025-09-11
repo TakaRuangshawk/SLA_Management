@@ -192,7 +192,61 @@ namespace SLA_Management.Services
             return result;
 
         }
+        public ImportFileData GetImportFileDataLatest(string projectName)
+        {
 
+            ImportFileData result = null;
+            MySqlConnection conn = new MySqlConnection(_connectionString);
+            string sql = @"SELECT 
+                              JSON_OBJECT(	'Id', Id,
+				                            'Name_File', Name_File,
+                                            'Upload_By', Upload_By,
+                                            'Upload_Date', DATE_FORMAT(Upload_Date, '%Y-%m-%dT%H:%i:%sZ') ,
+                                            'Data_Date',DATE_FORMAT(Data_Date, '%Y-%m-%dT%H:%i:%sZ') ) AS json_result
+                            FROM import_file_data  
+                            where Import_Data_Project = @Import_Data_Project 
+                            ORDER BY Data_Date DESC ,Upload_Date DESC
+                            LIMIT 1;";
+            try
+            {
+                conn.Open();
+                MySqlCommand com = new MySqlCommand(sql);
+                com.Parameters.AddWithValue("@Import_Data_Project", projectName);
+                com.Connection = conn;
+
+                using (var reader = com.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string jsonText = reader.GetString("json_result");
+                        if (jsonText.EndsWith("|"))
+                        {
+                            jsonText = jsonText.Substring(0, jsonText.Length - 1);
+                        }
+                        result = JsonSerializer.Deserialize<ImportFileData>(jsonText);
+                         
+                    }
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+                //Log.Error(ex, "GetImportFileDataByDate Error : ");
+
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                {
+                    conn.Close();
+                }
+
+            }
+            return result;
+
+        }
 
         public ImportFileData GetFirstImportFileDataByDate(DateTime data, string projectName)
         {

@@ -7,6 +7,7 @@ using Mysqlx.Crud;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using PagedList;
+using Services;
 using SLA_Management.Commons;
 using SLA_Management.Data;
 using SLA_Management.Data.ExcelUtilitie;
@@ -20,8 +21,11 @@ using SLA_Management.Models.Monitor;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.RecurringCasesMonitor;
 using SLA_Management.Models.TermProbModel;
+using SLA_Management.Models.TimeSync;
+using SLA_Management.Services;
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -591,6 +595,166 @@ namespace SLA_Management.Controllers
 
             }
             return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
+        }
+
+        #endregion
+
+        #region TimeSync Monitor
+
+        [HttpGet]
+        public IActionResult TimeSyncMonitor(string bankName)
+        {
+
+            if (!string.IsNullOrEmpty(bankName))
+            {
+                ViewBag.CurrentTID = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration);
+
+            }
+            else
+            {
+                ViewBag.CurrentTID = new List<Device_info_record>();
+
+            }
+            
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> FetchTimeSyncStatus(string terminalID,DateTime? fromdate,  string bankName,string statusType, int row = 50, int page = 1)
+        {
+            if (string.IsNullOrEmpty(bankName))
+            {
+                return Json(new
+                {
+                    jsonData = new List<ReportTimeSync>(),
+                    currentPage = page,
+                    totalPages = 0,
+                    totalCases = 0,
+                    latestUpdateDate = "",
+                    updatedBy = "",
+                    terminalDropdown = new List<Device_info_record>(),
+                    statusTypeDropdown = new List<string>()
+
+
+                });
+            }
+
+            TimeSyncService timeSyncService = new TimeSyncService(_myConfiguration);
+            var terminalList = GetDeviceInfoFeelview(bankName.ToLower(), _myConfiguration);
+
+
+            var reportTimeSync = await timeSyncService.GetTimeSyncReportAsync(terminalID, fromdate, statusType, bankName);
+            var importFileData = timeSyncService.GetLatestUpdate(bankName);
+            int totalCases = reportTimeSync.Count;
+            int totalPages = (int)Math.Ceiling((double)totalCases / row);
+            var pagedData = reportTimeSync.Skip((page - 1) * row).Take(row).ToList();
+            var statusTypeDropdown = new List<string>();
+            statusTypeDropdown.Add("Yes");
+            statusTypeDropdown.Add("No");
+            return Json(new
+            {
+                jsonData = pagedData,
+                currentPage = page,
+                totalPages,
+                totalCases,
+                latestUpdateDate = importFileData.Upload_Date.ToString("dd/MM/yyyy HH:mm"),
+                updatedBy = importFileData.Upload_By,
+                terminalDropdown = terminalList,
+                statusTypeDropdown
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadTimeSyncLogMultiple(List<IFormFile> files, string _bank)
+        {
+            
+            string userName = HttpContext.Session.GetString("Username");
+            var devices = GetDeviceInfoFeelview(_bank.ToLower(), _myConfiguration);
+
+            if (files == null || files.Count == 0)
+                return BadRequest("❌ ไม่พบไฟล์ที่อัปโหลด");
+
+            if (files.Any(f => !new[] { ".txt" }.Contains(Path.GetExtension(f.FileName).ToLower())))
+                return BadRequest("❌ รองรับเฉพาะไฟล์ .txt เท่านั้น");
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var streamList = new List<Stream>();
+            foreach (var file in files)
+            {
+                var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+                streamList.Add(memoryStream);
+            }
+            TimeSyncService timeSyncService = new TimeSyncService(_myConfiguration);
+            var connStr = timeSyncService.GetConnectionStringByBank(_bank);
+            var result = ReportTimeSyncLog.InsertReport.Insert(streamList, connStr, userName);
+
+            stopwatch.Stop();
+            
+            
+            
+            return Ok(new
+            {
+                success = true,
+                message = result.Inserted
+                    ? $"✅ Upload สำเร็จ: เพิ่มข้อมูลจำนวน {result.ReportTimeSyncCount} รายการ {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff}"
+                    : $"⚠️ Upload สำเร็จ แต่ไม่มีการเพิ่มข้อมูล {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff}"
+            });
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ExportTimeSyncLogToExcel(string terminalID, DateTime? fromdate, string bankName, string statusType)
+        {
+          
+            //if (DateTime.TryParse(fromdate, out var dt))
+            //    parsedDate = dt;
+
+            TimeSyncService timeSyncService = new TimeSyncService(_myConfiguration);
+            var reportTimeSync = await timeSyncService.GetTimeSyncReportAsync(terminalID, fromdate, statusType, bankName);
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("TimeSyncReport");
+
+            string displayDate = fromdate.HasValue ? fromdate.Value.ToString("yyyy-MM-dd") : "ทั้งหมด";
+            ws.Cells["A1"].Value = $"📅 วันที่ข้อมูล: {displayDate}";
+            ws.Cells["A1"].Style.Font.Bold = true;
+
+            var headers = new[] { "No.", "TerminalID", "Terminal Name", "Serial No", "TimeSync Status", "Latest Sync Time" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[3, i + 1].Value = headers[i];
+                ws.Cells[3, i + 1].Style.Font.Bold = true;
+                ws.Cells[3, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[3, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                ws.Column(i + 1).AutoFit();
+            }
+
+            int row = 4;
+            int no = 1;
+            foreach (var item in reportTimeSync)
+            {
+                ws.Cells[row, 1].Value = no++;
+                ws.Cells[row, 2].Value = item.Terminal_ID;
+                ws.Cells[row, 3].Value = item.Terminal_Name;
+                ws.Cells[row, 4].Value = item.Serial_No;
+                ws.Cells[row, 5].Value = item.TimeSync_Status;
+                ws.Cells[row, 6].Value = item.Latest_Sync_Time;
+                
+                row++;
+            }
+
+            string safeDate = fromdate.HasValue ? fromdate.Value.ToString("yyyyMMdd") : "AllDates";
+            string fileName = $"TimeSyncReport_{safeDate}.xlsx";
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         #endregion
