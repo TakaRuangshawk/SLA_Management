@@ -5,6 +5,7 @@
     "No.",
     "TerminalID",
     "Terminal Name",
+    "IP",
     "Serial No",
     "TimeSync Status",
     "Latest Sync Time"
@@ -310,7 +311,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="9" style="text-align:center;">NO DATA</td>
+                        <td colspan="7" style="text-align:center;">NO DATA</td>
                     </tr>
                 }
             </tbody>
@@ -499,19 +500,20 @@
                     tbody.empty();
 
                     if (jsonData.length === 0) {
-                        tbody.append(`<tr><td colspan='6' style='text-align:center;'>No data</td></tr>`);
+                        tbody.append(`<tr><td colspan='7' style='text-align:center;'>No data</td></tr>`);
                     } else {
                            
                         jsonData.forEach((item, index) => {
+                            
                             const row = $(`<tr>
                                 <td style="text-align:center">${(currentPage - 1) * 50 + index + 1}</td>
                           
                                 <td style="text-align:center">${item.terminal_ID}</td>
                                 <td style="text-align:center">${item.terminal_Name}</td>
-
+                                <td style="text-align:center">${item.ip}</td>
                                 <td style="text-align:center">${item.serial_No}</td>
                                 <td style="text-align:center">${item.timeSync_Status}</td>
-                                <td style="text-align:center">${item.latest_Sync_Time}</td>
+                                <td style="text-align:center">${formatDate( item.latest_Sync_Time)}</td>
                             `);
                             tbody.append(row);
 
@@ -570,14 +572,26 @@
 
         $("#btnSEExp").on("click", function () {
             const terminalID = $("#Filter_TerminalID").val();
-            const lotType = $("#Filter_LotType").val();
+            const statusType = $("#Filter_StatusType").val();
             const dataDate = $("#Filter_DataDate").val();
             const bankName = $("#bankName").val();
 
-            const url = `${'@Url.Action("ExportTimeSyncLogToExcel", "Monitor")'}?terminalID=${terminalID}&lotType=${lotType}&fromdate=${dataDate}&bankName=${bankName}`;
+            const url = `${'@Url.Action("ExportTimeSyncLogToExcel", "Monitor")'}?terminalID=${terminalID}&statusType=${statusType}&fromdate=${dataDate}&bankName=${bankName}`;
             window.open(url, "_blank");
         });
     });
+
+
+    function formatDate(dateInput) {
+
+          
+        const cleaned = dateInput.replace("T", " ").replace("Z", "");
+
+    
+
+      return cleaned;
+    }
+            
 
 
 

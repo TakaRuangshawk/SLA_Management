@@ -89,7 +89,7 @@ namespace Services
                 using var conn = new MySqlConnection(connectionDB);
                 await conn.OpenAsync();
 
-                string query = $@"select dev.DEVICE_ID , dev.TERM_ID as Terminal_ID ,dev.TERM_NAME as Terminal_Name, dev.TERM_SEQ as Serial_No ,re.TimeSync_Date as Latest_Sync_Time
+                string query = $@"select dev.DEVICE_ID , dev.TERM_ID as Terminal_ID , dev.TERM_IP as IP ,dev.TERM_NAME as Terminal_Name, dev.TERM_SEQ as Serial_No ,re.TimeSync_Date as Latest_Sync_Time
                                     from device_info dev 
                                     LEFT JOIN (SELECT Device_Id, MAX(TimeSync_Date) AS TimeSync_Date
                                       FROM report_timesync
@@ -106,11 +106,12 @@ namespace Services
                 {
                     int ordLatest = reader.GetOrdinal("Latest_Sync_Time"); // <= ใช้ ordinal
                     bool hasLatest = !reader.IsDBNull(ordLatest);
-                    string latestStr = hasLatest ? DateTime.SpecifyKind(reader.GetDateTime(ordLatest), DateTimeKind.Utc).ToString("yyyy-MM-ddTHH:mm:ss'Z'") : "-";
+                    string latestStr = hasLatest ? DateTime.SpecifyKind(reader.GetDateTime(ordLatest), DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss") : "-";
                     reportTimeSync.Add(new ReportTimeSync()
                     {
                         No = count,
                         Terminal_ID = reader["Terminal_ID"]?.ToString() ?? "-",
+                        IP = reader["IP"]?.ToString() ?? "-",
                         Terminal_Name = reader["Terminal_Name"]?.ToString() ?? "-",
                         Serial_No = reader["Serial_No"]?.ToString() ?? "-",
                         TimeSync_Status = hasLatest ? "Yes" : "No",
@@ -125,15 +126,24 @@ namespace Services
                 Console.WriteLine("❌ Error in GetTimeSyncReportAsync: " + ex.Message);
 
             }
+            
+            reportTimeSync = reportTimeSync
+            .GroupBy(x => x.Terminal_ID)
+            .Select(g =>
+            {
+                var preferred = g.Where(x => x.TimeSync_Status == "Yes")
+                                 .OrderByDescending(x => x.Latest_Sync_Time)
+                                 .FirstOrDefault();
+
+                return preferred ?? g.OrderByDescending(x => x.Latest_Sync_Time).First();
+            })
+            .ToList();
+
             if (!string.IsNullOrEmpty(statusType))
             {
                 reportTimeSync = reportTimeSync.Where(i => i.TimeSync_Status == statusType).ToList();
             }
-            reportTimeSync = reportTimeSync.GroupBy(x => x.Terminal_ID)
-                .Select(g => g.OrderByDescending(x => (x.Latest_Sync_Time))
-                .ThenByDescending(x => x.No) // กันเสมอ เลือกอัน No มากกว่า
-                    .First())
-                    .ToList();
+
 
 
             return reportTimeSync;

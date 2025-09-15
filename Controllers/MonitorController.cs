@@ -723,7 +723,7 @@ namespace SLA_Management.Controllers
             ws.Cells["A1"].Value = $"📅 วันที่ข้อมูล: {displayDate}";
             ws.Cells["A1"].Style.Font.Bold = true;
 
-            var headers = new[] { "No.", "TerminalID", "Terminal Name", "Serial No", "TimeSync Status", "Latest Sync Time" };
+            var headers = new[] { "No.", "TerminalID", "Terminal Name","IP", "Serial No", "TimeSync Status", "Latest Sync Time" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cells[3, i + 1].Value = headers[i];
@@ -740,9 +740,10 @@ namespace SLA_Management.Controllers
                 ws.Cells[row, 1].Value = no++;
                 ws.Cells[row, 2].Value = item.Terminal_ID;
                 ws.Cells[row, 3].Value = item.Terminal_Name;
-                ws.Cells[row, 4].Value = item.Serial_No;
-                ws.Cells[row, 5].Value = item.TimeSync_Status;
-                ws.Cells[row, 6].Value = item.Latest_Sync_Time;
+                ws.Cells[row, 4].Value = item.IP;
+                ws.Cells[row, 5].Value = item.Serial_No;
+                ws.Cells[row, 6].Value = item.TimeSync_Status;
+                ws.Cells[row, 7].Value = item.Latest_Sync_Time;
                 
                 row++;
             }
