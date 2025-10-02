@@ -317,7 +317,71 @@ namespace SLA_Management.Controllers
                 }
             }
         }
+        [HttpGet]
+        public IActionResult TokenLogin(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login");
 
+            try
+            {
+                string connectionString = _myConfiguration.GetValue<string>("ConnectString_ADMOperation:FullNameConnection");
+
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"SELECT u.ID, u.USERNAME, u.ROLE_ID
+                           FROM system_user_token t
+                           JOIN system_user u ON t.USER_ID = u.ID
+                           WHERE t.TOKEN=@Token AND t.EXPIRE_TIME > NOW()";
+
+                    using (var cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Token", token);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string userId = reader["ID"].ToString();
+                                string username = reader["USERNAME"].ToString();
+                                string role = reader["ROLE_ID"].ToString();
+
+                                // ✅ เก็บเฉพาะข้อมูลที่จำเป็นใน session
+                                HttpContext.Session.SetString("UserId", userId);
+                                HttpContext.Session.SetString("Username", username);
+                                HttpContext.Session.SetString("Role", role);
+
+                                reader.Close();
+
+                                // ❌ ลบ token หลังใช้งาน
+                                string delSql = "DELETE FROM system_user_token WHERE TOKEN=@Token";
+                                using (var delCmd = new MySqlCommand(delSql, conn))
+                                {
+                                    delCmd.Parameters.AddWithValue("@Token", token);
+                                    delCmd.ExecuteNonQuery();
+                                }
+
+                                return RedirectToAction("Index", "Home");
+                            }
+                        }
+                    }
+                }
+
+                // ❌ token ไม่ถูกต้อง/หมดอายุ → กลับ Login
+                TempData["Error"] = "Token ไม่ถูกต้องหรือหมดอายุแล้ว";
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                // ✅ กรณี DB ล่ม / Connection ผิด → กลับ Login
+                Console.WriteLine($"[TokenLogin Error] {ex.Message}");
+
+                TempData["Error"] = "ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่ภายหลัง";
+                return RedirectToAction("Login");
+            }
+        }
 
 
         private string HashPassword(string password)
