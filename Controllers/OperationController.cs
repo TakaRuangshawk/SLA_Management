@@ -16,6 +16,7 @@ using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using System.Security.AccessControl;
 using SLA_Management.Data.TermProb;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SLA_Management.Controllers
 {
@@ -1013,7 +1014,7 @@ namespace SLA_Management.Controllers
             jobno = jobno ?? "";
 
 
-            if (fromdate.HasValue && todate.HasValue)
+            /*if (fromdate.HasValue && todate.HasValue)
             {
                 if (fromdate <= todate)
                 {
@@ -1027,11 +1028,63 @@ namespace SLA_Management.Controllers
                     recordset_ticketManagement = GetTicketManagementFromMySql(_fromdate.ToString("yyyy-MM-dd"), _todate.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
                     ticket_dataList = recordset_ticketManagement;
                 }
-            }
+            }*/
+
 
             DateTime job_fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
             DateTime job_todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
-            ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"));
+
+
+            if (fromdate != null)
+            {
+                ViewBag.CurrentFr = fromdate;
+            }
+            else
+            {
+                ViewBag.CurrentFr = job_fromdate.ToString("yyyy-MM-dd");
+            }
+
+
+            if (todate != null)
+            {
+                ViewBag.CurrentTo = todate;
+            }
+            else
+            {
+                ViewBag.CurrentTo = job_todate.ToString("yyyy-MM-dd");
+            }
+
+            if (fromdate.HasValue && todate.HasValue)
+            {
+                if (fromdate <= todate)
+                {
+                    recordset_ticketManagement = GetTicketManagementFromMySql(fromdate?.ToString("yyyy-MM-dd"), todate?.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
+                    ticket_dataList = recordset_ticketManagement;
+
+                    ViewBag.CurrentJobNo = GetJobNumber(fromdate?.ToString("yyyy-MM-dd"), todate?.ToString("yyyy-MM-dd"));
+                }
+                
+
+            }
+            else if(!jobno.IsNullOrEmpty())
+            {
+                recordset_ticketManagement = GetTicketManagementFromMySql(fromdate?.ToString("yyyy-MM-dd"), todate?.ToString("yyyy-MM-dd"), termid, mainproblem, jobno, terminaltype);
+                ticket_dataList = recordset_ticketManagement;
+                ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"));
+            }
+            else
+            {
+                fromdate = job_fromdate;
+                todate = job_todate;
+                ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"));
+            }
+
+
+                
+            
+
+            
+            //ViewBag.CurrentJobNo = GetJobNumber(job_fromdate.ToString("yyyy-MM-dd"), job_todate.ToString("yyyy-MM-dd"));
             ViewBag.JobNo = jobno;
             ViewBag.countrow = recordset_ticketManagement.Count;
             ViewBag.maxRows = pageSize;
@@ -1040,22 +1093,12 @@ namespace SLA_Management.Controllers
             ViewBag.TERM_ID = termid;
             ViewBag.terminaltype = terminaltype;
             ViewBag.mainproblem = mainproblem;
-            if (fromdate != null)
-            {
-                ViewBag.CurrentFr = fromdate;
-            }
-            else
-            {
-                ViewBag.CurrentFr = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).ToString("yyyy-MM-dd");
-            }
-            if (todate != null)
-            {
-                ViewBag.CurrentTo = todate;
-            }
-            else
-            {
-                ViewBag.CurrentTo = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).ToString("yyyy-MM-dd");
-            }
+
+
+            
+
+
+
             if (cmdButton == "Clear")
             {
                 ViewBag.countrow = 0;
@@ -1069,11 +1112,7 @@ namespace SLA_Management.Controllers
         {
             List<TicketManagement> dataList = new List<TicketManagement>();
 
-            DateTime fromdateTimeValue = DateTime.ParseExact(fromdate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-            string fordb_fromdate = fromdateTimeValue.ToString("yyyyMM");
-
-            DateTime todateTimeValue = DateTime.ParseExact(todate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-            string fordb_todate = todateTimeValue.ToString("yyyyMM");
+            
 
             static List<string> GenerateMonthList(string fromDate, string toDate)
             {
@@ -1088,6 +1127,7 @@ namespace SLA_Management.Controllers
                 return monthList;
             }
 
+            var queryList = new List<string>();
             // ✅ MySQL ใช้ backtick (`) สำหรับชื่อ column และ table (ไม่บังคับถ้าไม่มี space/reserved words)
             string sqlQuery = @"
             SELECT 
@@ -1102,28 +1142,61 @@ namespace SLA_Management.Controllers
             FROM t_tsd_JobDetail a
             LEFT JOIN fv_device_info b ON a.TERM_ID = b.TERM_ID
             left join fv_device_model c on b.MODEL_ID = c.ID
-        WHERE a.Open_Date BETWEEN @FromDate AND @ToDate
+
     ";
+            if (!string.IsNullOrEmpty(todate) && !string.IsNullOrEmpty(fromdate))
+            {
+                queryList.Add("a.Open_Date BETWEEN @FromDate AND @ToDate");
+
+                
+            }
 
             if (!string.IsNullOrEmpty(termid))
-                sqlQuery += " AND a.TERM_ID = @TermId ";
+            {
+                //sqlQuery += " AND a.TERM_ID = @TermId ";
+                queryList.Add("a.TERM_ID = @TermId");
+            }
+                
             if (!string.IsNullOrEmpty(jobno))
-                sqlQuery += " AND a.Job_No = @JobNo ";
+            {
+                //sqlQuery += " AND a.Job_No = @JobNo ";
+                queryList.Add("a.Job_No = @JobNo");
+            }
+                
             if (!string.IsNullOrEmpty(mainproblem))
-                sqlQuery += " AND a.Main_Problem LIKE @MainProblem ";
+            {
+                //sqlQuery += " AND a.Main_Problem LIKE @MainProblem ";
+                queryList.Add("a.Main_Problem LIKE @MainProblem");
+            }
+                
             if (!string.IsNullOrEmpty(terminaltype))
-                sqlQuery += " AND b.TERM_ID LIKE @TerminalType ";
+            {
+                //sqlQuery += " AND b.TERM_ID LIKE @TerminalType ";
+                queryList.Add("b.TERM_ID LIKE @TerminalType");
+            }
+                
 
-            sqlQuery += " ORDER BY a.Open_Date ASC";
+            
 
+            sqlQuery += queryList.Count > 0 ? " WHERE " + string.Join(" AND ", queryList) : "";
+            sqlQuery += " ORDER BY a.Open_Date ASC;";
             try
             {
                 using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     using (MySqlCommand command = new MySqlCommand(sqlQuery, connection))
                     {
-                        command.Parameters.AddWithValue("@FromDate", fromdateTimeValue.ToString("yyyy-MM-dd") + " 00:00:00");
-                        command.Parameters.AddWithValue("@ToDate", todateTimeValue.ToString("yyyy-MM-dd") + " 23:59:59");
+                        if (!string.IsNullOrEmpty(todate) && !string.IsNullOrEmpty(fromdate))
+                        {
+                            DateTime fromdateTimeValue = DateTime.ParseExact(fromdate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            string fordb_fromdate = fromdateTimeValue.ToString("yyyyMM");
+
+                            DateTime todateTimeValue = DateTime.ParseExact(todate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                            string fordb_todate = todateTimeValue.ToString("yyyyMM");
+                            command.Parameters.AddWithValue("@FromDate", fromdateTimeValue.ToString("yyyy-MM-dd") + " 00:00:00");
+                            command.Parameters.AddWithValue("@ToDate", todateTimeValue.ToString("yyyy-MM-dd") + " 23:59:59");
+                        }
+                        
 
                         if (!string.IsNullOrEmpty(termid))
                             command.Parameters.AddWithValue("@TermId", termid);
