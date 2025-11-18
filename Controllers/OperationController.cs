@@ -985,14 +985,18 @@ namespace SLA_Management.Controllers
 
             return test;
         }
-        private static List<TicketJob> GetJobNumber(string frommonth, string tomonth)
+        private List<TicketJob> GetJobNumber(string frommonth, string tomonth)
         {
-
-            SqlCommand com = new SqlCommand();
+            List<TicketJob> test = new List<TicketJob>();
+            
+            var db_report = new ConnectMySQL(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+            MySqlCommand com = new MySqlCommand();
             com.CommandText = "SELECT Job_No FROM t_tsd_JobDetail where Open_Date between '" + frommonth + " 00:00:00' and '" + tomonth + " 23:59:59'"; ;
-            DataTable testss = db.GetDatatable(com);
+            DataTable testss = db_report.GetDatatable(com);
 
-            List<TicketJob> test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
+            test = ConvertDataTableToModel.ConvertDataTable<TicketJob>(testss);
+
+
 
             return test;
         }
