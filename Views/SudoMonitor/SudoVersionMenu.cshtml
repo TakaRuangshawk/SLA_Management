@@ -516,15 +516,30 @@
         SubmitSearch(paramater);
     }
 
-    function ClearSearchData() {
+      function ClearSearchData() {
+        // เคลียร์ค่าจริงใน select
         document.getElementById('terminal_no').value = "";
         document.getElementById('status').value = "";
         document.getElementById('maxRows').value = "50";
+
+        // เคลียร์ UI ของ bootstrap-select ให้ตรงกับค่า
+        $('#terminal_no').selectpicker('val', '');
+        $('#status').selectpicker('val', '');
+        $('#maxRows').selectpicker('val', '50');
+
+        // เคลียร์ text ในกล่อง search ของ terminal_no ด้วย
+        $('#terminal_no').closest('.bootstrap-select')
+            .find('.bs-searchbox input')
+            .val('')
+            .trigger('keyup');
+
+        // เคลียร์ผลรวมและตาราง + pagination
         $('#recordCount').text("");
         $("#table-id tbody").empty();
         $("#page").empty();
         $("#pageButtonsContainer").empty();
     }
+
 
     function DownloadExcel() {
         ExportRecordtoExcel();
@@ -639,6 +654,15 @@
 
     $(document).ready(function () {
         // SearchData();
+
+        // เคลียร์ search text ใน dropdown เวลาเลือก "--"
+    $('#terminal_no').on('changed.bs.select', function () {
+        var val = $(this).val();
+        if (!val) { // ถ้าเป็น "" = เลือก "--"
+            var $box = $(this).closest('.bootstrap-select').find('.bs-searchbox input');
+            $box.val('').trigger('keyup');
+        }
+    });
     });
 </script>
 

@@ -288,14 +288,16 @@ FROM device_info
 
                 if (!string.IsNullOrEmpty(searchData.terminal_no))
                 {
+                    sql += " WHERE ";
                     where.Add("TERM_ID = @terminal_no");
                     mySqlCommand.Parameters.AddWithValue("@terminal_no", searchData.terminal_no);
                 }
 
                 if (where.Count > 0)
                 {
-                    sql += " AND " + string.Join(" AND ", where);
+                    sql += string.Join(" AND ", where);
                 }
+
 
                 sql += ";";
 
