@@ -1086,17 +1086,18 @@ namespace SLA_Management.Controllers
 
             // ✅ MySQL ใช้ backtick (`) สำหรับชื่อ column และ table (ไม่บังคับถ้าไม่มี space/reserved words)
             string sqlQuery = @"
-        SELECT 
-            a.Open_Date, a.Appointment_Date, a.Closed_Repair_Date, a.Down_Time,
-            a.Actual_Open_Date, a.Actual_Appointment_Date, a.Actual_Closed_Repair_Date, a.Actual_Down_Time,
-            a.Status, a.TERM_ID, b.TERM_SEQ, b.TERM_NAME, b.MODEL_NAME, b.PROVINCE,
-            a.Problem_Detail, a.Solving_Program, a.Service_Team, a.Contact_Name_Branch_CIT,
-            a.Open_By, a.Remark, a.Job_No, a.Aservice_Status, a.Service_Type,
-            a.Open_Name, a.Assign_By, a.Zone_Area, a.Main_Problem, a.Sub_Problem,
-            a.Main_Solution, a.Sub_Solution, a.Part_of_use, a.TechSupport, a.CIT_Request,
-            a.Terminal_Status
-        FROM t_tsd_JobDetail a
-        LEFT JOIN device_info_record b ON a.TERM_ID = b.TERM_ID
+            SELECT 
+                a.Open_Date, a.Appointment_Date, a.Closed_Repair_Date, a.Down_Time,
+                a.Actual_Open_Date, a.Actual_Appointment_Date, a.Actual_Closed_Repair_Date, a.Actual_Down_Time,
+                a.Status, a.TERM_ID, b.TERM_SEQ, b.TERM_NAME, c.MODEL_NAME, b.PROVINCE,
+                a.Problem_Detail, a.Solving_Program, a.Service_Team, a.Contact_Name_Branch_CIT,
+                a.Open_By, a.Remark, a.Job_No, a.Aservice_Status, a.Service_Type,
+                a.Open_Name, a.Assign_By, a.Zone_Area, a.Main_Problem, a.Sub_Problem,
+                a.Main_Solution, a.Sub_Solution, a.Part_of_use, a.TechSupport, a.CIT_Request,
+                a.Terminal_Status
+            FROM t_tsd_JobDetail a
+            LEFT JOIN fv_device_info b ON a.TERM_ID = b.TERM_ID
+            left join fv_device_model c on b.MODEL_ID = c.ID
         WHERE a.Open_Date BETWEEN @FromDate AND @ToDate
     ";
 
@@ -1113,7 +1114,7 @@ namespace SLA_Management.Controllers
 
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:MySqlConnection")))
+                using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
                 {
                     using (MySqlCommand command = new MySqlCommand(sqlQuery, connection))
                     {
@@ -1143,6 +1144,7 @@ namespace SLA_Management.Controllers
             }
             catch (Exception ex)
             {
+
                 // Logging หรือตรวจสอบ error ที่นี่
             }
 
