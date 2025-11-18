@@ -3,14 +3,14 @@
     string[] tableHeaders = new string[]
      {
         "No.",
+        "Action",
         "Serial No.",
         "Terminal ID",
         "Terminal Name",
-        "PIN Version",
+        "CRM Version",       
         "IDC Version",
         "PTR Version",
         "BCR Version",
-        "SIU Version",
         "Update Date"
     };
 
@@ -261,7 +261,62 @@
     </div>
 </div>
 
+<!-- ✅ Modal แสดงข้อมูล Device Firmware -->
+<div class="modal fade" id="deviceFirmwareModal" tabindex="-1" aria-labelledby="deviceFirmwareModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="deviceFirmwareModalLabel">Device Firmware Info</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <tbody>
+            <tr><th>No</th><td id="df-no"></td></tr>
+            <tr><th>Terminal ID</th><td id="df-term_id"></td></tr>
+            <tr><th>Terminal Seq</th><td id="df-term_seq"></td></tr>
+            <tr><th>Terminal Name</th><td id="df-term_name"></td></tr>
+            <tr><th>CRM Version</th><td id="df-crm_version"></td></tr>
+            <tr><th>PIN Version</th><td id="df-pin_version"></td></tr>
+            <tr><th>IDC Version</th><td id="df-idc_version"></td></tr>
+            <tr><th>PTR Version</th><td id="df-ptr_version"></td></tr>
+            <tr><th>BCR Version</th><td id="df-bcr_version"></td></tr>
+            <tr><th>SIU Version</th><td id="df-siu_version"></td></tr>
+            <tr><th>Update Date</th><td id="df-update_date"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
 <script>
+
+    function showDeviceFirmwareModal(model) {
+    document.getElementById('df-no').innerText = model.no;
+    document.getElementById('df-term_id').innerText = model.term_id;
+    document.getElementById('df-term_seq').innerText = model.term_seq;
+    document.getElementById('df-term_name').innerText = model.term_name;
+    document.getElementById('df-crm_version').innerText = model.crm_version;
+    document.getElementById('df-pin_version').innerText = model.pin_version;
+    document.getElementById('df-idc_version').innerText = model.idc_version;
+    document.getElementById('df-ptr_version').innerText = model.ptr_version;
+    document.getElementById('df-bcr_version').innerText = model.bcr_version;
+    document.getElementById('df-siu_version').innerText = model.siu_version;
+    document.getElementById('df-update_date').innerText = model.update_date;
+
+    // แสดง modal
+    new bootstrap.Modal(document.getElementById('deviceFirmwareModal')).show();
+}
+
 
     function updateTable(search) {
         var terminalno = $("#TermID").val();
@@ -298,15 +353,22 @@
                 } else {
                     $.each(jsondata, function (index, item) {
                         var row = $("<tr>");
+
+                             var viewBtn = $("<button>")
+        .addClass("btn btn-sm btn-primary")
+        .text("View")
+        .on("click", function () {
+            showDeviceFirmwareModal(item); // เรียก modal พร้อมข้อมูล
+        });
                         row.append($("<td>").css("text-align", "center").text(item.no));
+                        row.append($("<td>").css("text-align", "center").append(viewBtn));
                         row.append($("<td>").css("text-align", "center").text(item.term_seq));
                         row.append($("<td>").css("text-align", "center").text(item.term_id));
                         row.append($("<td>").css("text-align", "left").text(item.term_name));
-                        row.append($("<td>").css("text-align", "center").text(item.pin_version));
+                        row.append($("<td>").css("text-align", "center").text(item.crm_version));                       
                         row.append($("<td>").css("text-align", "center").text(item.idc_version));
                         row.append($("<td>").css("text-align", "center").text(item.ptr_version));
-                        row.append($("<td>").css("text-align", "center").text(item.bcr_version));
-                        row.append($("<td>").css("text-align", "center").text(item.siu_version));
+                        row.append($("<td>").css("text-align", "center").text(item.bcr_version));                        
                         row.append($("<td>").css("text-align", "center").text(formatDate(item.update_date)));
                         $("#table-id tbody").append(row);
                         window.scrollTo(0, 0);

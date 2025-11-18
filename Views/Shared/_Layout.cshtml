@@ -180,7 +180,7 @@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="TicketManagement">Ticket Monitor</a>
                                 <a class="dropdown-item" asp-controller="Maintenance" asp-action="LogMonitorMenu">Terminal Log Monitor</a>
                                 <a class="dropdown-item" asp-controller="Maintenance" asp-action="JobLogMonitorMenu">Job Terminal Log Monitor</a>
-                                <a class="dropdown-item" asp-controller="Monitor" asp-action="SLALogMonitor">SLA Log Monitor</a>
+                                
 
                                 @* <a class="dropdown-item text-dark" asp-area="" asp-controller="Gateway" asp-action="Transaction">Gateway Transaction</a>*@
                             </div>
@@ -239,7 +239,7 @@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Comlog" asp-action="Index">SLA Log Management</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportDaily">SLA Report (Daily)</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Operation" asp-action="SlaReportMonthly">SLA Report (Monthly)</a>
-                            
+                                <a class="dropdown-item" asp-controller="Monitor" asp-action="SLALogMonitor">SLA Log Monitor</a>
                             </div>
                         </li>
 
@@ -262,6 +262,7 @@
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="Maintenance" asp-action="InventoryMonitor">Inventory Information</a>
                                 <a class="dropdown-item text-dark" asp-area="" asp-controller="EncryptionMoniter" asp-action="Index">Encryption Version</a>
                                  <a class="dropdown-item text-dark" asp-area="" asp-controller="Monitor" asp-action="DeviceFirmware">Device Firmware Version</a>
+                                <a class="dropdown-item text-dark" asp-area="" asp-controller="SudoMonitor" asp-action="SudoVersionMenu">Sudo Version</a>
                             </div>
                         </li>
                  @*       <li class="nav-item dropdown nav-report">

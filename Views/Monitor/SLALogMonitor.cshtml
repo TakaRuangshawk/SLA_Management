@@ -159,18 +159,28 @@
         overflow-y: auto; 
     }
 
-    #latest-table th,
-#latest-table td {
-    font-size: 12px;        
-    padding: 4px 6px;        
-    white-space: nowrap;    
-    text-align: center;
+   #latest-status-table th {
+    width: 70%;
+    background-color: #ffe4b5;
+    text-align: left;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px 0 0 8px;
 }
 
-#latest-table {
-    table-layout: auto;
-    width: 100%;
+#latest-status-table td {
+    text-align: right;
+    background-color: #fff8dc;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
 }
+
+#latest-status-table tr {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
 
 .table-responsive {
     overflow-x: auto;       
@@ -315,23 +325,18 @@
      </div>
 </div>
         
-<div class="table-responsive" style="overflow-x: hidden;">  
-    <div> 
-        <table id="latest-table" class="table table-striped custom-table">
-            <thead>
-                <tr>
-                    @foreach (var head in tableHeaders2)
-                    {
-                        <th scope="col" style="text-align:center">@head</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filled dynamically by JS -->
+<div class="d-flex justify-content-center my-4">
+    <div class="card shadow-sm" style="border-radius: 20px; padding: 20px 30px; min-width: 320px; max-width: 600px; background-color: #fffaf0;">
+        <h5 class="text-center mb-3" style="font-weight: bold; color: #333;">Latest SLA Status</h5>
+        <table class="table table-bordered table-sm mb-0" id="latest-status-table">
+            <tbody id="latest-status-body">
+                <!-- JS will fill this -->
             </tbody>
         </table>
     </div>
 </div>
+
+
 
 
 
@@ -448,27 +453,35 @@
             success: function (data) {
                 console.log(data);
 
-                // อัปเดตตาราง Latest Status
-                $("#latest-table tbody").empty();
-                if (data.latestReport) {
-                    const report = data.latestReport;
-                    var row = $("<tr>");
-                    row.append($("<td>").css("text-align", "center").text(report.counT_ALL_TERMINAL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_TERMINAL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_TASK_TERMINAL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_TASK_UPLOAD_SUCCESSFUL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_UPLOAD_COMLOG_SUCCESSFUL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_INSERT_COMLOG_SUCCESSFUL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_TASK_UPLOAD_UNSUCCESSFUL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_UPLOAD_COMLOG_UNSUCCESSFUL || 0));
-                    row.append($("<td>").css("text-align", "center").text(report.counT_INSERT_COMLOG_UNSUCCESSFUL || 0));
-                    $("#latest-table tbody").append(row);
-                } else {
-                    var noDataRow = $("<tr>").append(
-                        $("<td colspan='9' style='text-align:center;'>").text("No latest data")
-                    );
-                    $("#latest-table tbody").append(noDataRow);
-                }
+               // อัปเดตข้อมูลแนวตั้ง
+$("#latest-status-body").empty();
+if (data.latestReport) {
+    const report = data.latestReport;
+    const mappings = [
+     { label: "จำนวนตู้ทั้งหมดในโครงการ (use)", value: report.counT_ALL_TERMINAL },
+  { label: "จำนวนตู้ที่มีการใช้งาน", value: report.counT_TERMINAL },
+  { label: "จำนวนตู้ใน AutoTask", value: report.counT_TASK_TERMINAL },
+  { label: "จำนวนตู้ใน Autotask ที่ Upload สำเร็จ", value: report.counT_TASK_UPLOAD_SUCCESSFUL },
+  { label: "จำนวนตู้ที่ AppChangeAnUnzip ทำงานสำเร็จ", value: report.counT_UPLOAD_COMLOG_SUCCESSFUL },
+  { label: "จำนวนตู้ที่ InsertFile ทำงานสำเร็จ", value: report.counT_INSERT_COMLOG_SUCCESSFUL },
+  { label: "จำนวนตู้ใน Autotask ที่ Upload ไม่สำเร็จ", value: report.counT_TASK_UPLOAD_UNSUCCESSFUL },
+  { label: "จำนวนตู้ที่ AppChangeAnUnzip ทำงานไม่สำเร็จ", value: report.counT_UPLOAD_COMLOG_UNSUCCESSFUL },
+  { label: "จำนวนตู้ที่ InsertFile ทำงานไม่สำเร็จ", value: report.counT_INSERT_COMLOG_UNSUCCESSFUL }
+    ];
+
+    mappings.forEach(item => {
+        const row = $("<tr>");
+        row.append($("<th>").text(item.label));
+        row.append($("<td>").text(item.value ?? 0));
+        $("#latest-status-body").append(row);
+    });
+} else {
+    const row = $("<tr>").append(
+        $("<td colspan='2' class='text-center'>").text("No latest data")
+    );
+    $("#latest-status-body").append(row);
+}
+
 
                 // อัปเดตตารางหลัก
                 var jsondata = data.jsonData;

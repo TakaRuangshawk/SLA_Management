@@ -1,0 +1,834 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Sudo Version";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .btn-light {
+        border: 1px solid darkgrey;
+        border-radius: 10px;
+    }
+
+    h {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+<style>
+    .chkbox {
+        text-align: left;
+    }
+
+    .my-dropdown {
+        width: 100%;
+        height: 38px;
+    }
+
+    input:disabled {
+        background-color: #f2f2f2;
+    }
+
+    .btnsearch {
+        font-size: 18px;
+    }
+
+    select.form-control {
+        -webkit-appearance: button;
+    }
+
+    input.form-control {
+        -webkit-appearance: button;
+        border-radius: 10px;
+    }
+
+    #header_search {
+        top: 20px;
+        position: relative;
+        background-color: orange;
+        border: solid;
+        padding: 8px 40px 8px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .item {
+        padding: 0px;
+    }
+
+    #submit {
+        position: relative;
+        top: 50px;
+        background: lightgray;
+        border: 10px double white;
+        border-radius: 20px;
+        padding: 0px 10px 0px 10px;
+    }
+
+    #before-submit {
+        display: flex;
+        justify-content: center;
+    }
+
+    #main_search {
+        margin-bottom: 50px;
+        padding: 30px 0;
+        margin-left: 50px;
+        margin-right: 50px;
+        border: 3px solid #888888;
+        background-color: white;
+        border-radius: 50px;
+    }
+
+    .dropdown-toggle {
+        border-radius: 10px;
+    }
+
+    th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    td {
+        padding: 0.5em !important;
+        vertical-align: middle;
+    }
+
+    .pagination li a {
+        color: black !important;
+    }
+</style>
+
+<link rel="stylesheet" href="~/lib/DataTables/datatables.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap-icons-1.11.3/font/bootstrap-icons.css" />
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+</head>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="row">
+            <div class="col col-md-1">
+            </div>
+            <div class="col col-md-11">
+                <a class="text-white fs-4" id="header_search">Sudo Version</a>
+            </div>
+        </div>
+
+        <div id="main_search">
+            @* แถว filter ใช้ pattern เดียวกับ Encryption Version: 1–2, 1–2, 1–2 *@
+            <div class="row" style="margin-top: 45px;align-items:center; display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
+
+                <!-- Terminal No -->
+                <div class="col-md-1">
+                    <h>Terminal No : </h>
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="form-group">
+                        <select class="selectpicker form-control subsearch" id="terminal_no" name="terminal_no" data-live-search="true">
+                            <option data-tokens="" value="">--</option>
+                            @if (ViewBag.CurrentTID != null)
+                            {
+                                foreach (var item in ViewBag.CurrentTID)
+                                {
+                                    <option value="@item.TERM_ID" data-tokens="@item.TERM_ID">
+                                        @item.TERM_ID : @item.TERM_NAME
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-1">
+                    <h>Status : </h>
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="form-group">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="status" name="status">
+                                <option value="">--</option>
+                                <option value="True">True</option>
+                                <option value="False">False</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rows -->
+                <div class="col-md-1">
+                    <h>Rows : </h>
+                </div>
+                <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                    <div class="form-group">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="maxRows" name="maxRows">
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="500">500</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row justify-content-md-center">
+                <div class="col" id="before-submit">
+                    <div id="submit">
+
+                        <!-- Search -->
+                        <button type="button"
+                                onclick="SearchData();"
+                                data-toggle="modal"
+                                data-target="#WaitingModal"
+                                id="btnsearch"
+                                class="btn"
+                                style="padding:0px;">
+                            <img src="~/images/icon_search.png"
+                                 style="width: 50px; height: 50px"
+                                 class="rounded-lg  p-0"
+                                 alt="Search" />
+                        </button>
+
+                        <!-- Clear -->
+                        <button type="button"
+                                onclick="ClearSearchData();"
+                                id="btnclear"
+                                class="btn"
+                                data-toggle="tooltip"
+                                name="cmdButton"
+                                title="ล้างข้อมูล"
+                                value="Clear"
+                                style="padding:0px;border: 0px; background-color: transparent;">
+                            <img src="~/images/icon_refresh.png"
+                                 style="width: 40px; height: 38px"
+                                 class="rounded-lg p-0"
+                                 alt="Clear Data" />
+                        </button>
+
+                        <!-- Excel Export -->
+                        <a id="btnSEExp"
+                           onclick="DownloadExcel();"
+                           data-toggle="tooltip"
+                           title="Excel Export Report"
+                           style="cursor: pointer; padding:0px;">
+                            <img src="~/images/icon_excel.png"
+                                 style="width: 50px; height: 50px"
+                                 class="rounded-lg  p-0"
+                                 alt="Excel Export Report" />
+                        </a>
+
+                        <!-- Add Terminal -->
+                        <button type="button"
+                                id="btnAddTerminal"
+                                class="btn btn-light"
+                                style="margin-left:10px; padding: 8px 16px; border-radius:10px;"
+                                onclick="AddTerminal();">
+                            Add Terminal
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row" style="background-color: #f8d5ad;width: fit-content;padding: 8px;margin-left: 3px;border-radius: 15px;font-size: 22px;font-weight: bold;margin-bottom: 15px; border:1px solid lightgrey;">
+
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;align-items: center;display: flex;">Total Terminal:</a>
+        </div>
+        <div class="col" style="display: flex;justify-content: center;">
+            <a style="white-space:nowrap;display: flex;align-items: center;background-color: rgba(255,255,255,1);padding: 10px 35px 10px 35px;border-radius: 10px;">
+                <span id="recordCount"></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive" style="overflow-x: hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="text-align:center">Row</th>
+                    <th scope="col" style="text-align:center">Serial No</th>
+                    <th scope="col" style="text-align:center">Terminal No</th>
+                    <th scope="col" style="text-align:center">Terminal Name</th>
+                    <th scope="col" style="text-align:center">Last Updated</th>
+                    <th scope="col" style="text-align:center">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px;z-index:1;">
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                            <li data-page="prev" id="prev">
+                                <a style="color: #7a7a7a;">
+                                    <img src="~/images/arrow.png"
+                                         width="127"
+                                         height="53"
+                                         alt="Prev"
+                                         style="border: 0; width: 34px;height: 34px;">
+                                </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
+                            <li data-page="next" id="next">
+                                <a style="color: #7a7a7a;">
+                                    <img src="~/images/arrow.png"
+                                         width="127"
+                                         height="53"
+                                         alt="Next"
+                                         style="border: 0;width: 34px;height: 34px;transform: scaleX(-1);">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px;font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList("page", new SelectListItem[] { }, new
+                    {
+                        @class = "form-control",
+                                        onchange = "ChangePage(this.value)"
+                                        })
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+<!-- Add Terminal Modal -->
+<div class="modal fade" id="addTerminalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Sudo Terminals</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Filter บน modal -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Search Terminal</label>
+                        <input type="text"
+                               id="modalTerminalSearch"
+                               class="form-control"
+                               placeholder="ค้นหาจาก Terminal No / Name"
+                               onkeyup="filterModalTerminals()" />
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table id="modal-terminal-table" class="table table-striped custom-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center; width:40px;">
+                                    <input type="checkbox" id="chkModalSelectAll"
+                                           onclick="toggleModalSelectAll(this)" />
+                                </th>
+                                <th style="text-align:center">Terminal No</th>
+                                <th style="text-align:center">Terminal Name</th>
+                                <th style="text-align:center">VERSION_MB</th>
+                                <th style="text-align:center">Z Flag</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @* เติมด้วย JS *@
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="modalUpdateSummary"
+                     style="margin-top:10px; display:none; font-weight:bold;"
+                     class="text-success">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="submitTerminalSelection()">
+                    Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/lib/DataTables/datatables.min.js"></script>
+
+<script>
+    var max_row = 0;
+    var page_index = 0;
+
+    function generatePageButtons(pages, max_row, currentpage) {
+        var pageButtonsContainer = $("#pageButtonsContainer");
+        pageButtonsContainer.empty();
+
+        var maxButtons = 5;
+        var startPage = Math.max(1, currentpage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(startPage + maxButtons - 1, pages);
+        var prevDiv = document.getElementById("prev");
+        var nextDiv = document.getElementById("next");
+
+        for (var i = startPage; i <= endPage; i++) {
+            (function (pageNumber) {
+                var button = $("<a>").text(pageNumber).click(function () {
+                    $("#page").val(pageNumber);
+                    SubmitPage(pageNumber, max_row);
+                });
+                button.css({
+                    "display": "inline-flex",
+                    "align-items": "center",
+                    "justify-content": "center"
+                });
+                if (pageNumber == currentpage) {
+                    button.addClass("current-page");
+                }
+                pageButtonsContainer.append(button);
+            })(i);
+        }
+
+        if (pages >= 1) {
+            $("#page").empty();
+            for (var i = 1; i <= pages; i++) {
+                var option = $('<option>', {
+                    value: i,
+                    text: i
+                });
+                if (i == currentpage) {
+                    option.prop("selected", true);
+                }
+                $("#page").append(option);
+            }
+        } else {
+            $("#page").empty();
+            var option = $('<option>', {
+                value: 1,
+                text: 1
+            });
+            $("#page").append(option);
+        }
+
+        var pageNext = parseInt(currentpage) + 1;
+        var pagePrev = parseInt(currentpage) - 1;
+
+        prevDiv.onclick = function () {
+            if (pagePrev > 0) {
+                SubmitPage(pagePrev, max_row);
+            }
+        };
+        nextDiv.onclick = function () {
+            if (pageNext <= pages) {
+                SubmitPage(pageNext, max_row);
+            }
+        };
+
+        prevDiv.style.visibility = "hidden";
+        nextDiv.style.visibility = "hidden";
+
+        if ((pages != 0) && pageNext <= pages) {
+            nextDiv.style.visibility = "visible";
+        }
+
+        if ((pages != 0) && pagePrev > 0) {
+            prevDiv.style.visibility = "visible";
+        }
+    }
+
+    function generateTable(jsondata, maxRow, pageIndex) {
+        $("#table-id tbody").empty();
+        if (!jsondata || jsondata.length === 0) {
+            var noDataRow = $("<tr>").append($("<td colspan='6' style='text-align:center;'>").text("No data"));
+            $("#table-id tbody").append(noDataRow);
+        } else {
+            $.each(jsondata, function (index, item) {
+                var row = $("<tr>");
+
+                row.append($("<td>").css("text-align", "center").text((index + 1) + ((pageIndex - 1) * maxRow)));
+                row.append($("<td>").css("text-align", "center").text(item.serial_no));
+                row.append($("<td>").css("text-align", "center").text(item.terminal_no));
+                row.append($("<td>").css("text-align", "center").text(item.terminal_name));
+
+                let date = item.last_updated ? new Date(item.last_updated) : null;
+                let dateString = "";
+                if (date && !isNaN(date.getTime())) {
+                    let year = date.getFullYear().toString().padStart(4, "0");
+                    let month = (date.getMonth() + 1).toString().padStart(2, "0");
+                    let day = date.getDate().toString().padStart(2, "0");
+                    let hour = date.getHours().toString().padStart(2, "0");
+                    let minute = date.getMinutes().toString().padStart(2, "0");
+                    let second = date.getSeconds().toString().padStart(2, "0");
+                    dateString = year + "-" + month + "-" + day ;
+                }
+                row.append($("<td>").css("text-align", "center").text(dateString));
+
+                row.append($("<td>").css("text-align", "center").text(item.status));
+
+                $("#table-id tbody").append(row);
+                window.scrollTo(0, 0);
+            });
+        }
+    }
+
+    function ChangePage(val) {
+        SubmitPage(val, max_row);
+    }
+
+    function SearchData() {
+        var paramater = {
+            terminal_no: document.getElementById('terminal_no').value,
+            status: document.getElementById('status').value,
+            maxRows: document.getElementById('maxRows').value
+        };
+        SubmitSearch(paramater);
+    }
+
+    function ClearSearchData() {
+        document.getElementById('terminal_no').value = "";
+        document.getElementById('status').value = "";
+        document.getElementById('maxRows').value = "50";
+        $('#recordCount').text("");
+        $("#table-id tbody").empty();
+        $("#page").empty();
+        $("#pageButtonsContainer").empty();
+    }
+
+    function DownloadExcel() {
+        ExportRecordtoExcel();
+    }
+
+    function AddTerminal() {
+        alert("Add Terminal clicked (todo: implement)");
+    }
+
+    async function SubmitSearch(paramater) {
+        const url = '@Url.Action("GetSudoVersion", "SudoMonitor")' + '?' +
+            new URLSearchParams(paramater);
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                var res = response.json();
+                res.then((data) => {
+
+                    max_row = parseInt(paramater.maxRows || "50");
+                    if (isNaN(max_row) || max_row <= 0) {
+                        max_row = 50;
+                    }
+
+                    page_index = Math.ceil((data.sumtotal || 0) / max_row);
+
+                    generateTable(data.devices, max_row, 1);
+                    $('#recordCount').text(data.sumtotal || 0);
+                    generatePageButtons(page_index, max_row, 1);
+                });
+
+                return true;
+            } else {
+                console.log("Search failed with status " + response.status);
+                return false;
+            }
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
+
+    async function SubmitPage(page, maxRow) {
+        try {
+            const url = '@Url.Action("GetSudoPage", "SudoMonitor")' + '?' +
+                new URLSearchParams({
+                    page: page,
+                    max_row: maxRow
+                });
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (response.ok) {
+                var res = response.json();
+                res.then((data) => {
+                    generateTable(data, maxRow, page);
+                    generatePageButtons(page_index, maxRow, page);
+                });
+                return true;
+            } else {
+                console.log("Paging failed with status " + response.status);
+                return false;
+            }
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
+
+    async function ExportRecordtoExcel() {
+        try {
+            const response = await fetch('@Url.Action("ExportSudoToExcel", "SudoMonitor")', {
+                method: 'POST'
+            });
+            if (response.ok) {
+                let res = response.blob();
+                res.then(blob => {
+                    const date = new Date();
+                    let currentDay = String(date.getDate()).padStart(2, '0');
+                    let currentMonth = String(date.getMonth() + 1).toString().padStart(2, '0');
+                    let currentYear = date.getFullYear();
+                    let currentDate = `${currentYear}-${currentMonth}-${currentDay}`;
+
+                    var url = window.URL.createObjectURL(blob);
+                    var anchor = document.createElement("a");
+                    anchor.href = url;
+                    anchor.download = 'SudoVersion_' + currentDate + '.xlsx';
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(anchor);
+                });
+            } else {
+                throw new Error("Export failed with status " + response.status);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    $(document).ready(function () {
+        // SearchData();
+    });
+</script>
+
+<script>
+    // ----------------- GLOBAL ของ modal -----------------
+    var modalTerminals = [];   // เก็บ list terminal ทั้งหมดจาก server
+    var modalTerminalsFiltered = []; // เก็บหลัง filter
+
+    function AddTerminal() {
+        // เวลาเปิด modal ให้โหลดข้อมูลก่อน (ครั้งแรก) แล้วค่อย show
+        loadModalTerminalList();
+    }
+
+    async function loadModalTerminalList() {
+        try {
+            const url = '@Url.Action("GetSudoTerminalList", "SudoMonitor")';
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                console.log("GetSudoTerminalList failed : " + response.status);
+                return;
+            }
+
+            const data = await response.json();
+
+            // data = [{ term_id, term_name, term_seq, version_mb, z_flag }, ...]
+            modalTerminals = data || [];
+            modalTerminalsFiltered = modalTerminals.slice();
+
+            renderModalTerminalTable(modalTerminalsFiltered);
+
+            // เคลียร์ summary
+            document.getElementById("modalUpdateSummary").style.display = "none";
+            document.getElementById("modalUpdateSummary").innerText = "";
+
+            // เปิด modal
+            $("#addTerminalModal").modal("show");
+        }
+        catch (e) {
+            console.log(e);
+        }
+    }
+
+    function renderModalTerminalTable(list) {
+        var tbody = $("#modal-terminal-table tbody");
+        tbody.empty();
+
+        if (!list || list.length === 0) {
+            var noRow = $("<tr>").append(
+                $("<td colspan='5' style='text-align:center;'>").text("No data")
+            );
+            tbody.append(noRow);
+            return;
+        }
+
+        list.forEach(function (item, idx) {
+            // checkbox: ถ้า z_flag = 1 ให้ติ๊กไว้
+            var chk = $("<input>")
+                .attr("type", "checkbox")
+                .addClass("modal-terminal-chk")
+                .attr("data-terminal-id", item.term_id);
+
+            if (item.z_flag === 1 || item.z_flag === "1") {
+                chk.prop("checked", true);
+            }
+
+            var tr = $("<tr>");
+            tr.append(
+                $("<td>").css("text-align", "center").append(chk)
+            );
+            tr.append(
+                $("<td>").css("text-align", "center").text(item.term_id)
+            );
+            tr.append(
+                $("<td>").css("text-align", "center").text(item.term_name)
+            );
+            tr.append(
+                $("<td>").css("text-align", "center").text(item.version_mb || "")
+            );
+            tr.append(
+                $("<td>").css("text-align", "center").text(item.z_flag)
+            );
+
+            tbody.append(tr);
+        });
+
+        // set select-all ตาม row ปัจจุบัน
+        syncModalSelectAllCheckbox();
+    }
+
+    function filterModalTerminals() {
+        var keyword = $("#modalTerminalSearch").val() || "";
+        keyword = keyword.toLowerCase();
+
+        if (!keyword) {
+            modalTerminalsFiltered = modalTerminals.slice();
+        } else {
+            modalTerminalsFiltered = modalTerminals.filter(function (x) {
+                var tid = (x.term_id || "").toLowerCase();
+                var tname = (x.term_name || "").toLowerCase();
+                return tid.indexOf(keyword) >= 0 || tname.indexOf(keyword) >= 0;
+            });
+        }
+
+        renderModalTerminalTable(modalTerminalsFiltered);
+    }
+
+    function toggleModalSelectAll(sender) {
+        var checked = sender.checked;
+        $(".modal-terminal-chk").each(function () {
+            $(this).prop("checked", checked);
+        });
+    }
+
+    function syncModalSelectAllCheckbox() {
+        var all = $(".modal-terminal-chk");
+        if (all.length === 0) {
+            $("#chkModalSelectAll").prop("checked", false);
+            return;
+        }
+        var checkedCount = 0;
+        all.each(function () {
+            if ($(this).is(":checked")) {
+                checkedCount++;
+            }
+        });
+        $("#chkModalSelectAll").prop("checked", checkedCount === all.length);
+    }
+
+    // เวลา click ทีละ checkbox ให้ sync select-all ด้วย
+    $(document).on("change", ".modal-terminal-chk", function () {
+        syncModalSelectAllCheckbox();
+    });
+
+    async function submitTerminalSelection() {
+        try {
+            // เก็บ list terminal ที่ถูกติ๊ก = Z = 1
+            var selectedIds = [];
+            $(".modal-terminal-chk").each(function () {
+                if ($(this).is(":checked")) {
+                    selectedIds.push($(this).attr("data-terminal-id"));
+                }
+            });
+
+            const url = '@Url.Action("UpdateSudoTerminalSelection", "SudoMonitor")';
+
+            const body = JSON.stringify({
+                selectedTerminalIds: selectedIds
+            });
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: body
+            });
+
+            if (!response.ok) {
+                console.log("UpdateSudoTerminalSelection failed : " + response.status);
+                return;
+            }
+
+            const res = await response.json();
+            // res: { success, updatedCount, updatedIds:[], message }
+
+            var msg = (res.message || "") +
+                " Updated terminals: " + (res.updatedCount || 0);
+
+            if (res.updatedIds && res.updatedIds.length > 0) {
+                msg += "\n" + res.updatedIds.join(", ");
+            }
+
+            var summary = document.getElementById("modalUpdateSummary");
+            summary.innerText = msg.replace(/\n/g, "  ");
+            summary.style.display = "block";
+
+            // หลัง update อยาก refresh grid ด้านล่างด้วยก็ได้
+            // SearchData();
+        }
+        catch (e) {
+            console.log(e);
+        }
+    }
+</script>

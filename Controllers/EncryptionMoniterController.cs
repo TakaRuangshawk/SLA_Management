@@ -176,7 +176,7 @@ namespace SLA_Management.Controllers
 
         }
 
-
+      
 
         [HttpGet]
         public IActionResult GetLogSa(string terminal_id, DateTime date)
