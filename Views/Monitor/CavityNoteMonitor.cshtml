@@ -1,0 +1,665 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Cavity Note Monitor";
+
+    // ตอนนี้มี 10 คอลัมน์ (เพิ่ม Main Version)
+    string[] tableHeaders = new string[]
+    {
+        "No.",
+        "Serial No.",
+        "Terminal ID",
+        "Terminal Name",
+        "Terminal Type",
+        "Cavity Note",
+        "Has 4199",
+        "NV Log Time",
+        "NV Version",
+        "Main Version"
+    };
+
+    // ===== NV Version dropdown list =====
+    var nvVersionItems = new List<SelectListItem>();
+    nvVersionItems.Add(new SelectListItem { Text = "All", Value = "" });
+
+    if (ViewBag.NvVersionList != null)
+    {
+        foreach (string v in (IEnumerable<string>)ViewBag.NvVersionList)
+        {
+            nvVersionItems.Add(new SelectListItem { Text = v, Value = v });
+        }
+    }
+
+    // ===== Main Version dropdown list =====
+    var mainVersionItems = new List<SelectListItem>();
+    mainVersionItems.Add(new SelectListItem { Text = "All", Value = "" });
+
+    if (ViewBag.MainVersionList != null)
+    {
+        foreach (string v in (IEnumerable<string>)ViewBag.MainVersionList)
+        {
+            mainVersionItems.Add(new SelectListItem { Text = v, Value = v });
+        }
+    }
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+</head>
+
+<style>
+    .btn-light {
+        border: 1px solid darkgrey;
+        border-radius: 10px;
+    }
+
+    h {
+        display: flex;
+        justify-content: center;
+    }
+
+    /* กรอบขาวให้เหมือน Card Retain */
+    .cavity-wrapper {
+        position: relative;
+        margin-top: 60px;
+        border-radius: 40px;
+        border: 2px solid #d0d0d0;
+        background-color: #ffffff;
+        padding: 45px 60px 40px 60px;
+        box-shadow: none;
+    }
+
+    /* หัวส้มวางซ้ายบนเหมือน Card Retain */
+    .cavity-title {
+        position: absolute;
+        top: -30px;
+        left: 90px;
+        transform: none;
+        background: #f8b133;
+        color: #ffffff;
+        padding: 10px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        white-space: nowrap;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ปุ่ม 3 อันในกล่องเล็กกลางกรอบ */
+    #before-submit {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    #submit {
+        display: inline-flex;
+        gap: 10px;
+        padding: 6px 18px;
+        border-radius: 16px;
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
+
+        #submit img {
+            border-radius: 12px;
+        }
+
+    /* ระยะห่างแต่ละแถวของ filter */
+    .cavity-filters-row {
+        margin-top: 25px;
+    }
+
+    /* กล่อง filter 1 ช่อง */
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .filter-group .form-control {
+            width: 100%;
+        }
+
+</style>
+
+<div class="content contentHeader">
+    <div class="container w-auto containerHeader" style="padding-bottom: 0px;">
+        <div class="cavity-wrapper">
+            <!-- หัวส้ม -->
+            <div class="cavity-title">
+                Cavity Note Monitor
+            </div>
+
+            <div id="main_search">
+                @using (Html.BeginForm("CavityNoteMonitorAction", "Monitor", FormMethod.Get, new { id = "GatewayDateRecheckDate" }))
+                {
+                    <!-- แถว 1 : Terminal / Terminal Type / Sort / Rows -->
+                    <div class="row cavity-filters-row" style="margin-top:45px; padding:0 3vw;">
+
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label>Terminal :</label>
+                                <select class="selectpicker form-control subsearch"
+                                        id="TermID"
+                                        name="TermID"
+                                        data-live-search="true">
+                                    <option data-tokens="" value="">--</option>
+                                    @foreach (var item in ViewBag.CurrentTID)
+                                    {
+                                        if (item.TERM_ID != (string)ViewBag.TermID)
+                                        {
+                                            <option value="@item.TERM_ID" data-tokens="@item.TERM_ID">
+                                                @item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME
+                                            </option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.TERM_ID" data-tokens="@item.TERM_ID" selected>
+                                                @item.TERM_SEQ : @item.TERM_ID : @item.TERM_NAME
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label>Terminal Type :</label>
+                                @Html.DropDownList(
+                                "terminaltype",
+                                                        new SelectListItem[]
+                                                        {
+                                                        new SelectListItem() { Text = "All",  Value = ""     },
+                                                        new SelectListItem() { Text = "2IN1", Value = "2IN1" },
+                                                        new SelectListItem() { Text = "LRM",  Value = "LRM"  },
+                                                        new SelectListItem() { Text = "CDM",  Value = "RDM"  }
+                                                        },
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "terminaltype"
+                                                        })
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>Sort :</label>
+                            @Html.DropDownList(
+                                                        "sort",
+                                                        new SelectListItem[]
+                                                        {
+                                                        new SelectListItem() { Text = "NV Log Time (Latest first)", Value = "nv_log_time_desc" },
+                                                        new SelectListItem() { Text = "NV Log Time (Oldest first)", Value = "nv_log_time_asc" },
+                                                        new SelectListItem() { Text = "Terminal No",                Value = "term_id"         },
+                                                        new SelectListItem() { Text = "Serial No",                  Value = "term_seq"        },
+                                                        new SelectListItem() { Text = "Cavity Note",                Value = "cavity_note"     },
+                                                        new SelectListItem() { Text = "NV Version",                 Value = "nv_version"      },
+                                                        new SelectListItem() { Text = "Main Version",               Value = "main_version"    }
+                                                        },
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "sort"
+                                                        })
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>Rows :</label>
+                            @Html.DropDownList(
+                                                        "maxRows",
+                                                        new SelectListItem[]
+                                                        {
+                                                        new SelectListItem() { Text = "50",  Value = "50"  },
+                                                        new SelectListItem() { Text = "100", Value = "100" },
+                                                        },
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "maxRows"
+                                                        })
+                        </div>
+                    </div>
+                </div>
+
+                <!-- แถว 2 : Cavity Note / Has 4199 / NV Version / Main Version -->
+                <div class="row cavity-filters-row" style="padding:0 3vw;">
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>Cavity Note :</label>
+                            @Html.DropDownList(
+                                                        "cavityNote",
+                                                        new SelectListItem[]
+                                                        {
+                                                        new SelectListItem() { Text = "All", Value = ""  },
+                                                        new SelectListItem() { Text = "0",   Value = "0" },
+                                                        new SelectListItem() { Text = "1",   Value = "1" },
+                                                        // แสดง "-" แต่ value = -1
+                                                        new SelectListItem() { Text = "-",   Value = "-1" },
+                                                        },
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "cavityNote",
+                                                            name = "cavityNote"
+                                                        })
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>Has 4199 :</label>
+                            @Html.DropDownList(
+                                                        "has4199",
+                                                        new SelectListItem[]
+                                                        {
+                                                        new SelectListItem() { Text = "All",      Value = ""  },
+                                                        new SelectListItem() { Text = "Has 4199", Value = "1" },
+                                                        new SelectListItem() { Text = "No 4199",  Value = "0" }
+                                                        },
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "has4199",
+                                                            name = "has4199"
+                                                        })
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>NV Version :</label>
+                            @Html.DropDownList(
+                                                        "nvVersion",
+                                                        nvVersionItems,
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "nvVersion"
+                                                        })
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-group">
+                            <label>Main Version :</label>
+                            @Html.DropDownList(
+                                                        "mainVersion",
+                                                        mainVersionItems,
+                                                        new
+                                                        {
+                                                            @class = "form-control selectpicker subsearch",
+                                                            id = "mainVersion"
+                                                        })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:15px;">
+                    <div class="col col-lg-1"></div>
+                </div>
+
+                <!-- ปุ่ม Search / Clear / Excel -->
+                <div class="row justify-content-md-center">
+                    <div class="col" id="before-submit">
+                        <div id="submit">
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#WaitingModal"
+                                    id="btnsearch"
+                                    class="btn"
+                                    style="padding:0px;"
+                                    onclick="updateTable('search')">
+                                <img src="~/images/icon_search.png"
+                                     style="width: 50px; height: 50px"
+                                     class="rounded-lg  p-0"
+                                     alt="Search" />
+                            </button>
+
+                            <button type="button"
+                                    id="btnclear"
+                                    class="btn"
+                                    data-toggle="tooltip"
+                                    name="cmdButton"
+                                    title="ล้างข้อมูล"
+                                    value="Clear"
+                                    style="padding:0px;border:0; background-color:transparent;">
+                                <img src="~/images/icon_delete.png"
+                                     style="width:50px; height:50px"
+                                     class="rounded-lg p-0"
+                                     alt="Clear Data" />
+                            </button>
+
+                            <a id="btnSEExp"
+                               data-toggle="tooltip"
+                               title="Excel Export Report"
+                               style="cursor: pointer; padding:0px;">
+                                <img src="~/images/icon_excel.png"
+                                     style="width: 50px; height: 50px"
+                                     class="rounded-lg  p-0"
+                                     alt="Excel Export Report" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                                }
+            </div>
+        </div> <!-- /.cavity-wrapper -->
+    </div>
+</div>
+
+<!-- ====== TABLE + PAGINATION ====== -->
+<div class="container-fluid">
+    <div class="row" style="background-color:#f8d5ad; width:fit-content; padding:8px; margin-left:3px; border-radius:15px; font-size:22px; font-weight:bold; margin-bottom:15px; border:1px solid lightgrey;">
+        <div class="col" style="display:flex; justify-content:center;">
+            <span style="white-space:nowrap; align-items:center; display:flex;">Total Record:</span>
+        </div>
+        <div class="col" style="display:flex; justify-content:center;">
+            <span style="white-space:nowrap; display:flex; align-items:center; background-color:rgba(255,255,255,1); padding:10px 35px; border-radius:10px;">
+                <span id="recordCount"></span>
+            </span>
+        </div>
+    </div>
+
+    <div class="table-responsive" style="overflow-x:hidden;">
+        <table id="table-id" class="table table-striped custom-table">
+            <thead>
+                <tr>
+                    @foreach (var head in tableHeaders)
+                    {
+                        <th scope="col" style="text-align:center">@head</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <div class="row">
+            <div class="col colPagination" style="padding-top:10px; z-index:1;">
+                <nav>
+                    <div class="pagination">
+                        <ul style="display:flex;">
+                            <li data-page="prev" id="prev" onclick="updateTable('prev')">
+                                <a style="color:#7a7a7a;">
+                                    <img src="~/images/arrow.png"
+                                         width="127"
+                                         height="53"
+                                         alt="Prev"
+                                         style="border:0; width:34px; height:34px;">
+                                </a>
+                            </li>
+                            <li id="pageButtonsContainer"></li>
+                            <li data-page="next" id="next" onclick="updateTable('next')">
+                                <a style="color:#7a7a7a;">
+                                    <img src="~/images/arrow.png"
+                                         width="127"
+                                         height="53"
+                                         alt="Next"
+                                         style="border:0; width:34px; height:34px; transform:scaleX(-1);">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="col-md-2" style="z-index:2;">
+                <p style="font-size:16px; font-weight:bolder;">
+                    Select page :
+                    @Html.DropDownList(
+                    "page",
+                                        new SelectListItem[] { },
+                                        new
+                                        {
+                                            @class = "form-control",
+                                            onchange = "updateTable('paging')",
+                                            id = "page"
+                                        })
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateTable(search) {
+        var terminalno   = $("#TermID").val();
+        var row          = $("#maxRows").val();
+        var page         = $("#page").val();
+        var sort         = $("#sort").val();
+        var terminaltype = $("#terminaltype").val();
+        var cavityNote   = $("#cavityNote").val();
+        var has4199      = $("#has4199").val();
+        var nvVersion    = $("#nvVersion").val();
+        var mainVersion  = $("#mainVersion").val(); // ★ ใหม่
+
+        var prevDiv = document.getElementById("prev");
+        var nextDiv = document.getElementById("next");
+
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("CavityNoteMonitorFetchData", "Monitor")',
+            data: {
+                terminalno:   terminalno,
+                row:          row,
+                page:         page,
+                search:       search,
+                sort:         sort,
+                terminaltype: terminaltype,
+                cavityNote:   cavityNote,
+                has4199:      has4199,
+                nvVersion:    nvVersion,
+                mainVersion:  mainVersion   // ★ ส่งไปหลังบ้านด้วย
+            },
+            dataType: "json",
+            success: function (data) {
+                var jsondata      = data.jsonData || [];
+                var pages         = data.page || 0;
+                var currentpage   = data.currentPage || 1;
+                var totalterminal = data.totalTerminal || 0;
+
+                $('#recordCount').text(totalterminal);
+                $("#table-id tbody").empty();
+
+                if (jsondata.length === 0) {
+                    var noDataRow = $("<tr>").append(
+                        $("<td colspan='10' style='text-align:center;'>").text("No data")
+                    );
+                    $("#table-id tbody").append(noDataRow);
+                } else {
+                    $.each(jsondata, function (index, item) {
+                        var rowDom = $("<tr>");
+                        rowDom.append($("<td>").css("text-align", "center").text(item.no));
+                        rowDom.append($("<td>").css("text-align", "center").text(item.term_seq));
+                        rowDom.append($("<td>").css("text-align", "center").text(item.term_id));
+                        rowDom.append($("<td>").css("text-align", "left").text(item.term_name));
+                        rowDom.append($("<td>").css("text-align", "center").text(item.term_type));
+
+                        // แสดง cavity_note: ถ้า -1 ให้เป็น "-"
+                        var cvNote = (item.cavity_note === -1 || item.cavity_note === "-1") ? "-" : item.cavity_note;
+                        rowDom.append($("<td>").css("text-align","center").text(cvNote));
+
+                        // Has 4199
+                        var has4199Text = (item.xdc_has_4199 === true || item.xdc_has_4199 === "1") ? "Yes"
+                            : (item.xdc_has_4199 === false || item.xdc_has_4199 === "0") ? "No"
+                                : "";
+                        rowDom.append($("<td>").css("text-align", "center").text(has4199Text));
+
+                        // NV Log Time format
+                        var nvTime = item.nv_log_time;
+                        if (nvTime) {
+                            nvTime = nvTime.toString();
+                            if (nvTime.indexOf("T") > -1) {
+                                nvTime = nvTime.substring(0, 19).replace("T", " ");
+                            }
+                        } else {
+                            nvTime = "";
+                        }
+                        rowDom.append($("<td>").css("text-align", "center").text(nvTime));
+
+                        // NV Version
+                        rowDom.append($("<td>").css("text-align", "center").text(item.nv_version || ""));
+
+                        // Main Version (ใหม่)
+                        rowDom.append($("<td>").css("text-align", "center").text(item.main_version || ""));
+
+                        $("#table-id tbody").append(rowDom);
+                    });
+                    window.scrollTo(0, 0);
+                }
+
+                generatePageButtons(pages, currentpage);
+
+                if (pages >= 1) {
+                    $("#page").empty();
+                    for (var i = 1; i <= pages; i++) {
+                        var option = $('<option>', { value: i, text: i });
+                        if (i === currentpage) {
+                            option.prop("selected", true);
+                        }
+                        $("#page").append(option);
+                    }
+                } else {
+                    $("#page").empty();
+                    var option = $('<option>', { value: 1, text: 1 });
+                    $("#page").append(option);
+                }
+
+                if ((currentpage === 1 || !page) && pages > 1) {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "visible";
+                } else if ((currentpage === pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "hidden";
+                } else if ((currentpage < pages) && pages > 1) {
+                    prevDiv.style.visibility = "visible";
+                    nextDiv.style.visibility = "visible";
+                } else {
+                    prevDiv.style.visibility = "hidden";
+                    nextDiv.style.visibility = "hidden";
+                }
+            },
+            error: function (error) {
+                console.log("Error: " + JSON.stringify(error));
+            }
+        });
+    }
+
+    function generatePageButtons(pages, currentpage) {
+        var pageButtonsContainer = $("#pageButtonsContainer");
+        pageButtonsContainer.empty();
+
+        var maxButtons = 5;
+        var startPage = Math.max(1, currentpage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(startPage + maxButtons - 1, pages);
+
+        for (var i = startPage; i <= endPage; i++) {
+            (function (pageNum) {
+                var button = $("<a>").text(pageNum).click(function () {
+                    $("#page").val(pageNum);
+                    updateTable('paging');
+                });
+                button.css({
+                    "display": "inline-flex",
+                    "align-items": "center",
+                    "justify-content": "center"
+                });
+                if (pageNum === currentpage) {
+                    button.addClass("current-page");
+                }
+                pageButtonsContainer.append(button);
+            })(i);
+        }
+    }
+
+    // โหลดหน้าครั้งแรก
+    updateTable("search");
+
+    // ปุ่ม Clear – รีเซ็ต filter ทั้งหมด แล้วค้นใหม่ที่หน้า 1
+    $("#btnclear").click(function (e) {
+        e.preventDefault();
+
+        // เคลียร์ค่า filter ทั้งหมด
+        $("#TermID").val('');
+        $("#terminaltype").val('');
+        $("#sort").val('nv_log_time_desc');   // หรือ '' ถ้าอยาก default เป็นตัวแรก
+        $("#maxRows").val('50');
+        $("#cavityNote").val('');
+        $("#has4199").val('');
+        $("#nvVersion").val('');
+        $("#mainVersion").val('');
+        $("#page").val('1');             // กลับไปหน้าที่ 1
+
+        // ถ้าใช้ bootstrap-select (selectpicker) ให้ refresh ด้วย
+        if ($.fn.selectpicker) {
+            $("#TermID").selectpicker('refresh');
+            $("#terminaltype").selectpicker('refresh');
+            $("#sort").selectpicker('refresh');
+            $("#maxRows").selectpicker('refresh');
+            $("#cavityNote").selectpicker('refresh');
+            $("#has4199").selectpicker('refresh');
+            $("#nvVersion").selectpicker('refresh');
+            $("#mainVersion").selectpicker('refresh');
+        }
+
+        // เรียกค้นใหม่แบบ search
+        updateTable('search');
+    });
+
+    // ปุ่ม Export Excel (ส่ง filter ปัจจุบันไปด้วย)
+    $("#btnSEExp").click(function (e) {
+        e.preventDefault();
+
+        var terminalno   = $("#TermID").val();
+        var sort         = $("#sort").val();
+        var terminaltype = $("#terminaltype").val();
+        var cavityNote   = $("#cavityNote").val();
+        var has4199      = $("#has4199").val();
+        var nvVersion    = $("#nvVersion").val();
+        var mainVersion  = $("#mainVersion").val();
+        var rptType      = "xlsx";
+
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify({
+                terminalno:   terminalno,
+                sort:         sort,
+                terminaltype: terminaltype,
+                cavityNote:   cavityNote,
+                has4199:      has4199,
+                nvVersion:    nvVersion,
+                mainVersion:  mainVersion
+            }),
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("CavityNoteMonitor_ExportExc", "Monitor")',
+            success: function (result) {
+                if (result.success === 'S') {
+                    window.location =
+                        '@Url.Action("CavityNoteMonitor_DownloadExportFile", "Monitor")/?rpttype=' + rptType;
+                } else {
+                    alert(result.errstr);
+                }
+            },
+            error: function () {
+                alert('@ViewBag.ErrorMsg');
+            }
+        });
+    });
+</script>

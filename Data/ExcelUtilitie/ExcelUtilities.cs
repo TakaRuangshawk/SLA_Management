@@ -1,5 +1,6 @@
 ﻿
 using OfficeOpenXml;
+using SLA_Management.Models;
 using SLA_Management.Models.OperationModel;
 using SLA_Management.Models.ReportModel;
 using SLA_Management.Models.TermProbModel;
@@ -10,6 +11,143 @@ using static SLA_Management.Controllers.ReportController;
 
 namespace SLA_Management.Data.ExcelUtilitie
 {
+
+    using OfficeOpenXml;
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+
+    public class ExcelUtilities_CavityNoteMonitor
+    {
+        #region Local Variable
+
+        cavity_seek param = null;
+        private readonly CultureInfo _cultureEnInfo = new CultureInfo("en-US");
+
+        #endregion
+
+        #region Property
+
+        public string PathDefaultTemplate { get; set; }
+
+        public string FileSaveAsXlsxFormat { get; set; }
+
+        #endregion
+
+        #region Constructor
+
+        public ExcelUtilities_CavityNoteMonitor(cavity_seek paramTemp)
+        {
+            param = paramTemp;
+        }
+
+        public ExcelUtilities_CavityNoteMonitor()
+        {
+            param = new cavity_seek();
+        }
+
+        #endregion
+
+        #region Function
+
+        /// <summary>
+        /// สร้างไฟล์ Excel สำหรับรายงาน Cavity Note Monitor
+        /// ใช้ template: CavityNoteMonitor.xlsx
+        /// </summary>
+        public void GenExcelFileCavityMonitor(List<CavityMonitorModel> objData)
+        {
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+
+                // สร้าง Excel ใหม่
+                using (var package = new ExcelPackage())
+                {
+                    var ws = package.Workbook.Worksheets.Add("CavityNoteMonitor");
+
+                    int row = 1;
+
+                    // ===== HEADER REPORT =====
+                    ws.Cells[row, 1].Value = "Cavity Note Monitor Report";
+                    ws.Cells[row, 1, row, 9].Merge = true;
+                    ws.Cells[row, 1].Style.Font.Bold = true;
+                    ws.Cells[row, 1].Style.Font.Size = 16;
+                    row++;
+
+                    ws.Cells[row, 1].Value = "Generated:";
+                    ws.Cells[row, 2].Value = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                    row++;
+
+                    row++;
+
+                    // ===== TABLE HEADER =====
+                    string[] headers = new string[]
+                    {
+                "No.",
+                "Serial No.",
+                "Terminal ID",
+                "Terminal Name",
+                "Terminal Type",
+                "Cavity Note",
+                "Has 4199",
+                "NV Log Time",
+                "NV Version",
+                "Main Version"
+                    };
+
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        ws.Cells[row, i + 1].Value = headers[i];
+                        ws.Cells[row, i + 1].Style.Font.Bold = true;
+                        ws.Cells[row, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        ws.Cells[row, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                        ws.Cells[row, i + 1].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
+                    }
+
+                    row++;
+
+                    // ===== WRITE DATA =====
+                    foreach (var d in objData)
+                    {
+                        ws.Cells[row, 1].Value = d.no;
+                        ws.Cells[row, 2].Value = d.term_seq;
+                        ws.Cells[row, 3].Value = d.term_id;
+                        ws.Cells[row, 4].Value = d.term_name;
+                        ws.Cells[row, 5].Value = d.term_type;
+                        ws.Cells[row, 6].Value = (d.cavity_note == -1 ? "-" : d.cavity_note.ToString());
+
+                        ws.Cells[row, 7].Value = d.xdc_has_4199 ? "Yes" : "No";
+                        ws.Cells[row, 8].Value = d.nv_log_time?.ToString("yyyy-MM-dd HH:mm:ss");
+                        ws.Cells[row, 9].Value = d.nv_version;
+                        ws.Cells[row, 10].Value = d.main_version;
+
+                        row++;
+                    }
+
+                    // AutoFit columns
+                    ws.Cells[1, 1, row, 9].AutoFitColumns();
+
+                    // ===== SAVE FILE =====
+                    string saveFolder = PathDefaultTemplate.Replace("InputTemplate", "tempfiles");
+                    if (!Directory.Exists(saveFolder))
+                        Directory.CreateDirectory(saveFolder);
+
+                    string savePath = Path.Combine(saveFolder, "CavityNoteMonitor.xlsx");
+                    FileSaveAsXlsxFormat = "CavityNoteMonitor.xlsx";
+
+                    package.SaveAs(new FileInfo(savePath));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        #endregion
+    }
+
     public class ExcelUtilities_gateway
     {
         #region  Local Variable
