@@ -603,7 +603,7 @@ namespace SLA_Management.Controllers
         r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
         r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
         r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
-        j.Problem_Detail, j.Solving_Program , j.Status as AService_Status
+        j.Problem_Detail, j.Solving_Program , j.Status as AService_Status ,r.Time_Inform,r.Time_Close_Pb
     FROM baac_logview.reportcases r
     LEFT JOIN baac_logview.t_tsd_jobdetail j 
     ON j.Job_No = r.Repair2 
@@ -666,13 +666,30 @@ namespace SLA_Management.Controllers
                 {
                     while (reader.Read())
                     {
+                        string timeInform = reader["Time_Inform"] != DBNull.Value ? reader.GetString("Time_Inform") : string.Empty;
+                        string timeClosePb = reader["Time_Close_Pb"] != DBNull.Value ? reader.GetString("Time_Close_Pb") : string.Empty;
+                        // Date Inform
+                        string dateInform = "";
+                        if (reader["Date_Inform"] != DBNull.Value)
+                        {
+                            var d = reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy");
+                            dateInform = string.IsNullOrEmpty(timeInform) ? d : $"{d} {timeInform}";
+                        }
+
+                        // Date Close PB
+                        string dateClosePb = "";
+                        if (reader["Date_Close_Pb"] != DBNull.Value)
+                        {
+                            var d = reader.GetDateTime("Date_Close_Pb").ToString("dd/MM/yyyy");
+                            dateClosePb = string.IsNullOrEmpty(timeClosePb) ? d : $"{d} {timeClosePb}";
+                        }
+
                         reportCases.Add(new ReportCase
                         {
                             CaseErrorNo = reader.GetInt64("Case_Error_No"),
                             TerminalID = reader["Terminal_ID"] != DBNull.Value ? reader.GetString("Terminal_ID") : string.Empty,
                             PlaceInstall = reader["Place_Install"] != DBNull.Value ? reader.GetString("Place_Install") : string.Empty,
                             IssueName = reader["Issue_Name"] != DBNull.Value ? reader.GetString("Issue_Name") : string.Empty,
-                            DateInform = reader["Date_Inform"] != DBNull.Value ? reader.GetDateTime("Date_Inform").ToString("dd/MM/yyyy") : string.Empty,
                             StatusName = reader["Status_Name"] != DBNull.Value ? reader.GetString("Status_Name") : string.Empty,
                             BranchName = reader["Branch_name_pb"] != DBNull.Value ? reader.GetString("Branch_name_pb") : string.Empty,
                             Repair1 = reader["Repair1"] != DBNull.Value ? reader.GetString("Repair1") : string.Empty,
@@ -681,7 +698,8 @@ namespace SLA_Management.Controllers
                             Repair4 = reader["Repair4"] != DBNull.Value ? reader.GetString("Repair4") : string.Empty,
                             Repair5 = reader["Repair5"] != DBNull.Value ? reader.GetString("Repair5") : string.Empty,
                             IncidentNo = reader["Incident_No"] != DBNull.Value ? reader.GetString("Incident_No") : string.Empty,
-                            DateClosePb = reader["Date_Close_Pb"] != DBNull.Value ? reader.GetDateTime("Date_Close_Pb").ToString("dd/MM/yyyy") : string.Empty,
+                            DateInform = dateInform,
+                            DateClosePb = dateClosePb,
                             TypeProject = reader["Type_Project"] != DBNull.Value ? reader.GetString("Type_Project") : string.Empty,
                             UpdateDate = reader["Update_Date"] != DBNull.Value ? reader.GetDateTime("Update_Date").ToString("dd/MM/yyyy HH:mm") : string.Empty,
                             UpdateBy = reader["Update_By"] != DBNull.Value ? reader.GetString("Update_By") : string.Empty,
@@ -721,10 +739,25 @@ namespace SLA_Management.Controllers
 
                 string query = @"
 SELECT 
-    r.Case_Error_No, r.Terminal_ID, r.Place_Install, r.Issue_Name, r.Date_Inform, 
-    r.Status_Name, r.Branch_name_pb, r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
-    r.Incident_No, r.Date_Close_Pb, r.Type_Project, r.Update_Date, r.Update_By, r.Remark,
-    j.Problem_Detail, j.Solving_Program , j.Status as AService_Status 
+    r.Case_Error_No, 
+    r.Terminal_ID, 
+    r.Place_Install, 
+    r.Issue_Name, 
+    r.Date_Inform,
+    r.Time_Inform,
+    r.Status_Name, 
+    r.Branch_name_pb, 
+    r.Repair1, r.Repair2, r.Repair3, r.Repair4, r.Repair5, 
+    r.Incident_No, 
+    r.Date_Close_Pb,
+    r.Time_Close_Pb,
+    r.Type_Project, 
+    r.Update_Date, 
+    r.Update_By, 
+    r.Remark,
+    j.Problem_Detail, 
+    j.Solving_Program , 
+    j.Status as AService_Status 
 FROM reportcases r
 LEFT JOIN baac_logview.t_tsd_jobdetail j 
     ON j.Job_No = r.Repair2 
@@ -791,12 +824,32 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                         {
                             var worksheet = package.Workbook.Worksheets.Add("ReportCases");
 
-                            // Header
+                            // ✅ Header (เพิ่ม Time Inform / Time Close Pb แล้ว)
                             string[] headers = new[]
                             {
-                        "Case No", "Terminal ID", "Place Install", "Issue Name", "Date Inform", "BAAC Status", "Branch Name",
-                        "Repair 1", "Repair 2", "Repair 3", "Repair 4", "Repair 5", "Incident No", "Date Close Pb",
-                        "Type Project", "Update Date", "Update By", "Remark", "Problem Detail", "Solving Program", "Aservice Status"
+                        "Case No",        // 1
+                        "Terminal ID",    // 2
+                        "Place Install",  // 3
+                        "Issue Name",     // 4
+                        "Date Inform",    // 5
+                        "Time Inform",    // 6
+                        "BAAC Status",    // 7
+                        "Branch Name",    // 8
+                        "Repair 1",       // 9
+                        "Repair 2",       // 10
+                        "Repair 3",       // 11
+                        "Repair 4",       // 12
+                        "Repair 5",       // 13
+                        "Incident No",    // 14
+                        "Date Close Pb",  // 15
+                        "Time Close Pb",  // 16
+                        "Type Project",   // 17
+                        "Update Date",    // 18
+                        "Update By",      // 19
+                        "Remark",         // 20
+                        "Problem Detail", // 21
+                        "Solving Program",// 22
+                        "Aservice Status" // 23
                     };
 
                             for (int i = 0; i < headers.Length; i++)
@@ -821,23 +874,42 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                                 worksheet.Cells[row, 2].Value = reader["Terminal_ID"] != DBNull.Value ? reader["Terminal_ID"] : null;
                                 worksheet.Cells[row, 3].Value = reader["Place_Install"] != DBNull.Value ? reader["Place_Install"] : null;
                                 worksheet.Cells[row, 4].Value = reader["Issue_Name"] != DBNull.Value ? reader["Issue_Name"] : null;
-                                worksheet.Cells[row, 5].Value = reader["Date_Inform"] != DBNull.Value ? Convert.ToDateTime(reader["Date_Inform"]).ToString("dd/MM/yyyy") : null;
-                                worksheet.Cells[row, 6].Value = reader["Status_Name"] != DBNull.Value ? reader["Status_Name"] : null;
-                                worksheet.Cells[row, 7].Value = reader["Branch_name_pb"] != DBNull.Value ? reader["Branch_name_pb"] : null;
-                                worksheet.Cells[row, 8].Value = reader["Repair1"] != DBNull.Value ? reader["Repair1"] : null;
-                                worksheet.Cells[row, 9].Value = reader["Repair2"] != DBNull.Value ? reader["Repair2"] : null;
-                                worksheet.Cells[row, 10].Value = reader["Repair3"] != DBNull.Value ? reader["Repair3"] : null;
-                                worksheet.Cells[row, 11].Value = reader["Repair4"] != DBNull.Value ? reader["Repair4"] : null;
-                                worksheet.Cells[row, 12].Value = reader["Repair5"] != DBNull.Value ? reader["Repair5"] : null;
-                                worksheet.Cells[row, 13].Value = reader["Incident_No"] != DBNull.Value ? reader["Incident_No"] : null;
-                                worksheet.Cells[row, 14].Value = reader["Date_Close_Pb"] != DBNull.Value ? Convert.ToDateTime(reader["Date_Close_Pb"]).ToString("dd/MM/yyyy") : null;
-                                worksheet.Cells[row, 15].Value = reader["Type_Project"] != DBNull.Value ? reader["Type_Project"] : null;
-                                worksheet.Cells[row, 16].Value = reader["Update_Date"] != DBNull.Value ? Convert.ToDateTime(reader["Update_Date"]).ToString("dd/MM/yyyy HH:mm") : null;
-                                worksheet.Cells[row, 17].Value = reader["Update_By"] != DBNull.Value ? reader["Update_By"] : null;
-                                worksheet.Cells[row, 18].Value = reader["Remark"] != DBNull.Value ? reader["Remark"] : null;
-                                worksheet.Cells[row, 19].Value = reader["Problem_Detail"] != DBNull.Value ? reader["Problem_Detail"] : null;
-                                worksheet.Cells[row, 20].Value = reader["Solving_Program"] != DBNull.Value ? reader["Solving_Program"] : null;
-                                worksheet.Cells[row, 21].Value = reader["AService_Status"] != DBNull.Value ? reader["AService_Status"] : null;
+
+                                // Date Inform
+                                worksheet.Cells[row, 5].Value = reader["Date_Inform"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["Date_Inform"]).ToString("dd/MM/yyyy")
+                                    : null;
+
+                                // ⏰ Time Inform (ใหม่)
+                                worksheet.Cells[row, 6].Value = reader["Time_Inform"] != DBNull.Value ? reader["Time_Inform"] : null;
+
+                                worksheet.Cells[row, 7].Value = reader["Status_Name"] != DBNull.Value ? reader["Status_Name"] : null;
+                                worksheet.Cells[row, 8].Value = reader["Branch_name_pb"] != DBNull.Value ? reader["Branch_name_pb"] : null;
+                                worksheet.Cells[row, 9].Value = reader["Repair1"] != DBNull.Value ? reader["Repair1"] : null;
+                                worksheet.Cells[row, 10].Value = reader["Repair2"] != DBNull.Value ? reader["Repair2"] : null;
+                                worksheet.Cells[row, 11].Value = reader["Repair3"] != DBNull.Value ? reader["Repair3"] : null;
+                                worksheet.Cells[row, 12].Value = reader["Repair4"] != DBNull.Value ? reader["Repair4"] : null;
+                                worksheet.Cells[row, 13].Value = reader["Repair5"] != DBNull.Value ? reader["Repair5"] : null;
+                                worksheet.Cells[row, 14].Value = reader["Incident_No"] != DBNull.Value ? reader["Incident_No"] : null;
+
+                                // Date Close Pb
+                                worksheet.Cells[row, 15].Value = reader["Date_Close_Pb"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["Date_Close_Pb"]).ToString("dd/MM/yyyy")
+                                    : null;
+
+                                // ⏰ Time Close Pb (ใหม่)
+                                worksheet.Cells[row, 16].Value = reader["Time_Close_Pb"] != DBNull.Value ? reader["Time_Close_Pb"] : null;
+
+                                worksheet.Cells[row, 17].Value = reader["Type_Project"] != DBNull.Value ? reader["Type_Project"] : null;
+                                worksheet.Cells[row, 18].Value = reader["Update_Date"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["Update_Date"]).ToString("dd/MM/yyyy HH:mm")
+                                    : null;
+                                worksheet.Cells[row, 19].Value = reader["Update_By"] != DBNull.Value ? reader["Update_By"] : null;
+                                worksheet.Cells[row, 20].Value = reader["Remark"] != DBNull.Value ? reader["Remark"] : null;
+                                worksheet.Cells[row, 21].Value = reader["Problem_Detail"] != DBNull.Value ? reader["Problem_Detail"] : null;
+                                worksheet.Cells[row, 22].Value = reader["Solving_Program"] != DBNull.Value ? reader["Solving_Program"] : null;
+                                worksheet.Cells[row, 23].Value = reader["AService_Status"] != DBNull.Value ? reader["AService_Status"] : null;
+
                                 row++;
                             }
 
@@ -863,6 +935,7 @@ LEFT JOIN baac_logview.t_tsd_jobdetail j
                 }
             }
         }
+
 
         public JsonResult GetReportCases(string termID, string issueName, string statusName, DateTime? fromDate, DateTime? toDate)
         {

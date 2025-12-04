@@ -33,8 +33,9 @@ namespace SLA_Management.Commons
                 {
                     await connection.OpenAsync();
 
-                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                    for (int row = 2; row <= rowCount; row++) // แถวแรกเป็น header
                     {
+                        // ====== Date_Inform (col 12) ======
                         var cellValue_dateInform = worksheet.Cells[row, 12].Value;
                         DateTime? dateInform = null;
 
@@ -49,7 +50,27 @@ namespace SLA_Management.Commons
                                 dateInform = DateTime.Parse(cellValue_dateInform.ToString());
                             }
                         }
-                        var cellValue_dateClosePb = worksheet.Cells[row, 13].Value;
+
+                        // ====== Time_Inform (col 13) ======
+                        var cellValue_timeInform = worksheet.Cells[row, 13].Value;
+                        string timeInform = null;
+
+                        if (cellValue_timeInform != null)
+                        {
+                            if (cellValue_timeInform is double)
+                            {
+                                // ถ้าเป็น Excel time/Date → แปลงเฉพาะเวลาเป็น HH:mm
+                                var dt = DateTime.FromOADate((double)cellValue_timeInform);
+                                timeInform = dt.ToString("HH:mm");
+                            }
+                            else
+                            {
+                                timeInform = cellValue_timeInform.ToString();
+                            }
+                        }
+
+                        // ====== Date_Close_Pb (col 14) ======
+                        var cellValue_dateClosePb = worksheet.Cells[row, 14].Value;
                         DateTime? dateClosePb = null;
 
                         if (cellValue_dateClosePb != null)
@@ -63,6 +84,25 @@ namespace SLA_Management.Commons
                                 dateClosePb = DateTime.Parse(cellValue_dateClosePb.ToString());
                             }
                         }
+
+                        // ====== Time_Close_Pb (col 15) ======
+                        var cellValue_timeClosePb = worksheet.Cells[row, 15].Value;
+                        string timeClosePb = null;
+
+                        if (cellValue_timeClosePb != null)
+                        {
+                            if (cellValue_timeClosePb is double)
+                            {
+                                var dt = DateTime.FromOADate((double)cellValue_timeClosePb);
+                                timeClosePb = dt.ToString("HH:mm");
+                            }
+                            else
+                            {
+                                timeClosePb = cellValue_timeClosePb.ToString();
+                            }
+                        }
+
+                        // ====== Columns อื่น ๆ ======
                         var caseErrorNo = Convert.ToInt64(worksheet.Cells[row, 1].Value);
                         var terminalId = worksheet.Cells[row, 2].Value?.ToString();
                         var placeInstall = worksheet.Cells[row, 3].Value?.ToString();
@@ -74,34 +114,42 @@ namespace SLA_Management.Commons
                         var repair4 = worksheet.Cells[row, 9].Value?.ToString();
                         var repair5 = worksheet.Cells[row, 10].Value?.ToString();
                         var incidentNo = worksheet.Cells[row, 11].Value?.ToString();
-                        var statusName = worksheet.Cells[row, 14].Value?.ToString();
-                        var typeProject = worksheet.Cells[row, 15].Value?.ToString();
+                        var statusName = worksheet.Cells[row, 16].Value?.ToString();
+                        var typeProject = worksheet.Cells[row, 17].Value?.ToString();
                         var updateDate = DateTime.Now;
-                        //var updateBy = "System";
                         var updateBy = userName;
                         var remark = "Imported from Excel";
 
+                        // ⚠️ ตรงนี้สมมติว่าตารางมีคอลัมน์ Time_Inform, Time_Close_Pb แล้ว
                         var query = @"
-                        INSERT INTO ReportCases 
-                        (Case_Error_No, Terminal_ID, Place_Install, Branch_name_pb, Issue_Name, Repair1, Repair2, Repair3, Repair4, Repair5, Incident_No, Date_Inform, Date_Close_Pb, Status_Name, Type_Project, Update_Date, Update_By, Remark) 
-                        VALUES 
-                        (@CaseErrorNo, @TerminalId, @PlaceInstall, @BranchNamePb, @IssueName, @Repair1, @Repair2, @Repair3, @Repair4, @Repair5, @IncidentNo, @DateInform, @DateClosePb, @StatusName, @TypeProject, @UpdateDate, @UpdateBy, @Remark)
-                        ON DUPLICATE KEY UPDATE 
-                            Place_Install = @PlaceInstall,
-                            Branch_name_pb = @BranchNamePb,
-                            Issue_Name = @IssueName,
-                            Repair1 = @Repair1,
-                            Repair2 = @Repair2,
-                            Repair3 = @Repair3,
-                            Repair4 = @Repair4,
-                            Repair5 = @Repair5,
-                            Incident_No = @IncidentNo,
-                            Date_Inform = @DateInform,
-                            Date_Close_Pb = @DateClosePb,
-                            Status_Name = @StatusName,
-                            Type_Project = @TypeProject,
-                            Update_Date = @UpdateDate,
-                            Update_By = @UpdateBy;";
+                INSERT INTO ReportCases 
+                (Case_Error_No, Terminal_ID, Place_Install, Branch_name_pb, Issue_Name, 
+                 Repair1, Repair2, Repair3, Repair4, Repair5, Incident_No, 
+                 Date_Inform, Time_Inform, Date_Close_Pb, Time_Close_Pb,
+                 Status_Name, Type_Project, Update_Date, Update_By, Remark) 
+                VALUES 
+                (@CaseErrorNo, @TerminalId, @PlaceInstall, @BranchNamePb, @IssueName, 
+                 @Repair1, @Repair2, @Repair3, @Repair4, @Repair5, @IncidentNo, 
+                 @DateInform, @TimeInform, @DateClosePb, @TimeClosePb,
+                 @StatusName, @TypeProject, @UpdateDate, @UpdateBy, @Remark)
+                ON DUPLICATE KEY UPDATE 
+                    Place_Install   = @PlaceInstall,
+                    Branch_name_pb  = @BranchNamePb,
+                    Issue_Name      = @IssueName,
+                    Repair1         = @Repair1,
+                    Repair2         = @Repair2,
+                    Repair3         = @Repair3,
+                    Repair4         = @Repair4,
+                    Repair5         = @Repair5,
+                    Incident_No     = @IncidentNo,
+                    Date_Inform     = @DateInform,
+                    Time_Inform     = @TimeInform,
+                    Date_Close_Pb   = @DateClosePb,
+                    Time_Close_Pb   = @TimeClosePb,
+                    Status_Name     = @StatusName,
+                    Type_Project    = @TypeProject,
+                    Update_Date     = @UpdateDate,
+                    Update_By       = @UpdateBy;";
 
                         using (var command = new MySqlCommand(query, connection))
                         {
@@ -116,8 +164,10 @@ namespace SLA_Management.Commons
                             command.Parameters.AddWithValue("@Repair4", repair4);
                             command.Parameters.AddWithValue("@Repair5", repair5);
                             command.Parameters.AddWithValue("@IncidentNo", incidentNo);
-                            command.Parameters.AddWithValue("@DateInform", dateInform);
-                            command.Parameters.AddWithValue("@DateClosePb", dateClosePb);
+                            command.Parameters.AddWithValue("@DateInform", (object?)dateInform ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@TimeInform", (object?)timeInform ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@DateClosePb", (object?)dateClosePb ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@TimeClosePb", (object?)timeClosePb ?? DBNull.Value);
                             command.Parameters.AddWithValue("@StatusName", statusName);
                             command.Parameters.AddWithValue("@TypeProject", typeProject);
                             command.Parameters.AddWithValue("@UpdateDate", updateDate);
@@ -130,6 +180,7 @@ namespace SLA_Management.Commons
                 }
             }
         }
+
 
         public async Task ImportExcelProblemDataAsync(Stream excelStream, string userName)
         {
