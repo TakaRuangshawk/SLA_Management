@@ -207,7 +207,7 @@ namespace SLA_Management.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult InventoryFetchData(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string row, string page, string search, string fromdate, string todate, string currentlyinuse)
+        public IActionResult InventoryFetchData(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string row, string page, string search, string fromdate, string todate, string currentlyinuse,string ups)
         {
             int _page;
             string filterquery = string.Empty;
@@ -307,7 +307,15 @@ namespace SLA_Management.Controllers
             {
                 filterquery += " and di.TERM_SEQ NOT IN (SELECT TERM_SEQ FROM device_info GROUP BY TERM_SEQ HAVING COUNT(DISTINCT status) = 1 AND MAX(status) = 'no') ";
             }
-            List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
+            if (ups == "syndome")
+            {
+                filterquery += " AND du.ups = 'syndome' ";
+            }
+            else if (ups == "other")
+            {
+                filterquery += " AND du.ups = 'other' ";
+            }
+                List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 
             using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
             {
@@ -325,11 +333,13 @@ namespace SLA_Management.Controllers
                 CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
                 WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
                 END AS SERVICE_ENDDATE,
-                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
+                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT,
+                COALESCE(du.ups, 'unknown') AS UPS
                 FROM gsb_adm_fv.device_info di
 				LEFT JOIN gsb_adm_fv.project_version pv ON di.TERM_ID = pv.TERM_ID
                 left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
                 left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
+                LEFT JOIN device_ups du ON du.terminalid = di.TERM_ID
                 where di.TERM_ID is not null ";
 
 
@@ -366,6 +376,7 @@ namespace SLA_Management.Controllers
                             VERSION = reader["version"].ToString(),
                             VERSION_AGENT = reader["version_agent"].ToString(),
                             TERM_IP = reader["TERM_IP"].ToString(),
+                            UPS = reader["UPS"].ToString()
                         });
                     }
                 }
@@ -426,6 +437,7 @@ namespace SLA_Management.Controllers
             public string VERSION { get; set; }
             public string VERSION_AGENT { get; set; }
             public string TERM_IP { get; set; }
+            public string UPS { get; set; }
         }
         public class DataResponse_InventoryMaintenanceModel
         {
@@ -680,7 +692,7 @@ namespace SLA_Management.Controllers
         #region Excel Ticket
 
         [HttpPost]
-        public ActionResult Inventory_ExportExc(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string fromdate, string todate)
+        public ActionResult Inventory_ExportExc(string terminalseq, string terminalno, string terminaltype, string connencted, string servicetype, string countertype, string status, string fromdate, string todate,string ups)
         {
             string fname = "";
             string tsDate = "";
@@ -701,7 +713,7 @@ namespace SLA_Management.Controllers
                 fromdate = fromdate ?? "";
                 todate = todate ?? "";
                 status = status ?? "";
-
+                ups = ups ?? "";
                 if (terminalno != "")
                 {
                     filterquery += " and pv.TERM_ID like '%" + terminalno + "%' ";
@@ -767,6 +779,14 @@ namespace SLA_Management.Controllers
                 {
                     filterquery += " and (di.SERVICE_ENDDATE <= '" + "2099-12-31" + "' or SERVICE_ENDDATE = 'เครื่องไม่เปิดให้บริการ' or SERVICE_ENDDATE = 'เครื่องยังเปิดให้บริการ') ";
                 }
+                if (ups == "syndome")
+                {
+                    filterquery += " AND du.ups = 'syndome' ";
+                }
+                else if (ups == "other")
+                {
+                    filterquery += " AND du.ups = 'other' ";
+                }
                 List<InventoryMaintenanceModel> jsonData = new List<InventoryMaintenanceModel>();
 
                 using (MySqlConnection connection = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_FVMySQL:FullNameConnection")))
@@ -785,11 +805,13 @@ namespace SLA_Management.Controllers
                 CASE WHEN STATUS = 'no' AND (dsi.CONN_STATUS_ID IS NULL OR dsi.CONN_STATUS_ID = 0)AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องไม่เปิดให้บริการ' 
                 WHEN STATUS != 'no' AND LENGTH(di.SERVICE_ENDDATE) = 0 THEN 'เครื่องยังเปิดให้บริการ' ELSE di.SERVICE_ENDDATE
                 END AS SERVICE_ENDDATE,
-                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT
+                pv.VERSION_MASTER,pv.VERSION,di.VERSION_AGENT,
+                COALESCE(du.ups, 'unknown') AS UPS
                 FROM gsb_adm_fv.project_version pv
                 left join device_info di on pv.TERM_ID = di.TERM_ID
                 left join device_status_info dsi on pv.TERM_ID = dsi.TERM_ID
                 left join device_inner_event die on dsi.CONN_STATUS_EVENT_ID = die.EVENT_ID 
+                LEFT JOIN device_ups du ON du.terminalid = di.TERM_ID   
                 where pv.TERM_ID is not null ";
 
 
@@ -825,6 +847,7 @@ namespace SLA_Management.Controllers
                                 VERSION_MASTER = reader["version_master"].ToString(),
                                 VERSION = reader["version"].ToString(),
                                 VERSION_AGENT = reader["version_agent"].ToString(),
+                                UPS = reader["UPS"].ToString(),
                             });
                         }
                     }

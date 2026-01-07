@@ -14,6 +14,7 @@
     "Terminal Type ",
     "Terminal No ",
     "Terminal Name ",
+    "UPS",
     "Connected ",
     "Terminal Status ",
     "Service From Date ",
@@ -310,6 +311,19 @@
                 </div>
                 <div class="row" style="margin-top: 45px;align-items:center;    display: flex;justify-content: space-around;padding:0vw 3vw 0vw 3vw;white-space:nowrap;">
                     <div class="col col-md-1" style="">
+                        <h>UPS : </h>
+                    </div>
+
+                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
+                        <div class="dropdown bootstrap-select form-control subsearch">
+                            <select class="form-control selectpicker subsearch" id="ups" name="ups">
+                                <option value="">--</option>
+                                <option value="syndome">Syndome</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col col-md-1" style="">
                         <h>Currently in Use : </h>
                     </div>
 
@@ -340,10 +354,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-1">
-                    </div>
-                    <div class="item col-md-2" style="border-color:#ced4da; background-color: transparent;">
-                    </div>
+              
 
                 </div>
 
@@ -644,6 +655,12 @@
                             <div class="col-md-3 modelTextbox">
                                 @Html.TextBox("VERSION_AGENT", ViewBag.VERSION_AGENT as string, new { @class = "w-100 form-control", @readonly = "true" })
                             </div>
+                            <div class="col-md-2 modelTopic">
+                                <label for="UPS">UPS </label>&nbsp;:&nbsp;
+                            </div>
+                            <div class="col-md-3 modelTextbox">
+                                @Html.TextBox("UPS", ViewBag.UPS as string, new { @class = "w-100 form-control", @readonly = "true" })
+                            </div>
 
                         </div>
                         <div class="row" style="margin: 15px;">
@@ -736,6 +753,7 @@
         var status = $("#Status").val();
         var currentlyinuse = $("#currentlyinuse").val();
         var row = $("#maxRows").val();
+        var ups = $("#ups").val();
         var page = $("#page").val();
         var prevDiv = document.getElementById("prev");
         var nextDiv = document.getElementById("next");
@@ -756,7 +774,8 @@
                 search: search,
                 fromdate: fromdate,
                 todate: todate,
-                currentlyinuse: currentlyinuse
+                currentlyinuse: currentlyinuse,
+                ups: ups
             },
             dataType: "json",
             success: function (data) {
@@ -773,6 +792,8 @@
                     $("#table-id tbody").append(noDataRow);
                 } else {
                     $.each(jsondata, function (index, item) {
+                        const rawUps = (item.ups ?? "unknown").toString();          
+                        const displayUps = rawUps.charAt(0).toUpperCase() + rawUps.slice(1);
                         var editButton = $("<td>").css("text-align", "center").append(
                             $("<img>").addClass("btn text-dark").attr({
                                 id: "btnEdit",
@@ -800,7 +821,8 @@
                                     "'" + item.versioN_MASTER + "'," +
                                     "'" + item.version + "'," +
                                     "'" + item.versioN_AGENT + "'," +
-                                    "'" + item.terM_IP + "'" +
+                                    "'" + item.terM_IP + "'," +
+                                    "'" + displayUps + "'" +
                                     ")"
                             })
                         );
@@ -825,6 +847,7 @@
                         row.append($("<td>").css("text-align", "center").text(item.terM_ID));
                         row.append($("<td>").css("text-align", "left").text(item.terM_NAME));
                         @*row.append($("<td>").css("text-align", "center").text(item.connected));*@
+                        row.append($("<td>").css("text-align", "center").text(displayUps));
                         row.append($("<td>").css("text-align", "center").append(imgElement));
                         row.append($("<td>").css("text-align", "center").text(item.status));
                         row.append($("<td>").css("text-align", "center").text(item.servicE_BEGINDATE));
@@ -926,6 +949,7 @@
         var fromdate = $("#fromdate").val();
         var todate = $("#todate").val();
         var status = $("#Status").val();
+        var ups = $("#ups").val();
         var rptType = "xlsx";
         $.ajax({
             type: "POST",
@@ -939,7 +963,8 @@
                 countertype: countertype,
                 status: status,
                 fromdate: fromdate,
-                todate: todate
+                todate: todate,
+                ups: ups
             },
             contentType: 'application/json; charset=utf-8',
             url: '@Url.Action("Inventory_ExportExc", "Maintenance")',
@@ -959,7 +984,7 @@
 
     function EditButton(devicE_ID, terM_SEQ, typE_ID, terM_ID, terM_NAME, connected, status, counteR_CODE,
         serviceType, terM_LOCATION, latitude, longitude, controL_BY, PROVINCE, servicE_BEGINDATE,
-        servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT,terM_IP) {
+        servicE_ENDDATE, versioN_MASTER, version, versioN_AGENT,terM_IP,ups) {
         $('#myModal').find('.editable').attr('readonly', true);
         var imgElement = document.createElement("img");
         var container = document.getElementById('connected_modal');
@@ -986,7 +1011,7 @@
         document.getElementById('VERSION_MASTER').value = versioN_MASTER;
         document.getElementById('VERSION').value = version;
         document.getElementById('VERSION_AGENT').value = versioN_AGENT;
-        document.getElementById('TERM_IP').value = terM_IP;
+        document.getElementById('UPS').value = ups;
 
         // Set the src and alt attributes based on the 'connected' value
         if (connected.toLowerCase() === 'online') {

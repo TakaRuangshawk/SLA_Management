@@ -42,6 +42,9 @@
     <Content Update="wwwroot\images\Pic_Page.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\RegulatorExcel\InputTemplate\Inventory.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
