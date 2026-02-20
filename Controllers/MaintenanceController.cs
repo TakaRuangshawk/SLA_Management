@@ -28,6 +28,7 @@ namespace SLA_Management.Controllers
         private static ConnectMySQL db_fv;
         private static List<InventoryMaintenanceModel> Inventory_dataList = new List<InventoryMaintenanceModel>();
         private static List<WhitelistFilterTemplateModel> WhitelistFilterTemplates_datalist = new List<WhitelistFilterTemplateModel>();
+        private static List<EJLogAnalystModel> ejloganalyst_dataList = new List<EJLogAnalystModel>();
 
         private static ej_trandada_seek param = new ej_trandada_seek();
         public MaintenanceController(IConfiguration myConfiguration)
@@ -3363,5 +3364,112 @@ namespace SLA_Management.Controllers
             return $"{Math.Round(length, 2)} {units[unitIndex]}"; 
         }
 
+        #region EJLogAnalyst
+        [HttpGet]
+        public IActionResult EJLogAnalyst(string bankName, string terminalId, string transactionStatus, string FrDate, string ToDate, string lstPageSize, string currPageSize, int? page, string maxRows)
+        {
+            List<EJLogAnalystModel> recordset = new List<EJLogAnalystModel>();
+
+            int pageNum = 1;
+            ViewBag.CurrentFr = string.IsNullOrEmpty(FrDate) ? DateTime.Today.ToString("yyyy-MM-dd") : FrDate;
+            ViewBag.CurrentTo = string.IsNullOrEmpty(ToDate) ? DateTime.Today.ToString("yyyy-MM-dd") : ToDate;
+
+            DBService_EJLoganalyst dBService;
+            dBService = new DBService_EJLoganalyst(_myConfiguration, _myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection"));
+
+            try
+            {
+                recordset = dBService.FetchAllData(terminalId, transactionStatus, ViewBag.CurrentFr, ViewBag.CurrentTo);
+
+                List<Device_info_record> device_Info_Records = dBService.GetDeviceInfo();
+                List<Transaction_status_record> tran_Status_Records = dBService.GetTransactionStatus();
+                var transtatus = tran_Status_Records.Select(x => x.TransactionStatus).Where(x => !string.IsNullOrEmpty(x)).Distinct();
+                var tranStatusList = new List<string> { "ALL" }.Concat(transtatus).ToList();
+                ViewBag.transactionStatus = new SelectList(tranStatusList.Select(x => new { Value = x, Text = x }), "Value", "Text");
+
+                ViewBag.CurrentTID = device_Info_Records;
+                ViewBag.terminalId = terminalId;
+                ViewBag.CurrentPageSize = (lstPageSize ?? currPageSize);
+
+
+                LatestUpdate_record latestUpdate = dBService.GetLatestUpdate();
+
+                //Pass the single value to ViewBag
+                if (latestUpdate != null)
+                {
+                    ViewBag.LatestUpdateDate = latestUpdate.Update_Date.ToString("dd/MM/yyyy HH:mm"); // Format DateTime to string
+                    ViewBag.UpdatedBy = latestUpdate.Update_By;
+                }
+                else
+                {
+                    ViewBag.LatestUpdateDate = "-";
+                    ViewBag.UpdatedBy = "-";
+                }
+
+                if (null != lstPageSize || null != currPageSize)
+                {
+                    param.PAGESIZE = String.IsNullOrEmpty(lstPageSize) == true ?
+                        int.Parse(currPageSize) : int.Parse(lstPageSize);
+                }
+                else
+                    param.PAGESIZE = 20;
+
+                #region Set page
+                long recCnt = 0;
+
+                if (String.IsNullOrEmpty(maxRows))
+                    ViewBag.maxRows = "50";
+                else
+                    ViewBag.maxRows = maxRows;
+
+                if (recordset.Count > 0)
+                {
+                    if (terminalId != null)
+                    {
+                        recordset.RemoveAll(item => item.TerminalId != terminalId);
+                    }
+
+                }
+
+                if (null == recordset || recordset.Count <= 0)
+                {
+                    ViewBag.NoData = "true";
+
+                }
+                else
+                {
+                    recCnt = recordset.Count;
+                    ejloganalyst_dataList = recordset;
+                    param.PAGESIZE = recordset.Count;
+                }
+
+                if (recCnt > 0)
+                {
+                    ViewBag.Records = String.Format("{0:#,##0}", recCnt.ToString());
+                }
+                else
+                    ViewBag.Records = "0";
+
+                pageNum = (page ?? 1);
+
+                int amountrecordset = recordset.Count();
+
+                if (amountrecordset > 5000)
+                {
+                    recordset.RemoveRange(5000, amountrecordset - 5000);
+                }
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching data.", ex);
+            }
+
+            return View(recordset.ToPagedList(pageNum, (int)param.PAGESIZE == 0 ? 1 : (int)param.PAGESIZE));
+        }        
     }
+    
+
+    #endregion
+
 }
