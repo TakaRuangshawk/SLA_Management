@@ -1,4 +1,5 @@
 ﻿
+
 using MySql.Data.MySqlClient;
 using Mysqlx.Crud;
 using SLA_Management.Commons;
@@ -8,6 +9,7 @@ using SLA_Management.Models.OperationModel;
 using System.Data;
 using System.Globalization;
 using System.Transactions;
+
 
 namespace SLA_Management.Data
 {
@@ -166,6 +168,76 @@ namespace SLA_Management.Data
                 throw new ApplicationException("An error occurred while getting EJ data.", ex);
             }
         }
+        public interface IEJPatternService
+        {
+            List<string> GetPatterns();
+            void InvalidateCache();
+            List<KeyValuePair<string, string>> GetTransactionTypes();
+            void InvalidateTransactionTypeCache();
+        }
+        
+        public class EJPatternService : IEJPatternService
+        {
+            private List<string> _patterns;
+            private List<KeyValuePair<string, string>> _transactionTypes; 
 
+            private readonly string _connStr;
+            private readonly object _lock = new object();
+
+            public EJPatternService(IConfiguration config)
+            {
+                _connStr = config.GetValue<string>("ConnectString_MySQL:FullNameConnection");
+            }
+            //GSBEJErrorPattern
+            public List<string> GetPatterns()
+            {
+                if (_patterns != null) return _patterns;
+
+                lock (_lock)
+                {
+                    if (_patterns != null) return _patterns;
+
+                    var result = new List<string>();
+                    using var conn = new MySqlConnection(_connStr);
+                    conn.Open();
+                    using var cmd = new MySqlCommand(
+                        "SELECT Pattern FROM GSBEJErrorPattern WHERE IsActive = 1", conn);
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        result.Add(reader.GetString(0));
+
+                    _patterns = result;
+                }
+
+                return _patterns;
+            }
+
+            public void InvalidateCache() => _patterns = null;
+            // GetTransactionTypes
+            public List<KeyValuePair<string, string>> GetTransactionTypes()
+            {
+                if (_transactionTypes != null) return _transactionTypes;
+                lock (_lock)
+                {
+                    if (_transactionTypes != null) return _transactionTypes;
+                    var result = new List<KeyValuePair<string, string>>();
+                    using var conn = new MySqlConnection(_connStr);
+                    conn.Open();
+                    using var cmd = new MySqlCommand(
+                        @"SELECT TransCode, TransTypeName 
+                  FROM GSBEJTransactionType 
+                  WHERE IsActive = 1 
+                  ORDER BY Id ASC", conn);
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        result.Add(new KeyValuePair<string, string>(
+                            reader.GetString(0),
+                            reader.GetString(1)));
+                    _transactionTypes = result;
+                }
+                return _transactionTypes;
+            }
+             public void InvalidateTransactionTypeCache() => _transactionTypes = null;
+        }     
     }
 }

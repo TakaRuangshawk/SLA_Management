@@ -16,6 +16,7 @@ using System.Reflection.Metadata;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
+using static SLA_Management.Data.DBService_EJLoganalyst;
 using W = DocumentFormat.OpenXml.Wordprocessing;
 
 
@@ -30,8 +31,10 @@ namespace SLA_Management.Controllers
 
         public ConnectMySQL connectMySQL { get; set; }
         private List<string> _transactionErrorKeywords;
+        private readonly IEJPatternService _patternService;
 
-        public EJLogAnalystController(IConfiguration configuration)
+
+        public EJLogAnalystController(IConfiguration configuration, IEJPatternService patternService)
         {
             _myConfiguration = configuration;
             sqlReport = configuration.GetValue<string>("ConnectString_MySQL:FullNameConnection");
@@ -41,7 +44,7 @@ namespace SLA_Management.Controllers
             }
             
             connectMySQL = new ConnectMySQL(sqlReport);
-
+            _patternService = patternService; 
         }
 
         [HttpGet]
@@ -74,9 +77,30 @@ namespace SLA_Management.Controllers
             ProcessCassetteSegments(lines, fileName);
             return Ok("File " + fileName + " processed successfully!");
         }
-        
+        private string ExtractGlobalTerminalId(string[] lines)
+        {
+            foreach (var line in lines)
+            {
+                // "ATM NUMBER:T045B030BE66G262"  (in SYSTEM STARTUP block)
+                var m = Regex.Match(line,
+                    @"ATM\s*NUMBER\s*[:=]\s*(\S+)",
+                    RegexOptions.IgnoreCase);
+                if (m.Success)
+                    return m.Groups[1].Value.Trim();
+
+                // "TERMINAL ID: T045B030BE66G262"  (in each transaction)
+                var m2 = Regex.Match(line,
+                    @"TERMINAL\s*ID\s*[:=]\s*(\S+)",
+                    RegexOptions.IgnoreCase);
+                if (m2.Success)
+                    return m2.Groups[1].Value.Trim();
+            }
+            return null;
+        }
         private void ProcessCassetteSegments(string[] lines, string fileName)
         {
+            // pre-scan the whole file for a global Terminal ID 
+            string globalTerminalId = ExtractGlobalTerminalId(lines);
             StringBuilder cassetteBuffer = null;
             StringBuilder transactionBuffer = null;
             string lastCassetteBlock = string.Empty;
@@ -101,7 +125,9 @@ namespace SLA_Management.Controllers
                         {
                             transactionBuffer.AppendLine(lastCassetteBlock);
 
-                            var tx = ParseTransaction(transactionBuffer.ToString(), fileName);
+                           // var tx = ParseTransaction(transactionBuffer.ToString(), fileName);
+                            var tx = ParseTransaction(transactionBuffer.ToString(), fileName, globalTerminalId);
+
                             if (tx != null)
                             {
                                 SaveToDatabase(tx, fileName);
@@ -132,7 +158,7 @@ namespace SLA_Management.Controllers
                         {
                             transactionBuffer.AppendLine(lastCassetteBlock);
 
-                            var tx = ParseTransaction(transactionBuffer.ToString(), fileName);
+                            var tx = ParseTransaction(transactionBuffer.ToString(), fileName, globalTerminalId);
                             if (tx != null)
                             {
                                 SaveToDatabase(tx, fileName);
@@ -201,140 +227,19 @@ namespace SLA_Management.Controllers
                 }
             }
         }
-
         private bool IsTransactionError(string line)
         {
             if (string.IsNullOrWhiteSpace(line)) return false;
-            return CriticalPatterns.Any(p => line.Contains(p, StringComparison.OrdinalIgnoreCase));
+            return _patternService.GetPatterns()
+                .Any(p => line.Contains(p, StringComparison.OrdinalIgnoreCase));
         }
-        private static readonly string[] CriticalPatterns = {
-                 // General    
-                "DISPENSE NOTE FAILED",
-                "DISPENSE FAIL",
-                "SEND REVERSAL",
-                "REVERSAL MESSAGE",
-                "NOTE JAM",
-                "RETRACT NOTES FAIL",
-                "ERROR",
-                "KERNEL VERSION:",
-
-                // Cash Acceptor (CIM / Cash-In)
-                "CIM ERROR",
-                "[CashInEndAsyn] Failed",
-                "CRM9250 ERROR",
-                "CIM ERR",
-                "Cash-In-End Failed",
-                "Cash-In-Start Failed",
-                "CASHIN START FAILED",
-                "CASH ACCEPTOR GETLASTCASHIN FAIL",
-                "Have Money In CIM BEFORE Start TXN",
-                "No FIT Matched",
-                "CashJammed",
-                "ERROR",
-                "Cash-In Failure",
-                "WARN:ROOLBACK SUCCESS, BUT TS(CASH ACCEPTOR) NOT EMPTY",
-                "SOME NOTES RETRACTED IN CASH-IN START",
-
-                //Cash Handler / Dispenser (CDM / Cash-Out)
-                "CDM ERROR",
-                "CDM Init ERROR",
-                "CDM8240 ERROR",
-                "DISPENSER DELIVER FATAL ERROR",
-                "Failed TO CALL DispenseStart",
-                "DISPENSE FAILURE AND SEND REVERSAL MESSAGE",
-                "ERROR: DISPENSE RESULT ALLOCATION FAILED",
-                "ERROR: ALLOT FAILURE AND CAN'T DISPENSE NOTES",
-                "REPEAT DISPENSE NOTES",
-                "DISPENSE FAIL AND SEND REVERSAL MESSAGE",
-                "PRESENT FAIL AND TRY TO RETRACT NOTES",
-
-                //Shutter & Transport
-
-                "Open Shutter Failed",
-                "Close Shutter Failed",
-                "TAKE NOTES TIMEOUT",
-                "RETRACT NOTES TO TRANSPORT",
-                "PRESENT NOTES ONE MORE TIME",
-                "RETRACT NOTES/MAYBE NOTES BE TAKEN AWAY",
-                "RETRACT NOTES FAIL",
-                "PRESENT FAIL",
-                "NOTES RETRACTED FAILURE",
-                "Retract Cash Abnormal",
-                "Error: Retract Note",
-                "Device Error: Rollback Note Failed",
-                "ERROR: CASH ACCEPTOR OUTSHUTTERCONTROL FAIL",
-                "DEV ERR:CLOSE SHUTTER FAIL",
-                "Cash Shutter is Empty",
-                "Error: Get Envelope Device Status Fail",
-                "Error Code:Rollback And Reset Failed",
-                "Refund To Customer But Timeout Retract",
-
-                //Card Reader & PINPAD (EPP) 
-                "CARDREADER ERROR",
-                "CARDREADER IS JAMMED",
-                "CARDREADER IS POWEROFF",
-                "CARDREADER SENSOR/IC ERR",
-                "EJECT CARD FAIL",
-                "CARD EJECTED FAILED",
-                "CARD RETAIN Fail",
-                "CARD RETAINED FAILED",
-                "CHIPPOWER COLDRESET",
-                "EMV Card decline the transaction",
-                "TVR",
-                "Pinpad Failed",
-                "ANTI-SKIMMING WARNING",
-                "RKL Expired",
-                "CARDREADER IS ERROR",
-
-                //Receipt Printer
-                "DEVICE ERROR",
-                "RECEIPT PRINTER ERROR",
-                "Paper Status Unknown",
-                "RECEIPT PAPER OUT",
-                "Receipt Paper Jammed",
-                "Emergency Receipt Fail",
-                "PRINT RECEIPT FORM ERROR",
-                "Receipt Printer Failed",
-                "Print Receipt Error",
-                "RECEIPT PRINTER DEVICE ERROR",
-
-                //Security, UPS & Environment
-                "City Power Is Off",
-                "Operator Switch Opened",
-                "Upper Door Opened",
-                "Safe Door Opened",
-                "Failed To Parse Expired",
-                "Key Dev Is Error",
-                "SHUTDOWN",
-                "REBOOT MACHINE",
-
-                //Network & Communication
-                "NETWORK LOST",
-                "ERR: TRANSACTION REPLY MESSAGE INCORRECT",
-                "SolicitedStatus  Send : Failed",
-                "Interactive Res. Send : Failed",
-                "Transaction Req. Send : Failed",
-                "*Error",
-                "Keypad Timeout",
-                "NETWORK DISCONNECTED",
-                "TRNSACTION REPLY MESSAGE INCORRECT",
-
-                //Network & Communication
-                "BARCODE HWERROR",
-                "BarCode Error",
-                "BARCODESCANNER NOT CONFIGURED",
-                "Camera Error"
-            };
-
-
-
-        
-        private EJTransaction ParseTransaction(string fullText, string fileName)
+    
+        private EJTransaction ParseTransaction(string fullText, string fileName, string globalTerminalId = null)
         {	
             var tx = new EJTransaction
             {
-                TransactionType = "Withdrawal",      // default
-                TransactionStatus = "FAIL",           // default
+                TransactionType = "Withdrawal",      
+                TransactionStatus = "FAIL",          
                 FullTransaction = fullText,
                 TransactionDateTime = GetDateFromEJFileName(fileName)
             };            
@@ -361,20 +266,22 @@ namespace SLA_Management.Controllers
                 }
             }
             string line;
+            string lastTsn = null;
+            string amountEntryField = null;
 
             while ((line = reader.ReadLine()) != null)
             {
-                // ---------------- TERMINAL ID ----------------
+                // ── TERMINAL ID ──────────────────────────────────────────────
                 if (string.IsNullOrEmpty(tx.TerminalId))
                 {
                     if (line.Contains("TERMINAL ID:", StringComparison.OrdinalIgnoreCase) ||
                         line.Contains("ATM NUMBER", StringComparison.OrdinalIgnoreCase))
                     {
-                        var match = Regex.Match(line, @"(?:Terminal\s*Id|ATM\s*NUMBER)\s*[:=]?\s*(\S+)", RegexOptions.IgnoreCase);
+                        var match = Regex.Match(line,
+                            @"(?:TERMINAL\s*ID|ATM\s*NUMBER)\s*[:=]?\s*(\S+)",
+                            RegexOptions.IgnoreCase);
                         if (match.Success)
-                        {
                             tx.TerminalId = match.Groups[1].Value.Trim();
-                        }
                     }
                     else if (line.Contains("EJREPORT:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -383,9 +290,7 @@ namespace SLA_Management.Controllers
                         {
                             string termId = parts[14].Trim();
                             if (!string.IsNullOrEmpty(termId))
-                            {
                                 tx.TerminalId = termId;
-                            }
                         }
                     }
                 }
@@ -405,24 +310,31 @@ namespace SLA_Management.Controllers
                         }
                     }
                 }
-                // ---------------- SEQUENCE NO ----------------                
-                // 1. If EJREPORT exists, use it as priority
+                // ── SEQUENCE NO ───────────────────────────────────────────────
+                // Priority 1: EJREPORT (most reliable)
                 if (line.Contains("EJREPORT:", StringComparison.OrdinalIgnoreCase))
                 {
                     var m = Regex.Match(line, @"EJREPORT:\s*(\d+)");
                     if (m.Success)
-                    {
                         tx.SequenceNo = m.Groups[1].Value;
-                    }
                 }
                 else
-                {                   
-                    var journalMatch = Regex.Match(line, @"\.\d{3}\s+(?<seq>\d{4,6})\s+\d{2}:\d{2}:\d{2}");
-
-                    if (journalMatch.Success)
-                    {
+                {
+                    // Priority 2: Journal block 
+                    var journalMatch = Regex.Match(line,
+                        @"^\s+(?<seq>\d{4,6})\s+\d{1,2}:\d{2}:\d{2}\s+\d{2}/\d{2}/\d{2}");
+                    if (journalMatch.Success && string.IsNullOrEmpty(tx.SequenceNo))
                         tx.SequenceNo = journalMatch.Groups["seq"].Value;
-                    }
+                }
+
+                // ── NEW: capture [LAST TSN] as fallback (LastTSN + 1 = this seq) ──
+                if (string.IsNullOrEmpty(tx.SequenceNo))
+                {
+                    var tsnMatch = Regex.Match(line,
+                        @"\[LAST\s+TSN\]\s*:\s*\[(\d+)\]",
+                        RegexOptions.IgnoreCase);
+                    if (tsnMatch.Success)
+                        lastTsn = tsnMatch.Groups[1].Value;
                 }
 
                 // ---------------- AMOUNT ----------------
@@ -432,7 +344,7 @@ namespace SLA_Management.Controllers
 
                     if (parts.Length > 9)
                     {
-                        string seqFromLog = parts[0].Split(':').LastOrDefault();
+                        string seqFromLog = parts[0].Split(':').LastOrDefault()?.Trim();
 
                         if (seqFromLog == tx.SequenceNo)
                         {
@@ -443,6 +355,15 @@ namespace SLA_Management.Controllers
                         }
                     }
                 }
+                // ── AMOUNT ENTRY FIELD (fallback if no EJREPORT & no journal amt) ──
+                if (!tx.Amount.HasValue &&
+                    line.Contains("[AMOUNT ENTRY FIELD]", StringComparison.OrdinalIgnoreCase))
+                {
+                    var m = Regex.Match(line, @"\[AMOUNT ENTRY FIELD\]\s*:\s*\[(\d+)\]");
+                    if (m.Success && long.TryParse(m.Groups[1].Value, out long rawAmt) && rawAmt > 0)
+                        amountEntryField = (rawAmt / 100m).ToString("F2"); // store, apply as last resort
+                }
+
 
                 // ---------------- TRANSACTION TYPE ----------------
                 SetTransactionType(line, tx);
@@ -458,62 +379,28 @@ namespace SLA_Management.Controllers
                 }
 
             }
+            // Terminal ID fallback: use global (from ATM NUMBER in startup)
+            if (string.IsNullOrEmpty(tx.TerminalId) && !string.IsNullOrEmpty(globalTerminalId))
+                tx.TerminalId = globalTerminalId;
+
+            // Sequence No fallback: LastTSN + 1
+            if (string.IsNullOrEmpty(tx.SequenceNo) && !string.IsNullOrEmpty(lastTsn))
+            {
+                if (int.TryParse(lastTsn, out int tsn))
+                    tx.SequenceNo = (tsn).ToString();
+            }
+            if (!tx.Amount.HasValue && amountEntryField != null)
+                if (decimal.TryParse(amountEntryField,
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out decimal entryAmt))
+                    tx.Amount = entryAmt;
 
             return tx;
         }
-
-        private static readonly KeyValuePair<string, string>[] TransactionTypeMap =
-        {
-            // ===== Deposit =====
-            new("DEP_AMLO", "Deposit"),
-            new("DEP_DCC", "Deposit"),
-            new("DEP_P00", "Deposit"),
-            new("DEP_P01", "Deposit"),
-            new("DEP_DCA", "Deposit"),
-            new("DEP", "Deposit"),
-            new("RFT_P00", "Deposit"),
-            new("RFT_P01", "Deposit"),
-            new("RFT_DCA", "Deposit"),
-
-            // ===== Withdrawal =====
-            new("CL_WDL", "Withdrawal"),
-            new("WDL_CL", "Withdrawal"),
-            new("CB_WDL", "Withdrawal"),
-            new("MCASH", "Withdrawal"),
-            new("FAS", "Withdrawal"),
-            new("WDL", "Withdrawal"),
-
-            // ===== Inquiry =====
-            new("TRD INQ", "Inquiry"),
-            new("ORFT INQ", "Inquiry"),
-            new("PROM_INQ", "Inquiry"),
-            new("INQ", "Inquiry"),
-
-            // ===== Other =====
-            new("PAY_P00", "Other"),
-            new("PAY_P01", "Other"),
-            new("BAR_P00", "Other"),
-            new("QRC CONF", "Other"),
-            new("PSC_PCC", "Other"),
-            new("PP_BILL", "Other"),
-            new("CHGPIN", "Other"),
-            new("ANN_FEE", "Other"),
-            new("AN-FEE", "Other"),
-            new("IPSC", "Other"),
-            new("PPCR", "Other"),
-            new("ORFT TRF", "Other"),
-            new("TRD", "Other"),
-            new("TRF", "Other"),
-            new("ORFT", "Other"),
-            new("PROM_", "Other"),
-            new("PAY_", "Other"),
-            new("BAR_", "Other")
-        };
-
-
         private void SetTransactionType(string line, EJTransaction tx)
         {
-            foreach (var kv in TransactionTypeMap)
+            foreach (var kv in _patternService.GetTransactionTypes())
             {
                 if (line.Contains(kv.Key, StringComparison.OrdinalIgnoreCase))
                 {
@@ -816,22 +703,14 @@ namespace SLA_Management.Controllers
                 (ch >= 0xE000 && ch <= 0xFFFD)
             ).ToArray());
         }
-
-      
         private List<string> GetAllErrorPatternsInLine(string line)
         {
-            List<string> matches = new List<string>();       
-            foreach (var pattern in CriticalPatterns)
-            {
+            var matches = new List<string>();
+            foreach (var pattern in _patternService.GetPatterns())
                 if (line.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-                {
                     matches.Add(pattern);
-                }
-            }
             return matches;
         }
-      
-     
-       
+
     }
 }
