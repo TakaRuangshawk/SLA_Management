@@ -122,7 +122,7 @@ namespace SLA_Management.Data.TermProb
 
             try
             {
-                _sql = "Select * From ejlog_problemmascode where status = '1' and displayflag = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
+                _sql = "Select * From ejlog_problemmascode where displayflag = '1' order by CASE WHEN memo IS NULL or memo = '' THEN 1 END, LENGTH(memo),probcode asc;";
                 _dt = _objDb.GetDatatableNotParam(_sql);
                 return _dt;
             }
