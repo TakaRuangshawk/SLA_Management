@@ -180,7 +180,15 @@ namespace SLA_Management.Commons
                 }
             }
         }
-
+        private string CleanHeader(object val)
+        {
+            return val?.ToString()
+                .Trim()
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace("\uFEFF", "")
+                .ToLowerInvariant();
+        }
 
         public async Task ImportExcelProblemDataAsync(Stream excelStream, string userName)
         {
@@ -199,7 +207,7 @@ namespace SLA_Management.Commons
 
                 for (int i = 0; i < expectedHeaders.Length; i++)
                 {
-                    var header = worksheet.Cells[1, i + 1].Value?.ToString()?.Trim().ToLower();
+                    var header = CleanHeader(worksheet.Cells[1, i + 1].Value?.ToString()?.Trim().ToLower());
                     if (header != expectedHeaders[i])
                     {
                         throw new Exception($"❌ คอลัมน์ที่ {(i + 1)} ควรเป็น '{expectedHeaders[i]}' แต่พบว่าเป็น '{header ?? "null"}'");

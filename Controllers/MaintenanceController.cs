@@ -331,9 +331,8 @@ namespace SLA_Management.Controllers
                     {
                         parser.TextFieldType = FieldType.Delimited;
                         parser.SetDelimiters(",");
-                        parser.HasFieldsEnclosedInQuotes = false;
+                        parser.HasFieldsEnclosedInQuotes = true;
 
-                        // ข้าม header row
                         if (!parser.EndOfData)
                             parser.ReadLine();
 
@@ -343,15 +342,37 @@ namespace SLA_Management.Controllers
                             if (fields == null || fields.Length < 70)
                                 continue;
 
+                            var termId = CleanValue(fields[1]);
                             string counterCode = "";
+
                             if (file.FileName.Contains("587")) counterCode = "LOT587";
                             else if (file.FileName.Contains("572")) counterCode = "LOT572";
                             else if (file.FileName.Contains("362")) counterCode = "LOT362";
+                            else
+                            {
+                                if (!string.IsNullOrEmpty(termId) && termId.Length >= 3)
+                                {
+                                    var key = termId.Substring(2, 1);
+
+                                    switch (key)
+                                    {
+                                        case "2":
+                                            counterCode = "LOT572";
+                                            break;
+                                        case "3":
+                                            counterCode = "LOT587";
+                                            break;
+                                        case "4":
+                                            counterCode = "LOT362";
+                                            break;
+                                    }
+                                }
+                            }
 
                             var terminal = new TerminalInformationModel
                             {
                                 DEVICE_ID = CleanValue(fields[0]),
-                                TERM_ID = CleanValue(fields[1]),
+                                TERM_ID = termId,
                                 DEPT_ID = CleanValue(fields[2]),
                                 TYPE_ID = CleanValue(fields[3]),
                                 BRAND_ID = CleanValue(fields[4]),
