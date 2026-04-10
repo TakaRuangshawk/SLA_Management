@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SLA_Management.Commons.SignalR;
 using SLA_Management.Services;
+using static SLA_Management.Data.DBService_EJLoganalyst;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ builder.Services.AddScoped<ReportCasesCheckService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
+// Add services for  EJPatternService 
+builder.Services.AddSingleton<IEJPatternService, EJPatternService>();
 builder.Services.Configure<FormOptions>(option =>
 {
     option.MultipartBodyLengthLimit = 2028 * 1024 * 1024;
