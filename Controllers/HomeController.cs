@@ -365,6 +365,90 @@ namespace SLA_Management.Controllers
             record.offlineATM = reader["_offlineATM"].ToString();
             return record;
         }
+        [HttpGet]
+        public IActionResult GetEjlogHistoryRemarkSummary()
+        {
+            List<object> result = new List<object>();
+            DateTime today = DateTime.Today;
+            DateTime startDate = today.AddDays(-6);
+            DateTime endDate = today.AddDays(1);
+
+            Dictionary<DateTime, Dictionary<string, int>> summary = new Dictionary<DateTime, Dictionary<string, int>>();
+
+            for (int i = 0; i < 7; i++)
+            {
+                DateTime date = startDate.AddDays(i);
+                summary[date] = new Dictionary<string, int>
+                {
+                    { "@", 0 },
+                    { "M", 0 },
+                    { "R", 0 }
+                };
+            }
+
+            string sqlQuery = @"SELECT DATE(trx_datetime) AS trx_date,
+                                       s_remark,
+                                       COUNT(*) AS total_count
+                                FROM ejlog_history
+                                WHERE trx_datetime >= @startDate
+                                  AND trx_datetime < @endDate
+                                  AND s_remark IN ('@', 'M', 'R')
+                                GROUP BY DATE(trx_datetime), s_remark
+                                ORDER BY trx_date;";
+
+            try
+            {
+                using (MySqlConnection cn = new MySqlConnection(_myConfiguration.GetValue<string>("ConnectString_MySQL:FullNameConnection")))
+                {
+                    cn.Open();
+
+                    using (MySqlCommand cmd = new MySqlCommand(sqlQuery, cn))
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Parameters.Add("@startDate", MySqlDbType.DateTime).Value = startDate;
+                        cmd.Parameters.Add("@endDate", MySqlDbType.DateTime).Value = endDate;
+
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader["trx_date"] == DBNull.Value || reader["s_remark"] == DBNull.Value)
+                                {
+                                    continue;
+                                }
+
+                                DateTime trxDate = Convert.ToDateTime(reader["trx_date"]).Date;
+                                string remark = reader["s_remark"].ToString();
+                                int totalCount = Convert.ToInt32(reader["total_count"]);
+
+                                if (summary.ContainsKey(trxDate) && summary[trxDate].ContainsKey(remark))
+                                {
+                                    summary[trxDate][remark] = totalCount;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[ERROR] GetEjlogHistoryRemarkSummary: " + ex.Message);
+            }
+
+            foreach (KeyValuePair<DateTime, Dictionary<string, int>> item in summary)
+            {
+                result.Add(new
+                {
+                    date = item.Key.ToString("yyyy-MM-dd", usaCulture),
+                    dateLabel = item.Key.ToString("dd/MM/yyyy", usaCulture),
+                    atCount = item.Value["@"],
+                    mCount = item.Value["M"],
+                    rCount = item.Value["R"]
+                });
+            }
+
+            return Json(result);
+        }
         public IActionResult Privacy()
         {
             return View();

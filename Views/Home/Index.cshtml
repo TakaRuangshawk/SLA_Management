@@ -86,7 +86,176 @@
         .sla-tracking-row{
             padding-left:130px;
         }
+
+        #maincard-comlog{
+            margin-left:130px
+        }
     }
+
+    /* EJLog History 7 Days Chart */
+    .ejlog-chart-card {
+        margin-top: 15px;
+        margin-bottom: 15px;
+        padding: 16px 18px 12px;
+        background-color: rgba(255,255,255,1);
+        border-radius: 15px;
+        border: outset;
+        border-color: lightgray;
+        color: #000;
+    }
+
+
+    .ejlog-chart-legend {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 28px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .ejlog-chart-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .ejlog-chart-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .ejlog-pink { background-color: #df67bd; }
+    .ejlog-rose { background-color: #e36880; }
+    .ejlog-brown { background-color: #c0644c; }
+
+    .ejlog-chart-area {
+        display: flex;
+        height: 260px;
+    }
+
+    .ejlog-y-axis {
+        width: 38px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-right: 8px;
+        padding-bottom: 34px;
+        font-size: 0.85rem;
+        color: #111;
+        box-sizing: border-box;
+    }
+
+    .ejlog-plot {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 34px;
+        overflow-x: auto;
+    }
+
+    .ejlog-grid {
+        position: absolute;
+        inset: 0 0 34px 0;
+        background: repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent calc(25% - 1px),
+            #d9d9d9 calc(25% - 1px),
+            #d9d9d9 25%
+        );
+        border-top: 1px solid #ededed;
+        pointer-events: none;
+    }
+
+    .ejlog-group {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        min-width: 74px;
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2px;
+    }
+
+    .ejlog-group-label {
+        position: absolute;
+        bottom: -27px;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        color: #000;
+    }
+
+    .ejlog-bar {
+        width: 22px;
+        height: 0%;
+        min-height: 3px;
+        border-radius: 6px 6px 0 0;
+        position: relative;
+        transition: height .25s ease;
+    }
+
+    .ejlog-bar-zero {
+        min-height: 0;
+        height: 0 !important;
+    }
+
+    .ejlog-bar-value {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-size: 0.8rem;
+        line-height: 1;
+        font-weight: 700;
+        display: none;
+    }
+
+    .ejlog-bar.outside-value .ejlog-bar-value {
+        top: -18px;
+        color: #000;
+    }
+
+    .ejlog-loading,
+    .ejlog-error {
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 575px) {
+
+        .ejlog-chart-legend {
+            gap: 16px;
+            font-size: 0.9rem;
+        }
+
+        .ejlog-group {
+            min-width: 68px;
+        }
+
+        .ejlog-bar {
+            width: 19px;
+        }
+    }
+
 </style>
 
 <div class="text-center" id="bg">
@@ -122,6 +291,9 @@
                     </div>
                     
                 </div>
+
+                
+
                 <div id="banner-fv">
                 <div class="row ">
                     <div class="col-12">
@@ -270,50 +442,7 @@
 
                     </div>
                 </div>
-                <div class="row" id="maincard-comlog" style=" margin-top:15px; margin-bottom:15px; border-radius:15px; background-color: rgba(255,255,255,0.65);">
-                <div class="col-12">
-                    <div class="row ds-flex-spacearound">
-                     
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:left;font-weight: 700;color:black;white-space:nowrap;">
-                                จำนวน ComLog ที่อัพโหลด : @ViewBag.comlogTotal เครื่อง (ข้อมูลล่าสุด ณ วันที่ @ViewBag.DateNow)
-                            </div>
-                            <div class="col-5">
-                               
-                            </div>
-                    </div>
-                    <div class="row ds-flex-spacearound">
-                      
-                        <div class="fs-3 col-5" id="comlogbox">
-                            @ViewBag.comlogADM
-                        </div>
-          
-                        <div class="fs-3 col-5" id="comlogbox">
-                            @ViewBag.comlogATM
-                        </div>
-                       
-                    </div>
-                    <div class="row ds-flex-spacearound">
-                      
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
-                            ADM
-                        </div>
-
-                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
-                            ATM
-                        </div>
-                       
-                    </div>
-                  @*  <div class="row" id="maincard-ps" style="padding-top:15px;">
-                      
-                         <div class="col-11">
-                            <div style="display:flex;justify-content:left;  ">
-                                <p style="text-align:left;font-size: 1.1vw;font-weight: 700;color:black; background-color:rgba(255,255,255,0.7);border-radius:20px;padding:10px;">**หมายเหตุ : ข้อมูลอัพเดทล่าสุดใน ณ วันที่ @ViewBag.DateNow</p>
-                            </div>
-                         </div>
-
-                    </div>*@
-                </div>
-            </div>   
+                
             @*<div class="row" id="maincard-ps" style="">
                 <div class="col-1" style="width:35px;">
 
@@ -326,11 +455,64 @@
                 </div>
 
             </div>*@
+            <div class="ejlog-chart-card">
+
+                    <div class="ejlog-chart-legend">
+                        <span><i class="ejlog-chart-dot ejlog-pink"></i>รายการ @@</span>
+                        <span><i class="ejlog-chart-dot ejlog-rose"></i>รายการ M</span>
+                        <span><i class="ejlog-chart-dot ejlog-brown"></i>รายการ R</span>
+                    </div>
+
+                    <div id="ejlogHistoryChart" class="ejlog-loading">กำลังโหลดข้อมูล...</div>
+                </div>
             </div>
             <div class="col-md-12 col-xl-6">
                 <div id="row-pic-welcome" class="row" style="">
                     <div class="col-12" style="display: flex;justify-content: flex-end;">
                         <img id="" src="~/images/Pic_Welcome.png" alt="Logo" style="height: auto;width: 100%;max-width: 447px;">
+                    </div>
+                </div>
+                <div class="row" id="maincard-comlog" style=" margin-top:15px; margin-bottom:15px; border-radius:15px; background-color: rgba(255,255,255,0.65);">
+                    <div class="col-12">
+                        <div class="row ds-flex-spacearound">
+
+                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:left;font-weight: 700;color:black;white-space:nowrap;">
+                                จำนวน ComLog ที่อัพโหลด : @ViewBag.comlogTotal เครื่อง (ข้อมูลล่าสุด ณ วันที่ @ViewBag.DateNow)
+                            </div>
+                            <div class="col-5">
+                            </div>
+                        </div>
+                        <div class="row ds-flex-spacearound">
+
+                            <div class="fs-3 col-5" id="comlogbox">
+                                @ViewBag.comlogADM
+                            </div>
+
+                            <div class="fs-3 col-5" id="comlogbox">
+                                @ViewBag.comlogATM
+                            </div>
+
+                        </div>
+                        <div class="row ds-flex-spacearound">
+
+                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
+                                ADM
+                            </div>
+
+                            <div class="fs-6 col-5" style="padding-top:0.5vh;padding-bottom:0.5vh;text-align:center;font-size: 1.1vw;font-weight: 700;color:black;">
+                                ATM
+                            </div>
+
+                        </div>
+                        @*  <div class="row" id="maincard-ps" style="padding-top:15px;">
+                      
+                         <div class="col-11">
+                            <div style="display:flex;justify-content:left;  ">
+                                <p style="text-align:left;font-size: 1.1vw;font-weight: 700;color:black; background-color:rgba(255,255,255,0.7);border-radius:20px;padding:10px;">**หมายเหตุ : ข้อมูลอัพเดทล่าสุดใน ณ วันที่ @ViewBag.DateNow</p>
+                            </div>
+                         </div>
+
+                    </div>*@
                     </div>
                 </div>
                 <div class="sla-tracking-row row" style="justify-content: flex-end;    margin-bottom: 40px;">
@@ -447,6 +629,80 @@
 </div>
 
 <script>
+
+    async function loadEjlogHistoryChart() {
+        const container = document.getElementById("ejlogHistoryChart");
+        if (!container) return;
+
+        try {
+            const response = await fetch("@Url.Action("GetEjlogHistoryRemarkSummary", "Home")", {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            const data = await response.json();
+            renderEjlogHistoryChart(container, data);
+        } catch (error) {
+            console.error("Load EJLog history chart failed:", error);
+            container.className = "ejlog-error";
+            container.textContent = "โหลดข้อมูล EJLog ไม่สำเร็จ";
+        }
+    }
+
+    function renderEjlogHistoryChart(container, data) {
+        const rows = Array.isArray(data) ? data : [];
+        const maxValue = Math.max(1, ...rows.flatMap(x => [Number(x.atCount || 0), Number(x.mCount || 0), Number(x.rCount || 0)]));
+        const axisMax = Math.max(10, Math.ceil(maxValue / 10) * 10);
+        const axisValues = [axisMax, axisMax * 0.75, axisMax * 0.50, axisMax * 0.25, 0];
+
+        const yAxisHtml = axisValues
+            .map(v => `<span>${Math.round(v)}</span>`)
+            .join("");
+
+        const groupsHtml = rows.map(item => {
+            const atCount = Number(item.atCount || 0);
+            const mCount = Number(item.mCount || 0);
+            const rCount = Number(item.rCount || 0);
+
+            return `
+                <div class="ejlog-group">
+                    ${createEjlogBar(atCount, axisMax, "ejlog-pink")}
+                    ${createEjlogBar(mCount, axisMax, "ejlog-rose")}
+                    ${createEjlogBar(rCount, axisMax, "ejlog-brown")}
+                    <p class="ejlog-group-label">${item.dateLabel || ""}</p>
+                </div>`;
+        }).join("");
+
+        container.className = "ejlog-chart-area";
+        container.innerHTML = `
+            <div class="ejlog-y-axis">${yAxisHtml}</div>
+            <div class="ejlog-plot">
+                <div class="ejlog-grid"></div>
+                ${groupsHtml}
+            </div>`;
+    }
+
+    function createEjlogBar(value, axisMax, colorClass) {
+        const safeValue = Math.max(0, Number(value || 0));
+        const height = axisMax > 0 ? (safeValue / axisMax) * 100 : 0;
+        const showValue = safeValue > 0;
+        const outsideValueClass = height > 0 && height < 12 ? " outside-value" : "";
+        const zeroClass = safeValue === 0 ? " ejlog-bar-zero" : "";
+        const valueDisplay = showValue ? "block" : "none";
+
+        return `
+            <div class="ejlog-bar ${colorClass}${outsideValueClass}${zeroClass}" style="height:${height}%;">
+                <span class="ejlog-bar-value" style="display:${valueDisplay};">${safeValue}</span>
+            </div>`;
+    }
+
+    loadEjlogHistoryChart();
+
 
     function updateDateTime() {
       var now = new Date();
